@@ -28,8 +28,11 @@ class LearningActivity : AppCompatActivity() {
             onAnswered(wordId = 1, isCorrect = true)
         }
 
-        // 画面表示時にポイント表示を更新
+        // ポイント表示を更新
         updatePointView()
+
+        // ★ 本日の出題対象（nextDueDate <= 今日）をログに出す
+        loadDueWords(mode = currentMode)
     }
 
     override fun onResume() {
@@ -88,5 +91,28 @@ class LearningActivity : AppCompatActivity() {
         val pointView: TextView = findViewById(R.id.text_points)
         val total = PointManager(this).getTotal()
         pointView.text = "ポイント: $total"
+    }
+
+    /** mode の出題対象（nextDueDate <= 今日）を取得してログに出す */
+    private fun loadDueWords(mode: String) {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val progressDao = db.wordProgressDao()
+            val wordDao = db.wordDao()
+
+            val today = ProgressCalculator.todayEpochDay()
+
+            // 1) 期限到来の単語IDを取得
+            val ids = progressDao.getDueWordIds(mode, today)
+
+            // 2) IDから単語を取得（空なら空リスト）
+            val dueWords = if (ids.isEmpty()) emptyList() else wordDao.getByIds(ids)
+
+            // 3) ログで確認
+            Log.d("DUE_TEST", "mode=$mode dueCount=${dueWords.size}")
+            dueWords.forEach { w ->
+                Log.d("DUE_TEST", "${w.no} ${w.word} ${w.japanese}")
+            }
+        }
     }
 }
