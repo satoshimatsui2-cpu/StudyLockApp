@@ -1,14 +1,14 @@
 package com.example.studylockapp
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) { // onCreate 内
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main)  // レイアウトは activity_main.xml
 
         // 1) ボタン参照を取得（XML の ID に合わせる）
         val buttonToLearning: Button = findViewById(R.id.button_to_learning)
