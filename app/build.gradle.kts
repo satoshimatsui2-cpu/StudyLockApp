@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")             // ★ Room コンパイラ用に追加
+    id("kotlin-kapt") // Room コンパイラ用
 }
 
 android {
@@ -34,30 +34,42 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    // Compose を使わないなら compose = false にして、Compose 依存を削除してOK
     buildFeatures {
-        compose = true            // Composeを使う前提のまま。不要なら false でOK
+        compose = true
+    }
+    // Compose を使う場合はコンパイラ拡張バージョンを指定
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15" // 手元の Compose BOM に合わせて変更可
     }
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
+    // Compose 系
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
+
+    // View 系（AppCompat/ConstraintLayout などを併用する場合）
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
+    // Kotlin/AndroidX 基本
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // --- Room を追加 ---
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
+    // テスト
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
