@@ -12,9 +12,11 @@ class WordAdapter(private var items: List<WordEntity>) :
     RecyclerView.Adapter<WordAdapter.WordViewHolder>() {
 
     class WordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val textWord: TextView = itemView.findViewById(R.id.text_word)
-        val textJapanese: TextView = itemView.findViewById(R.id.text_japanese)
-        val textDetail: TextView = itemView.findViewById(R.id.text_detail)
+        val colWord: TextView = itemView.findViewById(R.id.col_word)
+        val colJapanese: TextView = itemView.findViewById(R.id.col_japanese)
+        val colGrade: TextView = itemView.findViewById(R.id.col_grade)
+        val colPos: TextView = itemView.findViewById(R.id.col_pos)
+        val colCategory: TextView = itemView.findViewById(R.id.col_category)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WordViewHolder {
@@ -25,9 +27,11 @@ class WordAdapter(private var items: List<WordEntity>) :
 
     override fun onBindViewHolder(holder: WordViewHolder, position: Int) {
         val item = items[position]
-        holder.textWord.text = item.word
-        holder.textJapanese.text = item.japanese
-        holder.textDetail.text = "grade: ${item.grade} / pos: ${item.pos ?: "-"} / cat: ${item.category}"
+        holder.colWord.text = item.word
+        holder.colJapanese.text = item.japanese
+        holder.colGrade.text = item.grade
+        holder.colPos.text = item.pos ?: "-"
+        holder.colCategory.text = item.category
     }
 
     override fun getItemCount(): Int = items.size

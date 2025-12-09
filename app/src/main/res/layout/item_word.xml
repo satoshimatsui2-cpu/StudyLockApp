@@ -1,39 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:orientation="horizontal"
+    android:padding="4dp">
 
     <TextView
-        android:id="@+id/text_word"
+        android:id="@+id/col_word"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="2"
         android:text="word"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:textSize="14sp"
+        android:ellipsize="end"
+        android:maxLines="1" />
 
     <TextView
-        android:id="@+id/text_japanese"
+        android:id="@+id/col_japanese"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="2"
         android:text="japanese"
-        app:layout_constraintTop_toBottomOf="@id/text_word"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:textSize="14sp"
+        android:ellipsize="end"
+        android:maxLines="1" />
 
     <TextView
-        android:id="@+id/text_detail"
+        android:id="@+id/col_grade"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="grade / pos / category"
-        android:textSize="12sp"
-        app:layout_constraintTop_toBottomOf="@id/text_japanese"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:layout_weight="1"
+        android:text="grade"
+        android:textSize="14sp"
+        android:ellipsize="end"
+        android:maxLines="1" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/col_pos"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="pos"
+        android:textSize="14sp"
+        android:ellipsize="end"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/col_category"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="category"
+        android:textSize="14sp"
+        android:ellipsize="end"
+        android:maxLines="1" />
+
+</LinearLayout>
