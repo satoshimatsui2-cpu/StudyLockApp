@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
+import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
 import kotlinx.coroutines.launch
 
@@ -17,22 +18,31 @@ class LearningActivity : AppCompatActivity() {
     // 出題モード: 意味なら "meaning", リスニングなら "listening" など
     private val currentMode = "meaning"
 
+    // 現在出題中の単語を保持
+    private var currentWord: WordEntity? = null
+
+    private lateinit var textQuestion: TextView
+    private lateinit var textPoints: TextView
+    private lateinit var buttonCorrect: Button
+    private lateinit var buttonWrong: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_learning)
 
-        // 【テスト用】回答処理を呼び出すボタン
-        val testButton: Button = findViewById(R.id.button_test_answer)
-        testButton.setOnClickListener {
-            // 仮の単語ID=1を「正解」として扱う例
-            onAnswered(wordId = 1, isCorrect = true)
-        }
+        // View の取得
+        textQuestion = findViewById(R.id.text_question)
+        textPoints = findViewById(R.id.text_points)
+        buttonCorrect = findViewById(R.id.button_correct)
+        buttonWrong = findViewById(R.id.button_wrong)
 
-        // ポイント表示を更新
+        // ボタンに回答処理を紐付け
+        buttonCorrect.setOnClickListener { onAnswered(isCorrect = true) }
+        buttonWrong.setOnClickListener { onAnswered(isCorrect = false) }
+
+        // 起動時にポイント表示 & 次の問題をロード
         updatePointView()
-
-        // ★ 本日の出題対象（nextDueDate <= 今日）をログに出す
-        loadDueWords(mode = currentMode)
+        loadNextQuestion()
     }
 
     override fun onResume() {
@@ -40,12 +50,45 @@ class LearningActivity : AppCompatActivity() {
         updatePointView()
     }
 
+    /** 次の問題をロードして表示（nextDueDate <= 今日 のものから1件） */
+    private fun loadNextQuestion() {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val progressDao = db.wordProgressDao()
+            val wordDao = db.wordDao()
+            val today = ProgressCalculator.todayEpochDay()
+
+            // 1) 期限到来の単語IDを取得
+            val ids = progressDao.getDueWordIds(currentMode, today)
+
+            // 2) IDから単語を取得（空なら空リスト）
+            val dueWords = if (ids.isEmpty()) emptyList() else wordDao.getByIds(ids)
+
+            // 3) 出題リストが空なら全件から出す（フォールバック）
+            val targetList = if (dueWords.isNotEmpty()) dueWords else wordDao.getAll()
+
+            if (targetList.isEmpty()) {
+                textQuestion.text = "出題する単語がありません"
+                currentWord = null
+                return@launch
+            }
+
+            // 4) ランダムに1件出題
+            val next = targetList.random()
+            currentWord = next
+            textQuestion.text = next.word  // ここでは英単語をそのまま表示（意味問題）
+        }
+    }
+
     /**
      * 回答が確定したときに呼ぶ
-     * @param wordId WordEntity.no に合わせる
      * @param isCorrect 正解なら true, 不正解なら false
      */
-    private fun onAnswered(wordId: Int, isCorrect: Boolean) {
+    private fun onAnswered(isCorrect: Boolean) {
+        val wordId = currentWord?.no ?: run {
+            Log.d("ANSWER", "No current word.")
+            return
+        }
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
@@ -78,41 +121,22 @@ class LearningActivity : AppCompatActivity() {
             )
             progressDao.upsert(updated)
 
-            // （任意）ログで確認
-            Log.d("ANSWER_TEST", "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}")
-
-            // ポイント表示を更新
+            // ログとポイント表示
+            Log.d(
+                "ANSWER_TEST",
+                "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint " +
+                        "newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}"
+            )
             updatePointView()
+
+            // 次の問題をロード
+            loadNextQuestion()
         }
     }
 
     /** ポイント表示を更新するヘルパー */
     private fun updatePointView() {
-        val pointView: TextView = findViewById(R.id.text_points)
         val total = PointManager(this).getTotal()
-        pointView.text = "ポイント: $total"
-    }
-
-    /** mode の出題対象（nextDueDate <= 今日）を取得してログに出す */
-    private fun loadDueWords(mode: String) {
-        lifecycleScope.launch {
-            val db = AppDatabase.getInstance(this@LearningActivity)
-            val progressDao = db.wordProgressDao()
-            val wordDao = db.wordDao()
-
-            val today = ProgressCalculator.todayEpochDay()
-
-            // 1) 期限到来の単語IDを取得
-            val ids = progressDao.getDueWordIds(mode, today)
-
-            // 2) IDから単語を取得（空なら空リスト）
-            val dueWords = if (ids.isEmpty()) emptyList() else wordDao.getByIds(ids)
-
-            // 3) ログで確認
-            Log.d("DUE_TEST", "mode=$mode dueCount=${dueWords.size}")
-            dueWords.forEach { w ->
-                Log.d("DUE_TEST", "${w.no} ${w.word} ${w.japanese}")
-            }
-        }
+        textPoints.text = "ポイント: $total"
     }
 }
