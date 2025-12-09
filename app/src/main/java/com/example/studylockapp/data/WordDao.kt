@@ -1,4 +1,3 @@
-
 package com.example.studylockapp.data
 
 import androidx.room.Dao
@@ -8,10 +7,16 @@ import androidx.room.Query
 
 @Dao
 interface WordDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(words: List<WordEntity>)
 
+    // すべての単語を取得（CsvImporter / MainActivity / WordListActivity で使用）
     @Query("SELECT * FROM words")
     suspend fun getAll(): List<WordEntity>
+
+    // IDでまとめて取得したい場合に使用（必要に応じてどうぞ）
+    @Query("SELECT * FROM words WHERE no IN (:ids)")
+    suspend fun getByIds(ids: List<Int>): List<WordEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(words: List<WordEntity>)
 }
 

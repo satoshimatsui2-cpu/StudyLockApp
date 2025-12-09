@@ -1,12 +1,68 @@
-// ファイル: LearningActivity.kt
 package com.example.studylockapp
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.studylockapp.data.*
+import kotlinx.coroutines.launch
 
 class LearningActivity : AppCompatActivity() {
+
+    // 出題モード: 意味なら "meaning", リスニングなら "listening" など
+    private val currentMode = "meaning"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_learning) // ← 自動生成レイアウトをセット
+        setContentView(R.layout.activity_learning)
+        // 出題やボタンなどのセットアップはここで…
+    }
+
+    /**
+     * 回答が確定したときに呼ぶ
+     * @param wordId WordEntity.no に合わせる
+     * @param isCorrect 正解なら true, 不正解なら false
+     */
+    private fun onAnswered(wordId: Int, isCorrect: Boolean) {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val progressDao = db.wordProgressDao()
+            val pointManager = PointManager(this@LearningActivity)
+
+            val today = ProgressCalculator.todayEpochDay()
+
+            // 現在の進捗を取得（なければ初期値を作る）
+            val current = progressDao.getProgress(wordId, currentMode)
+                ?: WordProgressEntity(
+                    wordId = wordId,
+                    mode = currentMode,
+                    level = 0,
+                    nextDueDate = today,
+                    lastAnsweredAt = 0L
+                )
+
+            // レベル更新
+            val (newLevel, nextDue) = ProgressCalculator.update(isCorrect, current.level, today)
+
+            // ポイント計算＆加算
+            val addPoint = ProgressCalculator.calcPoint(isCorrect, current.level)
+            pointManager.add(addPoint)
+
+            // 進捗保存
+            val updated = current.copy(
+                level = newLevel,
+                nextDueDate = nextDue,
+                lastAnsweredAt = System.currentTimeMillis()
+            )
+            progressDao.upsert(updated)
+
+            // UI更新（ポイント表示、正誤フィードバック等）が必要ならここで
+        }
+    }
+
+    // 回答ボタンの例（実際は出題中の wordId / 判定結果を使う）
+    private fun onClickAnswerExample() {
+        val wordId = 1      // 今出題中の単語IDに置き換える
+        val isCorrect = true // 判定結果に置き換える
+        onAnswered(wordId, isCorrect)
     }
 }
