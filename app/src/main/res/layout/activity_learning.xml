@@ -40,16 +40,25 @@
         app:layout_constraintTop_toBottomOf="@id/radio_group_mode"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+    <!-- 音声再生ボタン -->
+    <Button
+        android:id="@+id/button_play_audio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="▶︎音声"
+        app:layout_constraintTop_toBottomOf="@id/text_question"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="8dp"/>
 
     <!-- 選択肢ボタン（4択） -->
     <Button
         android:id="@+id/button_choice_1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/text_question"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        app:layout_constraintTop_toBottomOf="@id/button_play_audio"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    android:layout_marginTop="8dp"/>
 
     <Button
         android:id="@+id/button_choice_2"

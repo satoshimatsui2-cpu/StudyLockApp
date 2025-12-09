@@ -1,6 +1,7 @@
 package com.example.studylockapp
 
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.widget.Button
 import android.widget.RadioButton
@@ -14,12 +15,16 @@ import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
 import kotlinx.coroutines.launch
+import java.util.Locale
 
-class LearningActivity : AppCompatActivity() {
+class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var currentMode = "meaning" // "meaning" / "listening"
     private var currentWord: WordEntity? = null
     private var allWords: List<WordEntity> = emptyList()
+
+    // TTS
+    private var tts: TextToSpeech? = null
 
     private lateinit var textQuestion: TextView
     private lateinit var textPoints: TextView
@@ -27,6 +32,7 @@ class LearningActivity : AppCompatActivity() {
     private lateinit var radioMeaning: RadioButton
     private lateinit var radioListening: RadioButton
     private lateinit var choiceButtons: List<Button>
+    private lateinit var buttonPlayAudio: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,12 +44,16 @@ class LearningActivity : AppCompatActivity() {
         radioGroup = findViewById(R.id.radio_group_mode)
         radioMeaning = findViewById(R.id.radio_meaning)
         radioListening = findViewById(R.id.radio_listening)
+        buttonPlayAudio = findViewById(R.id.button_play_audio)
         choiceButtons = listOf(
             findViewById(R.id.button_choice_1),
             findViewById(R.id.button_choice_2),
             findViewById(R.id.button_choice_3),
             findViewById(R.id.button_choice_4)
         )
+
+        // TTS 初期化
+        tts = TextToSpeech(this, this)
 
         // モード切替
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -56,6 +66,9 @@ class LearningActivity : AppCompatActivity() {
             btn.setOnClickListener { onChoiceSelected(btn.text.toString()) }
         }
 
+        // 音声再生ボタン
+        buttonPlayAudio.setOnClickListener { speakCurrentWord() }
+
         // ポイント表示を更新 & 初期ロード
         updatePointView()
         loadAllWordsThenQuestion()
@@ -64,6 +77,19 @@ class LearningActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updatePointView()
+    }
+
+    override fun onDestroy() {
+        tts?.stop()
+        tts?.shutdown()
+        super.onDestroy()
+    }
+
+    /** TTS 初期化結果 */
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            tts?.language = Locale.US
+        }
     }
 
     /** DBから全単語を読み込んでから次の問題をセットする */
@@ -106,6 +132,11 @@ class LearningActivity : AppCompatActivity() {
             // 表示更新
             textQuestion.text = questionText
             choiceButtons.zip(optionTexts).forEach { (btn, txt) -> btn.text = txt }
+
+            // リスニングモード時は自動再生（意味モードでも再生したいならこのままでOK）
+            if (currentMode == "listening") {
+                speakCurrentWord()
+            }
         }
     }
 
@@ -186,5 +217,12 @@ class LearningActivity : AppCompatActivity() {
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
         textPoints.text = "ポイント: $total"
+    }
+
+    /** 現在の単語を TTS で読み上げ */
+    private fun speakCurrentWord() {
+        val cw = currentWord ?: return
+        val textToSpeak = cw.word
+        tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "tts_id")
     }
 }
