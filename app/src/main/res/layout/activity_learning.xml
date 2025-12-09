@@ -6,6 +6,29 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <!-- モード切替 -->
+    <RadioGroup
+        android:id="@+id/radio_group_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <RadioButton
+            android:id="@+id/radio_meaning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="意味"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/radio_listening"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="リスニング"/>
+    </RadioGroup>
+
     <!-- 出題表示 -->
     <TextView
         android:id="@+id/text_question"
@@ -13,31 +36,47 @@
         android:layout_height="wrap_content"
         android:text="問題がここに表示されます"
         android:textSize="20sp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/radio_group_mode"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 正解ボタン -->
+    <!-- 選択肢ボタン（4択） -->
     <Button
-        android:id="@+id/button_correct"
-        android:layout_width="wrap_content"
+        android:id="@+id/button_choice_1"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="正解"
         app:layout_constraintTop_toBottomOf="@id/text_question"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/button_wrong"
-        android:layout_margin="8dp"/>
-
-    <!-- 不正解ボタン -->
-    <Button
-        android:id="@+id/button_wrong"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="不正解"
-        app:layout_constraintTop_toBottomOf="@id/text_question"
-        app:layout_constraintStart_toEndOf="@id/button_correct"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="8dp"/>
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/button_choice_2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/button_choice_1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/button_choice_3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/button_choice_2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/button_choice_4"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/button_choice_3"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
 
     <!-- ポイント表示 -->
     <TextView
@@ -45,9 +84,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ポイント: 0"
-        app:layout_constraintTop_toBottomOf="@id/button_correct"
+        app:layout_constraintTop_toBottomOf="@id/button_choice_4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:paddingTop="8dp"/>
+        android:paddingTop="12dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
