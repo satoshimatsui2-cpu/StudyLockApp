@@ -1,6 +1,8 @@
 package com.example.studylockapp
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.*
@@ -14,7 +16,14 @@ class LearningActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_learning)
-        // 出題やボタンなどのセットアップはここで…
+
+        // 【テスト用】回答処理を呼び出すボタン
+        // res/layout/activity_learning.xml に button_test_answer を追加しておいてください。
+        val testButton: Button = findViewById(R.id.button_test_answer)
+        testButton.setOnClickListener {
+            // 仮の単語ID=1を「正解」として扱う例
+            onAnswered(wordId = 1, isCorrect = true)
+        }
     }
 
     /**
@@ -55,14 +64,10 @@ class LearningActivity : AppCompatActivity() {
             )
             progressDao.upsert(updated)
 
+            // （任意）ログで確認
+            Log.d("ANSWER_TEST", "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}")
+
             // UI更新（ポイント表示、正誤フィードバック等）が必要ならここで
         }
-    }
-
-    // 回答ボタンの例（実際は出題中の wordId / 判定結果を使う）
-    private fun onClickAnswerExample() {
-        val wordId = 1      // 今出題中の単語IDに置き換える
-        val isCorrect = true // 判定結果に置き換える
-        onAnswered(wordId, isCorrect)
     }
 }
