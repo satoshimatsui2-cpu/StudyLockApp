@@ -60,6 +60,9 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
+    // RecyclerView 追加 ★
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
     // Kotlin/AndroidX 基本
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

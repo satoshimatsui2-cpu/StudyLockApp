@@ -20,6 +20,10 @@ class MainActivity : AppCompatActivity() {
         buttonToLearning.setOnClickListener {
             startActivity(Intent(this, LearningActivity::class.java))
         }
+        val buttonToList: Button = findViewById(R.id.button_to_list)
+        buttonToList.setOnClickListener {
+            startActivity(Intent(this, WordListActivity::class.java))
+        }
 
         // ★ CSV を初回だけ DB に取り込む
         lifecycleScope.launch {

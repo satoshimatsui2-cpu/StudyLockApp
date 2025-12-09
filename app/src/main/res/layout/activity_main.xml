@@ -29,5 +29,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
+    <Button
+        android:id="@+id/button_to_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="単語一覧"
+        app:layout_constraintTop_toBottomOf="@id/button_to_learning"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,6 +14,7 @@
         <activity
             android:name=".LearningActivity"
             android:exported="false" />
+        <activity android:name=".WordListActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
