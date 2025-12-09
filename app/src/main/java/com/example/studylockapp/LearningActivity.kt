@@ -3,9 +3,13 @@ package com.example.studylockapp
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.studylockapp.data.*
+import com.example.studylockapp.data.AppDatabase
+import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.ProgressCalculator
+import com.example.studylockapp.data.WordProgressEntity
 import kotlinx.coroutines.launch
 
 class LearningActivity : AppCompatActivity() {
@@ -18,12 +22,19 @@ class LearningActivity : AppCompatActivity() {
         setContentView(R.layout.activity_learning)
 
         // 【テスト用】回答処理を呼び出すボタン
-        // res/layout/activity_learning.xml に button_test_answer を追加しておいてください。
         val testButton: Button = findViewById(R.id.button_test_answer)
         testButton.setOnClickListener {
             // 仮の単語ID=1を「正解」として扱う例
             onAnswered(wordId = 1, isCorrect = true)
         }
+
+        // 画面表示時にポイント表示を更新
+        updatePointView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updatePointView()
     }
 
     /**
@@ -67,7 +78,15 @@ class LearningActivity : AppCompatActivity() {
             // （任意）ログで確認
             Log.d("ANSWER_TEST", "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}")
 
-            // UI更新（ポイント表示、正誤フィードバック等）が必要ならここで
+            // ポイント表示を更新
+            updatePointView()
         }
+    }
+
+    /** ポイント表示を更新するヘルパー */
+    private fun updatePointView() {
+        val pointView: TextView = findViewById(R.id.text_points)
+        val total = PointManager(this).getTotal()
+        pointView.text = "ポイント: $total"
     }
 }

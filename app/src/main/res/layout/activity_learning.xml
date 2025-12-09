@@ -21,4 +21,13 @@
         app:layout_constraintTop_toBottomOf="@id/learningText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+    <TextView
+        android:id="@+id/text_points"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ポイント: 0"
+        app:layout_constraintTop_toBottomOf="@id/button_test_answer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingTop="8dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
