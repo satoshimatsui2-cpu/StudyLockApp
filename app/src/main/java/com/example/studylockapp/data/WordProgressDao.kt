@@ -18,4 +18,7 @@ interface WordProgressDao {
         WHERE mode = :mode AND nextDueDate <= :today
     """)
     suspend fun getDueWordIds(mode: String, today: Long): List<Int>
+
+    @Query("SELECT DISTINCT wordId FROM word_progress WHERE mode = :mode")
+    suspend fun getProgressIds(mode: String): List<Int>
 }

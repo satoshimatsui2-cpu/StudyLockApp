@@ -7,13 +7,16 @@ import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import android.graphics.Typeface
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -28,6 +31,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var textQuestion: TextView
     private lateinit var textPoints: TextView
+    private lateinit var textFeedback: TextView
     private lateinit var radioGroup: RadioGroup
     private lateinit var radioMeaning: RadioButton
     private lateinit var radioListening: RadioButton
@@ -41,6 +45,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // View 取得
         textQuestion = findViewById(R.id.text_question)
         textPoints = findViewById(R.id.text_points)
+        textFeedback = findViewById(R.id.text_feedback)
         radioGroup = findViewById(R.id.radio_group_mode)
         radioMeaning = findViewById(R.id.radio_meaning)
         radioListening = findViewById(R.id.radio_listening)
@@ -101,7 +106,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    /** 次の問題をロードして表示（nextDueDate <= 今日 を優先、空なら全件） */
+    /** 次の問題をロードして表示（期限到来＋未学習を優先、空なら全件） */
     private fun loadNextQuestion() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
@@ -109,10 +114,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val wordDao = db.wordDao()
             val today = ProgressCalculator.todayEpochDay()
 
-            // 期限到来の単語IDを取得
+            // 1) 期限到来の単語
             val dueIds = progressDao.getDueWordIds(currentMode, today)
             val dueWords = if (dueIds.isEmpty()) emptyList() else wordDao.getByIds(dueIds)
-            val targetList = if (dueWords.isNotEmpty()) dueWords else allWords
+
+            // 2) 進捗の無い（未学習）単語を拾う
+            val progressedIds = progressDao.getProgressIds(currentMode).toSet()
+            val untouchedWords = allWords.filter { it.no !in progressedIds }
+
+            // 3) 出題候補を作る：期限到来 + 未学習 を優先、空なら全件
+            val targetList = (dueWords + untouchedWords).ifEmpty { allWords }
 
             if (targetList.isEmpty()) {
                 textQuestion.text = "出題する単語がありません"
@@ -125,7 +136,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val next = targetList.random()
             currentWord = next
 
-            // 選択肢を作る（3つダミー + 正解）
+            // 選択肢を作る（ダミー3 + 正解）
             val choices = buildChoices(next, allWords, currentMode, count = 4)
             val (questionText, optionTexts) = formatQuestionAndOptions(next, choices, currentMode)
 
@@ -133,17 +144,32 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textQuestion.text = questionText
             choiceButtons.zip(optionTexts).forEach { (btn, txt) -> btn.text = txt }
 
-            // リスニングモード時は自動再生（意味モードでも再生したいならこのままでOK）
+            // リスニングモードは自動再生
             if (currentMode == "listening") {
                 speakCurrentWord()
             }
         }
     }
 
-    /** 選択肢を生成（count 個、足りない場合はあるだけ） */
-    private fun buildChoices(correct: WordEntity, pool: List<WordEntity>, mode: String, count: Int): List<WordEntity> {
+    /** 選択肢を生成（同じ品詞・頭文字を優先、足りなければフォールバック） */
+    private fun buildChoices(
+        correct: WordEntity,
+        pool: List<WordEntity>,
+        mode: String,
+        count: Int
+    ): List<WordEntity> {
         if (pool.isEmpty()) return listOf(correct)
-        val distractors = pool.filter { it.no != correct.no }.shuffled().take(count - 1)
+
+        val candidates = pool.filter { it.no != correct.no }
+        val samePos = candidates.filter { it.pos != null && it.pos == correct.pos }
+        val sameHead = candidates.filter { it.word.take(1).equals(correct.word.take(1), ignoreCase = true) }
+        val combined = (samePos + sameHead).distinct()
+
+        val distractors = when {
+            combined.size >= count - 1 -> combined.shuffled().take(count - 1)
+            samePos.size >= count - 1   -> samePos.shuffled().take(count - 1)
+            else                        -> candidates.shuffled().take(count - 1)
+        }
         return (distractors + correct).shuffled()
     }
 
@@ -154,13 +180,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         mode: String
     ): Pair<String, List<String>> {
         return if (mode == "meaning") {
-            // 問題: 英単語 → 選択肢: 日本語
             val question = "この英単語の意味は？\n${correct.word}"
             val options = choices.map { it.japanese }
             question to options
         } else {
-            // リスニングモード（簡易版）：問題: 日本語 → 選択肢: 英単語
-            val question = "次の日本語に合う英単語は？\n${correct.japanese}"
+            val question = "音声を聞いて正しい英単語を選んでください"
             val options = choices.map { it.word }
             question to options
         }
@@ -185,18 +209,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val pointManager = PointManager(this@LearningActivity)
             val today = ProgressCalculator.todayEpochDay()
 
-            // 現在の進捗を取得（なければ初期値）
             val current = progressDao.getProgress(wordId, currentMode)
                 ?: WordProgressEntity(wordId, currentMode, 0, today, 0L)
 
-            // レベル更新
             val (newLevel, nextDue) = ProgressCalculator.update(isCorrect, current.level, today)
-
-            // ポイント加算
             val addPoint = ProgressCalculator.calcPoint(isCorrect, current.level)
             pointManager.add(addPoint)
 
-            // 保存
             val updated = current.copy(
                 level = newLevel,
                 nextDueDate = nextDue,
@@ -204,11 +223,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             )
             progressDao.upsert(updated)
 
-            // ログ
-            Log.d("ANSWER_TEST", "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}")
+            // フィードバック表示 → 少し待ってから次の問題
+            showFeedback(isCorrect, addPoint)
+            Log.d(
+                "ANSWER_TEST",
+                "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}"
+            )
 
-            // 表示更新
             updatePointView()
+            delay(800)            // 0.8秒待って見えるように
+            textFeedback.text = "" // 次の問題前にクリア
             loadNextQuestion()
         }
     }
@@ -219,10 +243,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textPoints.text = "ポイント: $total"
     }
 
+    /** フィードバック表示 */
+    private fun showFeedback(isCorrect: Boolean, addPoint: Int) {
+        val color = if (isCorrect) android.R.color.holo_green_dark else android.R.color.holo_red_dark
+        val msg = if (isCorrect) "正解！ +${addPoint}pt" else "不正解..."
+        textFeedback.text = msg
+        textFeedback.setTextColor(ContextCompat.getColor(this, color))
+        textFeedback.textSize = 22f              // 文字を大きく
+        textFeedback.setTypeface(null, Typeface.BOLD) // 太字
+    }
+
     /** 現在の単語を TTS で読み上げ */
     private fun speakCurrentWord() {
         val cw = currentWord ?: return
-        val textToSpeak = cw.word
-        tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "tts_id")
+        tts?.speak(cw.word, TextToSpeech.QUEUE_FLUSH, null, "tts_id")
     }
 }
