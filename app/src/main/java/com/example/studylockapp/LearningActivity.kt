@@ -22,11 +22,12 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Locale
 import android.graphics.Typeface
+import kotlin.math.abs
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var currentMode = "meaning"
-    private var gradeFilter: String = "All"      // ★ TOPで選んだ級
+    private var gradeFilter: String = "All"   // TOPで選んだ級
     private var currentWord: WordEntity? = null
     private var allWords: List<WordEntity> = emptyList()
     private var tts: TextToSpeech? = null
@@ -46,7 +47,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_learning)
 
-        // ★ TOPから渡された gradeFilter を受け取る
+        // TOPから渡された gradeFilter を受け取る
         gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
 
         textQuestionTitle = findViewById(R.id.text_question_title)
@@ -101,7 +102,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val words = db.wordDao().getAll()
-            // ★ Grade フィルタを適用
+            // Grade フィルタを適用
             allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
             loadNextQuestion()
         }
@@ -133,8 +134,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val next = targetList.random()
             currentWord = next
 
-            // 選択肢生成（6個、精度アップ版）
-            val choices = buildChoices(next, allWords, count = 6)
+            // モード別に選択肢生成
+            val choices = if (currentMode == "meaning") {
+                buildChoicesMeaning(next, allWords, count = 6)
+            } else {
+                buildChoicesListening(next, allWords, count = 6)
+            }
             val (title, body, options) = formatQuestionAndOptions(next, choices, currentMode)
             textQuestionTitle.text = title
             textQuestionBody.text = body
@@ -145,17 +150,43 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    /** 同じGrade/品詞/頭文字/文字数近似を優先してダミーを選ぶ */
-    private fun buildChoices(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
+    /** 意味用: 同じGrade/品詞/頭文字/文字数近似を優先 */
+    private fun buildChoicesMeaning(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
         if (pool.isEmpty()) return listOf(correct)
         val candidates = pool.filter { it.no != correct.no }
 
+        val sameGradePosHeadLen = candidates.filter {
+            it.grade == correct.grade &&
+                    it.pos == correct.pos &&
+                    it.word.take(1).equals(correct.word.take(1), ignoreCase = true) &&
+                    abs(it.word.length - correct.word.length) <= 1
+        }
+        val sameGradePos = candidates.filter { it.grade == correct.grade && it.pos == correct.pos }
         val sameGrade = candidates.filter { it.grade == correct.grade }
-        val samePos = candidates.filter { it.pos != null && it.pos == correct.pos }
+        val samePos = candidates.filter { it.pos == correct.pos }
         val sameHead = candidates.filter { it.word.take(1).equals(correct.word.take(1), ignoreCase = true) }
-        val lenNear = candidates.filter { kotlin.math.abs(it.word.length - correct.word.length) <= 2 }
+        val lenNear = candidates.filter { abs(it.word.length - correct.word.length) <= 2 }
 
-        val merged = (sameGrade + samePos + sameHead + lenNear + candidates).distinct()
+        val merged = (sameGradePosHeadLen + sameGradePos + sameGrade + samePos + sameHead + lenNear + candidates).distinct()
+        val distractors = merged.shuffled().take(count - 1)
+        return (distractors + correct).shuffled()
+    }
+
+    /** リスニング用: 品詞は緩めて grade/頭文字/文字数を優先 */
+    private fun buildChoicesListening(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
+        if (pool.isEmpty()) return listOf(correct)
+        val candidates = pool.filter { it.no != correct.no }
+
+        val sameGradeHeadLen = candidates.filter {
+            it.grade == correct.grade &&
+                    it.word.take(1).equals(correct.word.take(1), ignoreCase = true) &&
+                    abs(it.word.length - correct.word.length) <= 1
+        }
+        val sameGrade = candidates.filter { it.grade == correct.grade }
+        val sameHead = candidates.filter { it.word.take(1).equals(correct.word.take(1), ignoreCase = true) }
+        val lenNear = candidates.filter { abs(it.word.length - correct.word.length) <= 2 }
+
+        val merged = (sameGradeHeadLen + sameGrade + sameHead + lenNear + candidates).distinct()
         val distractors = merged.shuffled().take(count - 1)
         return (distractors + correct).shuffled()
     }
