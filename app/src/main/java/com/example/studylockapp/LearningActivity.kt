@@ -21,11 +21,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Locale
-import android.graphics.Typeface   // ★ 追加
+import android.graphics.Typeface
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private var currentMode = "meaning" // "meaning" / "listening"
+    private var currentMode = "meaning"
+    private var gradeFilter: String = "All"      // ★ TOPで選んだ級
     private var currentWord: WordEntity? = null
     private var allWords: List<WordEntity> = emptyList()
     private var tts: TextToSpeech? = null
@@ -44,6 +45,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_learning)
+
+        // ★ TOPから渡された gradeFilter を受け取る
+        gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
 
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
@@ -96,7 +100,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun loadAllWordsThenQuestion() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
-            allWords = db.wordDao().getAll()
+            val words = db.wordDao().getAll()
+            // ★ Grade フィルタを適用
+            allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
             loadNextQuestion()
         }
     }
@@ -108,12 +114,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val wordDao = db.wordDao()
             val today = ProgressCalculator.todayEpochDay()
 
-            // 期限到来＋未学習を優先
+            // 期限到来＋未学習を優先（フィルタ済み allWords 内で）
             val dueIds = progressDao.getDueWordIds(currentMode, today)
             val dueWords = if (dueIds.isEmpty()) emptyList() else wordDao.getByIds(dueIds)
             val progressedIds = progressDao.getProgressIds(currentMode).toSet()
             val untouched = allWords.filter { it.no !in progressedIds }
-            val targetList = (dueWords + untouched).ifEmpty { allWords }
+            val targetList = (dueWords + untouched).filter { it in allWords }.ifEmpty { allWords }
 
             if (targetList.isEmpty()) {
                 textQuestionTitle.text = "出題する単語がありません"
@@ -127,8 +133,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val next = targetList.random()
             currentWord = next
 
-            // 出題
-            val choices = buildChoices(next, allWords, currentMode, count = 6)
+            // 選択肢生成（6個、精度アップ版）
+            val choices = buildChoices(next, allWords, count = 6)
             val (title, body, options) = formatQuestionAndOptions(next, choices, currentMode)
             textQuestionTitle.text = title
             textQuestionBody.text = body
@@ -139,17 +145,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun buildChoices(correct: WordEntity, pool: List<WordEntity>, mode: String, count: Int): List<WordEntity> {
+    /** 同じGrade/品詞/頭文字/文字数近似を優先してダミーを選ぶ */
+    private fun buildChoices(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
         if (pool.isEmpty()) return listOf(correct)
         val candidates = pool.filter { it.no != correct.no }
+
+        val sameGrade = candidates.filter { it.grade == correct.grade }
         val samePos = candidates.filter { it.pos != null && it.pos == correct.pos }
         val sameHead = candidates.filter { it.word.take(1).equals(correct.word.take(1), ignoreCase = true) }
-        val combined = (samePos + sameHead).distinct()
-        val distractors = when {
-            combined.size >= count - 1 -> combined.shuffled().take(count - 1)
-            samePos.size >= count - 1 -> samePos.shuffled().take(count - 1)
-            else -> candidates.shuffled().take(count - 1)
-        }
+        val lenNear = candidates.filter { kotlin.math.abs(it.word.length - correct.word.length) <= 2 }
+
+        val merged = (sameGrade + samePos + sameHead + lenNear + candidates).distinct()
+        val distractors = merged.shuffled().take(count - 1)
         return (distractors + correct).shuffled()
     }
 
@@ -195,7 +202,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val addPoint = ProgressCalculator.calcPoint(isCorrect, current.level)
             pointManager.add(addPoint)
 
-            // ★ ポイント履歴を記録（正解時のみ）
+            // ポイント履歴を記録（正解時のみ）
             if (addPoint > 0) {
                 db.pointHistoryDao().insert(
                     PointHistoryEntity(
@@ -226,7 +233,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
         textPoints.text = "ポイント: $total"
-        lifecycleScope.launch { updatePointStats() } // ★ 日次集計の表示を更新
+        lifecycleScope.launch { updatePointStats() }
     }
 
     /** 今日 / 前日比 を表示 */

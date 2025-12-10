@@ -1,36 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".MainActivity">
 
-    <!-- Hello World 表示 -->
+    <!-- タイトル -->
     <TextView
         android:id="@+id/helloText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="EikenApp"
         android:textSize="40sp"
+        android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/button_to_learning"
+        app:layout_constraintBottom_toTopOf="@id/text_grade_label"
         app:layout_constraintVertical_chainStyle="packed" />
 
-    <!-- 学習画面へ遷移するボタン -->
+    <!-- 学習する級のラベル -->
+    <TextView
+        android:id="@+id/text_grade_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="学習する級を選択してください"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/helloText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp"/>
+
+    <!-- 学習する級のスピナー -->
+    <Spinner
+        android:id="@+id/spinner_grade_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:entries="@array/grade_display_items"
+        android:background="@android:drawable/btn_dropdown"
+        app:layout_constraintTop_toBottomOf="@id/text_grade_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <!-- 学習開始ボタン（スピナーの下） -->
     <Button
         android:id="@+id/button_to_learning"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="学習画面へ"
-        app:layout_constraintTop_toBottomOf="@id/helloText"
+        android:text="START"
+        android:enabled="false"
+        app:layout_constraintTop_toBottomOf="@id/spinner_grade_top"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginTop="64dp"/>
-    <!-- 一覧へボタン（既存） -->
+        android:layout_marginTop="16dp"/>
+
+    <!-- 一覧ボタン -->
     <Button
         android:id="@+id/button_to_list"
         android:layout_width="wrap_content"
@@ -39,9 +68,9 @@
         app:layout_constraintTop_toBottomOf="@id/button_to_learning"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="12dp"/>
 
-    <!-- 総ポイント（button_to_list の下、中央配置） -->
+    <!-- 総ポイント表示 -->
     <TextView
         android:id="@+id/text_points_top"
         android:layout_width="wrap_content"
@@ -53,7 +82,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="12dp"/>
 
-    <!-- 今日 / 前日比（text_points_top の下、中央配置） -->
+    <!-- 今日 / 前日比 -->
     <TextView
         android:id="@+id/text_point_stats_top"
         android:layout_width="wrap_content"

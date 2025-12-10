@@ -18,5 +18,14 @@ interface WordDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(words: List<WordEntity>)
+
+    @Query("DELETE FROM words")
+    suspend fun deleteAll()
+    // 既存の getAll(), insertAll() はそのまま
+
+    @Query("SELECT COUNT(*) FROM words")
+    suspend fun getCount(): Int
+    // getAll(), insertAll() は既存のまま
+
 }
 
