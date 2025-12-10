@@ -13,12 +13,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.PointHistoryEntity
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.util.Locale
+import android.graphics.Typeface   // ★ 追加
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -30,6 +33,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textQuestionTitle: TextView
     private lateinit var textQuestionBody: TextView
     private lateinit var textPoints: TextView
+    private lateinit var textPointStats: TextView
     private lateinit var textFeedback: TextView
     private lateinit var radioGroup: RadioGroup
     private lateinit var radioMeaning: RadioButton
@@ -44,6 +48,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
         textPoints = findViewById(R.id.text_points)
+        textPointStats = findViewById(R.id.text_point_stats)
         textFeedback = findViewById(R.id.text_feedback)
         radioGroup = findViewById(R.id.radio_group_mode)
         radioMeaning = findViewById(R.id.radio_meaning)
@@ -113,6 +118,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (targetList.isEmpty()) {
                 textQuestionTitle.text = "出題する単語がありません"
                 textQuestionBody.text = ""
+                textQuestionBody.visibility = View.GONE
                 currentWord = null
                 choiceButtons.forEach { it.text = "----" }
                 return@launch
@@ -121,7 +127,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val next = targetList.random()
             currentWord = next
 
-        // 出題時（loadNextQuestion 内）
+            // 出題
             val choices = buildChoices(next, allWords, currentMode, count = 6)
             val (title, body, options) = formatQuestionAndOptions(next, choices, currentMode)
             textQuestionTitle.text = title
@@ -147,7 +153,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return (distractors + correct).shuffled()
     }
 
-    /** タイトル（問題文）と本文（単語or日本語）を分けて返す */
+    /** タイトルと本文を分けて返す。リスニング時は本文を空にして非表示にする */
     private fun formatQuestionAndOptions(
         correct: WordEntity,
         choices: List<WordEntity>,
@@ -155,12 +161,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     ): Triple<String, String, List<String>> {
         return if (mode == "meaning") {
             val title = "この英単語の意味は？"
-            val body = correct.word                // 大きく表示
+            val body = correct.word
             val options = choices.map { it.japanese }
             Triple(title, body, options)
         } else {
             val title = "音声を聞いて正しい英単語を選んでください"
-            val body = ""            // ★ 日本語は表示しない
+            val body = ""  // 日本語は表示しない
             val options = choices.map { it.word }
             Triple(title, body, options)
         }
@@ -189,6 +195,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val addPoint = ProgressCalculator.calcPoint(isCorrect, current.level)
             pointManager.add(addPoint)
 
+            // ★ ポイント履歴を記録（正解時のみ）
+            if (addPoint > 0) {
+                db.pointHistoryDao().insert(
+                    PointHistoryEntity(
+                        mode = currentMode,
+                        dateEpochDay = today,
+                        delta = addPoint
+                    )
+                )
+            }
+
             val updated = current.copy(
                 level = newLevel,
                 nextDueDate = nextDue,
@@ -200,7 +217,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.d("ANSWER_TEST", "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}")
 
             updatePointView()
-            delay(800)          // 少し待ってから
+            delay(800)
             textFeedback.text = ""
             loadNextQuestion()
         }
@@ -209,6 +226,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
         textPoints.text = "ポイント: $total"
+        lifecycleScope.launch { updatePointStats() } // ★ 日次集計の表示を更新
+    }
+
+    /** 今日 / 前日比 を表示 */
+    private suspend fun updatePointStats() {
+        val db = AppDatabase.getInstance(this@LearningActivity)
+        val histDao = db.pointHistoryDao()
+        val today = LocalDate.now().toEpochDay()
+        val yesterday = today - 1
+        val todaySum = histDao.getSumByDate(today)
+        val yesterdaySum = histDao.getSumByDate(yesterday)
+        val diff = todaySum - yesterdaySum
+        val diffSign = if (diff >= 0) "+" else "-"
+        val diffAbs = kotlin.math.abs(diff)
+        textPointStats.text = "今日: $todaySum / 前日比: $diffSign$diffAbs"
     }
 
     private fun showFeedback(isCorrect: Boolean, addPoint: Int) {
@@ -217,7 +249,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textFeedback.text = msg
         textFeedback.setTextColor(ContextCompat.getColor(this, color))
         textFeedback.textSize = 22f
-        textFeedback.setTypeface(null, android.graphics.Typeface.BOLD)
+        textFeedback.setTypeface(null, Typeface.BOLD)
     }
 
     private fun speakCurrentWord() {

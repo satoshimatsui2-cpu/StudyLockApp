@@ -8,14 +8,16 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [
         WordEntity::class,
-        WordProgressEntity::class  // 追加
+        WordProgressEntity::class,
+        PointHistoryEntity::class   // ★追加
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun wordDao(): WordDao
     abstract fun wordProgressDao(): WordProgressDao
+    abstract fun pointHistoryDao(): PointHistoryDao  // ★追加
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -26,8 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "words.db"
                 )
-                    // 開発中のみ楽をするなら↓を付ける（本番は Migration 推奨）
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration() // 開発中のみ
                     .build().also { INSTANCE = it }
             }
     }

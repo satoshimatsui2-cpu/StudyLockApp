@@ -142,6 +142,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:paddingTop="12dp"/>
+    <!-- 日次ポイント表示（今日 / 前日比） -->
+    <TextView
+        android:id="@+id/text_point_stats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="今日: 0 / 前日比: +0"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/text_points"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingTop="4dp"/>
 
     <!-- フィードバック表示 -->
     <TextView

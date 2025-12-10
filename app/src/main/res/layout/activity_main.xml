@@ -11,8 +11,8 @@
         android:id="@+id/helloText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:textSize="24sp"
+        android:text="EikenApp"
+        android:textSize="40sp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -28,7 +28,9 @@
         app:layout_constraintTop_toBottomOf="@id/helloText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="64dp"/>
+    <!-- 一覧へボタン（既存） -->
     <Button
         android:id="@+id/button_to_list"
         android:layout_width="wrap_content"
@@ -36,6 +38,31 @@
         android:text="単語一覧"
         app:layout_constraintTop_toBottomOf="@id/button_to_learning"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
+    <!-- 総ポイント（button_to_list の下、中央配置） -->
+    <TextView
+        android:id="@+id/text_points_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ポイント: 0"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/button_to_list"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp"/>
+
+    <!-- 今日 / 前日比（text_points_top の下、中央配置） -->
+    <TextView
+        android:id="@+id/text_point_stats_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="今日: 0 / 前日比: +0"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/text_points_top"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingTop="4dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
