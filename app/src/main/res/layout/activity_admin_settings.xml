@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scroll_admin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:text="管理者設定（最小版）"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <!-- 回答間隔 -->
+        <TextView
+            android:id="@+id/text_interval"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="回答間隔: 1.0 秒" />
+
+        <SeekBar
+            android:id="@+id/seek_interval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="95" />
+        <!-- 0..95 => 0.5..10.0秒（0.1秒刻み） -->
+
+        <!-- 正解SE -->
+        <TextView
+            android:id="@+id/text_se_correct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="正解SE音量: 90%" />
+
+        <SeekBar
+            android:id="@+id/seek_se_correct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- 不正解SE -->
+        <TextView
+            android:id="@+id/text_se_wrong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="不正解SE音量: 90%" />
+
+        <SeekBar
+            android:id="@+id/seek_se_wrong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- TTS -->
+        <TextView
+            android:id="@+id/text_tts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="単語発音(TTS)音量: 100%" />
+
+        <SeekBar
+            android:id="@+id/seek_tts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- 広告 -->
+        <TextView
+            android:id="@+id/text_ad"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="広告音量: 20%" />
+
+        <SeekBar
+            android:id="@+id/seek_ad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <Button
+            android:id="@+id/btn_toggle_ad_mute"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="広告ミュート: OFF"
+            android:layout_marginTop="8dp"/>
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="保存"
+            android:layout_marginTop="18dp"/>
+
+    </LinearLayout>
+</ScrollView>

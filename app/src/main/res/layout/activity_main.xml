@@ -30,10 +30,10 @@
         android:text="学習する級を選択してください"
         android:textSize="16sp"
         android:textStyle="bold"
+        android:layout_marginTop="12dp"
         app:layout_constraintTop_toBottomOf="@id/helloText"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 学習する級のスピナー -->
     <Spinner
@@ -42,10 +42,10 @@
         android:layout_height="wrap_content"
         android:entries="@array/grade_display_items"
         android:background="@android:drawable/btn_dropdown"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/text_grade_label"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 学習開始ボタン（スピナーの下） -->
     <Button
@@ -54,10 +54,10 @@
         android:layout_height="wrap_content"
         android:text="START"
         android:enabled="false"
+        android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/spinner_grade_top"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 一覧ボタン -->
     <Button
@@ -65,10 +65,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="単語一覧"
+        android:layout_marginTop="12dp"
         app:layout_constraintTop_toBottomOf="@id/button_to_learning"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ★追加：管理者設定ボタン -->
+    <Button
+        android:id="@+id/button_admin_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="管理者設定"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/button_to_list"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 総ポイント表示 -->
     <TextView
@@ -77,10 +88,10 @@
         android:layout_height="wrap_content"
         android:text="ポイント: 0"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/button_to_list"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/button_admin_settings"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 今日 / 前日比 -->
     <TextView
@@ -89,9 +100,9 @@
         android:layout_height="wrap_content"
         android:text="今日: 0 / 前日比: +0"
         android:textSize="16sp"
+        android:paddingTop="4dp"
         app:layout_constraintTop_toBottomOf="@id/text_points_top"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingTop="4dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

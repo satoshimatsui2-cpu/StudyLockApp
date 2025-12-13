@@ -2,20 +2,23 @@ package com.example.studylockapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
-import com.example.studylockapp.data.CsvImporter
-import com.example.studylockapp.data.AppDatabase
 import androidx.lifecycle.lifecycleScope
+import com.example.studylockapp.data.AppDatabase
+import com.example.studylockapp.data.CsvImporter
 import kotlinx.coroutines.launch
-import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var spinnerGradeTop: Spinner
     private lateinit var buttonToLearning: Button
     private var selectedGradeValue: String? = null
+
+    // ★追加：管理者設定ボタン
+    private lateinit var buttonAdminSettings: Button
 
     // 表示名 → 内部値のマッピング
     private val gradeMap = mapOf(
@@ -43,17 +46,23 @@ class MainActivity : AppCompatActivity() {
 
         spinnerGradeTop = findViewById(R.id.spinner_grade_top)
         buttonToLearning = findViewById(R.id.button_to_learning)
-        // 他のボタンやポイント表示などは既存のまま
+        buttonAdminSettings = findViewById(R.id.button_admin_settings) // ★追加
 
         // 初期は無効
         buttonToLearning.isEnabled = false
 
         spinnerGradeTop.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>, view: android.view.View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: android.widget.AdapterView<*>,
+                view: android.view.View?,
+                position: Int,
+                id: Long
+            ) {
                 val label = parent.getItemAtPosition(position)?.toString() ?: "選択してください"
                 selectedGradeValue = gradeMap[label] // 該当しない場合は null
                 buttonToLearning.isEnabled = (selectedGradeValue != null)
             }
+
             override fun onNothingSelected(parent: android.widget.AdapterView<*>) {
                 selectedGradeValue = null
                 buttonToLearning.isEnabled = false
@@ -68,10 +77,15 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // 一覧画面へ（ある場合はそのまま）
+        // 一覧画面へ
         val buttonToList: Button = findViewById(R.id.button_to_list)
         buttonToList.setOnClickListener {
             startActivity(Intent(this, WordListActivity::class.java))
+        }
+
+        // ★追加：管理者設定画面へ
+        buttonAdminSettings.setOnClickListener {
+            startActivity(Intent(this, AdminSettingsActivity::class.java))
         }
     }
 }

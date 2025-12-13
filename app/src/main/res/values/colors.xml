@@ -7,4 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- 選択肢：正解 / 不正解 -->
+    <color name="choice_correct">#66BB6A</color>
+    <color name="choice_wrong">#EF5350</color>
+    <!-- 正解フラッシュ（控えめな黄色） -->
+    <color name="correct_flash">#FFE082</color>
+    <!-- Snackbar 背景（視認性重視） -->
+    <color name="snackbar_correct_bg">#2E7D32</color>
+    <color name="snackbar_wrong_bg">#C62828</color>
 </resources>

@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.res.ColorStateList
-import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioAttributes
 import android.media.SoundPool
@@ -21,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
+import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointHistoryEntity
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
@@ -41,17 +41,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var allWords: List<WordEntity> = emptyList()
     private var tts: TextToSpeech? = null
 
+    // 設定（回答間隔/音量など）
+    private lateinit var settings: AppSettings
+
     // 今回の問題で「正解が入っているボタンのindex」
     private var currentCorrectIndex: Int = -1
 
     // ボタンの元の色に戻すため
     private lateinit var defaultChoiceTints: List<ColorStateList?>
 
+    // 色は colors.xml を参照
     private val greenTint by lazy {
-        ColorStateList.valueOf(ContextCompat.getColor(this, android.R.color.holo_green_light))
+        ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_correct))
     }
     private val redTint by lazy {
-        ColorStateList.valueOf(ContextCompat.getColor(this, android.R.color.holo_red_light))
+        ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_wrong))
     }
 
     // SoundPool
@@ -81,6 +85,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_learning)
+
+        // 設定読み込み
+        settings = AppSettings(this)
 
         // TOPから渡された gradeFilter を受け取る
         gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
@@ -131,7 +138,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             loadNextQuestion()
         }
 
-        // indexでクリック処理（正解ボタンを確実に緑にするため）
+        // indexでクリック処理
         choiceButtons.forEachIndexed { index, btn ->
             btn.setOnClickListener { onChoiceSelected(index) }
         }
@@ -173,10 +180,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return soundPool?.load(this, resId, 1) ?: 0
     }
 
-    // 正解時に画面全体を一瞬フラッシュ（黄色っぽいキラッ）
+    // 正解時に画面全体を一瞬フラッシュ（控えめ）
     private fun flashCorrectBackground() {
         val root = findViewById<View>(android.R.id.content)
-        val flashColor = ContextCompat.getColor(this, android.R.color.holo_orange_light)
+        val flashColor = ContextCompat.getColor(this, R.color.correct_flash)
 
         fun runFlash() {
             val drawable = ColorDrawable(flashColor)
@@ -184,7 +191,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             drawable.alpha = 0
             root.overlay.add(drawable)
 
-            // 控えめ設定
             ValueAnimator.ofInt(0, 90, 0).apply {
                 duration = 160L
                 addUpdateListener { drawable.alpha = it.animatedValue as Int }
@@ -203,7 +209,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun playCorrectEffect() {
         flashCorrectBackground()
 
-        if (seCorrectId != 0) soundPool?.play(seCorrectId, 1f, 1f, 1, 0, 1f)
+        // ★正解SE音量
+        val vol = settings.seCorrectVolume
+        if (seCorrectId != 0) soundPool?.play(seCorrectId, vol, vol, 1, 0, 1f)
 
         // 正解ボタンをバウンス
         val idx = currentCorrectIndex
@@ -226,7 +234,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun playWrongEffect() {
-        if (seWrongId != 0) soundPool?.play(seWrongId, 1f, 1f, 1, 0, 1f)
+        // ★不正解SE音量
+        val vol = settings.seWrongVolume
+        if (seWrongId != 0) soundPool?.play(seWrongId, vol, vol, 1, 0, 1f)
     }
 
     private fun loadAllWordsThenQuestion() {
@@ -238,7 +248,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // 次の問題の前に、ボタンの色/状態を元に戻す
     private fun resetChoiceButtons() {
         choiceButtons.forEachIndexed { i, btn ->
             btn.isClickable = true
@@ -361,20 +370,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             selectedText == cw.word
         }
 
-        // 連打防止（見た目をグレーにしない）
         choiceButtons.forEach { it.isClickable = false }
 
-        // 正解/不正解に関係なく「正解の選択肢」を必ずグリーンに
         if (currentCorrectIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[currentCorrectIndex], greenTint)
         }
 
-        // 不正解のときだけ、押したボタンを赤にする
         if (!isCorrect && selectedIndex != currentCorrectIndex && selectedIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
         }
 
-        // 演出（正解：フラッシュ+音+バウンス / 不正解：音）
         if (isCorrect) playCorrectEffect() else playWrongEffect()
 
         onAnsweredInternal(cw.no, isCorrect)
@@ -393,7 +398,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val addPoint = ProgressCalculator.calcPoint(isCorrect, current.level)
             pointManager.add(addPoint)
 
-            // ポイント履歴を記録（正解時のみ）
             if (addPoint > 0) {
                 db.pointHistoryDao().insert(
                     PointHistoryEntity(
@@ -411,7 +415,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             )
             progressDao.upsert(updated)
 
-            // ★ここをSnackbarに変更
             showFeedbackSnackbar(isCorrect, addPoint)
 
             Log.d(
@@ -421,14 +424,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             updatePointView()
 
-            delay(1000)
+            delay(settings.answerIntervalMs)
             loadNextQuestion()
         }
     }
 
     private fun showFeedbackSnackbar(isCorrect: Boolean, addPoint: Int) {
-        val baseColorRes = if (isCorrect) android.R.color.holo_green_dark else android.R.color.holo_red_dark
-        val bgColor = ContextCompat.getColor(this, baseColorRes)
+        val bgColor = ContextCompat.getColor(
+            this,
+            if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
+        )
 
         val msg = if (isCorrect) {
             val praise = praiseMessages.random()
@@ -437,16 +442,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             "不正解…"
         }
 
-        // 前のSnackbarが残っていれば消す
         currentSnackbar?.dismiss()
 
         val root = findViewById<View>(android.R.id.content)
         currentSnackbar = Snackbar.make(root, msg, Snackbar.LENGTH_SHORT).apply {
-            // 視認性UP
             setBackgroundTint(bgColor)
             setTextColor(android.graphics.Color.WHITE)
-            // 回答テンポに合わせて少し短めに
-            duration = 900
+            duration = settings.answerIntervalMs.toInt().coerceIn(600, 4000)
             show()
         }
     }
@@ -472,6 +474,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun speakCurrentWord() {
         val cw = currentWord ?: return
-        tts?.speak(cw.word, TextToSpeech.QUEUE_FLUSH, null, "tts_id")
+
+        // ★TTS音量を設定値で制御
+        val params = Bundle().apply {
+            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, settings.ttsVolume) // 0.0..1.0
+        }
+        tts?.speak(cw.word, TextToSpeech.QUEUE_FLUSH, params, "tts_id")
     }
 }
