@@ -5,20 +5,27 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.Spinner
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.CsvImporter
+import com.example.studylockapp.data.PointManager
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var spinnerGradeTop: Spinner
     private lateinit var buttonToLearning: Button
-    private var selectedGradeValue: String? = null
-
-    // ★追加：管理者設定ボタン
     private lateinit var buttonAdminSettings: Button
+
+    // ★追加：TOPのポイント表示
+    private lateinit var textPointsTop: TextView
+    private lateinit var textPointStatsTop: TextView
+
+    private var selectedGradeValue: String? = null
 
     // 表示名 → 内部値のマッピング
     private val gradeMap = mapOf(
@@ -38,15 +45,21 @@ class MainActivity : AppCompatActivity() {
             Log.d("CSV_IMPORT", "start import")
             CsvImporter.importIfNeeded(this@MainActivity)
 
-            // 件数をログに出す
             val count = AppDatabase.getInstance(this@MainActivity)
                 .wordDao().getAll().size
             Log.d("CSV_IMPORT", "words count=$count")
+
+            // CSVインポート後にも一応更新
+            updatePointView()
         }
 
         spinnerGradeTop = findViewById(R.id.spinner_grade_top)
         buttonToLearning = findViewById(R.id.button_to_learning)
-        buttonAdminSettings = findViewById(R.id.button_admin_settings) // ★追加
+        buttonAdminSettings = findViewById(R.id.button_admin_settings)
+
+        // ★追加：TextView取得
+        textPointsTop = findViewById(R.id.text_points_top)
+        textPointStatsTop = findViewById(R.id.text_point_stats_top)
 
         // 初期は無効
         buttonToLearning.isEnabled = false
@@ -59,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                 id: Long
             ) {
                 val label = parent.getItemAtPosition(position)?.toString() ?: "選択してください"
-                selectedGradeValue = gradeMap[label] // 該当しない場合は null
+                selectedGradeValue = gradeMap[label]
                 buttonToLearning.isEnabled = (selectedGradeValue != null)
             }
 
@@ -83,9 +96,43 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, WordListActivity::class.java))
         }
 
-        // ★追加：管理者設定画面へ
+        // 管理者設定へ
         buttonAdminSettings.setOnClickListener {
             startActivity(Intent(this, AdminSettingsActivity::class.java))
         }
+
+        // ★初回表示
+        updatePointView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // ★学習画面から戻ったタイミングで更新される
+        updatePointView()
+    }
+
+    private fun updatePointView() {
+        val total = PointManager(this).getTotal()
+        textPointsTop.text = "ポイント: $total"
+
+        lifecycleScope.launch {
+            updatePointStats()
+        }
+    }
+
+    /** 今日 / 前日比 */
+    private suspend fun updatePointStats() {
+        val db = AppDatabase.getInstance(this@MainActivity)
+        val histDao = db.pointHistoryDao()
+
+        val today = LocalDate.now().toEpochDay()
+        val yesterday = today - 1
+        val todaySum = histDao.getSumByDate(today)
+        val yesterdaySum = histDao.getSumByDate(yesterday)
+        val diff = todaySum - yesterdaySum
+        val diffSign = if (diff >= 0) "+" else "-"
+        val diffAbs = abs(diff)
+
+        textPointStatsTop.text = "今日: $todaySum / 前日比: $diffSign$diffAbs"
     }
 }
