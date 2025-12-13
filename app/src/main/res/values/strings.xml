@@ -4,6 +4,7 @@
     <!-- TOPで表示する級の選択肢 -->
     <string-array name="grade_display_items">
         <item>選択してください</item>
+        <item>5級</item>
         <item>4級</item>
         <item>3級</item>
         <item>準2級</item>
@@ -15,6 +16,7 @@
     <!-- 一覧用のフィルタ選択肢（Allは残してOK） -->
     <string-array name="grade_filter_items">
         <item>All</item>
+        <item>5</item>
         <item>4</item>
         <item>3</item>
         <item>2.5</item>

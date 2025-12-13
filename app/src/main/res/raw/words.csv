@@ -1,301 +1,52 @@
-no,grade,word,japanese,pos,category
-1,4,apple,りんご,noun,word
-2,4,book,本,noun,word
-3,4,cat,猫,noun,word
-4,4,dog,犬,noun,word
-5,4,egg,卵,noun,word
-6,4,fish,魚,noun,word
-7,4,go,行く,verb,word
-8,4,hat,帽子,noun,word
-9,4,ice,氷,noun,word
-10,4,job,仕事,noun,word
-11,4,key,鍵,noun,word
-12,4,leaf,葉,noun,word
-13,4,map,地図,noun,word
-14,4,nap,昼寝,noun,word
-15,4,open,開ける,verb,word
-16,4,pen,ペン,noun,word
-17,4,queen,女王,noun,word
-18,4,red,赤い,adj,word
-19,4,sun,太陽,noun,word
-20,4,tea,お茶,noun,word
-21,4,umbrella,傘,noun,word
-22,4,van,バン,noun,word
-23,4,water,水,noun,word
-24,4,yes,はい,phrase,熟語
-25,4,zoo,動物園,noun,word
-26,4,ball,ボール,noun,word
-27,4,chair,椅子,noun,word
-28,4,desk,机,noun,word
-29,4,ear,耳,noun,word
-30,4,flower,花,noun,word
-31,4,game,ゲーム,noun,word
-32,4,home,家,noun,word
-33,4,idea,考え,noun,word
-34,4,jump,跳ぶ,verb,word
-35,4,kite,凧,noun,word
-36,4,lamp,ランプ,noun,word
-37,4,milk,牛乳,noun,word
-38,4,nose,鼻,noun,word
-39,4,orange,オレンジ,noun,word
-40,4,pizza,ピザ,noun,word
-41,4,quick,素早い,adj,word
-42,4,river,川,noun,word
-43,4,sea,海,noun,word
-44,4,table,テーブル,noun,word
-45,4,up,上へ,adv,word
-46,4,voice,声,noun,word
-47,4,window,窓,noun,word
-48,4,xylophone,木琴,noun,word
-49,4,yellow,黄色い,adj,word
-50,4,zero,ゼロ,noun,word
-51,4,after,後で,adv,word
-52,4,before,前に,adv,word
-53,4,clean,きれいな,adj,word
-54,4,dance,踊る,verb,word
-55,4,eat,食べる,verb,word
-56,4,fast,速い,adj,word
-57,4,good,良い,adj,word
-58,4,hand,手,noun,word
-59,4,important,大切な,adj,word
-60,4,juice,ジュース,noun,word
-61,4,kind,親切な,adj,word
-62,4,long,長い,adj,word
-63,4,music,音楽,noun,word
-64,4,need,必要とする,verb,word
-65,4,only,唯一の,adj,word
-66,4,people,人々,noun,word
-67,4,quiet,静かな,adj,word
-68,4,read,読む,verb,word
-69,4,short,短い,adj,word
-70,4,tall,背の高い,adj,word
-71,4,under,下に,prep,word
-72,4,visit,訪れる,verb,word
-73,4,walk,歩く,verb,word
-74,4,x-ray,レントゲン,noun,word
-75,4,young,若い,adj,word
-76,4,zone,区域,noun,word
-77,4,again,再び,adv,word
-78,4,blue,青い,adj,word
-79,4,city,都市,noun,word
-80,4,drive,運転する,verb,word
-81,4,eye,目,noun,word
-82,4,friend,友達,noun,word
-83,4,green,緑の,adj,word
-84,4,horse,馬,noun,word
-85,4,island,島,noun,word
-86,4,job,仕事,noun,word
-87,4,leg,脚,noun,word
-88,4,moon,月,noun,word
-89,4,night,夜,noun,word
-90,4,old,古い,adj,word
-91,4,park,公園,noun,word
-92,4,queen,女王,noun,word
-93,4,room,部屋,noun,word
-94,4,stone,石,noun,word
-95,4,tree,木,noun,word
-96,4,uncle,おじ,noun,word
-97,4,violin,バイオリン,noun,word
-98,4,white,白い,adj,word
-99,4,year,年,noun,word
-100,4,zipper,ファスナー,noun,word
-101,3,ability,能力,noun,word
-102,3,borrow,借りる,verb,word
-103,3,capital,首都,noun,word
-104,3,decide,決める,verb,word
-105,3,effort,努力,noun,word
-106,3,feature,特徴,noun,word
-107,3,giant,巨大な,adj,word
-108,3,hero,英雄,noun,word
-109,3,include,含む,verb,word
-110,3,journey,旅,noun,word
-111,3,knowledge,知識,noun,word
-112,3,library,図書館,noun,word
-113,3,mention,言及する,verb,word
-114,3,neighbor,隣人,noun,word
-115,3,observe,観察する,verb,word
-116,3,patient,忍耐強い,adj,word
-117,3,quality,質,noun,word
-118,3,refuse,断る,verb,word
-119,3,sign,合図,noun,word
-120,3,trust,信頼する,verb,word
-121,3,useful,役に立つ,adj,word
-122,3,volunteer,ボランティア,noun,word
-123,3,wealth,富,noun,word
-124,3,explain,説明する,verb,word
-125,3,favorite,お気に入り,adj,word
-126,3,garden,庭,noun,word
-127,3,honest,正直な,adj,word
-128,3,improve,改善する,verb,word
-129,3,join,参加する,verb,word
-130,3,kindness,親切さ,noun,word
-131,3,limit,制限する,verb,word
-132,3,method,方法,noun,word
-133,3,natural,自然の,adj,word
-134,3,option,選択肢,noun,word
-135,3,prepare,準備する,verb,word
-136,3,release,解放する,verb,word
-137,3,shy,内気な,adj,word
-138,3,topic,話題,noun,word
-139,3,usual,普通の,adj,word
-140,3,variety,多様性,noun,word
-141,3,warning,警告,noun,word
-142,3,youth,若者,adj,word
-143,3,advice,助言,noun,word
-144,3,behave,ふるまう,verb,word
-145,3,charge,請求する,verb,word
-146,3,deliver,届ける,verb,word
-147,3,earn,稼ぐ,verb,word
-148,3,festival,祭り,noun,word
-149,3,global,世界的な,adj,word
-150,3,harm,害する,verb,word
-151,3,industry,産業,noun,word
-152,3,judge,判断する,verb,word
-153,3,kitchen,台所,noun,word
-154,3,laugh,笑う,verb,word
-155,3,master,習熟する,verb,word
-156,3,normal,通常の,adj,word
-157,3,opinion,意見,noun,word
-158,3,protect,守る,verb,word
-159,3,repair,修理する,verb,word
-160,3,safety,安全,noun,word
-161,3,trustworthy,信頼できる,adj,word
-162,3,unity,団結,noun,word
-163,3,valuable,貴重な,adj,word
-164,3,weigh,重さがある,verb,word
-165,3,explore,探検する,verb,word
-166,3,forest,森,noun,word
-167,3,habit,習慣,noun,word
-168,3,identify,識別する,verb,word
-169,3,justice,正義,noun,word
-170,3,knowledgeable,博識な,adj,word
-171,3,language,言語,noun,word
-172,3,manage,管理する,verb,word
-173,3,nutrition,栄養,noun,word
-174,3,observe,観察する,verb,word
-175,3,perform,行う,verb,word
-176,3,quietly,静かに,adv,word
-177,3,report,報告する,verb,word
-178,3,surface,表面,noun,word
-179,3,typical,典型的な,adj,word
-180,3,urge,強く促す,verb,word
-181,3,victory,勝利,noun,word
-182,3,whisper,ささやく,verb,word
-183,3,arrange,手配する,verb,word
-184,3,belief,信念,noun,word
-185,3,comfort,慰める,verb,word
-186,3,detail,詳細,noun,word
-187,3,energy,エネルギー,noun,word
-188,3,future,未来,noun,word
-189,3,gain,得る,verb,word
-190,3,helpful,助けになる,adj,word
-191,3,injury,けが,noun,word
-192,3,justice,正義,noun,word
-193,3,local,地元の,adj,word
-194,3,mental,精神の,adj,word
-195,3,notice,気付く,verb,word
-196,3,policy,政策,noun,word
-197,3,release,解放する,verb,word
-198,3,speech,スピーチ,noun,word
-199,3,talent,才能,noun,word
-200,3,unity,団結,noun,word
-201,2.5,ability,能力,noun,word
-202,2.5,abandon,放棄する,verb,word
-203,2.5,acquire,習得する,verb,word
-204,2.5,analyze,分析する,verb,word
-205,2.5,ambition,野心,noun,word
-206,2.5,benefit,恩恵,noun,word
-207,2.5,challenge,挑戦,noun,word
-208,2.5,convince,納得させる,verb,word
-209,2.5,declare,宣言する,verb,word
-210,2.5,efficient,効率的な,adj,word
-211,2.5,foundation,基盤,noun,word
-212,2.5,genuine,本物の,adj,word
-213,2.5,hesitate,ためらう,verb,word
-214,2.5,interpret,解釈する,verb,word
-215,2.5,justify,正当化する,verb,word
-216,2.5,keen,熱心な,adj,word
-217,2.5,logical,論理的な,adj,word
-218,2.5,maintain,維持する,verb,word
-219,2.5,negotiate,交渉する,verb,word
-220,2.5,organize,組織する,verb,word
-221,2.5,participate,参加する,verb,word
-222,2.5,qualify,資格を与える,verb,word
-223,2.5,recognize,認識する,verb,word
-224,2.5,sacrifice,犠牲にする,verb,word
-225,2.5,transform,変形させる,verb,word
-226,2.5,ultimate,究極の,adj,word
-227,2.5,visible,見える,adj,word
-228,2.5,withdraw,撤退する,verb,word
-229,2.5,yield,産出する,verb,word
-230,2.5,advance,進歩,verb,word
-231,2.5,balance,均衡,noun,word
-232,2.5,clarify,明確にする,verb,word
-233,2.5,deliver,配達する,verb,word
-234,2.5,expand,拡大する,verb,word
-235,2.5,forecast,予測する,verb,word
-236,2.5,guarantee,保証する,verb,word
-237,2.5,highlight,強調する,verb,word
-238,2.5,imply,暗示する,verb,word
-239,2.5,launch,開始する,verb,word
-240,2.5,monitor,監視する,verb,word
-241,2.5,notify,通知する,verb,word
-242,2.5,optimize,最適化する,verb,word
-243,2.5,proceed,進行する,verb,word
-244,2.5,retain,保持する,verb,word
-245,2.5,survive,生き残る,verb,word
-246,2.5,trigger,引き起こす,verb,word
-247,2.5,undertake,引き受ける,verb,word
-248,2.5,verify,検証する,verb,word
-249,2.5,worth,価値がある,adj,word
-250,2.5,youthful,若々しい,adj,word
-251,2,abandon,放棄する,verb,word
-252,2,accommodation,宿泊施設,noun,word
-253,2,adolescent,思春期の,adj,word
-254,2,allocate,割り当てる,verb,word
-255,2,boost,高める,verb,word
-256,2,comprehensive,包括的な,adj,word
-257,2,controversial,議論の余地がある,adj,word
-258,2,crucial,重大な,adj,word
-259,2,deficiency,不足,noun,word
-260,2,emerge,現れる,verb,word
-261,2,facilitate,促進する,verb,word
-262,2,fluctuate,変動する,verb,word
-263,2,generate,生み出す,verb,word
-264,2,hypothesis,仮説,noun,word
-265,2,impartial,公平な,adj,word
-266,2,indigenous,土着の,adj,word
-267,2,legitimate,合法の,adj,word
-268,2,manifest,明らかな,adj,word
-269,2,negligible,無視できる,adj,word
-270,2,oblige,義務付ける,verb,word
-271,2,paradox,逆説,noun,word
-272,2,plausible,もっともらしい,adj,word
-273,2,reconcile,和解させる,verb,word
-274,2,resilient,回復力のある,adj,word
-275,2,skeptical,懐疑的な,adj,word
-276,2,subordinate,従属の,adj,word
-277,2,tedious,退屈な,adj,word
-278,2,transparent,透明な,adj,word
-279,2,validate,妥当性を確認する,verb,word
-280,2,viable,実行可能な,adj,word
-281,2,alleviate,軽減する,verb,word
-282,2,articulate,はっきり表現する,verb,word
-283,2,contemplate,熟考する,verb,word
-284,2,delegate,委任する,verb,word
-285,2,discrepancy,不一致,noun,word
-286,2,eradicate,根絶する,verb,word
-287,2,formulate,策定する,verb,word
-288,2,gratitude,感謝,noun,word
-289,2,hostile,敵対的な,adj,word
-290,2,imminent,差し迫った,adj,word
-291,2,integrate,統合する,verb,word
-292,2,linguistic,言語の,adj,word
-293,2,meticulous,細心の,adj,word
-294,2,notorious,悪名高い,adj,word
-295,2,obsolete,時代遅れの,adj,word
-296,2,perceive,知覚する,verb,word
-297,2,prevalent,普及している,adj,word
-298,2,retrospect,回顧,noun,word
-299,2,sophisticated,洗練された,adj,word
-300,2,undermine,弱体化させる,verb,word
+no,grade,word,japanese,english,pos,category,actors
+1,5,I,私,a word for me,pronoun,word,-
+2,5,my,私の,a word for something of me,pronoun,word,-
+3,5,me,私を,a word for the person speaking,pronoun,word,-
+4,5,mine,私のもの,a word for something that is mine,pronoun,word,-
+5,5,you,あなた・あなたたち,a word for the person you speak to,pronoun,word,-
+6,5,your,あなたの,a word for something of you,pronoun,word,-
+7,5,yours,あなたのもの,a word for something that is yours,pronoun,word,-
+8,5,he,彼,a word for a man or boy,pronoun,word,-
+9,5,his,彼の・彼のもの,a word for something of him,pronoun,word,-
+10,5,him,彼を,a word for a man or boy,pronoun,word,-
+11,5,she,彼女,a word for a woman or girl,pronoun,word,-
+12,5,her,彼女の・彼女を,a word for a woman or girl,pronoun,word,-
+13,5,hers,彼女のもの,a word for something that is hers,pronoun,word,-
+14,5,it,それ,a word for a thing or animal,pronoun,word,-
+15,5,its,それの,a word for something of it,pronoun,word,-
+16,5,they,彼ら・それら,a word for more than one person or thing,pronoun,word,-
+17,5,their,彼らの・それらの,a word for something of them,pronoun,word,-
+18,5,them,彼らを・それらを,a word for people or things as the object,pronoun,word,-
+19,5,theirs,彼らのもの・それらのもの,a word for something that is theirs,pronoun,word,-
+20,5,we,私たち,a word for me and other people,pronoun,word,-
+21,5,our,私たちの,a word for something of us,pronoun,word,-
+22,5,us,私たちを,a word for me and other people as the object,pronoun,word,-
+23,5,ours,私たちのもの,a word for something that is ours,pronoun,word,-
+24,5,what,何,a word to ask about a thing,pronoun,word,-
+25,5,what color,何色,a phrase to ask about color,phrase,phrase,-
+26,5,what sports,何のスポーツ,a phrase to ask about sports,phrase,phrase,-
+27,5,what food,何の食べ物,a phrase to ask about food,phrase,phrase,-
+28,5,what drink,何の飲み物,a phrase to ask about a drink,phrase,phrase,-
+29,5,what animal,何の動物,a phrase to ask about an animal,phrase,phrase,-
+30,5,what subject,何の科目,a phrase to ask about a school subject,phrase,phrase,-
+31,5,what time,何時,a phrase to ask about time,phrase,phrase,-
+32,5,What day of the week is it today,今日は何曜日,a question to ask the day name,phrase,phrase,-
+33,5,What's the date today,今日の日付は,a question to ask the date,phrase,phrase,-
+34,5,What's your favorite A,あなたの好きなAは,a question to ask what you like best,phrase,phrase,A
+35,5,where,どこ,a word to ask about a place,adverb,word,-
+36,5,when,いつ,a word to ask about time,adverb,word,-
+37,5,who,誰,a word to ask about a person,pronoun,word,-
+38,5,whose,誰の,a word to ask about who has something,pronoun,word,-
+39,5,which,どちらの,a word to ask about one of two or more,pronoun,word,-
+40,5,how,どうやって,a word to ask about the way to do something,adverb,word,-
+41,5,How do you get to A,どうやってAへ行く,a question to ask the way to go to a place,phrase,phrase,-
+42,5,How are you,元気ですか,a question to ask about a person,phrase,phrase,-
+43,5,how old,何歳,a phrase to ask about age,phrase,phrase,-
+44,5,how much,いくら,a phrase to ask about price,phrase,phrase,-
+45,5,How many,いくつ,a phrase to ask about number,phrase,phrase,-
+46,5,How about A, Aはどうですか,a phrase to make a suggestion,phrase,phrase,A
+47,5,how tall,どのくらい高い,a phrase to ask about height,phrase,phrase,-
+48,5,how long,どのくらい長い,a phrase to ask about length or time,phrase,phrase,-
+49,5,one o'clock,1時,time at one,phrase,phrase,-
+50,5,two o'clock,2時,time at two,phrase,phrase,-
+51,5,three o'clock,3時,time at three,phrase,phrase,-

@@ -9,7 +9,9 @@ data class WordEntity(
     val grade: String,
     val word: String,
     val japanese: String,
-    val pos: String?,          // 品詞（不明なら null 許可）
-    val category: String       // "word", "熟語", "sentence" 等
+    val english: String,    // ★追加
+    val pos: String,
+    val category: String,
+    val actors: String      // ★追加（例: A / -）
 )
 

@@ -16,6 +16,8 @@ class AppSettings(context: Context) {
         // ★追加：広告音量（AdMob等を入れた時に使う）
         private const val KEY_AD_VOLUME = "ad_volume"     // Float 0..1
         private const val KEY_AD_MUTED = "ad_muted"       // Boolean
+        private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"
+        private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"
     }
 
     var answerIntervalMs: Long
@@ -42,4 +44,12 @@ class AppSettings(context: Context) {
     var adMuted: Boolean
         get() = prefs.getBoolean(KEY_AD_MUTED, false)
         set(value) = prefs.edit().putBoolean(KEY_AD_MUTED, value).apply()
+
+    var wrongRetrySec: Long
+        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 60L)
+        set(v) = prefs.edit().putLong(KEY_WRONG_RETRY_SEC, v).apply()
+
+    var level1RetrySec: Long
+        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 60L)
+        set(v) = prefs.edit().putLong(KEY_LEVEL1_RETRY_SEC, v).apply()
 }

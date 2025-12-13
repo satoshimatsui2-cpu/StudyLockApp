@@ -30,6 +30,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Locale
 import kotlin.math.abs
 
@@ -209,7 +210,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun playCorrectEffect() {
         flashCorrectBackground()
 
-        // ★正解SE音量
         val vol = settings.seCorrectVolume
         if (seCorrectId != 0) soundPool?.play(seCorrectId, vol, vol, 1, 0, 1f)
 
@@ -234,9 +234,42 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun playWrongEffect() {
-        // ★不正解SE音量
         val vol = settings.seWrongVolume
         if (seWrongId != 0) soundPool?.play(seWrongId, vol, vol, 1, 0, 1f)
+    }
+
+    private fun nowEpochSec(): Long = System.currentTimeMillis() / 1000L
+
+    /**
+     * ★Due計算（秒精度）
+     * - 誤答：now + wrongRetrySec
+     * - 正解して newLevel==1：now + level1RetrySec
+     * - 翌日以降：0時固定
+     */
+    private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
+        val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
+
+        if (!isCorrect) {
+            return newLevel to (nowSec + settings.wrongRetrySec)
+        }
+        if (newLevel == 1) {
+            return newLevel to (nowSec + settings.level1RetrySec)
+        }
+
+        val days = when (newLevel) {
+            2 -> 1
+            3 -> 3
+            4 -> 7
+            5 -> 14
+            6 -> 30
+            7 -> 60
+            else -> 90
+        }
+
+        val zone = ZoneId.systemDefault()
+        val dueDate = LocalDate.now(zone).plusDays(days.toLong())
+        val dueAtSec = dueDate.atStartOfDay(zone).toEpochSecond()
+        return newLevel to dueAtSec
     }
 
     private fun loadAllWordsThenQuestion() {
@@ -258,22 +291,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         currentCorrectIndex = -1
     }
 
+    /**
+     * ★出題優先順位
+     * 1) nextDueAtSec <= NOW を古い順（最小nextDueAtSec）から
+     * 2) progress無し（未学習）
+     */
     private fun loadNextQuestion() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
-            val wordDao = db.wordDao()
-            val today = ProgressCalculator.todayEpochDay()
+            val nowSec = nowEpochSec()
 
             resetChoiceButtons()
 
-            val dueIds = progressDao.getDueWordIds(currentMode, today)
-            val dueWords = if (dueIds.isEmpty()) emptyList() else wordDao.getByIds(dueIds)
-            val progressedIds = progressDao.getProgressIds(currentMode).toSet()
-            val untouched = allWords.filter { it.no !in progressedIds }
-            val targetList = (dueWords + untouched).filter { it in allWords }.ifEmpty { allWords }
-
-            if (targetList.isEmpty()) {
+            if (allWords.isEmpty()) {
                 textQuestionTitle.text = "出題する単語がありません"
                 textQuestionBody.text = ""
                 textQuestionBody.visibility = View.GONE
@@ -285,7 +316,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return@launch
             }
 
-            val next = targetList.random()
+            // 1) 期限到来を古い順で
+            val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
+            val wordMap = allWords.associateBy { it.no }
+            val dueWord: WordEntity? = dueIdsOrdered.firstNotNullOfOrNull { wordMap[it] }
+
+            // 2) 未学習（progress無し）
+            val progressedIds = progressDao.getProgressIds(currentMode).toSet()
+            val untouched = allWords.filter { it.no !in progressedIds }
+
+            val next = when {
+                dueWord != null -> dueWord
+                untouched.isNotEmpty() -> untouched.random()
+                else -> allWords.random()
+            }
+
             currentWord = next
 
             val choices = if (currentMode == "meaning") {
@@ -370,12 +415,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             selectedText == cw.word
         }
 
+        // 連打防止
         choiceButtons.forEach { it.isClickable = false }
 
+        // 正解は必ず緑
         if (currentCorrectIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[currentCorrectIndex], greenTint)
         }
-
+        // 不正解なら押したものを赤
         if (!isCorrect && selectedIndex != currentCorrectIndex && selectedIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
         }
@@ -390,27 +437,33 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
             val pointManager = PointManager(this@LearningActivity)
-            val today = ProgressCalculator.todayEpochDay()
+
+            val nowSec = nowEpochSec()
+            val todayEpochDay = LocalDate.now().toEpochDay()
 
             val current = progressDao.getProgress(wordId, currentMode)
-                ?: WordProgressEntity(wordId, currentMode, 0, today, 0L)
-            val (newLevel, nextDue) = ProgressCalculator.update(isCorrect, current.level, today)
-            val addPoint = ProgressCalculator.calcPoint(isCorrect, current.level)
+            val currentLevel = current?.level ?: 0
+
+            val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
+
+            val addPoint = ProgressCalculator.calcPoint(isCorrect, currentLevel)
             pointManager.add(addPoint)
 
             if (addPoint > 0) {
                 db.pointHistoryDao().insert(
                     PointHistoryEntity(
                         mode = currentMode,
-                        dateEpochDay = today,
+                        dateEpochDay = todayEpochDay,
                         delta = addPoint
                     )
                 )
             }
 
-            val updated = current.copy(
+            val updated = WordProgressEntity(
+                wordId = wordId,
+                mode = currentMode,
                 level = newLevel,
-                nextDueDate = nextDue,
+                nextDueAtSec = nextDueAtSec,
                 lastAnsweredAt = System.currentTimeMillis()
             )
             progressDao.upsert(updated)
@@ -419,7 +472,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             Log.d(
                 "ANSWER_TEST",
-                "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDue=$nextDue totalPoint=${pointManager.getTotal()}"
+                "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDueAtSec=$nextDueAtSec totalPoint=${pointManager.getTotal()}"
             )
 
             updatePointView()
@@ -474,8 +527,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun speakCurrentWord() {
         val cw = currentWord ?: return
-
-        // ★TTS音量を設定値で制御
         val params = Bundle().apply {
             putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, settings.ttsVolume) // 0.0..1.0
         }

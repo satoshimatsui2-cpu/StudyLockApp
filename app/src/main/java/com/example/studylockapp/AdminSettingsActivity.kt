@@ -21,6 +21,13 @@ class AdminSettingsActivity : AppCompatActivity() {
         val textInterval = findViewById<TextView>(R.id.text_interval)
         val seekInterval = findViewById<SeekBar>(R.id.seek_interval)
 
+        // ★追加：誤答リトライ / Lv1リトライ
+        val textWrongRetry = findViewById<TextView>(R.id.text_wrong_retry)
+        val seekWrongRetry = findViewById<SeekBar>(R.id.seek_wrong_retry)
+
+        val textLevel1Retry = findViewById<TextView>(R.id.text_level1_retry)
+        val seekLevel1Retry = findViewById<SeekBar>(R.id.seek_level1_retry)
+
         val textSeCorrect = findViewById<TextView>(R.id.text_se_correct)
         val seekSeCorrect = findViewById<SeekBar>(R.id.seek_se_correct)
 
@@ -48,8 +55,23 @@ class AdminSettingsActivity : AppCompatActivity() {
         fun volToProgress(vol: Float) = (vol.coerceIn(0f, 1f) * 100f).toInt()
         fun progressToVol(p: Int) = (p.coerceIn(0, 100) / 100f)
 
+        // ★追加：リトライ秒（10..600秒にしたい場合）
+        fun secToProgress(sec: Long): Int {
+            val clamped = sec.coerceIn(10L, 600L)
+            return (clamped - 10L).toInt() // 0..590
+        }
+
+        fun progressToSec(progress: Int): Long {
+            return (progress.coerceIn(0, 590) + 10).toLong() // 10..600
+        }
+
         // 初期値反映
         seekInterval.progress = intervalMsToProgress(settings.answerIntervalMs)
+
+        // ★追加：初期値反映
+        seekWrongRetry.progress = secToProgress(settings.wrongRetrySec)
+        seekLevel1Retry.progress = secToProgress(settings.level1RetrySec)
+
         seekSeCorrect.progress = volToProgress(settings.seCorrectVolume)
         seekSeWrong.progress = volToProgress(settings.seWrongVolume)
         seekTts.progress = volToProgress(settings.ttsVolume)
@@ -58,6 +80,10 @@ class AdminSettingsActivity : AppCompatActivity() {
         fun refreshLabels() {
             val sec = progressToIntervalMs(seekInterval.progress) / 1000f
             textInterval.text = "回答間隔: %.1f 秒".format(sec)
+
+            // ★追加：表示更新
+            textWrongRetry.text = "誤答リトライ: ${progressToSec(seekWrongRetry.progress)} 秒"
+            textLevel1Retry.text = "Lv1リトライ: ${progressToSec(seekLevel1Retry.progress)} 秒"
 
             textSeCorrect.text = "正解SE音量: ${seekSeCorrect.progress}%"
             textSeWrong.text = "不正解SE音量: ${seekSeWrong.progress}%"
@@ -78,6 +104,11 @@ class AdminSettingsActivity : AppCompatActivity() {
         }
 
         seekInterval.setOnSeekBarChangeListener(commonListener)
+
+        // ★追加：リトライ秒のSeekBarも同じリスナーに
+        seekWrongRetry.setOnSeekBarChangeListener(commonListener)
+        seekLevel1Retry.setOnSeekBarChangeListener(commonListener)
+
         seekSeCorrect.setOnSeekBarChangeListener(commonListener)
         seekSeWrong.setOnSeekBarChangeListener(commonListener)
         seekTts.setOnSeekBarChangeListener(commonListener)
@@ -91,6 +122,11 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
+
+            // ★追加：保存
+            settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
+            settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
+
             settings.seCorrectVolume = progressToVol(seekSeCorrect.progress)
             settings.seWrongVolume = progressToVol(seekSeWrong.progress)
             settings.ttsVolume = progressToVol(seekTts.progress)

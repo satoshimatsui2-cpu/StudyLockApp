@@ -11,11 +11,11 @@
         android:padding="16dp">
 
         <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="管理者設定（最小版）"
             android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:textStyle="bold" />
 
         <!-- 回答間隔 -->
         <TextView
@@ -31,6 +31,36 @@
             android:layout_height="wrap_content"
             android:max="95" />
         <!-- 0..95 => 0.5..10.0秒（0.1秒刻み） -->
+
+        <!-- ★追加：誤答リトライ秒 -->
+        <TextView
+            android:id="@+id/text_wrong_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="誤答リトライ: 60 秒" />
+
+        <SeekBar
+            android:id="@+id/seek_wrong_retry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="590" />
+        <!-- 0..590 => 10..600秒（+10秒） -->
+
+        <!-- ★追加：Lv1リトライ秒 -->
+        <TextView
+            android:id="@+id/text_level1_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="Lv1リトライ: 60 秒" />
+
+        <SeekBar
+            android:id="@+id/seek_level1_retry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="590" />
+        <!-- 0..590 => 10..600秒（+10秒） -->
 
         <!-- 正解SE -->
         <TextView
@@ -92,15 +122,15 @@
             android:id="@+id/btn_toggle_ad_mute"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="広告ミュート: OFF"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:text="広告ミュート: OFF" />
 
         <Button
             android:id="@+id/btn_save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="保存"
-            android:layout_marginTop="18dp"/>
+            android:layout_marginTop="18dp"
+            android:text="保存" />
 
     </LinearLayout>
 </ScrollView>

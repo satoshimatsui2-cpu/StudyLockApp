@@ -5,11 +5,10 @@ data class WordDisplayItem(
     val word: String,
     val japanese: String,
     val grade: String,
-    val pos: String?,
+    val pos: String,
     val category: String,
     val mLevel: Int?,
-    val mDue: Long?,
+    val mDue: Long?,   // epoch seconds
     val lLevel: Int?,
-    val lDue: Long?
+    val lDue: Long?    // epoch seconds
 )
-

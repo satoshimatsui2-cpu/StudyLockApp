@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     // 表示名 → 内部値のマッピング
     private val gradeMap = mapOf(
+        "5級" to "5",
         "4級" to "4",
         "3級" to "3",
         "準2級" to "2.5",

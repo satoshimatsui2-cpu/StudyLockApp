@@ -2,8 +2,8 @@ package com.example.studylockapp
 
 import android.os.Bundle
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Spinner
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -76,6 +76,7 @@ class WordListActivity : AppCompatActivity() {
         displayCache = words.map { w ->
             val pm = progressDao.getProgress(w.no, "meaning")
             val pl = progressDao.getProgress(w.no, "listening")
+
             WordDisplayItem(
                 no = w.no,
                 word = w.word,
@@ -84,9 +85,9 @@ class WordListActivity : AppCompatActivity() {
                 pos = w.pos,
                 category = w.category,
                 mLevel = pm?.level,
-                mDue = pm?.nextDueDate,
+                mDue = pm?.nextDueAtSec,   // ★修正：nextDueDate → nextDueAtSec
                 lLevel = pl?.level,
-                lDue = pl?.nextDueDate
+                lDue = pl?.nextDueAtSec    // ★修正：nextDueDate → nextDueAtSec
             )
         }
     }
@@ -105,7 +106,7 @@ class WordListActivity : AppCompatActivity() {
             "Grade"     -> filtered.sortedBy { it.grade }
             "M-Level"   -> filtered.sortedByDescending { it.mLevel ?: 0 }
             "L-Level"   -> filtered.sortedByDescending { it.lLevel ?: 0 }
-            "M-NextDue" -> filtered.sortedBy { it.mDue ?: Long.MAX_VALUE }
+            "M-NextDue" -> filtered.sortedBy { it.mDue ?: Long.MAX_VALUE } // epochSecなのでこのまま比較OK
             "L-NextDue" -> filtered.sortedBy { it.lDue ?: Long.MAX_VALUE }
             else        -> filtered
         }

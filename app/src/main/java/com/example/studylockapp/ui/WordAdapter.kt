@@ -6,7 +6,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studylockapp.R
-import java.time.LocalDate
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class WordAdapter(private var items: List<WordDisplayItem>) :
     RecyclerView.Adapter<WordAdapter.WordViewHolder>() {
@@ -49,8 +51,23 @@ class WordAdapter(private var items: List<WordDisplayItem>) :
         notifyDataSetChanged()
     }
 
-    private fun toDateString(epochDay: Long?): String {
-        if (epochDay == null || epochDay <= 0) return "-"
-        return LocalDate.ofEpochDay(epochDay).toString()
+    private fun toDateString(epochSec: Long?): String {
+        if (epochSec == null || epochSec <= 0) return "-"
+
+        val nowSec = System.currentTimeMillis() / 1000L
+        val remain = epochSec - nowSec
+
+        // 期限到来
+        if (remain <= 0) return "今すぐ"
+
+        // 当日リトライ（誤答/Lv1で now+秒 の世界）は「あと○秒」にする
+        if (remain <= 24 * 3600) {
+            return "あと${remain}秒"
+        }
+
+        // 翌日以降（0時固定想定）は日付表示
+        val zone = ZoneId.systemDefault()
+        val date = Instant.ofEpochSecond(epochSec).atZone(zone).toLocalDate()
+        return date.format(DateTimeFormatter.ISO_LOCAL_DATE) // 例: 2025-12-13
     }
 }
