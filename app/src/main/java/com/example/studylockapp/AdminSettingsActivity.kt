@@ -4,9 +4,11 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.ads.AdAudioManager
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 
 class AdminSettingsActivity : AppCompatActivity() {
 
@@ -42,6 +44,11 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         val btnToggleAdMute = findViewById<Button>(R.id.btn_toggle_ad_mute)
         val btnSave = findViewById<Button>(R.id.btn_save)
+
+        val btn = findViewById<Button>(R.id.button_open_timezone_setup)
+        btn.setOnClickListener {
+            startActivity(Intent(this, TimeZoneSetupActivity::class.java))
+        }
 
         fun intervalMsToProgress(ms: Long): Int {
             val clamped = ms.coerceIn(500L, 10_000L)

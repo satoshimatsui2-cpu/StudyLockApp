@@ -73,9 +73,15 @@ class WordListActivity : AppCompatActivity() {
         val words = db.wordDao().getAll()
         val progressDao = db.wordProgressDao()
 
+        // 「今からあとどれくらい」を作るために、ここで一回だけ nowSec を取る
+        val nowSec = System.currentTimeMillis() / 1000L
+
         displayCache = words.map { w ->
             val pm = progressDao.getProgress(w.no, "meaning")
             val pl = progressDao.getProgress(w.no, "listening")
+
+            val mDueSec = pm?.nextDueAtSec
+            val lDueSec = pl?.nextDueAtSec
 
             WordDisplayItem(
                 no = w.no,
@@ -84,10 +90,19 @@ class WordListActivity : AppCompatActivity() {
                 grade = w.grade,
                 pos = w.pos,
                 category = w.category,
+
                 mLevel = pm?.level,
-                mDue = pm?.nextDueAtSec,   // ★修正：nextDueDate → nextDueAtSec
+                mDue = mDueSec,
+
                 lLevel = pl?.level,
-                lDue = pl?.nextDueAtSec    // ★修正：nextDueDate → nextDueAtSec
+                lDue = lDueSec,
+
+                // ここが今回の変更点：表示用テキストを持たせる
+                mDueText = if (pm == null) "未学習"
+                else DueTimeFormatter.formatRemaining(nowSec, mDueSec ?: nowSec),
+
+                lDueText = if (pl == null) "未学習"
+                else DueTimeFormatter.formatRemaining(nowSec, lDueSec ?: nowSec),
             )
         }
     }
@@ -100,13 +115,13 @@ class WordListActivity : AppCompatActivity() {
             gradeFilter == "All" || item.grade == gradeFilter
         }
 
-        // ソート
+        // ソート（Dueのソートは epochSec の mDue/lDue を使うので今まで通り）
         val sorted = when (currentSort) {
             "Word"      -> filtered.sortedBy { it.word.lowercase() }
             "Grade"     -> filtered.sortedBy { it.grade }
             "M-Level"   -> filtered.sortedByDescending { it.mLevel ?: 0 }
             "L-Level"   -> filtered.sortedByDescending { it.lLevel ?: 0 }
-            "M-NextDue" -> filtered.sortedBy { it.mDue ?: Long.MAX_VALUE } // epochSecなのでこのまま比較OK
+            "M-NextDue" -> filtered.sortedBy { it.mDue ?: Long.MAX_VALUE }
             "L-NextDue" -> filtered.sortedBy { it.lDue ?: Long.MAX_VALUE }
             else        -> filtered
         }

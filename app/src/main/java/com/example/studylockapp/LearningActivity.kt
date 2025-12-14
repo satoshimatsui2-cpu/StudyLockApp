@@ -32,6 +32,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
+import java.time.Instant
+import java.time.ZonedDateTime
 import kotlin.math.abs
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -248,28 +250,48 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
      */
     private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
         val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
-
-        if (!isCorrect) {
-            return newLevel to (nowSec + settings.wrongRetrySec)
-        }
-        if (newLevel == 1) {
-            return newLevel to (nowSec + settings.level1RetrySec)
-        }
-
-        val days = when (newLevel) {
-            2 -> 1
-            3 -> 3
-            4 -> 7
-            5 -> 14
-            6 -> 30
-            7 -> 60
-            else -> 90
-        }
-
         val zone = ZoneId.systemDefault()
-        val dueDate = LocalDate.now(zone).plusDays(days.toLong())
-        val dueAtSec = dueDate.atStartOfDay(zone).toEpochSecond()
-        return newLevel to dueAtSec
+
+        fun zdt(sec: Long): ZonedDateTime =
+            Instant.ofEpochSecond(sec).atZone(zone)
+
+        val result: Pair<Int, Long> = when {
+            !isCorrect -> {
+                newLevel to (nowSec + settings.wrongRetrySec)
+            }
+            newLevel == 1 -> {
+                // ここに入っているなら「約5000秒」は level1RetrySec の可能性が高い
+                newLevel to (nowSec + settings.level1RetrySec)
+            }
+            else -> {
+                val days = when (newLevel) {
+                    2 -> 1
+                    3 -> 3
+                    4 -> 7
+                    5 -> 14
+                    6 -> 30
+                    7 -> 60
+                    else -> 90
+                }
+
+                // LocalDate.now() ではなく nowSec から日付を作る（ズレ防止）
+                val baseDate = Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate()
+                val dueDate = baseDate.plusDays(days.toLong())
+                val dueAtSec = dueDate.atStartOfDay(zone).toEpochSecond()
+                newLevel to dueAtSec
+            }
+        }
+
+        // ★確定ログ（これで原因が一発で分かる）
+        val nextDueAtSec = result.second
+        Log.d(
+            "DUE_CALC",
+            "isCorrect=$isCorrect currentLevel=$currentLevel newLevel=$newLevel " +
+                    "nowSec=$nowSec(${zdt(nowSec)}) nextDueAtSec=$nextDueAtSec(${zdt(nextDueAtSec)}) " +
+                    "settings(level1RetrySec=${settings.level1RetrySec}, wrongRetrySec=${settings.wrongRetrySec})"
+        )
+
+        return result
     }
 
     private fun loadAllWordsThenQuestion() {
@@ -445,6 +467,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val currentLevel = current?.level ?: 0
 
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
+            Log.d("DUE_CALC", "wordId=$wordId mode=$currentMode")
 
             val addPoint = ProgressCalculator.calcPoint(isCorrect, currentLevel)
             pointManager.add(addPoint)

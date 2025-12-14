@@ -8,7 +8,9 @@ data class WordDisplayItem(
     val pos: String,
     val category: String,
     val mLevel: Int?,
-    val mDue: Long?,   // epoch seconds
+    val mDue: Long?,
     val lLevel: Int?,
-    val lDue: Long?    // epoch seconds
+    val lDue: Long?,
+    val mDueText: String,
+    val lDueText: String
 )

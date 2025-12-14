@@ -9,11 +9,14 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
+import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.abs
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -108,6 +111,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // ★初回：タイムゾーン未選択ならセットアップ画面へ
+        val settings = com.example.studylockapp.data.AppSettings(this)
+        if (!settings.hasChosenTimeZone()) {
+            startActivity(android.content.Intent(this, com.example.studylockapp.ui.setup.TimeZoneSetupActivity::class.java))
+            return
+        }
         // ★学習画面から戻ったタイミングで更新される
         updatePointView()
     }

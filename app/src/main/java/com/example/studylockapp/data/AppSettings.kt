@@ -1,6 +1,7 @@
 package com.example.studylockapp.data
 
 import android.content.Context
+import java.time.ZoneId
 
 class AppSettings(context: Context) {
 
@@ -13,11 +14,19 @@ class AppSettings(context: Context) {
         private const val KEY_SE_WRONG_VOLUME = "se_wrong_volume"
         private const val KEY_TTS_VOLUME = "tts_volume"
 
-        // ★追加：広告音量（AdMob等を入れた時に使う）
+        // 広告音量（AdMob等を入れた時に使う）
         private const val KEY_AD_VOLUME = "ad_volume"     // Float 0..1
         private const val KEY_AD_MUTED = "ad_muted"       // Boolean
+
         private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"
         private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"
+
+        // タイムゾーン（例: "Asia/Tokyo"）。null/空なら端末の systemDefault を使う
+        private const val KEY_APP_TIME_ZONE_ID = "app_time_zone_id"
+
+        // 「初回にタイムゾーン選択を済ませたか」
+        // appTimeZoneId が null（端末デフォルト選択）でも「選択済み」にするため別キーで持つ
+        private const val KEY_TIME_ZONE_CHOSEN = "time_zone_chosen" // Boolean
     }
 
     var answerIntervalMs: Long
@@ -36,7 +45,7 @@ class AppSettings(context: Context) {
         get() = prefs.getFloat(KEY_TTS_VOLUME, 1.0f).coerceIn(0f, 1f)
         set(value) = prefs.edit().putFloat(KEY_TTS_VOLUME, value.coerceIn(0f, 1f)).apply()
 
-    // ★追加：広告音量
+    // 広告音量
     var adVolume: Float
         get() = prefs.getFloat(KEY_AD_VOLUME, 0.2f).coerceIn(0f, 1f) // デフォルト小さめ
         set(value) = prefs.edit().putFloat(KEY_AD_VOLUME, value.coerceIn(0f, 1f)).apply()
@@ -52,4 +61,40 @@ class AppSettings(context: Context) {
     var level1RetrySec: Long
         get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 60L)
         set(v) = prefs.edit().putLong(KEY_LEVEL1_RETRY_SEC, v).apply()
+
+    /**
+     * タイムゾーンID（例: "Asia/Tokyo"）
+     * null/空の場合は端末の systemDefault を使う
+     */
+    var appTimeZoneId: String?
+        get() = prefs.getString(KEY_APP_TIME_ZONE_ID, null)
+        set(value) = prefs.edit().putString(KEY_APP_TIME_ZONE_ID, value).apply()
+
+    /**
+     * 初回セットアップ用：タイムゾーンを「選択したことがあるか」
+     * - 端末デフォルト（appTimeZoneId=null）を選んでも true にできるよう別キーで管理
+     */
+    var timeZoneChosen: Boolean
+        get() = prefs.getBoolean(KEY_TIME_ZONE_CHOSEN, false)
+        set(value) = prefs.edit().putBoolean(KEY_TIME_ZONE_CHOSEN, value).apply()
+
+    fun hasChosenTimeZone(): Boolean = timeZoneChosen
+
+    /**
+     * timeZoneId: "Asia/Tokyo" など。端末デフォルトを使うなら null を渡す
+     * ※必ず「選択済み」にする
+     */
+    fun setTimeZone(timeZoneId: String?) {
+        appTimeZoneId = timeZoneId
+        timeZoneChosen = true
+    }
+
+    /**
+     * アプリ内で使う ZoneId を統一して取得する
+     */
+    fun getAppZoneId(): ZoneId {
+        val id = appTimeZoneId
+        return if (id.isNullOrBlank()) ZoneId.systemDefault()
+        else ZoneId.of(id)
+    }
 }
