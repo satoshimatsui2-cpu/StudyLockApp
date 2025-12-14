@@ -78,6 +78,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textQuestionBody: TextView
     private lateinit var textPoints: TextView
     private lateinit var textPointStats: TextView
+    private lateinit var textStudyStats: TextView
     private lateinit var textFeedback: TextView // 互換のため残す（基本使わない）
     private lateinit var radioGroup: RadioGroup
     private lateinit var radioMeaning: RadioButton
@@ -99,6 +100,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionBody = findViewById(R.id.text_question_body)
         textPoints = findViewById(R.id.text_points)
         textPointStats = findViewById(R.id.text_point_stats)
+        textStudyStats = findViewById(R.id.text_study_stats)
         textFeedback = findViewById(R.id.text_feedback)
         radioGroup = findViewById(R.id.radio_group_mode)
         radioMeaning = findViewById(R.id.radio_meaning)
@@ -138,6 +140,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
             currentMode = if (checkedId == radioMeaning.id) "meaning" else "listening"
+            updateStudyStatsView()
             loadNextQuestion()
         }
 
@@ -299,7 +302,46 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val words = db.wordDao().getAll()
             allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
+            updateStudyStatsView()
             loadNextQuestion()
+        }
+    }
+    private fun updateStudyStatsView() {
+        lifecycleScope.launch {
+            // allWords は gradeFilter 済みのリスト（loadAllWordsThenQuestionで作っている前提）
+            val total = allWords.size
+            val gradeText = if (gradeFilter == "All") "全級" else gradeFilter
+
+            if (total == 0) {
+                textStudyStats.text = "級: $gradeText / 復習(意:0 聴:0) / 新規:0/0"
+                return@launch
+            }
+
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val progressDao = db.wordProgressDao()
+            val nowSec = nowEpochSec()
+
+            // grade内の wordId セット
+            val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
+
+            // 復習数（Due<=Now）：meaning / listening を両方数える
+            val dueMeaningCount = progressDao
+                .getDueWordIdsOrdered("meaning", nowSec)
+                .count { it in wordIdSet }
+
+            val dueListeningCount = progressDao
+                .getDueWordIdsOrdered("listening", nowSec)
+                .count { it in wordIdSet }
+
+            // 未着手数：meaning と listening の progress が「どちらも無い」もの
+            val progressedMeaning = progressDao.getProgressIds("meaning").toSet()
+            val progressedListening = progressDao.getProgressIds("listening").toSet()
+            val startedUnion = progressedMeaning union progressedListening
+
+            val untouchedCount = wordIdSet.count { it !in startedUnion }
+
+            textStudyStats.text =
+                "級: $gradeText / 復習(意:$dueMeaningCount 聴:$dueListeningCount) / 新規:$untouchedCount/$total"
         }
     }
 
@@ -490,7 +532,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 lastAnsweredAt = System.currentTimeMillis()
             )
             progressDao.upsert(updated)
-
+            updateStudyStatsView()   // ★追加：復習数/新規数を更新
             showFeedbackSnackbar(isCorrect, addPoint)
 
             Log.d(

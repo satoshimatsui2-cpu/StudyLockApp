@@ -29,6 +29,7 @@
             android:text="リスニング"/>
     </RadioGroup>
 
+
     <!-- 問題タイトル（小さめ・センター） -->
     <TextView
         android:id="@+id/text_question_title"
@@ -41,6 +42,14 @@
         app:layout_constraintTop_toBottomOf="@id/radio_group_mode"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+    <TextView
+        android:id="@+id/text_study_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#666666"
+        android:paddingTop="4dp"
+        android:text="級: - / 復習(意:0 聴:0) / 新規:0/0" />
 
     <!-- 単語/日本語（大きめ・センター、上下マージンを倍） -->
     <TextView
