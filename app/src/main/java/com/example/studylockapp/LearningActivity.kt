@@ -26,20 +26,22 @@ import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.Locale
-import java.time.Instant
 import java.time.ZonedDateTime
+import java.util.Locale
 import kotlin.math.abs
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var currentMode = "meaning"
-    private var gradeFilter: String = "All"   // TOPで選んだ級
+    private var gradeFilter: String = "All"   // TOPで選んだ級（DBのgradeと一致する値 例:"5"）
     private var currentWord: WordEntity? = null
     private var allWords: List<WordEntity> = emptyList()
     private var tts: TextToSpeech? = null
@@ -53,7 +55,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // ボタンの元の色に戻すため
     private lateinit var defaultChoiceTints: List<ColorStateList?>
 
-    // 色は colors.xml を参照
     private val greenTint by lazy {
         ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_correct))
     }
@@ -78,8 +79,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textQuestionBody: TextView
     private lateinit var textPoints: TextView
     private lateinit var textPointStats: TextView
+
+    // 互換のため残す（XMLでは gone）
     private lateinit var textStudyStats: TextView
-    private lateinit var textFeedback: TextView // 互換のため残す（基本使わない）
+    private lateinit var textFeedback: TextView
+
+    // ★追加：Chip（意/聴）
+    private lateinit var chipMeaningReview: Chip
+    private lateinit var chipMeaningNew: Chip
+    private lateinit var chipListeningReview: Chip
+    private lateinit var chipListeningNew: Chip
+
     private lateinit var radioGroup: RadioGroup
     private lateinit var radioMeaning: RadioButton
     private lateinit var radioListening: RadioButton
@@ -90,22 +100,34 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_learning)
 
-        // 設定読み込み
         settings = AppSettings(this)
-
-        // TOPから渡された gradeFilter を受け取る
         gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
+
+        // Toolbar（戻る矢印）
+        findViewById<MaterialToolbar>(R.id.toolbar_learning)?.let { tb ->
+            setSupportActionBar(tb)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        }
 
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
         textPoints = findViewById(R.id.text_points)
         textPointStats = findViewById(R.id.text_point_stats)
+
         textStudyStats = findViewById(R.id.text_study_stats)
         textFeedback = findViewById(R.id.text_feedback)
+
+        chipMeaningReview = findViewById(R.id.chip_meaning_review)
+        chipMeaningNew = findViewById(R.id.chip_meaning_new)
+        chipListeningReview = findViewById(R.id.chip_listening_review)
+        chipListeningNew = findViewById(R.id.chip_listening_new)
+
         radioGroup = findViewById(R.id.radio_group_mode)
         radioMeaning = findViewById(R.id.radio_meaning)
         radioListening = findViewById(R.id.radio_listening)
+
         buttonPlayAudio = findViewById(R.id.button_play_audio)
+
         choiceButtons = listOf(
             findViewById(R.id.button_choice_1),
             findViewById(R.id.button_choice_2),
@@ -115,7 +137,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             findViewById(R.id.button_choice_6)
         )
 
-        // TextViewのフィードバックは使わないので隠す（XML変更不要）
+        // フィードバックTextViewは使わないので隠す
         textFeedback.visibility = View.GONE
 
         // デフォルトの背景Tintを保存（次の問題で戻す用）
@@ -134,9 +156,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setAudioAttributes(attrs)
             .build()
 
-        // rawにある場合だけロード（無くても落ちない）
         seCorrectId = loadSeIfExists("se_correct")
-        seWrongId = loadSeIfExists("se_wrong") // 無くてもOK
+        seWrongId = loadSeIfExists("se_wrong")
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
             currentMode = if (checkedId == radioMeaning.id) "meaning" else "listening"
@@ -144,7 +165,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             loadNextQuestion()
         }
 
-        // indexでクリック処理
         choiceButtons.forEachIndexed { index, btn ->
             btn.setOnClickListener { onChoiceSelected(index) }
         }
@@ -153,6 +173,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         updatePointView()
         loadAllWordsThenQuestion()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 
     override fun onResume() {
@@ -186,7 +211,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return soundPool?.load(this, resId, 1) ?: 0
     }
 
-    // 正解時に画面全体を一瞬フラッシュ（控えめ）
     private fun flashCorrectBackground() {
         val root = findViewById<View>(android.R.id.content)
         val flashColor = ContextCompat.getColor(this, R.color.correct_flash)
@@ -218,7 +242,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val vol = settings.seCorrectVolume
         if (seCorrectId != 0) soundPool?.play(seCorrectId, vol, vol, 1, 0, 1f)
 
-        // 正解ボタンをバウンス
         val idx = currentCorrectIndex
         val v = choiceButtons.getOrNull(idx) ?: return
         v.animate().cancel()
@@ -229,11 +252,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .scaleY(1.12f)
             .setDuration(120)
             .withEndAction {
-                v.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(120)
-                    .start()
+                v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
             }
             .start()
     }
@@ -246,26 +265,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun nowEpochSec(): Long = System.currentTimeMillis() / 1000L
 
     /**
-     * ★Due計算（秒精度）
+     * Due計算（秒精度）
      * - 誤答：now + wrongRetrySec
      * - 正解して newLevel==1：now + level1RetrySec
-     * - 翌日以降：0時固定
+     * - 翌日以降：0時固定（アプリ設定のタイムゾーン）
      */
     private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
         val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
-        val zone = ZoneId.systemDefault()
+        val zone = settings.getAppZoneId()
 
-        fun zdt(sec: Long): ZonedDateTime =
-            Instant.ofEpochSecond(sec).atZone(zone)
+        fun zdt(sec: Long): ZonedDateTime = Instant.ofEpochSecond(sec).atZone(zone)
 
         val result: Pair<Int, Long> = when {
-            !isCorrect -> {
-                newLevel to (nowSec + settings.wrongRetrySec)
-            }
-            newLevel == 1 -> {
-                // ここに入っているなら「約5000秒」は level1RetrySec の可能性が高い
-                newLevel to (nowSec + settings.level1RetrySec)
-            }
+            !isCorrect -> newLevel to (nowSec + settings.wrongRetrySec)
+            newLevel == 1 -> newLevel to (nowSec + settings.level1RetrySec)
             else -> {
                 val days = when (newLevel) {
                     2 -> 1
@@ -276,8 +289,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     7 -> 60
                     else -> 90
                 }
-
-                // LocalDate.now() ではなく nowSec から日付を作る（ズレ防止）
                 val baseDate = Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate()
                 val dueDate = baseDate.plusDays(days.toLong())
                 val dueAtSec = dueDate.atStartOfDay(zone).toEpochSecond()
@@ -285,15 +296,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        // ★確定ログ（これで原因が一発で分かる）
         val nextDueAtSec = result.second
         Log.d(
             "DUE_CALC",
             "isCorrect=$isCorrect currentLevel=$currentLevel newLevel=$newLevel " +
-                    "nowSec=$nowSec(${zdt(nowSec)}) nextDueAtSec=$nextDueAtSec(${zdt(nextDueAtSec)}) " +
-                    "settings(level1RetrySec=${settings.level1RetrySec}, wrongRetrySec=${settings.wrongRetrySec})"
+                    "nowSec=$nowSec(${zdt(nowSec)}) nextDueAtSec=$nextDueAtSec(${zdt(nextDueAtSec)})"
         )
-
         return result
     }
 
@@ -301,16 +309,27 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val words = db.wordDao().getAll()
+
             allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
+
             updateStudyStatsView()
             loadNextQuestion()
         }
     }
+
+    /**
+     * 表示仕様（学習画面）：
+     * 意：復=meaningのDue数 / 新=（meaning/listening両方未着手）/総数
+     * 聴：復=listeningのDue数 / 新=同上
+     */
     private fun updateStudyStatsView() {
         lifecycleScope.launch {
             val total = allWords.size
             if (total == 0) {
-                textStudyStats.text = "意[復:0,新:0/0]\n聴[復:0,新:0/0]"
+                chipMeaningReview.text = "復 0"
+                chipMeaningNew.text = "新 0/0"
+                chipListeningReview.text = "復 0"
+                chipListeningNew.text = "新 0/0"
                 return@launch
             }
 
@@ -320,19 +339,22 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
 
-            // 復習：meaning/listening 両方の Due 件数の合計（※同じ単語が両方Dueなら2カウント）
             val dueMeaningCount = progressDao.getDueWordIdsOrdered("meaning", nowSec).count { it in wordIdSet }
             val dueListeningCount = progressDao.getDueWordIdsOrdered("listening", nowSec).count { it in wordIdSet }
-            val reviewTotal = dueMeaningCount + dueListeningCount
 
-            // 新規：meaning/listening 両方とも progress無し（どちらも未着手）
             val startedMeaning = progressDao.getProgressIds("meaning").toSet()
             val startedListening = progressDao.getProgressIds("listening").toSet()
             val startedUnion = startedMeaning union startedListening
             val newUntouched = wordIdSet.count { it !in startedUnion }
 
+            chipMeaningReview.text = "復 $dueMeaningCount"
+            chipMeaningNew.text = "新 $newUntouched/$total"
+            chipListeningReview.text = "復 $dueListeningCount"
+            chipListeningNew.text = "新 $newUntouched/$total"
+
+            // 互換用（見えないがログ/デバッグで確認したい時用）
             textStudyStats.text =
-                "意[復:$reviewTotal,新:$newUntouched/$total]\n聴[復:$reviewTotal,新:$newUntouched/$total]"
+                "意[復:$dueMeaningCount,新:$newUntouched/$total]\n聴[復:$dueListeningCount,新:$newUntouched/$total]"
         }
     }
 
@@ -347,7 +369,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     /**
-     * ★出題優先順位
+     * 出題優先順位
      * 1) nextDueAtSec <= NOW を古い順（最小nextDueAtSec）から
      * 2) progress無し（未学習）
      */
@@ -371,12 +393,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return@launch
             }
 
-            // 1) 期限到来を古い順で
             val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
             val wordMap = allWords.associateBy { it.no }
             val dueWord: WordEntity? = dueIdsOrdered.firstNotNullOfOrNull { wordMap[it] }
 
-            // 2) 未学習（progress無し）
             val progressedIds = progressDao.getProgressIds(currentMode).toSet()
             val untouched = allWords.filter { it.no !in progressedIds }
 
@@ -407,7 +427,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    /** 意味用 */
     private fun buildChoicesMeaning(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
         if (pool.isEmpty()) return listOf(correct)
         val candidates = pool.filter { it.no != correct.no }
@@ -429,7 +448,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return (distractors + correct).shuffled()
     }
 
-    /** リスニング用 */
     private fun buildChoicesListening(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
         if (pool.isEmpty()) return listOf(correct)
         val candidates = pool.filter { it.no != correct.no }
@@ -464,11 +482,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val cw = currentWord ?: return
 
         val selectedText = choiceButtons.getOrNull(selectedIndex)?.text?.toString() ?: return
-        val isCorrect = if (currentMode == "meaning") {
-            selectedText == cw.japanese
-        } else {
-            selectedText == cw.word
-        }
+        val isCorrect = if (currentMode == "meaning") selectedText == cw.japanese else selectedText == cw.word
 
         // 連打防止
         choiceButtons.forEach { it.isClickable = false }
@@ -494,7 +508,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val pointManager = PointManager(this@LearningActivity)
 
             val nowSec = nowEpochSec()
-            val todayEpochDay = LocalDate.now().toEpochDay()
+            val zone = settings.getAppZoneId()
+            val todayEpochDay = LocalDate.now(zone).toEpochDay()
 
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
@@ -523,7 +538,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 lastAnsweredAt = System.currentTimeMillis()
             )
             progressDao.upsert(updated)
-            updateStudyStatsView()   // ★追加：復習数/新規数を更新
+
+            updateStudyStatsView()
             showFeedbackSnackbar(isCorrect, addPoint)
 
             Log.d(
@@ -571,13 +587,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private suspend fun updatePointStats() {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val histDao = db.pointHistoryDao()
-        val today = LocalDate.now().toEpochDay()
+
+        val zone = settings.getAppZoneId()
+        val today = LocalDate.now(zone).toEpochDay()
         val yesterday = today - 1
+
         val todaySum = histDao.getSumByDate(today)
         val yesterdaySum = histDao.getSumByDate(yesterday)
         val diff = todaySum - yesterdaySum
         val diffSign = if (diff >= 0) "+" else "-"
         val diffAbs = kotlin.math.abs(diff)
+
         textPointStats.text = "今日: $todaySum / 前日比: $diffSign$diffAbs"
     }
 

@@ -1,108 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".MainActivity">
+    android:background="?attr/colorSurface">
 
-    <!-- タイトル -->
-    <TextView
-        android:id="@+id/helloText"
-        android:layout_width="wrap_content"
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="EikenApp"
-        android:textSize="40sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/text_grade_label"
-        app:layout_constraintVertical_chainStyle="packed" />
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
 
-    <!-- 学習する級のラベル -->
-    <TextView
-        android:id="@+id/text_grade_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="学習する級を選択してください"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/helloText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            app:title="@string/title_top"
+            app:titleCentered="true"
+            app:elevation="0dp"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- 学習する級のスピナー -->
-    <Spinner
-        android:id="@+id/spinner_grade_top"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:entries="@array/grade_display_items"
-        android:background="@android:drawable/btn_dropdown"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/text_grade_label"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <!-- 学習開始ボタン（スピナーの下） -->
-    <Button
-        android:id="@+id/button_to_learning"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="START"
-        android:enabled="false"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/spinner_grade_top"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <!-- 一覧ボタン -->
-    <Button
-        android:id="@+id/button_to_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="単語一覧"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/button_to_learning"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+            <!-- ポイントカード -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="2dp">
 
-    <!-- ★追加：管理者設定ボタン -->
-    <Button
-        android:id="@+id/button_admin_settings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="settings"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/button_to_list"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-    <!-- 総ポイント表示 -->
-    <TextView
-        android:id="@+id/text_points_top"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ポイント: 0"
-        android:textSize="16sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/button_admin_settings"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+                    <TextView
+                        android:id="@+id/text_points_top"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/points_default"
+                        android:textSize="20sp"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"
+                        tools:text="ポイント: 120"/>
 
-    <!-- 今日 / 前日比 -->
-    <TextView
-        android:id="@+id/text_point_stats_top"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="今日: 0 / 前日比: +0"
-        android:textSize="16sp"
-        android:paddingTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/text_points_top"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+                    <TextView
+                        android:id="@+id/text_point_stats_top"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/point_stats_default"
+                        android:textSize="13sp"
+                        android:textColor="@color/md_onSurface_muted"
+                        android:paddingTop="6dp"
+                        tools:text="今日: 30 / 前日比: +10"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- 級選択 -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:hint="@string/hint_select_grade"
+                style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/spinner_grade_top"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:hint="@string/hint_select_grade" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/text_grade_stats_top"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/grade_stats_default"
+                android:textSize="13sp"
+                android:textColor="@color/md_onSurface_muted"
+                tools:text="復習 12 • 新規 34/200"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_to_learning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/action_start"
+                android:textAllCaps="false"
+                app:backgroundTint="@color/md_primary"
+                android:textColor="@color/md_onAccent_strong"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_to_list"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/action_word_list"
+                android:textAllCaps="false"/>
+
+            <!-- コントラスト不足対策：アクセント背景 + 濃い文字 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_admin_settings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/action_admin_settings"
+                android:textAllCaps="false"
+                app:backgroundTint="@color/md_primary"
+                android:textColor="@android:color/white"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

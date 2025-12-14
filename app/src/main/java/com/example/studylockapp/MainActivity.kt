@@ -3,9 +3,8 @@ package com.example.studylockapp
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -14,25 +13,30 @@ import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var spinnerGradeTop: Spinner
+    private lateinit var gradeDropdown: MaterialAutoCompleteTextView
     private lateinit var buttonToLearning: Button
     private lateinit var buttonAdminSettings: Button
 
     private lateinit var textPointsTop: TextView
     private lateinit var textPointStatsTop: TextView
 
-    // Spinnerで選ばれた「級」(DBのgradeと一致する値) 例: "5"
+    // ★追加：級の統計（プルダウンの下に出す用）
+    private lateinit var textGradeStatsTop: TextView
+    private var gradeStatsMap: Map<String, String> = emptyMap()
+
+    // DBのgradeと一致する値（例: "5"）
     private var selectedGradeKey: String? = null
 
     data class GradeSpinnerItem(
-        val gradeKey: String,   // 例: "5"
-        val label: String       // 例: "5級[復:0,新:0/0]"
+        val gradeKey: String,   // "5"
+        val label: String       // "5級"（短く）
     ) {
         override fun toString(): String = label
     }
@@ -41,25 +45,26 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        spinnerGradeTop = findViewById(R.id.spinner_grade_top)
+        gradeDropdown = findViewById(R.id.spinner_grade_top)
         buttonToLearning = findViewById(R.id.button_to_learning)
         buttonAdminSettings = findViewById(R.id.button_admin_settings)
 
         textPointsTop = findViewById(R.id.text_points_top)
         textPointStatsTop = findViewById(R.id.text_point_stats_top)
+        textGradeStatsTop = findViewById(R.id.text_grade_stats_top) // ★activity_main.xmlに追加した前提
 
         buttonToLearning.isEnabled = false
+        textGradeStatsTop.text = "復習 0 • 新規 0/0"
 
-        spinnerGradeTop.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: android.view.View?, position: Int, id: Long) {
-                val item = parent.getItemAtPosition(position) as? GradeSpinnerItem
-                selectedGradeKey = item?.gradeKey
-                buttonToLearning.isEnabled = (selectedGradeKey != null)
-            }
+        // ドロップダウン選択時：級だけ選ぶ。統計は別テキストに出す
+        gradeDropdown.setOnItemClickListener { parent, _, position, _ ->
+            val item = parent.getItemAtPosition(position) as? GradeSpinnerItem
+            selectedGradeKey = item?.gradeKey
+            buttonToLearning.isEnabled = (selectedGradeKey != null)
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
-                selectedGradeKey = null
-                buttonToLearning.isEnabled = false
+            val key = selectedGradeKey
+            if (key != null) {
+                textGradeStatsTop.text = gradeStatsMap[key] ?: "復習 0 • 新規 0/0"
             }
         }
 
@@ -91,7 +96,7 @@ class MainActivity : AppCompatActivity() {
             val count = AppDatabase.getInstance(this@MainActivity).wordDao().getAll().size
             Log.d("CSV_IMPORT", "words count=$count")
 
-            updateGradeSpinnerLabels()
+            updateGradeDropdownLabels()
             updatePointView()
         }
 
@@ -108,16 +113,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         updatePointView()
-        updateGradeSpinnerLabels()
+        updateGradeDropdownLabels()
     }
 
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
         textPointsTop.text = "ポイント: $total"
 
-        lifecycleScope.launch {
-            updatePointStats()
-        }
+        lifecycleScope.launch { updatePointStats() }
     }
 
     /** 今日 / 前日比（タイムゾーン設定に従う） */
@@ -139,13 +142,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * TOPのプルダウン表示：
-     * 5級[復:x,新:y/z]
+     * TOPの級プルダウンは「5級」だけ表示。
+     * 統計は別TextView（text_grade_stats_top）に
+     * 例: 「復習 12 • 新規 34/200」
      *
      * 復習 = meaning Due + listening Due の合計
      * 新規 = meaning/listening 両方progress無し（どちらも未着手）
      */
-    private fun updateGradeSpinnerLabels() {
+    private fun updateGradeDropdownLabels() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@MainActivity)
             val words = db.wordDao().getAll()
@@ -168,38 +172,44 @@ class MainActivity : AppCompatActivity() {
             val byGrade: Map<String, List<Long>> =
                 words.groupBy { it.grade }.mapValues { (_, list) -> list.map { it.no.toLong() } }
 
-            fun makeItem(gradeKey: String, wordIds: List<Long>): GradeSpinnerItem {
+            // DBのgradeが "5" "4" ... なのでこちらも数値文字列で
+            val gradeKeys = listOf("5", "4", "3", "2", "1")
+
+            val statsBuilder = linkedMapOf<String, String>()
+            val items: List<GradeSpinnerItem> = gradeKeys.map { gradeKey ->
+                val wordIds = byGrade[gradeKey].orEmpty()
                 val idSet = wordIds.toSet()
                 val total = wordIds.size
 
                 val review = dueMeaning.count { it in idSet } + dueListening.count { it in idSet }
                 val newUntouched = idSet.count { it !in startedUnion }
 
-                val label = "${gradeKey}級[復:$review,新:$newUntouched/$total]"
-                return GradeSpinnerItem(gradeKey = gradeKey, label = label)
+                statsBuilder[gradeKey] = "復習 $review • 新規 $newUntouched/$total"
+                GradeSpinnerItem(gradeKey = gradeKey, label = "${gradeKey}級")
             }
+            gradeStatsMap = statsBuilder
 
-            // DBのgradeが "5" "4" ... なのでこちらも数値文字列で
-            val gradeKeys = listOf("5", "4", "3", "2", "1")
-            val items = gradeKeys.map { g -> makeItem(g, byGrade[g].orEmpty()) }
+            // 現在選択を保持
+            val keepKey = selectedGradeKey ?: items.firstOrNull()?.gradeKey
+            val selectedItem = items.firstOrNull { it.gradeKey == keepKey } ?: items.firstOrNull()
 
-            // 現在選択を保持（selectedGradeKey を優先）
-            val currentSelectedKey: String =
-                selectedGradeKey
-                    ?: (spinnerGradeTop.selectedItem as? GradeSpinnerItem)?.gradeKey
-                    ?: "5"
-
-            spinnerGradeTop.adapter = android.widget.ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                items
+            // Exposed Dropdown は setAdapter + setText で反映
+            gradeDropdown.setAdapter(
+                ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, items)
             )
 
-            val newIndex = items.indexOfFirst { it.gradeKey == currentSelectedKey }.let { if (it >= 0) it else 0 }
-            spinnerGradeTop.setSelection(newIndex)
+            if (selectedItem != null) {
+                gradeDropdown.setText(selectedItem.label, false)
+                selectedGradeKey = selectedItem.gradeKey
+                buttonToLearning.isEnabled = true
 
-            selectedGradeKey = items.getOrNull(newIndex)?.gradeKey
-            buttonToLearning.isEnabled = (selectedGradeKey != null)
+                textGradeStatsTop.text = gradeStatsMap[selectedItem.gradeKey] ?: "復習 0 • 新規 0/0"
+            } else {
+                gradeDropdown.setText("", false)
+                selectedGradeKey = null
+                buttonToLearning.isEnabled = false
+                textGradeStatsTop.text = "復習 0 • 新規 0/0"
+            }
         }
     }
 }

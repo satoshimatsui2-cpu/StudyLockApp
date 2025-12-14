@@ -59,9 +59,11 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation("com.google.android.material:material:1.12.0")
 
     // RecyclerView 追加 ★
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.gridlayout:gridlayout:1.0.0")
 
     // Kotlin/AndroidX 基本
     implementation(libs.androidx.core.ktx)

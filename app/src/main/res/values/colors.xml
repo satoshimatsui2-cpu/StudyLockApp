@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- 旧カラー（残してOK。Theme側では使わない想定） -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -7,12 +9,40 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <!-- 選択肢：正解 / 不正解 -->
-    <color name="choice_correct">#66BB6A</color>
-    <color name="choice_wrong">#EF5350</color>
-    <!-- 正解フラッシュ（控えめな黄色） -->
-    <color name="correct_flash">#FFE082</color>
-    <!-- Snackbar 背景（視認性重視） -->
-    <color name="snackbar_correct_bg">#2E7D32</color>
-    <color name="snackbar_wrong_bg">#C62828</color>
+
+    <!-- ===== Your palette ===== -->
+    <!-- Accent -->
+    <color name="md_primary">#E27447</color>
+    <color name="md_onPrimary">#FFFFFF</color>
+
+    <!-- Secondary（主張しすぎない濃色。テキスト色に寄せる） -->
+    <color name="md_secondary">#443D3A</color>
+    <color name="md_onSecondary">#FFFFFF</color>
+
+    <!-- Base -->
+    <color name="md_surface">#F8F8F8</color>
+    <color name="md_onSurface">#443D3A</color>
+    <color name="md_onSurface_muted">#6A5E59</color>  <!-- テキスト(#443D3A)を薄くしたグレージュ -->
+    <!-- アクセント(#E27447)の上でも十分なコントラストになる濃い文字色 -->
+    <color name="md_onAccent_strong">#1B1A18</color>
+
+    <!-- Outline（ベースに馴染む薄い線） -->
+    <color name="md_outline">#E6E0DD</color>
+
+    <!-- 既存XML互換 -->
+    <color name="outline">@color/md_outline</color>
+    <color name="onSurface">@color/md_onSurface</color>
+
+    <!-- ===== 学習演出/状態色（パレットに馴染ませる） ===== -->
+    <!-- 正解 / 不正解 -->
+    <color name="choice_correct">#2FA36B</color>   <!-- 落ち着いた緑 -->
+    <color name="choice_wrong">#D84C5A</color>     <!-- くすみ赤 -->
+
+    <!-- 正解フラッシュ（ベース寄りの暖色） -->
+    <color name="correct_flash">#FFE2D5</color>
+
+    <!-- Snackbar 背景 -->
+    <color name="snackbar_correct_bg">#2FA36B</color>
+    <color name="snackbar_wrong_bg">#D84C5A</color>
+
 </resources>

@@ -1,196 +1,320 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <!-- モード切替 -->
-    <RadioGroup
-        android:id="@+id/radio_group_mode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <RadioButton
-            android:id="@+id/radio_meaning"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="意味"
-            android:checked="true"/>
-
-        <RadioButton
-            android:id="@+id/radio_listening"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="リスニング"/>
-    </RadioGroup>
-
-
-    <!-- 問題タイトル（小さめ・センター） -->
-    <TextView
-        android:id="@+id/text_question_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="問題文が入ります"
-        android:textSize="16sp"
-        android:padding="4dp"
-        android:textAlignment="center"
-        app:layout_constraintTop_toBottomOf="@id/radio_group_mode"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-    <TextView
-        android:id="@+id/text_study_stats"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textColor="#666666"
-        android:lineSpacingExtra="2dp"
-        android:paddingTop="6dp"
-        android:text="意[復:0,新:0/0]\n聴[復:0,新:0/0]" />
+        android:layout_height="wrap_content">
 
-    <!-- 単語/日本語（大きめ・センター、上下マージンを倍） -->
-    <TextView
-        android:id="@+id/text_question_body"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="WORD HERE"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:padding="8dp"
-        android:textAlignment="center"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/text_question_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_learning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:title="学習"
+            app:titleCentered="true"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- 選択肢ボタン（4択） -->
-    <Button
-        android:id="@+id/button_choice_1"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:minHeight="60dp"
-        android:padding="14dp"
-        app:layout_constraintTop_toBottomOf="@id/text_question_body"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:padding="16dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <Button
-        android:id="@+id/button_choice_2"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:minHeight="60dp"
-        android:padding="14dp"
-        app:layout_constraintTop_toBottomOf="@id/button_choice_1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <Button
-        android:id="@+id/button_choice_3"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:minHeight="60dp"
-        android:padding="14dp"
-        app:layout_constraintTop_toBottomOf="@id/button_choice_2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+            <!-- 上部カード：モード + 統計 + 問題 + 音声 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardUseCompatPadding="true"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline">
 
-    <Button
-        android:id="@+id/button_choice_4"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:minHeight="60dp"
-        android:padding="14dp"
-        app:layout_constraintTop_toBottomOf="@id/button_choice_3"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-    <Button
-        android:id="@+id/button_choice_5"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:minHeight="60dp"
-        android:padding="14dp"
-        app:layout_constraintTop_toBottomOf="@id/button_choice_4"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+                    <!-- モード切替 -->
+                    <RadioGroup
+                        android:id="@+id/radio_group_mode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/button_choice_6"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:minHeight="60dp"
-        android:padding="14dp"
-        app:layout_constraintTop_toBottomOf="@id/button_choice_5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+                        <RadioButton
+                            android:id="@+id/radio_meaning"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="意味"
+                            android:checked="true"/>
 
-    <!-- ポイント表示 -->
-    <TextView
-        android:id="@+id/text_points"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ポイント: 0"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/button_choice_6"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingTop="12dp"/>
-    <!-- 日次ポイント表示（今日 / 前日比） -->
-    <TextView
-        android:id="@+id/text_point_stats"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="今日: 0 / 前日比: +0"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/text_points"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingTop="4dp"/>
+                        <RadioButton
+                            android:id="@+id/radio_listening"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="リスニング"/>
+                    </RadioGroup>
 
-    <!-- フィードバック表示 -->
-    <TextView
-        android:id="@+id/text_feedback"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/text_points"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingTop="8dp"/>
+                    <!-- 統計（意/聴）：Chip化 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="10dp">
 
-    <!-- 音声再生ボタン -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_play_audio"
-        style="?attr/materialButtonOutlinedStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="▶︎音声"
-        android:textSize="18sp"
-        android:minHeight="72dp"
-        android:padding="12dp"
-        android:backgroundTint="@android:color/white"
-        android:textColor="?attr/colorPrimary"
-        app:layout_constraintTop_toBottomOf="@id/text_feedback"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+                        <!-- 意味 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="意"
+                                android:textStyle="bold"
+                                android:textColor="@color/onSurface"
+                                android:paddingEnd="10dp"/>
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_meaning_review"
+                                style="@style/Widget.Material3.Chip.Assist"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="復 0" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_meaning_new"
+                                style="@style/Widget.Material3.Chip.Assist"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="新 0/0" />
+                        </LinearLayout>
+
+                        <!-- リスニング -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="聴"
+                                android:textStyle="bold"
+                                android:textColor="@color/onSurface"
+                                android:paddingEnd="10dp"/>
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_listening_review"
+                                style="@style/Widget.Material3.Chip.Assist"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="復 0" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_listening_new"
+                                style="@style/Widget.Material3.Chip.Assist"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="新 0/0" />
+                        </LinearLayout>
+
+                        <!-- 互換のため残す（コードが参照していた場合の保険） -->
+                        <TextView
+                            android:id="@+id/text_study_stats"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone"
+                            android:text=""/>
+                    </LinearLayout>
+
+                    <!-- 問題タイトル -->
+                    <TextView
+                        android:id="@+id/text_question_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="問題文が入ります"
+                        android:textSize="13sp"
+                        android:textColor="#6B7280"
+                        android:textAlignment="center"/>
+
+                    <!-- 単語/日本語（大きめ） -->
+                    <TextView
+                        android:id="@+id/text_question_body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="WORD HERE"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textAlignment="center"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"/>
+
+                    <!-- フィードバック（互換のため残す。コード側でGONE） -->
+                    <TextView
+                        android:id="@+id/text_feedback"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="14sp"
+                        android:textColor="#111827"
+                        android:layout_marginTop="6dp"/>
+
+                    <!-- 音声再生ボタン -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_play_audio"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="音声を再生"
+                        android:textAllCaps="false"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 選択肢カード（2列×3段にして縦を圧縮） -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardUseCompatPadding="true"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline">
+
+                <androidx.gridlayout.widget.GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    app:columnCount="2">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_1"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="6dp"
+                        android:minHeight="52dp"
+                        android:textSize="15sp"
+                        android:textAllCaps="false"
+                        android:maxLines="2"
+                        app:layout_columnWeight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_2"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="6dp"
+                        android:minHeight="52dp"
+                        android:textSize="15sp"
+                        android:textAllCaps="false"
+                        android:maxLines="2"
+                        app:layout_columnWeight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_3"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="6dp"
+                        android:minHeight="52dp"
+                        android:textSize="15sp"
+                        android:textAllCaps="false"
+                        android:maxLines="2"
+                        app:layout_columnWeight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_4"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="6dp"
+                        android:minHeight="52dp"
+                        android:textSize="15sp"
+                        android:textAllCaps="false"
+                        android:maxLines="2"
+                        app:layout_columnWeight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_5"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="6dp"
+                        android:minHeight="52dp"
+                        android:textSize="15sp"
+                        android:textAllCaps="false"
+                        android:maxLines="2"
+                        app:layout_columnWeight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_6"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="6dp"
+                        android:minHeight="52dp"
+                        android:textSize="15sp"
+                        android:textAllCaps="false"
+                        android:maxLines="2"
+                        app:layout_columnWeight="1" />
+
+                </androidx.gridlayout.widget.GridLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ポイントカード -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardUseCompatPadding="true"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/text_points"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ポイント: 0"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#111827"/>
+
+                    <TextView
+                        android:id="@+id/text_point_stats"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="今日: 0 / 前日比: +0"
+                        android:textSize="13sp"
+                        android:textColor="#6B7280"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,7 +1,19 @@
 <resources>
     <string name="app_name">StudyLockApp</string>
 
-    <!-- TOPで表示する級の選択肢 -->
+    <!-- 共通文言（Lint: Hardcoded text 対策） -->
+    <string name="hint_select_grade">級を選択</string>
+    <string name="grade_stats_default">復習 0 • 新規 0/0</string>
+
+    <string name="action_start">START</string>
+    <string name="action_word_list">単語一覧</string>
+    <string name="action_admin_settings">管理者設定</string>
+    <string name="title_top">StudyLock</string>
+    <string name="points_default">ポイント: 0</string>
+    <string name="point_stats_default">今日: 0 / 前日比: +0</string>
+    <string name="cd_grade_dropdown">級を選択</string>
+
+    <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
     <string-array name="grade_display_items">
         <item>選択してください</item>
         <item>5級</item>

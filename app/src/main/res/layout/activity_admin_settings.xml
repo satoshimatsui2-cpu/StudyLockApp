@@ -1,74 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/scroll_admin"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:padding="16dp"
+    android:clipToPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="vertical">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="管理者設定（最小版）"
+            android:text="管理者設定"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingBottom="6dp" />
 
         <!-- 回答間隔 -->
         <TextView
             android:id="@+id/text_interval"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="回答間隔: 1.0 秒" />
+            android:paddingTop="14dp"
+            android:text="回答間隔: 1.0 秒"
+            android:textColor="?attr/colorOnSurface" />
 
         <SeekBar
             android:id="@+id/seek_interval"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="95" />
-        <!-- 0..95 => 0.5..10.0秒（0.1秒刻み） -->
 
-        <!-- ★追加：誤答リトライ秒 -->
+        <!-- 誤答リトライ秒 -->
         <TextView
             android:id="@+id/text_wrong_retry"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="誤答リトライ: 60 秒" />
+            android:paddingTop="14dp"
+            android:text="誤答リトライ: 60 秒"
+            android:textColor="?attr/colorOnSurface" />
 
         <SeekBar
             android:id="@+id/seek_wrong_retry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="590" />
-        <!-- 0..590 => 10..600秒（+10秒） -->
 
-        <!-- ★追加：Lv1リトライ秒 -->
+        <!-- Lv1リトライ秒 -->
         <TextView
             android:id="@+id/text_level1_retry"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="Lv1リトライ: 60 秒" />
+            android:paddingTop="14dp"
+            android:text="Lv1リトライ: 60 秒"
+            android:textColor="?attr/colorOnSurface" />
 
         <SeekBar
             android:id="@+id/seek_level1_retry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="590" />
-        <!-- 0..590 => 10..600秒（+10秒） -->
 
         <!-- 正解SE -->
         <TextView
             android:id="@+id/text_se_correct"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="正解SE音量: 90%" />
+            android:paddingTop="14dp"
+            android:text="正解SE音量: 90%"
+            android:textColor="?attr/colorOnSurface" />
 
         <SeekBar
             android:id="@+id/seek_se_correct"
@@ -79,10 +85,11 @@
         <!-- 不正解SE -->
         <TextView
             android:id="@+id/text_se_wrong"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="不正解SE音量: 90%" />
+            android:paddingTop="14dp"
+            android:text="不正解SE音量: 90%"
+            android:textColor="?attr/colorOnSurface" />
 
         <SeekBar
             android:id="@+id/seek_se_wrong"
@@ -93,10 +100,11 @@
         <!-- TTS -->
         <TextView
             android:id="@+id/text_tts"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="単語発音(TTS)音量: 100%" />
+            android:paddingTop="14dp"
+            android:text="単語発音(TTS)音量: 100%"
+            android:textColor="?attr/colorOnSurface" />
 
         <SeekBar
             android:id="@+id/seek_tts"
@@ -107,10 +115,11 @@
         <!-- 広告 -->
         <TextView
             android:id="@+id/text_ad"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="広告音量: 20%" />
+            android:paddingTop="14dp"
+            android:text="広告音量: 20%"
+            android:textColor="?attr/colorOnSurface" />
 
         <SeekBar
             android:id="@+id/seek_ad"
@@ -118,26 +127,31 @@
             android:layout_height="wrap_content"
             android:max="100" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_toggle_ad_mute"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="広告ミュート: OFF" />
+            android:layout_marginTop="10dp"
+            android:text="広告ミュート: OFF"
+            android:textAllCaps="false" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:text="保存" />
-        <!-- タイムゾーン -->
-        <Button
+            android:layout_marginTop="12dp"
+            android:text="保存"
+            android:textAllCaps="false" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_open_timezone_setup"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="タイムゾーン設定を開く" />
-
+            android:layout_marginTop="10dp"
+            android:text="タイムゾーン設定を開く"
+            android:textAllCaps="false" />
 
     </LinearLayout>
 </ScrollView>
