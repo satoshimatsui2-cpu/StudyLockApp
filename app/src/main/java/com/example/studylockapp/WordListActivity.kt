@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studylockapp.data.AppDatabase
+import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.ui.WordAdapter
 import com.example.studylockapp.ui.WordDisplayItem
 import kotlinx.coroutines.launch
@@ -73,6 +74,9 @@ class WordListActivity : AppCompatActivity() {
         val words = db.wordDao().getAll()
         val progressDao = db.wordProgressDao()
 
+        val settings = AppSettings(this)
+        val zoneId = settings.getAppZoneId()
+
         // 「今からあとどれくらい」を作るために、ここで一回だけ nowSec を取る
         val nowSec = System.currentTimeMillis() / 1000L
 
@@ -97,12 +101,12 @@ class WordListActivity : AppCompatActivity() {
                 lLevel = pl?.level,
                 lDue = lDueSec,
 
-                // ここが今回の変更点：表示用テキストを持たせる
+                // ★表示用テキスト：設定TZで「翌日以降は○日後」判定させる
                 mDueText = if (pm == null) "未学習"
-                else DueTimeFormatter.formatRemaining(nowSec, mDueSec ?: nowSec),
+                else DueTimeFormatter.formatRemaining(nowSec, mDueSec ?: nowSec, zoneId),
 
                 lDueText = if (pl == null) "未学習"
-                else DueTimeFormatter.formatRemaining(nowSec, lDueSec ?: nowSec),
+                else DueTimeFormatter.formatRemaining(nowSec, lDueSec ?: nowSec, zoneId),
             )
         }
     }

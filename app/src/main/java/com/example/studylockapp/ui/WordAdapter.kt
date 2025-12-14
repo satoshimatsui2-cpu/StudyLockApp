@@ -60,11 +60,6 @@ class WordAdapter(private var items: List<WordDisplayItem>) :
         // 期限到来
         if (remain <= 0) return "今すぐ"
 
-        // 当日リトライ（誤答/Lv1で now+秒 の世界）は「あと○秒」にする
-        if (remain <= 24 * 3600) {
-            return "あと${remain}秒"
-        }
-
         // 翌日以降（0時固定想定）は日付表示
         val zone = ZoneId.systemDefault()
         val date = Instant.ofEpochSecond(epochSec).atZone(zone).toLocalDate()
