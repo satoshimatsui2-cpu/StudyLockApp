@@ -308,12 +308,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
     private fun updateStudyStatsView() {
         lifecycleScope.launch {
-            // allWords は gradeFilter 済みのリスト（loadAllWordsThenQuestionで作っている前提）
             val total = allWords.size
-            val gradeText = if (gradeFilter == "All") "全級" else gradeFilter
-
             if (total == 0) {
-                textStudyStats.text = "級: $gradeText / 復習(意:0 聴:0) / 新規:0/0"
+                textStudyStats.text = "意[復:0,新:0/0]\n聴[復:0,新:0/0]"
                 return@launch
             }
 
@@ -321,27 +318,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val progressDao = db.wordProgressDao()
             val nowSec = nowEpochSec()
 
-            // grade内の wordId セット
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
 
-            // 復習数（Due<=Now）：meaning / listening を両方数える
-            val dueMeaningCount = progressDao
-                .getDueWordIdsOrdered("meaning", nowSec)
-                .count { it in wordIdSet }
+            // 復習：meaning/listening 両方の Due 件数の合計（※同じ単語が両方Dueなら2カウント）
+            val dueMeaningCount = progressDao.getDueWordIdsOrdered("meaning", nowSec).count { it in wordIdSet }
+            val dueListeningCount = progressDao.getDueWordIdsOrdered("listening", nowSec).count { it in wordIdSet }
+            val reviewTotal = dueMeaningCount + dueListeningCount
 
-            val dueListeningCount = progressDao
-                .getDueWordIdsOrdered("listening", nowSec)
-                .count { it in wordIdSet }
-
-            // 未着手数：meaning と listening の progress が「どちらも無い」もの
-            val progressedMeaning = progressDao.getProgressIds("meaning").toSet()
-            val progressedListening = progressDao.getProgressIds("listening").toSet()
-            val startedUnion = progressedMeaning union progressedListening
-
-            val untouchedCount = wordIdSet.count { it !in startedUnion }
+            // 新規：meaning/listening 両方とも progress無し（どちらも未着手）
+            val startedMeaning = progressDao.getProgressIds("meaning").toSet()
+            val startedListening = progressDao.getProgressIds("listening").toSet()
+            val startedUnion = startedMeaning union startedListening
+            val newUntouched = wordIdSet.count { it !in startedUnion }
 
             textStudyStats.text =
-                "級: $gradeText / 復習(意:$dueMeaningCount 聴:$dueListeningCount) / 新規:$untouchedCount/$total"
+                "意[復:$reviewTotal,新:$newUntouched/$total]\n聴[復:$reviewTotal,新:$newUntouched/$total]"
         }
     }
 

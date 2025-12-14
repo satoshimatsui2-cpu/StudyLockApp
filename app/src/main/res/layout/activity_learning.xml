@@ -46,10 +46,11 @@
         android:id="@+id/text_study_stats"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:textColor="#666666"
-        android:paddingTop="4dp"
-        android:text="級: - / 復習(意:0 聴:0) / 新規:0/0" />
+        android:lineSpacingExtra="2dp"
+        android:paddingTop="6dp"
+        android:text="意[復:0,新:0/0]\n聴[復:0,新:0/0]" />
 
     <!-- 単語/日本語（大きめ・センター、上下マージンを倍） -->
     <TextView
