@@ -513,6 +513,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
+            val newCount = (current?.studyCount ?: 0) + 1  // ★学習回数を+1
 
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
             Log.d("DUE_CALC", "wordId=$wordId mode=$currentMode")
@@ -535,7 +536,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 mode = currentMode,
                 level = newLevel,
                 nextDueAtSec = nextDueAtSec,
-                lastAnsweredAt = System.currentTimeMillis()
+                lastAnsweredAt = System.currentTimeMillis(),
+                studyCount = newCount                    // ★学習回数を保存
             )
             progressDao.upsert(updated)
 
@@ -544,7 +546,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             Log.d(
                 "ANSWER_TEST",
-                "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDueAtSec=$nextDueAtSec totalPoint=${pointManager.getTotal()}"
+                "wordId=$wordId isCorrect=$isCorrect addPoint=$addPoint newLevel=$newLevel nextDueAtSec=$nextDueAtSec totalPoint=${pointManager.getTotal()} studyCount=$newCount"
             )
 
             updatePointView()

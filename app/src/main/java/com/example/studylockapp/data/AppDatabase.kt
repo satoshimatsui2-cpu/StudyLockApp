@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         WordProgressEntity::class,
         PointHistoryEntity::class   // ★追加
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

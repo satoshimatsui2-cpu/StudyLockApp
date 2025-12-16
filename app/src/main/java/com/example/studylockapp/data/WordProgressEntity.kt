@@ -8,8 +8,9 @@ import androidx.room.Entity
 )
 data class WordProgressEntity(
     val wordId: Int,
-    val mode: String,          // "meaning" / "listening"
+    val mode: String,
     val level: Int,
-    val nextDueAtSec: Long,    // ★Due_date（秒：epoch seconds）
-    val lastAnsweredAt: Long   // millis（回答した時刻。ログや統計用）
+    val nextDueAtSec: Long,
+    val lastAnsweredAt: Long,
+    val studyCount: Int = 0   // ←追加：学習回数（初期値0）
 )
