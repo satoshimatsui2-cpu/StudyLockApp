@@ -1,14 +1,15 @@
 package com.example.studylockapp
 
+import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.ads.AdAudioManager
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.ui.applock.AppLockSettingsActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
+import com.google.android.material.button.MaterialButton
 
 class AdminSettingsActivity : AppCompatActivity() {
 
@@ -17,13 +18,12 @@ class AdminSettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_settings)
-
         settings = AppSettings(this)
 
+        // SeekBar / TextView 群
         val textInterval = findViewById<TextView>(R.id.text_interval)
         val seekInterval = findViewById<SeekBar>(R.id.seek_interval)
 
-        // ★追加：誤答リトライ / Lv1リトライ
         val textWrongRetry = findViewById<TextView>(R.id.text_wrong_retry)
         val seekWrongRetry = findViewById<SeekBar>(R.id.seek_wrong_retry)
 
@@ -42,43 +42,41 @@ class AdminSettingsActivity : AppCompatActivity() {
         val textAd = findViewById<TextView>(R.id.text_ad)
         val seekAd = findViewById<SeekBar>(R.id.seek_ad)
 
-        val btnToggleAdMute = findViewById<Button>(R.id.btn_toggle_ad_mute)
-        val btnSave = findViewById<Button>(R.id.btn_save)
+        val btnToggleAdMute = findViewById<MaterialButton>(R.id.btn_toggle_ad_mute)
+        val btnSave = findViewById<MaterialButton>(R.id.btn_save)
 
-        val btn = findViewById<Button>(R.id.button_open_timezone_setup)
-        btn.setOnClickListener {
+        // タイムゾーン設定へ
+        findViewById<MaterialButton>(R.id.button_open_timezone_setup)?.setOnClickListener {
             startActivity(Intent(this, TimeZoneSetupActivity::class.java))
+        }
+
+        // アプリロック設定へ
+        findViewById<MaterialButton>(R.id.button_app_lock_settings)?.setOnClickListener {
+            startActivity(Intent(this, AppLockSettingsActivity::class.java))
         }
 
         fun intervalMsToProgress(ms: Long): Int {
             val clamped = ms.coerceIn(500L, 10_000L)
             return ((clamped - 500L) / 100L).toInt() // 0..95
         }
-
-        fun progressToIntervalMs(progress: Int): Long {
-            return 500L + (progress.coerceIn(0, 95) * 100L)
-        }
+        fun progressToIntervalMs(progress: Int): Long =
+            500L + (progress.coerceIn(0, 95) * 100L)
 
         fun volToProgress(vol: Float) = (vol.coerceIn(0f, 1f) * 100f).toInt()
         fun progressToVol(p: Int) = (p.coerceIn(0, 100) / 100f)
 
-        // ★追加：リトライ秒（10..600秒にしたい場合）
+        // リトライ秒（10..600）
         fun secToProgress(sec: Long): Int {
             val clamped = sec.coerceIn(10L, 600L)
             return (clamped - 10L).toInt() // 0..590
         }
-
-        fun progressToSec(progress: Int): Long {
-            return (progress.coerceIn(0, 590) + 10).toLong() // 10..600
-        }
+        fun progressToSec(progress: Int): Long =
+            (progress.coerceIn(0, 590) + 10).toLong() // 10..600
 
         // 初期値反映
         seekInterval.progress = intervalMsToProgress(settings.answerIntervalMs)
-
-        // ★追加：初期値反映
         seekWrongRetry.progress = secToProgress(settings.wrongRetrySec)
         seekLevel1Retry.progress = secToProgress(settings.level1RetrySec)
-
         seekSeCorrect.progress = volToProgress(settings.seCorrectVolume)
         seekSeWrong.progress = volToProgress(settings.seWrongVolume)
         seekTts.progress = volToProgress(settings.ttsVolume)
@@ -88,7 +86,6 @@ class AdminSettingsActivity : AppCompatActivity() {
             val sec = progressToIntervalMs(seekInterval.progress) / 1000f
             textInterval.text = "回答間隔: %.1f 秒".format(sec)
 
-            // ★追加：表示更新
             textWrongRetry.text = "誤答リトライ: ${progressToSec(seekWrongRetry.progress)} 秒"
             textLevel1Retry.text = "Lv1リトライ: ${progressToSec(seekLevel1Retry.progress)} 秒"
 
@@ -99,7 +96,6 @@ class AdminSettingsActivity : AppCompatActivity() {
 
             btnToggleAdMute.text = "広告ミュート: " + if (settings.adMuted) "ON" else "OFF"
         }
-
         refreshLabels()
 
         val commonListener = object : SeekBar.OnSeekBarChangeListener {
@@ -110,27 +106,25 @@ class AdminSettingsActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         }
 
-        seekInterval.setOnSeekBarChangeListener(commonListener)
-
-        // ★追加：リトライ秒のSeekBarも同じリスナーに
-        seekWrongRetry.setOnSeekBarChangeListener(commonListener)
-        seekLevel1Retry.setOnSeekBarChangeListener(commonListener)
-
-        seekSeCorrect.setOnSeekBarChangeListener(commonListener)
-        seekSeWrong.setOnSeekBarChangeListener(commonListener)
-        seekTts.setOnSeekBarChangeListener(commonListener)
-        seekAd.setOnSeekBarChangeListener(commonListener)
+        // リスナー共通設定
+        listOf(
+            seekInterval,
+            seekWrongRetry,
+            seekLevel1Retry,
+            seekSeCorrect,
+            seekSeWrong,
+            seekTts,
+            seekAd
+        ).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnToggleAdMute.setOnClickListener {
             settings.adMuted = !settings.adMuted
             refreshLabels()
-            AdAudioManager.apply(settings) // Ads SDKがあれば即反映、なくても安全
+            AdAudioManager.apply(settings) // Ads SDK があれば即反映、なくても安全
         }
 
         btnSave.setOnClickListener {
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
-
-            // ★追加：保存
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
 

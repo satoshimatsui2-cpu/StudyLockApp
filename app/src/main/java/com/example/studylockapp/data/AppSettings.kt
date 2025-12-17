@@ -23,10 +23,13 @@ class AppSettings(context: Context) {
 
         // タイムゾーン（例: "Asia/Tokyo"）。null/空なら端末の systemDefault を使う
         private const val KEY_APP_TIME_ZONE_ID = "app_time_zone_id"
-
         // 「初回にタイムゾーン選択を済ませたか」
-        // appTimeZoneId が null（端末デフォルト選択）でも「選択済み」にするため別キーで持つ
         private const val KEY_TIME_ZONE_CHOSEN = "time_zone_chosen" // Boolean
+
+        // --- App Lock ---
+        private const val KEY_APP_LOCK_ENABLED = "appLockEnabled"
+        private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
+        private const val KEY_UNLOCK_DURATION_MIN = "unlockDurationMin"
     }
 
     var answerIntervalMs: Long
@@ -96,5 +99,27 @@ class AppSettings(context: Context) {
         val id = appTimeZoneId
         return if (id.isNullOrBlank()) ZoneId.systemDefault()
         else ZoneId.of(id)
+    }
+
+    // --- App Lock ---
+    fun isAppLockEnabled(): Boolean =
+        prefs.getBoolean(KEY_APP_LOCK_ENABLED, false)
+
+    fun setAppLockEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_APP_LOCK_ENABLED, enabled).apply()
+    }
+
+    fun getUnlockCostPoints10Min(): Int =
+        prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
+
+    fun setUnlockCostPoints10Min(points: Int) {
+        prefs.edit().putInt(KEY_UNLOCK_COST_POINTS_10MIN, points.coerceAtLeast(0)).apply()
+    }
+
+    fun getUnlockDurationMin(): Int =
+        prefs.getInt(KEY_UNLOCK_DURATION_MIN, 10).coerceIn(1, 240) // 1〜240分にクランプ
+
+    fun setUnlockDurationMin(min: Int) {
+        prefs.edit().putInt(KEY_UNLOCK_DURATION_MIN, min.coerceIn(1, 240)).apply()
     }
 }

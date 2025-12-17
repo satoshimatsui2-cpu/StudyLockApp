@@ -153,5 +153,14 @@
             android:text="タイムゾーン設定を開く"
             android:textAllCaps="false" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_app_lock_settings"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="アプリロック設定"
+            android:textAllCaps="false" />
+
     </LinearLayout>
 </ScrollView>
