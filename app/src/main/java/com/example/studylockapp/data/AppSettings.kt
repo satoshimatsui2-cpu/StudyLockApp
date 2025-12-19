@@ -1,6 +1,7 @@
 package com.example.studylockapp.data
 
 import android.content.Context
+import androidx.core.content.edit
 import java.time.ZoneId
 
 class AppSettings(context: Context) {
@@ -30,40 +31,41 @@ class AppSettings(context: Context) {
         private const val KEY_APP_LOCK_ENABLED = "appLockEnabled"
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
         private const val KEY_UNLOCK_DURATION_MIN = "unlockDurationMin"
+        private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt" // 10pt あたりの分数（1〜10）
     }
 
     var answerIntervalMs: Long
         get() = prefs.getLong(KEY_ANSWER_INTERVAL_MS, 1000L)
-        set(value) = prefs.edit().putLong(KEY_ANSWER_INTERVAL_MS, value).apply()
+        set(value) = prefs.edit { putLong(KEY_ANSWER_INTERVAL_MS, value) }
 
     var seCorrectVolume: Float
         get() = prefs.getFloat(KEY_SE_CORRECT_VOLUME, 0.9f).coerceIn(0f, 1f)
-        set(value) = prefs.edit().putFloat(KEY_SE_CORRECT_VOLUME, value.coerceIn(0f, 1f)).apply()
+        set(value) = prefs.edit { putFloat(KEY_SE_CORRECT_VOLUME, value.coerceIn(0f, 1f)) }
 
     var seWrongVolume: Float
         get() = prefs.getFloat(KEY_SE_WRONG_VOLUME, 0.9f).coerceIn(0f, 1f)
-        set(value) = prefs.edit().putFloat(KEY_SE_WRONG_VOLUME, value.coerceIn(0f, 1f)).apply()
+        set(value) = prefs.edit { putFloat(KEY_SE_WRONG_VOLUME, value.coerceIn(0f, 1f)) }
 
     var ttsVolume: Float
         get() = prefs.getFloat(KEY_TTS_VOLUME, 1.0f).coerceIn(0f, 1f)
-        set(value) = prefs.edit().putFloat(KEY_TTS_VOLUME, value.coerceIn(0f, 1f)).apply()
+        set(value) = prefs.edit { putFloat(KEY_TTS_VOLUME, value.coerceIn(0f, 1f)) }
 
     // 広告音量
     var adVolume: Float
         get() = prefs.getFloat(KEY_AD_VOLUME, 0.2f).coerceIn(0f, 1f) // デフォルト小さめ
-        set(value) = prefs.edit().putFloat(KEY_AD_VOLUME, value.coerceIn(0f, 1f)).apply()
+        set(value) = prefs.edit { putFloat(KEY_AD_VOLUME, value.coerceIn(0f, 1f)) }
 
     var adMuted: Boolean
         get() = prefs.getBoolean(KEY_AD_MUTED, false)
-        set(value) = prefs.edit().putBoolean(KEY_AD_MUTED, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_AD_MUTED, value) }
 
     var wrongRetrySec: Long
         get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 60L)
-        set(v) = prefs.edit().putLong(KEY_WRONG_RETRY_SEC, v).apply()
+        set(v) = prefs.edit { putLong(KEY_WRONG_RETRY_SEC, v) }
 
     var level1RetrySec: Long
         get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 60L)
-        set(v) = prefs.edit().putLong(KEY_LEVEL1_RETRY_SEC, v).apply()
+        set(v) = prefs.edit { putLong(KEY_LEVEL1_RETRY_SEC, v) }
 
     /**
      * タイムゾーンID（例: "Asia/Tokyo"）
@@ -71,7 +73,7 @@ class AppSettings(context: Context) {
      */
     var appTimeZoneId: String?
         get() = prefs.getString(KEY_APP_TIME_ZONE_ID, null)
-        set(value) = prefs.edit().putString(KEY_APP_TIME_ZONE_ID, value).apply()
+        set(value) = prefs.edit { putString(KEY_APP_TIME_ZONE_ID, value) }
 
     /**
      * 初回セットアップ用：タイムゾーンを「選択したことがあるか」
@@ -79,7 +81,7 @@ class AppSettings(context: Context) {
      */
     var timeZoneChosen: Boolean
         get() = prefs.getBoolean(KEY_TIME_ZONE_CHOSEN, false)
-        set(value) = prefs.edit().putBoolean(KEY_TIME_ZONE_CHOSEN, value).apply()
+        set(value) = prefs.edit { putBoolean(KEY_TIME_ZONE_CHOSEN, value) }
 
     fun hasChosenTimeZone(): Boolean = timeZoneChosen
 
@@ -106,20 +108,30 @@ class AppSettings(context: Context) {
         prefs.getBoolean(KEY_APP_LOCK_ENABLED, false)
 
     fun setAppLockEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_APP_LOCK_ENABLED, enabled).apply()
+        prefs.edit { putBoolean(KEY_APP_LOCK_ENABLED, enabled) }
     }
 
     fun getUnlockCostPoints10Min(): Int =
         prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
 
     fun setUnlockCostPoints10Min(points: Int) {
-        prefs.edit().putInt(KEY_UNLOCK_COST_POINTS_10MIN, points.coerceAtLeast(0)).apply()
+        prefs.edit { putInt(KEY_UNLOCK_COST_POINTS_10MIN, points.coerceAtLeast(0)) }
     }
 
     fun getUnlockDurationMin(): Int =
         prefs.getInt(KEY_UNLOCK_DURATION_MIN, 10).coerceIn(1, 240) // 1〜240分にクランプ
 
     fun setUnlockDurationMin(min: Int) {
-        prefs.edit().putInt(KEY_UNLOCK_DURATION_MIN, min.coerceIn(1, 240)).apply()
+        prefs.edit { putInt(KEY_UNLOCK_DURATION_MIN, min.coerceIn(1, 240)) }
+    }
+
+    /**
+     * 10pt あたりの解放分数（1〜10分）
+     */
+    fun getUnlockMinutesPer10Pt(): Int =
+        prefs.getInt(KEY_UNLOCK_MIN_PER_10PT, 1).coerceIn(1, 10)
+
+    fun setUnlockMinutesPer10Pt(value: Int) {
+        prefs.edit { putInt(KEY_UNLOCK_MIN_PER_10PT, value.coerceIn(1, 10)) }
     }
 }

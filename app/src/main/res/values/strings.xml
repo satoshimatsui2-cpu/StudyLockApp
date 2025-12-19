@@ -12,6 +12,22 @@
     <string name="points_default">ポイント: 0</string>
     <string name="point_stats_default">今日: 0 / 前日比: +0</string>
     <string name="cd_grade_dropdown">級を選択</string>
+    <string name="admin_label_interval_sec">回答間隔: %.1f 秒</string>
+    <string name="admin_label_wrong_retry_sec">誤答リトライ: %1$d 秒</string>
+    <string name="admin_label_level1_retry_sec">Lv1リトライ: %1$d 秒</string>
+    <string name="admin_label_se_correct">正解SE音量: %1$d%%</string>
+    <string name="admin_label_se_wrong">不正解SE音量: %1$d%%</string>
+    <string name="admin_label_tts">単語発音(TTS)音量: %1$d%%</string>
+    <string name="admin_label_ad">広告音量: %1$d%%</string>
+    <string name="admin_label_ad_mute">広告ミュート: %1$s</string>
+    <string name="common_on">ON</string>
+    <string name="common_off">OFF</string>
+    <string name="block_points_info">所持: %1$dpt / コスト: %2$dpt（%3$d分解放, 10pt=%4$d分）</string>
+    <string name="block_points_lack">ポイントが足りません</string>
+    <string name="block_unlocked_message">%1$d分 解放しました</string>
+    <string name="admin_hint_unlock_min_per_10pt">10ポイントあたりの分数（1〜10）</string>
+    <string name="admin_label_unlock_min_per_10pt">10ポイントあたりの分数</string>
+    <string name="admin_label_unlock_min_per_10pt_value">10pt = %1$d分</string>
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
     <string-array name="grade_display_items">

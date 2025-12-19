@@ -45,6 +45,10 @@ class AdminSettingsActivity : AppCompatActivity() {
         val btnToggleAdMute = findViewById<MaterialButton>(R.id.btn_toggle_ad_mute)
         val btnSave = findViewById<MaterialButton>(R.id.btn_save)
 
+        // 10pt あたり分数（SeekBar）
+        val textUnlockMinPer10Pt = findViewById<TextView>(R.id.text_unlock_min_per_10pt_value)
+        val seekUnlockMinPer10Pt = findViewById<SeekBar>(R.id.seek_unlock_min_per_10pt)
+
         // タイムゾーン設定へ
         findViewById<MaterialButton>(R.id.button_open_timezone_setup)?.setOnClickListener {
             startActivity(Intent(this, TimeZoneSetupActivity::class.java))
@@ -73,6 +77,10 @@ class AdminSettingsActivity : AppCompatActivity() {
         fun progressToSec(progress: Int): Long =
             (progress.coerceIn(0, 590) + 10).toLong() // 10..600
 
+        // 10ptあたり分数（1..10）: progress 0..9 → 値 1..10
+        fun minPer10PtToProgress(value: Int): Int = value.coerceIn(1, 10) - 1
+        fun progressToMinPer10Pt(progress: Int): Int = progress.coerceIn(0, 9) + 1
+
         // 初期値反映
         seekInterval.progress = intervalMsToProgress(settings.answerIntervalMs)
         seekWrongRetry.progress = secToProgress(settings.wrongRetrySec)
@@ -81,20 +89,29 @@ class AdminSettingsActivity : AppCompatActivity() {
         seekSeWrong.progress = volToProgress(settings.seWrongVolume)
         seekTts.progress = volToProgress(settings.ttsVolume)
         seekAd.progress = volToProgress(settings.adVolume)
+        seekUnlockMinPer10Pt.progress = minPer10PtToProgress(settings.getUnlockMinutesPer10Pt())
 
         fun refreshLabels() {
             val sec = progressToIntervalMs(seekInterval.progress) / 1000f
-            textInterval.text = "回答間隔: %.1f 秒".format(sec)
+            textInterval.text = getString(R.string.admin_label_interval_sec, sec)
 
-            textWrongRetry.text = "誤答リトライ: ${progressToSec(seekWrongRetry.progress)} 秒"
-            textLevel1Retry.text = "Lv1リトライ: ${progressToSec(seekLevel1Retry.progress)} 秒"
+            textWrongRetry.text =
+                getString(R.string.admin_label_wrong_retry_sec, progressToSec(seekWrongRetry.progress))
+            textLevel1Retry.text =
+                getString(R.string.admin_label_level1_retry_sec, progressToSec(seekLevel1Retry.progress))
 
-            textSeCorrect.text = "正解SE音量: ${seekSeCorrect.progress}%"
-            textSeWrong.text = "不正解SE音量: ${seekSeWrong.progress}%"
-            textTts.text = "単語発音(TTS)音量: ${seekTts.progress}%"
-            textAd.text = "広告音量: ${seekAd.progress}%"
+            textSeCorrect.text = getString(R.string.admin_label_se_correct, seekSeCorrect.progress)
+            textSeWrong.text = getString(R.string.admin_label_se_wrong, seekSeWrong.progress)
+            textTts.text = getString(R.string.admin_label_tts, seekTts.progress)
+            textAd.text = getString(R.string.admin_label_ad, seekAd.progress)
 
-            btnToggleAdMute.text = "広告ミュート: " + if (settings.adMuted) "ON" else "OFF"
+            val onOff = if (settings.adMuted) getString(R.string.common_on) else getString(R.string.common_off)
+            btnToggleAdMute.text = getString(R.string.admin_label_ad_mute, onOff)
+
+            textUnlockMinPer10Pt.text = getString(
+                R.string.admin_label_unlock_min_per_10pt_value,
+                progressToMinPer10Pt(seekUnlockMinPer10Pt.progress)
+            )
         }
         refreshLabels()
 
@@ -106,7 +123,7 @@ class AdminSettingsActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         }
 
-        // リスナー共通設定
+        // リスナー共通設定（解除分数バーも追加）
         listOf(
             seekInterval,
             seekWrongRetry,
@@ -114,7 +131,8 @@ class AdminSettingsActivity : AppCompatActivity() {
             seekSeCorrect,
             seekSeWrong,
             seekTts,
-            seekAd
+            seekAd,
+            seekUnlockMinPer10Pt
         ).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnToggleAdMute.setOnClickListener {
@@ -132,6 +150,10 @@ class AdminSettingsActivity : AppCompatActivity() {
             settings.seWrongVolume = progressToVol(seekSeWrong.progress)
             settings.ttsVolume = progressToVol(seekTts.progress)
             settings.adVolume = progressToVol(seekAd.progress)
+
+            // 10pt あたり分数（1〜10 にクランプ）
+            val minPer10Pt = progressToMinPer10Pt(seekUnlockMinPer10Pt.progress)
+            settings.setUnlockMinutesPer10Pt(minPer10Pt)
 
             AdAudioManager.apply(settings)
             finish()

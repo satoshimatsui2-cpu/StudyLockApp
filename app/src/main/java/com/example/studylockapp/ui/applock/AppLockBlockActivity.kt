@@ -44,16 +44,23 @@ class AppLockBlockActivity : AppCompatActivity() {
         val textPointsInfo = findViewById<TextView>(R.id.text_points_info)
         val btnUnlock = findViewById<MaterialButton>(R.id.button_unlock_with_points)
 
-        // 所持/コスト表示（解除時間を 1 分固定に短縮）
-        val cost = settings.getUnlockCostPoints10Min() // コストは従来の設定を利用
-        val durationMin = 1 // ここを 10 → 1 分に短縮
+        // 所持/コスト/解除時間（10ptあたりの分数設定を反映）
+        val cost = settings.getUnlockCostPoints10Min()
+        val minPer10Pt = settings.getUnlockMinutesPer10Pt()          // 1〜10 分
+        val durationMin = maxOf(1, (cost * minPer10Pt) / 10)         // 1分以上に補正
         val currentPt = pointManager.getTotal()
-        textPointsInfo.text = "所持: ${currentPt}pt / コスト: ${cost}pt（${durationMin}分解放）"
+        textPointsInfo.text = getString(
+            R.string.block_points_info,
+            currentPt,
+            cost,
+            durationMin,
+            minPer10Pt
+        )
         btnUnlock.isEnabled = currentPt >= cost
 
         btnUnlock.setOnClickListener {
             if (pointManager.getTotal() < cost) {
-                Snackbar.make(it, "ポイントが足りません", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(it, getString(R.string.block_points_lack), Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             uiScope.launch {
@@ -106,7 +113,7 @@ class AppLockBlockActivity : AppCompatActivity() {
         runOnUiThread {
             Snackbar.make(
                 findViewById(android.R.id.content),
-                "${durationMin}分 解放しました",
+                getString(R.string.block_unlocked_message, durationMin),
                 Snackbar.LENGTH_SHORT
             ).show()
             finish()

@@ -67,6 +67,26 @@
             android:layout_height="wrap_content"
             android:max="590" />
 
+        <!-- 10ポイントあたりの分数 (1〜10) -->
+        <TextView
+            android:id="@+id/text_unlock_min_per_10pt_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/admin_label_unlock_min_per_10pt" />
+
+        <TextView
+            android:id="@+id/text_unlock_min_per_10pt_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:text="@string/admin_label_unlock_min_per_10pt_value" />
+
+        <SeekBar
+            android:id="@+id/seek_unlock_min_per_10pt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="9" /> <!-- progress:0..9 → 値:1..10 -->
+
         <!-- 正解SE -->
         <TextView
             android:id="@+id/text_se_correct"
