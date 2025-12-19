@@ -44,9 +44,9 @@ class AppLockBlockActivity : AppCompatActivity() {
         val textPointsInfo = findViewById<TextView>(R.id.text_points_info)
         val btnUnlock = findViewById<MaterialButton>(R.id.button_unlock_with_points)
 
-        // 所持/コスト表示
-        val cost = settings.getUnlockCostPoints10Min()
-        val durationMin = settings.getUnlockDurationMin()
+        // 所持/コスト表示（解除時間を 1 分固定に短縮）
+        val cost = settings.getUnlockCostPoints10Min() // コストは従来の設定を利用
+        val durationMin = 1 // ここを 10 → 1 分に短縮
         val currentPt = pointManager.getTotal()
         textPointsInfo.text = "所持: ${currentPt}pt / コスト: ${cost}pt（${durationMin}分解放）"
         btnUnlock.isEnabled = currentPt >= cost
