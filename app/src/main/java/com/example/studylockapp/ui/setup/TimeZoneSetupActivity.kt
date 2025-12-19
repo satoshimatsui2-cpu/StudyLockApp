@@ -15,6 +15,10 @@ class TimeZoneSetupActivity : AppCompatActivity() {
     private lateinit var spinner: Spinner
     private lateinit var buttonOk: Button
 
+    private companion object {
+        private const val DEFAULT_ZONE_ID = "Asia/Tokyo"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_time_zone_setup)
@@ -30,8 +34,14 @@ class TimeZoneSetupActivity : AppCompatActivity() {
             TimeZoneOptions.displayList
         )
 
-        // 現在値を反映（null/空なら 0番=端末の設定）
-        spinner.setSelection(TimeZoneOptions.indexOfOrZero(settings.appTimeZoneId))
+        val storedId = settings.appTimeZoneId
+        val initialIndex = if (storedId.isNullOrBlank()) {
+            // 未設定なら Tokyo を初期選択
+            TimeZoneOptions.indexOfOrZero(DEFAULT_ZONE_ID)
+        } else {
+            TimeZoneOptions.indexOfOrZero(storedId)
+        }
+        spinner.setSelection(initialIndex)
 
         buttonOk.setOnClickListener {
             val sel = spinner.selectedItem.toString()

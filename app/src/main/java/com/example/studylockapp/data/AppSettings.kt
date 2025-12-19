@@ -10,6 +10,7 @@ class AppSettings(context: Context) {
 
     companion object {
         private const val KEY_ANSWER_INTERVAL_MS = "answer_interval_ms" // Long
+        private const val DEFAULT_ZONE_ID = "Asia/Tokyo"
 
         private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume"
         private const val KEY_SE_WRONG_VOLUME = "se_wrong_volume"
@@ -97,10 +98,23 @@ class AppSettings(context: Context) {
     /**
      * アプリ内で使う ZoneId を統一して取得する
      */
+    /**
+     * アプリ内で使う ZoneId を統一して取得する
+     * 保存値が null/空：Tokyo をデフォルト採用
+     * 保存値が不正：Tokyo → それも失敗した場合は systemDefault にフォールバック
+     */
     fun getAppZoneId(): ZoneId {
-        val id = appTimeZoneId
-        return if (id.isNullOrBlank()) ZoneId.systemDefault()
-        else ZoneId.of(id)
+        val stored = appTimeZoneId
+        val tokyo = try {
+            ZoneId.of(DEFAULT_ZONE_ID)
+        } catch (_: Exception) {
+            ZoneId.systemDefault()
+        }
+        return try {
+            if (stored.isNullOrBlank()) tokyo else ZoneId.of(stored)
+        } catch (_: Exception) {
+            tokyo
+        }
     }
 
     // --- App Lock ---
