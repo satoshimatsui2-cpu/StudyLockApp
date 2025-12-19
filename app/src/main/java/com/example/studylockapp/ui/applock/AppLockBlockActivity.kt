@@ -2,7 +2,9 @@ package com.example.studylockapp.ui.applock
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.EditText
 import android.widget.TextView
+import androidx.core.widget.addTextChangedListener
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.AdminSettingsActivity
 import com.example.studylockapp.LearningActivity
@@ -19,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.math.max
+import kotlin.math.ceil
 
 class AppLockBlockActivity : AppCompatActivity() {
 
@@ -42,29 +46,55 @@ class AppLockBlockActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.text_block_app).text = lockedLabel
 
         val textPointsInfo = findViewById<TextView>(R.id.text_points_info)
+        val editPoints = findViewById<EditText>(R.id.edit_points_to_use)
+        val btnUseAll = findViewById<MaterialButton>(R.id.button_use_all_points)
         val btnUnlock = findViewById<MaterialButton>(R.id.button_unlock_with_points)
 
-        // 所持/コスト/解除時間（10ptあたりの分数設定を反映）
-        val cost = settings.getUnlockCostPoints10Min()
-        val minPer10Pt = settings.getUnlockMinutesPer10Pt()          // 1〜10 分
-        val durationMin = maxOf(1, (cost * minPer10Pt) / 10)         // 1分以上に補正
         val currentPt = pointManager.getTotal()
-        textPointsInfo.text = getString(
-            R.string.block_points_info,
-            currentPt,
-            cost,
-            durationMin,
-            minPer10Pt
-        )
-        btnUnlock.isEnabled = currentPt >= cost
+        val minPer10Pt = settings.getUnlockMinutesPer10Pt() // 1〜10 分
+
+        // 初期値：既定コストか全ポイントのどちらか小さい方を表示
+        val defaultUse = settings.getUnlockCostPoints10Min().coerceAtMost(currentPt)
+        editPoints.setText(defaultUse.toString())
+
+        fun recalcAndRender() {
+            val usePt = editPoints.text.toString().toIntOrNull()?.coerceIn(1, currentPt) ?: 0
+            val durationMin = if (usePt > 0) (usePt * minPer10Pt) / 10f else 0f
+            val durationSec = ceil(durationMin * 60f).toLong() // 0.1分=6秒刻み
+            textPointsInfo.text = getString(
+                R.string.block_points_info,
+                currentPt,
+                usePt,
+                durationMin.toDouble(), // 小数1桁表示
+                minPer10Pt
+            )
+            btnUnlock.isEnabled = usePt in 1..currentPt && durationSec > 0
+        }
+
+        recalcAndRender()
+
+        btnUseAll.setOnClickListener {
+            editPoints.setText(currentPt.toString())
+            recalcAndRender()
+        }
+
+        editPoints.setOnFocusChangeListener { _, _ -> recalcAndRender() }
+        editPoints.addTextChangedListener { recalcAndRender() }
 
         btnUnlock.setOnClickListener {
-            if (pointManager.getTotal() < cost) {
-                Snackbar.make(it, getString(R.string.block_points_lack), Snackbar.LENGTH_SHORT).show()
+            val usePt = editPoints.text.toString().toIntOrNull()?.coerceIn(1, currentPt) ?: 0
+            if (usePt <= 0) {
+                Snackbar.make(it, getString(R.string.block_invalid_points), Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val durationMin = (usePt * minPer10Pt) / 10f
+            val durationSec = ceil(durationMin * 60f).toLong()
+            if (durationSec <= 0) {
+                Snackbar.make(it, getString(R.string.block_invalid_points), Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             uiScope.launch {
-                doUnlock(cost, durationMin)
+                doUnlock(usePt, durationSec, durationMin)
             }
         }
 
@@ -85,9 +115,9 @@ class AppLockBlockActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun doUnlock(cost: Int, durationMin: Int) {
+    private suspend fun doUnlock(usePoints: Int, durationSec: Long, durationMin: Float) {
         // ポイント減算 & 履歴追加
-        pointManager.add(-cost)
+        pointManager.add(-usePoints)
         val db = AppDatabase.getInstance(this)
         val zone = settings.getAppZoneId()
         val today = LocalDate.now(zone).toEpochDay()
@@ -95,13 +125,13 @@ class AppLockBlockActivity : AppCompatActivity() {
             PointHistoryEntity(
                 mode = "unlock",
                 dateEpochDay = today,
-                delta = -cost
+                delta = -usePoints
             )
         )
 
-        // app_unlocks に期限を書き込む
+        // app_unlocks に期限を書き込む（秒）
         val nowSec = Instant.now().epochSecond
-        val untilSec = nowSec + durationMin * 60L
+        val untilSec = nowSec + durationSec
         db.appUnlockDao().upsert(
             AppUnlockEntity(
                 packageName = lockedPkg,
@@ -113,7 +143,7 @@ class AppLockBlockActivity : AppCompatActivity() {
         runOnUiThread {
             Snackbar.make(
                 findViewById(android.R.id.content),
-                getString(R.string.block_unlocked_message, durationMin),
+                getString(R.string.block_unlocked_message, durationMin.toDouble()),
                 Snackbar.LENGTH_SHORT
             ).show()
             finish()

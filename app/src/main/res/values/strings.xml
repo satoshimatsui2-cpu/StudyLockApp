@@ -22,12 +22,16 @@
     <string name="admin_label_ad_mute">広告ミュート: %1$s</string>
     <string name="common_on">ON</string>
     <string name="common_off">OFF</string>
-    <string name="block_points_info">所持: %1$dpt / コスト: %2$dpt（%3$d分解放, 10pt=%4$d分）</string>
     <string name="block_points_lack">ポイントが足りません</string>
-    <string name="block_unlocked_message">%1$d分 解放しました</string>
     <string name="admin_hint_unlock_min_per_10pt">10ポイントあたりの分数（1〜10）</string>
     <string name="admin_label_unlock_min_per_10pt">10ポイントあたりの分数</string>
     <string name="admin_label_unlock_min_per_10pt_value">10pt = %1$d分</string>
+    <string name="block_points_input_hint">使うポイント数を入力</string>
+    <string name="block_use_all_points">全て使う</string>
+    <string name="block_invalid_points">有効なポイント数を入力してください</string>
+    <string name="block_points_info">所持: %1$dpt / 使用: %2$dpt（%3$.1f分解放, 10pt=%4$d分）</string>
+    <string name="block_unlocked_message">%1$.1f分 解放しました</string>
+
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
     <string-array name="grade_display_items">

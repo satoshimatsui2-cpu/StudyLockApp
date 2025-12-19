@@ -33,6 +33,24 @@
         android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginBottom="12dp" />
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/block_points_input_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edit_points_to_use"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_use_all_points"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/block_use_all_points" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_unlock_with_points"
         style="@style/Widget.Material3.Button.TonalButton"
