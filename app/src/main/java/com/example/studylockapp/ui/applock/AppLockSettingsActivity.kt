@@ -1,7 +1,13 @@
 package com.example.studylockapp.ui.applock
 
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.Settings
+import android.view.accessibility.AccessibilityManager
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -9,6 +15,7 @@ import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.db.LockedAppEntity
+import com.example.studylockapp.service.AppLockAccessibilityService
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +25,7 @@ class AppLockSettingsActivity : AppCompatActivity() {
 
     private lateinit var adapter: AppLockListAdapter
     private lateinit var settings: AppSettings
+    private var accessibilityDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +37,8 @@ class AppLockSettingsActivity : AppCompatActivity() {
         switchEnable.isChecked = settings.isAppLockEnabled()
         switchEnable.setOnCheckedChangeListener { _, isChecked ->
             settings.setAppLockEnabled(isChecked)
+            // ON にしたら即誘導（OFF→ONでもダイアログ出す）
+            maybeShowAccessibilityDialog()
         }
 
         val recycler = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recycler_apps)
@@ -43,13 +53,17 @@ class AppLockSettingsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // アクセシビリティOFF & ロック有効/対象あり なら強制誘導
+        maybeShowAccessibilityDialog()
+    }
+
     private suspend fun loadApps() {
         val pm = packageManager
         val db = AppDatabase.getInstance(this@AppLockSettingsActivity)
         val lockedDao = db.lockedAppDao()
 
-        // ランチャーに出るアプリ一覧（自アプリ除外）
-        val mainIntent = pm.getLaunchIntentForPackage(packageName) // 自アプリ intent 確認用
         val resolveInfos = withContext(Dispatchers.Default) {
             val intent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
                 addCategory(android.content.Intent.CATEGORY_LAUNCHER)
@@ -94,10 +108,53 @@ class AppLockSettingsActivity : AppCompatActivity() {
                 isLocked = checked
             )
             dao.upsert(entity)
-
-            // トグル状態をすぐ画面に反映するため再読込
             loadApps()
+            // ロック対象が増えた場合も誘導
+            maybeShowAccessibilityDialog()
         }
     }
 
+    // --- アクセシビリティ誘導 ---
+    private fun maybeShowAccessibilityDialog() {
+        // すでに表示中なら再表示しない
+        if (accessibilityDialog?.isShowing == true) return
+
+        val svcEnabled = isAppLockServiceEnabled()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(this@AppLockSettingsActivity)
+            val lockedCount = db.lockedAppDao().countLocked()
+            val shouldForce = settings.isAppLockEnabled() || lockedCount > 0
+            if (!svcEnabled && shouldForce) {
+                withContext(Dispatchers.Main) {
+                    val msg = getString(R.string.app_lock_accessibility_message)
+                    accessibilityDialog = AlertDialog.Builder(this@AppLockSettingsActivity)
+                        .setTitle(R.string.app_lock_accessibility_title)
+                        .setMessage(msg)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.app_lock_accessibility_go_settings) { _, _ ->
+                            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            })
+                        }
+                        .setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                settings.setAppLockEnabled(false)
+                                db.lockedAppDao().disableAllLocks()
+                            }
+                        }
+                        .show()
+                }
+            }
+        }
+    }
+
+    private fun isAppLockServiceEnabled(): Boolean {
+        val am = getSystemService(AccessibilityManager::class.java) ?: return false
+        val expected = ComponentName(this, AppLockAccessibilityService::class.java)
+        return am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+            .any {
+                it.resolveInfo?.serviceInfo?.packageName == packageName &&
+                        it.resolveInfo?.serviceInfo?.name == expected.className
+            }
+    }
 }

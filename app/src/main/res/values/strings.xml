@@ -31,6 +31,10 @@
     <string name="block_invalid_points">有効なポイント数を入力してください</string>
     <string name="block_points_info">所持: %1$dpt / 使用: %2$dpt（%3$.1f分解放, 10pt=%4$d分）</string>
     <string name="block_unlocked_message">%1$.1f分 解放しました</string>
+    <string name="app_lock_accessibility_title">アクセシビリティを有効にしてください</string>
+    <string name="app_lock_accessibility_message">ロックを有効にするには、アクセシビリティ設定で本アプリをオンにしてください。\nロックしない場合はアプリロック設定をすべて無効にしてください。</string>
+    <string name="app_lock_accessibility_go_settings">アクセシビリティの設定を行う</string>
+    <string name="app_lock_accessibility_disable_all">ロック設定を全て解除する</string>
 
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->

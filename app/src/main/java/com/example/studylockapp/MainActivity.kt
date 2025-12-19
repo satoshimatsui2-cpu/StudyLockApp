@@ -1,20 +1,28 @@
 package com.example.studylockapp
 
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
+import android.view.accessibility.AccessibilityManager
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import kotlin.math.abs
 
@@ -33,6 +41,9 @@ class MainActivity : AppCompatActivity() {
 
     // DBのgradeと一致する値（例: "5"）
     private var selectedGradeKey: String? = null
+
+    // アクセシビリティ誘導ダイアログ
+    private var accessibilityDialog: AlertDialog? = null
 
     data class GradeSpinnerItem(
         val gradeKey: String,   // "5"
@@ -111,6 +122,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, TimeZoneSetupActivity::class.java))
             return
         }
+
+        // アクセシビリティOFFでロックが有効/対象がある場合は強制誘導
+        maybeShowAccessibilityDialog()
 
         updatePointView()
         updateGradeDropdownLabels()
@@ -211,5 +225,50 @@ class MainActivity : AppCompatActivity() {
                 textGradeStatsTop.text = "復習 0 • 新規 0/0"
             }
         }
+    }
+
+    // --- アクセシビリティ誘導 ---
+    private fun maybeShowAccessibilityDialog() {
+        val settings = AppSettings(this)
+        // すでに表示中なら再表示しない
+        if (accessibilityDialog?.isShowing == true) return
+
+        val svcEnabled = isAppLockServiceEnabled()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(this@MainActivity)
+            val lockedCount = db.lockedAppDao().countLocked()
+            val shouldForce = settings.isAppLockEnabled() || lockedCount > 0
+            if (!svcEnabled && shouldForce) {
+                withContext(Dispatchers.Main) {
+                    val msg = getString(R.string.app_lock_accessibility_message)
+                    accessibilityDialog = AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.app_lock_accessibility_title)
+                        .setMessage(msg)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.app_lock_accessibility_go_settings) { _, _ ->
+                            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            })
+                        }
+                        .setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                settings.setAppLockEnabled(false)
+                                db.lockedAppDao().disableAllLocks()
+                            }
+                        }
+                        .show()
+                }
+            }
+        }
+    }
+
+    private fun isAppLockServiceEnabled(): Boolean {
+        val am = getSystemService(AccessibilityManager::class.java) ?: return false
+        val expected = ComponentName(this, AppLockAccessibilityService::class.java)
+        return am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+            .any {
+                it.resolveInfo?.serviceInfo?.packageName == packageName &&
+                        it.resolveInfo?.serviceInfo?.name == expected.className
+            }
     }
 }
