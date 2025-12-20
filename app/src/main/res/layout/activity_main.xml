@@ -5,35 +5,62 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        app:elevation="0dp">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar_top"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
-            app:title="@string/title_top"
-            app:titleCentered="true"
-            app:elevation="0dp"/>
-    </com.google.android.material.appbar.AppBarLayout>
+    android:background="@drawable/bg_pattern_tile_repeat">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="16dp"
-        android:clipToPadding="false"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:clipToPadding="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <!-- ヘッダー（タイトル＋キャラクター） -->
+            <LinearLayout
+                android:id="@+id/header_main"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:paddingTop="64dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:id="@+id/image_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:src="@drawable/logo_title"
+                    android:contentDescription="@string/app_name"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:scaleX="1.5"
+                    android:scaleY="1.5"
+                    android:maxWidth="780dp"
+                    android:maxHeight="360dp" />
+
+                <ImageView
+                    android:id="@+id/image_character"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="40dp"
+                    android:layout_marginBottom="32dp"
+                    android:src="@drawable/logo_character"
+                    android:contentDescription="@string/app_name"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:scaleX="1.5"
+                    android:scaleY="1.5"
+                    android:maxWidth="660dp"
+                    android:maxHeight="420dp" />
+
+            </LinearLayout>
 
             <!-- ポイントカード -->
             <com.google.android.material.card.MaterialCardView
@@ -46,27 +73,28 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:paddingStart="16dp">
 
                     <TextView
                         android:id="@+id/text_points_top"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/points_default"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:textColor="?attr/colorOnSurface"
                         android:textStyle="bold"
-                        tools:text="ポイント: 120"/>
+                        tools:text="保有ポイント: 120" />
 
                     <TextView
                         android:id="@+id/text_point_stats_top"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/point_stats_default"
-                        android:textSize="13sp"
+                        android:textSize="11sp"
                         android:textColor="@color/md_onSurface_muted"
                         android:paddingTop="6dp"
-                        tools:text="今日: 30 / 前日比: +10"/>
+                        tools:text="今日: 30 / 前日比: +10" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -94,7 +122,7 @@
                 android:text="@string/grade_stats_default"
                 android:textSize="13sp"
                 android:textColor="@color/md_onSurface_muted"
-                tools:text="復習 12 • 新規 34/200"/>
+                tools:text="復習 12 • 新規 34/200" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_to_learning"
@@ -104,7 +132,7 @@
                 android:text="@string/action_start"
                 android:textAllCaps="false"
                 app:backgroundTint="@color/md_primary"
-                android:textColor="@color/md_onAccent_strong"/>
+                android:textColor="@color/md_onAccent_strong" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_to_list"
@@ -113,9 +141,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="@string/action_word_list"
-                android:textAllCaps="false"/>
+                android:textAllCaps="false" />
 
-            <!-- コントラスト不足対策：アクセント背景 + 濃い文字 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_admin_settings"
                 android:layout_width="match_parent"
@@ -124,7 +151,8 @@
                 android:text="@string/action_admin_settings"
                 android:textAllCaps="false"
                 app:backgroundTint="@color/md_primary"
-                android:textColor="@android:color/white"/>
+                android:textColor="@android:color/white" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
