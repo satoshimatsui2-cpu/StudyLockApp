@@ -6,9 +6,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studylockapp.R
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 class WordAdapter(private var items: List<WordDisplayItem>) :
     RecyclerView.Adapter<WordAdapter.WordViewHolder>() {
@@ -39,9 +36,10 @@ class WordAdapter(private var items: List<WordDisplayItem>) :
         holder.colPos.text = item.pos ?: "-"
         holder.colCategory.text = item.category
         holder.colMLevel.text = item.mLevel?.toString() ?: "-"
-        holder.colMDue.text = toDateString(item.mDue)
+        // ここを置き換え：事前に用意した文字列をそのまま表示
+        holder.colMDue.text = item.mDueText ?: "-"
         holder.colLLevel.text = item.lLevel?.toString() ?: "-"
-        holder.colLDue.text = toDateString(item.lDue)
+        holder.colLDue.text = item.lDueText ?: "-"
     }
 
     override fun getItemCount(): Int = items.size
@@ -49,20 +47,5 @@ class WordAdapter(private var items: List<WordDisplayItem>) :
     fun submitList(newItems: List<WordDisplayItem>) {
         items = newItems
         notifyDataSetChanged()
-    }
-
-    private fun toDateString(epochSec: Long?): String {
-        if (epochSec == null || epochSec <= 0) return "-"
-
-        val nowSec = System.currentTimeMillis() / 1000L
-        val remain = epochSec - nowSec
-
-        // 期限到来
-        if (remain <= 0) return "今すぐ"
-
-        // 翌日以降（0時固定想定）は日付表示
-        val zone = ZoneId.systemDefault()
-        val date = Instant.ofEpochSecond(epochSec).atZone(zone).toLocalDate()
-        return date.format(DateTimeFormatter.ISO_LOCAL_DATE) // 例: 2025-12-13
     }
 }

@@ -15,7 +15,8 @@ import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.ui.WordAdapter
 import com.example.studylockapp.ui.WordDisplayItem
-import com.example.studylockapp.ui.DueTimeFormatter
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
 
 class WordListActivity : AppCompatActivity() {
@@ -111,8 +112,9 @@ class WordListActivity : AppCompatActivity() {
 
         val settings = AppSettings(this)
         val zoneId = settings.getAppZoneId()
+        val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
-        // 「今からあとどれくらい」を作るために、ここで一回だけ nowSec を取る
+        // null due のフォールバック用に nowSec を取得
         val nowSec = System.currentTimeMillis() / 1000L
 
         displayCache = words.map { w ->
@@ -136,12 +138,18 @@ class WordListActivity : AppCompatActivity() {
                 lLevel = pl?.level,
                 lDue = lDueSec,
 
-                // ★表示用テキスト：設定TZで「翌日以降は○日後」判定させる
+                // 日付表記に統一（未学習なら「未学習」）
                 mDueText = if (pm == null) "未学習"
-                else DueTimeFormatter.formatRemaining(nowSec, mDueSec ?: nowSec, zoneId),
+                else Instant.ofEpochSecond(mDueSec ?: nowSec)
+                    .atZone(zoneId)
+                    .toLocalDate()
+                    .format(dateFormatter),
 
                 lDueText = if (pl == null) "未学習"
-                else DueTimeFormatter.formatRemaining(nowSec, lDueSec ?: nowSec, zoneId),
+                else Instant.ofEpochSecond(lDueSec ?: nowSec)
+                    .atZone(zoneId)
+                    .toLocalDate()
+                    .format(dateFormatter),
             )
         }
     }

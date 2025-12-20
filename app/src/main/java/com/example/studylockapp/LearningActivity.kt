@@ -29,8 +29,10 @@ import com.example.studylockapp.data.WordProgressEntity
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -95,6 +97,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var radioListening: RadioButton
     private lateinit var choiceButtons: List<Button>
     private lateinit var buttonPlayAudio: Button
+
+    // --- 追加: モード別件数保持用データクラス ---
+    private data class ModeStats(
+        val review: Int,   // nextDueAtSec <= now の件数
+        val newCount: Int, // そのモードの未学習件数（progress なし）
+        val total: Int     // grade 内の総件数
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -317,44 +326,60 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    // --- 追加: モード別集計ヘルパ ---
+    private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
+        val db = AppDatabase.getInstance(this@LearningActivity)
+        val progressDao = db.wordProgressDao()
+
+        val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec)
+            .count { it in wordIdSet }
+
+        val startedIds = progressDao.getProgressIds(mode).toSet()
+        val newCount = wordIdSet.count { it !in startedIds }
+
+        return ModeStats(
+            review = dueCount,
+            newCount = newCount,
+            total = wordIdSet.size
+        )
+    }
+
     /**
      * 表示仕様（学習画面）：
-     * 意：復=meaningのDue数 / 新=（meaning/listening両方未着手）/総数
-     * 聴：復=listeningのDue数 / 新=同上
+     * 意：復=meaningのDue数 / 新=meaningの未学習数/総数
+     * 聴：復=listeningのDue数 / 新=listeningの未学習数/総数
      */
     private fun updateStudyStatsView() {
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val total = allWords.size
             if (total == 0) {
-                chipMeaningReview.text = "復 0"
-                chipMeaningNew.text = "新 0/0"
-                chipListeningReview.text = "復 0"
-                chipListeningNew.text = "新 0/0"
+                withContext(Dispatchers.Main) {
+                    chipMeaningReview.text = "復 0"
+                    chipMeaningNew.text = "新 0/0"
+                    chipListeningReview.text = "復 0"
+                    chipListeningNew.text = "新 0/0"
+                    textStudyStats.text = "意[復:0,新:0/0]\n聴[復:0,新:0/0]"
+                }
                 return@launch
             }
 
-            val db = AppDatabase.getInstance(this@LearningActivity)
-            val progressDao = db.wordProgressDao()
+            val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
             val nowSec = nowEpochSec()
 
-            val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
+            val meaningStats = computeModeStats(wordIdSet, "meaning", nowSec)
+            val listeningStats = computeModeStats(wordIdSet, "listening", nowSec)
 
-            val dueMeaningCount = progressDao.getDueWordIdsOrdered("meaning", nowSec).count { it in wordIdSet }
-            val dueListeningCount = progressDao.getDueWordIdsOrdered("listening", nowSec).count { it in wordIdSet }
+            withContext(Dispatchers.Main) {
+                chipMeaningReview.text = "復 ${meaningStats.review}"
+                chipMeaningNew.text = "新 ${meaningStats.newCount}/${meaningStats.total}"
+                chipListeningReview.text = "復 ${listeningStats.review}"
+                chipListeningNew.text = "新 ${listeningStats.newCount}/${listeningStats.total}"
 
-            val startedMeaning = progressDao.getProgressIds("meaning").toSet()
-            val startedListening = progressDao.getProgressIds("listening").toSet()
-            val startedUnion = startedMeaning union startedListening
-            val newUntouched = wordIdSet.count { it !in startedUnion }
-
-            chipMeaningReview.text = "復 $dueMeaningCount"
-            chipMeaningNew.text = "新 $newUntouched/$total"
-            chipListeningReview.text = "復 $dueListeningCount"
-            chipListeningNew.text = "新 $newUntouched/$total"
-
-            // 互換用（見えないがログ/デバッグで確認したい時用）
-            textStudyStats.text =
-                "意[復:$dueMeaningCount,新:$newUntouched/$total]\n聴[復:$dueListeningCount,新:$newUntouched/$total]"
+                // 互換用（見えないがログ/デバッグで確認したい時用）
+                textStudyStats.text =
+                    "意[復:${meaningStats.review},新:${meaningStats.newCount}/${meaningStats.total}]\n" +
+                            "聴[復:${listeningStats.review},新:${listeningStats.newCount}/${listeningStats.total}]"
+            }
         }
     }
 
