@@ -33,6 +33,9 @@ class AppSettings(context: Context) {
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
         private const val KEY_UNLOCK_DURATION_MIN = "unlockDurationMin"
         private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt" // 10pt あたりの分数（1〜10）
+
+        // アクセシビリティ誘導を表示済みかどうか
+        private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
     }
 
     var answerIntervalMs: Long
@@ -97,9 +100,6 @@ class AppSettings(context: Context) {
 
     /**
      * アプリ内で使う ZoneId を統一して取得する
-     */
-    /**
-     * アプリ内で使う ZoneId を統一して取得する
      * 保存値が null/空：Tokyo をデフォルト採用
      * 保存値が不正：Tokyo → それも失敗した場合は systemDefault にフォールバック
      */
@@ -147,5 +147,13 @@ class AppSettings(context: Context) {
 
     fun setUnlockMinutesPer10Pt(value: Int) {
         prefs.edit { putInt(KEY_UNLOCK_MIN_PER_10PT, value.coerceIn(1, 10)) }
+    }
+
+    // --- Accessibility Intro ---
+    fun hasShownAccessibilityIntro(): Boolean =
+        prefs.getBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, false)
+
+    fun setHasShownAccessibilityIntro(shown: Boolean) {
+        prefs.edit { putBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, shown) }
     }
 }
