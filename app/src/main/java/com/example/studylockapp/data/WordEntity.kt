@@ -5,13 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "words")
 data class WordEntity(
-    @PrimaryKey val no: Int,
+    val no: Int,
     val grade: String,
-    val word: String,
+    @PrimaryKey val word: String, // PK を word に変更
     val japanese: String,
-    val english: String,    // ★追加
-    val pos: String,
-    val category: String,
-    val actors: String      // ★追加（例: A / -）
+    val english: String?,
+    val pos: String?,
+    val category: String?,
+    val actors: String?
 )
-

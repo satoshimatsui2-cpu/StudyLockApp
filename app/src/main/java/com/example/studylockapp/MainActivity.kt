@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -15,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
-import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
@@ -99,19 +97,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, AdminSettingsActivity::class.java))
         }
 
-        // CSVインポート（初回のみ）
-        lifecycleScope.launch {
-            Log.d("CSV_IMPORT", "start import")
-            CsvImporter.importIfNeeded(this@MainActivity)
-
-            val count = AppDatabase.getInstance(this@MainActivity).wordDao().getAll().size
-            Log.d("CSV_IMPORT", "words count=$count")
-
-            updateGradeDropdownLabels()
-            updatePointView()
-        }
-
+        // 起動時にポイントとプルダウン表示を更新
         updatePointView()
+        updateGradeDropdownLabels()
     }
 
     override fun onResume() {

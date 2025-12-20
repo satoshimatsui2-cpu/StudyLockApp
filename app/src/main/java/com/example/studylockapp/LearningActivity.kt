@@ -15,12 +15,14 @@ import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointHistoryEntity
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
@@ -98,7 +100,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var choiceButtons: List<Button>
     private lateinit var buttonPlayAudio: Button
 
-    // --- 追加: モード別件数保持用データクラス ---
+    // --- モード別件数保持用データクラス ---
     private data class ModeStats(
         val review: Int,   // nextDueAtSec <= now の件数
         val newCount: Int, // そのモードの未学習件数（progress なし）
@@ -181,7 +183,25 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         buttonPlayAudio.setOnClickListener { speakCurrentWord() }
 
         updatePointView()
-        loadAllWordsThenQuestion()
+
+        // ★選択グレードのみ差分インポートしてから出題
+        lifecycleScope.launch {
+            val imported = withContext(Dispatchers.IO) {
+                if (gradeFilter != "All") {
+                    CsvImporter.importGradeIfNeeded(this@LearningActivity, gradeFilter)
+                } else {
+                    0
+                }
+            }
+            if (imported > 0) {
+                Toast.makeText(
+                    this@LearningActivity,
+                    "${imported}件データインポートしました。",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            loadAllWordsThenQuestion()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -326,7 +346,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // --- 追加: モード別集計ヘルパ ---
+    // --- モード別集計ヘルパ ---
     private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val progressDao = db.wordProgressDao()

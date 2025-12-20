@@ -8,6 +8,9 @@ import com.example.studylockapp.data.db.AppUnlockDao
 import com.example.studylockapp.data.db.AppUnlockEntity
 import com.example.studylockapp.data.db.LockedAppDao
 import com.example.studylockapp.data.db.LockedAppEntity
+import com.example.studylockapp.data.db.PointHistoryDao
+import com.example.studylockapp.data.db.WordDao
+import com.example.studylockapp.data.db.WordProgressDao
 
 @Database(
     entities = [
@@ -17,32 +20,29 @@ import com.example.studylockapp.data.db.LockedAppEntity
         LockedAppEntity::class,
         AppUnlockEntity::class
     ],
-    version = 6, // 今使っているバージョンに合わせてください
+    version = 4, // 現在の値に +1 していることを確認
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun wordDao(): WordDao
     abstract fun wordProgressDao(): WordProgressDao
     abstract fun pointHistoryDao(): PointHistoryDao
-
-    abstract fun lockedAppDao(): LockedAppDao      // ← ここが error になっていたので明示
-    abstract fun appUnlockDao(): AppUnlockDao      // ← 同上
+    abstract fun lockedAppDao(): LockedAppDao
+    abstract fun appUnlockDao(): AppUnlockDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
 
-        fun getInstance(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
+        fun getInstance(context: Context): AppDatabase =
+            INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "app_database"
+                    "app-db"
                 )
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }
             }
-        }
     }
 }
