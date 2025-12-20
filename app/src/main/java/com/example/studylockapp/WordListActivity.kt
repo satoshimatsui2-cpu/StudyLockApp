@@ -1,6 +1,9 @@
 package com.example.studylockapp
 
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
@@ -12,6 +15,7 @@ import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.ui.WordAdapter
 import com.example.studylockapp.ui.WordDisplayItem
+import com.example.studylockapp.ui.DueTimeFormatter
 import kotlinx.coroutines.launch
 
 class WordListActivity : AppCompatActivity() {
@@ -47,6 +51,8 @@ class WordListActivity : AppCompatActivity() {
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
 
+        setupGradeFilterSpinner()
+
         // ヘッダタップでソート切替
         headerWord.setOnClickListener { currentSort = "Word"; applyFilterAndSort() }
         headerGrade.setOnClickListener { currentSort = "Grade"; applyFilterAndSort() }
@@ -66,6 +72,35 @@ class WordListActivity : AppCompatActivity() {
         lifecycleScope.launch {
             loadDisplayItems()
             applyFilterAndSort()
+        }
+    }
+
+    private fun gradeKeyToLabel(gradeKey: String): String = when (gradeKey) {
+        "2.5" -> "準2級"
+        "1.5" -> "準1級"
+        "All" -> "All"
+        else -> "${gradeKey}級"
+    }
+
+    private fun setupGradeFilterSpinner() {
+        val gradeValues = resources.getStringArray(R.array.grade_filter_items).toList()
+        val gradeLabels = gradeValues.map { gradeKeyToLabel(it) }
+
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            gradeLabels
+        )
+        spinnerGrade.adapter = adapter
+
+        spinnerGrade.setSelection(0, false)
+        spinnerGrade.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                applyFilterAndSort()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // no-op
+            }
         }
     }
 
@@ -112,7 +147,9 @@ class WordListActivity : AppCompatActivity() {
     }
 
     private fun applyFilterAndSort() {
-        val gradeFilter = spinnerGrade.selectedItem?.toString() ?: "All"
+        val gradeValues = resources.getStringArray(R.array.grade_filter_items)
+        val pos = spinnerGrade.selectedItemPosition.takeIf { it in gradeValues.indices } ?: 0
+        val gradeFilter = gradeValues[pos] // "All" or "5"/"4"/"3"/"2.5"/"2"/"1.5"/"1"
 
         // Grade のみフィルタ
         val filtered = displayCache.filter { item ->

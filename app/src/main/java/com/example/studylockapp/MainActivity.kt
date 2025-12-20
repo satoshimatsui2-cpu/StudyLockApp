@@ -46,8 +46,8 @@ class MainActivity : AppCompatActivity() {
     private var accessibilityDialog: AlertDialog? = null
 
     data class GradeSpinnerItem(
-        val gradeKey: String,   // "5"
-        val label: String       // "5級"（短く）
+        val gradeKey: String,   // 例: "5", "2.5"
+        val label: String       // 表示用: "5級", "準2級"
     ) {
         override fun toString(): String = label
     }
@@ -155,14 +155,12 @@ class MainActivity : AppCompatActivity() {
         textPointStatsTop.text = "今日: $todaySum / 前日比: $diffSign$diffAbs"
     }
 
-    /**
-     * TOPの級プルダウンは「5級」だけ表示。
-     * 統計は別TextView（text_grade_stats_top）に
-     * 例: 「復習 12 • 新規 34/200」
-     *
-     * 復習 = meaning Due + listening Due の合計
-     * 新規 = meaning/listening 両方progress無し（どちらも未着手）
-     */
+    private fun gradeKeyToLabel(gradeKey: String): String = when (gradeKey) {
+        "2.5" -> "準2級"
+        "1.5" -> "準1級"
+        else -> "${gradeKey}級"
+    }
+
     private fun updateGradeDropdownLabels() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@MainActivity)
@@ -186,8 +184,8 @@ class MainActivity : AppCompatActivity() {
             val byGrade: Map<String, List<Long>> =
                 words.groupBy { it.grade }.mapValues { (_, list) -> list.map { it.no.toLong() } }
 
-            // DBのgradeが "5" "4" ... なのでこちらも数値文字列で
-            val gradeKeys = listOf("5", "4", "3", "2", "1")
+            // DBのgradeが文字列なので、準級も含めたキー順序で表示
+            val gradeKeys = listOf("5", "4", "3", "2.5", "2", "1.5", "1")
 
             val statsBuilder = linkedMapOf<String, String>()
             val items: List<GradeSpinnerItem> = gradeKeys.map { gradeKey ->
@@ -199,7 +197,7 @@ class MainActivity : AppCompatActivity() {
                 val newUntouched = idSet.count { it !in startedUnion }
 
                 statsBuilder[gradeKey] = "復習 $review • 新規 $newUntouched/$total"
-                GradeSpinnerItem(gradeKey = gradeKey, label = "${gradeKey}級")
+                GradeSpinnerItem(gradeKey = gradeKey, label = gradeKeyToLabel(gradeKey))
             }
             gradeStatsMap = statsBuilder
 

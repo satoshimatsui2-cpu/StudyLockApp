@@ -1,7 +1,8 @@
+package com.example.studylockapp.ui
+
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import kotlin.math.max
 
 object DueTimeFormatter {
 
@@ -10,9 +11,9 @@ object DueTimeFormatter {
      * - dueSec <= nowSec: 「今すぐ」
      * - due の日付が翌日以降: 「○日後」（残り時間が数時間でも “翌日” なら1日後）
      * - 当日中:
-     *    - <60秒: ○秒
-     *    - <3600秒: ○分（切り捨て）
-     *    - >=3600秒: ○時間（切り捨て）
+     *    - <60秒: ○秒後
+     *    - <3600秒: ○分後（切り捨て）
+     *    - >=3600秒: ○時間後（切り捨て）
      */
     fun formatRemaining(nowSec: Long, dueSec: Long, zoneId: ZoneId = ZoneId.systemDefault()): String {
         val remaining = dueSec - nowSec
@@ -26,10 +27,9 @@ object DueTimeFormatter {
 
         // 当日中（切り捨て）
         return when {
-            remaining < 60 -> "${remaining}秒"
-            remaining < 3600 -> "${remaining / 60}分"
-            else -> "${remaining / 3600}時間"
+            remaining < 60 -> "${remaining}秒後"
+            remaining < 3600 -> "${remaining / 60}分後"
+            else -> "${remaining / 3600}時間後"
         }
     }
 }
-
