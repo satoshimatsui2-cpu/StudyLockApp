@@ -31,7 +31,7 @@ class AppSettings(context: Context) {
         // --- App Lock ---
         private const val KEY_APP_LOCK_ENABLED = "appLockEnabled"
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
-        private const val KEY_UNLOCK_DURATION_MIN = "unlockDurationMin"
+//        private const val KEY_UNLOCK_DURATION_MIN = "unlockDurationMin"
         private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt" // 10pt あたりの分数（1〜10）
 
         // アクセシビリティ誘導を表示済みかどうか
@@ -128,16 +128,16 @@ class AppSettings(context: Context) {
     fun getUnlockCostPoints10Min(): Int =
         prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
 
-    fun setUnlockCostPoints10Min(points: Int) {
-        prefs.edit { putInt(KEY_UNLOCK_COST_POINTS_10MIN, points.coerceAtLeast(0)) }
-    }
+//    fun setUnlockCostPoints10Min(points: Int) {
+//        prefs.edit { putInt(KEY_UNLOCK_COST_POINTS_10MIN, points.coerceAtLeast(0)) }
+//    }
 
-    fun getUnlockDurationMin(): Int =
-        prefs.getInt(KEY_UNLOCK_DURATION_MIN, 10).coerceIn(1, 240) // 1〜240分にクランプ
+//    fun getUnlockDurationMin(): Int =
+//        prefs.getInt(KEY_UNLOCK_DURATION_MIN, 10).coerceIn(1, 240) // 1〜240分にクランプ
 
-    fun setUnlockDurationMin(min: Int) {
-        prefs.edit { putInt(KEY_UNLOCK_DURATION_MIN, min.coerceIn(1, 240)) }
-    }
+//    fun setUnlockDurationMin(min: Int) {
+//        prefs.edit { putInt(KEY_UNLOCK_DURATION_MIN, min.coerceIn(1, 240)) }
+//    }
 
     /**
      * 10pt あたりの解放分数（1〜10分）
