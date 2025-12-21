@@ -8,6 +8,7 @@ import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -28,7 +29,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var gradeDropdown: MaterialAutoCompleteTextView
     private lateinit var buttonToLearning: Button
-    private lateinit var buttonAdminSettings: Button
 
     private lateinit var textPointsTop: TextView
     private lateinit var textPointStatsTop: TextView
@@ -56,14 +56,21 @@ class MainActivity : AppCompatActivity() {
 
         gradeDropdown = findViewById(R.id.spinner_grade_top)
         buttonToLearning = findViewById(R.id.button_to_learning)
-        buttonAdminSettings = findViewById(R.id.button_admin_settings)
-
         textPointsTop = findViewById(R.id.text_points_top)
         textPointStatsTop = findViewById(R.id.text_point_stats_top)
         textGradeStatsTop = findViewById(R.id.text_grade_stats_top) // ★activity_main.xmlに追加した前提
 
         buttonToLearning.isEnabled = false
         textGradeStatsTop.text = "復習 0 • 新規 0/0"
+
+        // 右上の設定バッジ
+        findViewById<ImageButton>(R.id.button_admin_settings_top)?.setOnClickListener {
+            openAdminSettings()
+        }
+        // 旧「管理設定」ボタン（非表示でも安全）
+        findViewById<Button>(R.id.button_admin_settings)?.setOnClickListener {
+            openAdminSettings()
+        }
 
         // ドロップダウン選択時：級だけ選ぶ。統計は別テキストに出す
         gradeDropdown.setOnItemClickListener { parent, _, position, _ ->
@@ -92,11 +99,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, WordListActivity::class.java))
         }
 
-        // 管理者設定へ
-        buttonAdminSettings.setOnClickListener {
-            startActivity(Intent(this, AdminSettingsActivity::class.java))
-        }
-
         // 起動時にポイントとプルダウン表示を更新
         updatePointView()
         updateGradeDropdownLabels()
@@ -116,6 +118,10 @@ class MainActivity : AppCompatActivity() {
 
         updatePointView()
         updateGradeDropdownLabels()
+    }
+
+    private fun openAdminSettings() {
+        startActivity(Intent(this, AdminSettingsActivity::class.java))
     }
 
     private fun updatePointView() {

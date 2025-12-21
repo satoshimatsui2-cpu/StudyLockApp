@@ -168,7 +168,8 @@
                 android:paddingVertical="12dp"
                 app:backgroundTint="@null"
                 android:textSize="20sp"/>
-            <!-- 管理設定ボタン -->
+
+            <!-- 管理設定ボタン（右上に置き換えたので非表示推奨） -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_admin_settings"
                 style="@style/Widget.Material3.Button"
@@ -181,9 +182,23 @@
                 android:textColor="@color/sl_button_text"
                 android:paddingVertical="12dp"
                 app:backgroundTint="@null"
-                android:textSize="20sp"/>
+                android:textSize="20sp"
+                android:visibility="gone"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    <ImageButton
+        android:id="@+id/button_admin_settings_top"
+        android:layout_width="60dp"
+        android:layout_height="80dp"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/settings_badge"
+        android:contentDescription="@string/action_admin_settings"
+        android:padding="0dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="8dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

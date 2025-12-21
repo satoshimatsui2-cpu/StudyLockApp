@@ -3,31 +3,56 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_pattern_tile_repeat">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar_learning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:title="学習"
-            app:titleCentered="true"/>
-    </com.google.android.material.appbar.AppBarLayout>
+    <!-- AppBar/Toolbar は削除 -->
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:padding="16dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <!-- ポイントカード -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:cardUseCompatPadding="true"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/text_points"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ポイント: 0"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#111827"/>
+
+                    <TextView
+                        android:id="@+id/text_point_stats"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="今日: 0 / 前日比: +0"
+                        android:textSize="13sp"
+                        android:textColor="#6B7280"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- 上部カード：モード + 統計 + 問題 + 音声 -->
             <com.google.android.material.card.MaterialCardView
@@ -64,7 +89,7 @@
                             android:text="リスニング"/>
                     </RadioGroup>
 
-                    <!-- 統計（意/聴）：Chip化 -->
+                    <!-- 統計（意/聴） -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -134,7 +159,6 @@
                                 android:text="新 0/0" />
                         </LinearLayout>
 
-                        <!-- 互換のため残す（コードが参照していた場合の保険） -->
                         <TextView
                             android:id="@+id/text_study_stats"
                             android:layout_width="match_parent"
@@ -167,7 +191,7 @@
                         android:paddingTop="4dp"
                         android:paddingBottom="4dp"/>
 
-                    <!-- フィードバック（互換のため残す。コード側でGONE） -->
+                    <!-- フィードバック -->
                     <TextView
                         android:id="@+id/text_feedback"
                         android:layout_width="match_parent"
@@ -180,16 +204,21 @@
                     <!-- 音声再生ボタン -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_play_audio"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.Material3.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:text="音声を再生"
-                        android:textAllCaps="false"/>
+                        android:textAllCaps="false"
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="12dp"
+                        app:backgroundTint="@null"
+                        android:textSize="18sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 選択肢カード（2列×3段にして縦を圧縮） -->
+            <!-- 選択肢カード（2列×3段） -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -214,7 +243,11 @@
                         android:textSize="15sp"
                         android:textAllCaps="false"
                         android:maxLines="2"
-                        app:layout_columnWeight="1" />
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="10dp"
+                        app:layout_columnWeight="1"
+                        app:backgroundTint="@null" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_2"
@@ -226,7 +259,11 @@
                         android:textSize="15sp"
                         android:textAllCaps="false"
                         android:maxLines="2"
-                        app:layout_columnWeight="1" />
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="10dp"
+                        app:layout_columnWeight="1"
+                        app:backgroundTint="@null" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_3"
@@ -238,7 +275,11 @@
                         android:textSize="15sp"
                         android:textAllCaps="false"
                         android:maxLines="2"
-                        app:layout_columnWeight="1" />
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="10dp"
+                        app:layout_columnWeight="1"
+                        app:backgroundTint="@null" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_4"
@@ -250,7 +291,11 @@
                         android:textSize="15sp"
                         android:textAllCaps="false"
                         android:maxLines="2"
-                        app:layout_columnWeight="1" />
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="10dp"
+                        app:layout_columnWeight="1"
+                        app:backgroundTint="@null" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_5"
@@ -262,7 +307,11 @@
                         android:textSize="15sp"
                         android:textAllCaps="false"
                         android:maxLines="2"
-                        app:layout_columnWeight="1" />
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="10dp"
+                        app:layout_columnWeight="1"
+                        app:backgroundTint="@null" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_6"
@@ -274,44 +323,13 @@
                         android:textSize="15sp"
                         android:textAllCaps="false"
                         android:maxLines="2"
-                        app:layout_columnWeight="1" />
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="10dp"
+                        app:layout_columnWeight="1"
+                        app:backgroundTint="@null" />
 
                 </androidx.gridlayout.widget.GridLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- ポイントカード -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardUseCompatPadding="true"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/text_points"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="ポイント: 0"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#111827"/>
-
-                    <TextView
-                        android:id="@+id/text_point_stats"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="今日: 0 / 前日比: +0"
-                        android:textSize="13sp"
-                        android:textColor="#6B7280"/>
-                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>

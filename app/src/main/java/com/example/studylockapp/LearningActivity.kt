@@ -28,7 +28,7 @@ import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
-import com.google.android.material.appbar.MaterialToolbar
+//import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
@@ -115,10 +115,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
 
         // Toolbar（戻る矢印）
-        findViewById<MaterialToolbar>(R.id.toolbar_learning)?.let { tb ->
-            setSupportActionBar(tb)
-            supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        }
+        //findViewById<MaterialToolbar>(R.id.toolbar_learning)?.let { tb ->
+        //    setSupportActionBar(tb)
+        //    supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        //}
 
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
