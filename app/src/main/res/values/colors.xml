@@ -45,4 +45,10 @@
     <color name="snackbar_correct_bg">#2FA36B</color>
     <color name="snackbar_wrong_bg">#D84C5A</color>
 
+    <!-- ボタン統一色 -->
+    <color name="sl_button_bg">#D86C2F</color>
+    <color name="sl_button_bg_pressed">#C65E25</color>
+    <color name="sl_button_stroke">#2E3A46</color>
+    <color name="sl_button_text">#F7EBD9</color>
+
 </resources>

@@ -627,7 +627,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
-        textPoints.text = "ポイント: $total"
+        textPoints.text = "保有ポイント: $total"
         lifecycleScope.launch { updatePointStats() }
     }
 
