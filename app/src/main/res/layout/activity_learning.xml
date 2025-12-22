@@ -201,136 +201,74 @@
                         android:textColor="#111827"
                         android:layout_marginTop="6dp"/>
 
-                    <!-- 音声再生ボタン -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_play_audio"
-                        style="@style/Widget.Material3.Button"
+                        style="@style/App.PrimaryButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="音声を再生"
-                        android:textAllCaps="false"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="12dp"
-                        app:backgroundTint="@null"
-                        android:textSize="18sp" />
+                        android:text="音声を再生" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- 選択肢カード（2列×3段） -->
-            <com.google.android.material.card.MaterialCardView
+            <androidx.gridlayout.widget.GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardUseCompatPadding="true"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline">
+                android:padding="4dp"
+                app:columnCount="2">
 
-                <androidx.gridlayout.widget.GridLayout
-                    android:layout_width="match_parent"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_choice_1"
+                    style="@style/App.PrimaryButton"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    app:columnCount="2">
+                    android:layout_margin="2dp"
+                    app:layout_columnWeight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_choice_1"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="6dp"
-                        android:minHeight="52dp"
-                        android:textSize="15sp"
-                        android:textAllCaps="false"
-                        android:maxLines="2"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="10dp"
-                        app:layout_columnWeight="1"
-                        app:backgroundTint="@null" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_choice_2"
+                    style="@style/App.PrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2dp"
+                    app:layout_columnWeight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_choice_2"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="6dp"
-                        android:minHeight="52dp"
-                        android:textSize="15sp"
-                        android:textAllCaps="false"
-                        android:maxLines="2"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="10dp"
-                        app:layout_columnWeight="1"
-                        app:backgroundTint="@null" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_choice_3"
+                    style="@style/App.PrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2dp"
+                    app:layout_columnWeight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_choice_3"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="6dp"
-                        android:minHeight="52dp"
-                        android:textSize="15sp"
-                        android:textAllCaps="false"
-                        android:maxLines="2"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="10dp"
-                        app:layout_columnWeight="1"
-                        app:backgroundTint="@null" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_choice_4"
+                    style="@style/App.PrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2dp"
+                    app:layout_columnWeight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_choice_4"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="6dp"
-                        android:minHeight="52dp"
-                        android:textSize="15sp"
-                        android:textAllCaps="false"
-                        android:maxLines="2"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="10dp"
-                        app:layout_columnWeight="1"
-                        app:backgroundTint="@null" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_choice_5"
+                    style="@style/App.PrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2dp"
+                    app:layout_columnWeight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_choice_5"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="6dp"
-                        android:minHeight="52dp"
-                        android:textSize="15sp"
-                        android:textAllCaps="false"
-                        android:maxLines="2"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="10dp"
-                        app:layout_columnWeight="1"
-                        app:backgroundTint="@null" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_choice_6"
+                    style="@style/App.PrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2dp"
+                    app:layout_columnWeight="1" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_choice_6"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="6dp"
-                        android:minHeight="52dp"
-                        android:textSize="15sp"
-                        android:textAllCaps="false"
-                        android:maxLines="2"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="10dp"
-                        app:layout_columnWeight="1"
-                        app:backgroundTint="@null" />
+            </androidx.gridlayout.widget.GridLayout>
 
-                </androidx.gridlayout.widget.GridLayout>
-            </com.google.android.material.card.MaterialCardView>
+
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

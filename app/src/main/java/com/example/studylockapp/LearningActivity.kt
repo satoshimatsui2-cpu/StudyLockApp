@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
@@ -28,7 +29,7 @@ import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
-//import com.google.android.material.appbar.MaterialToolbar
+// import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
@@ -114,11 +115,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         settings = AppSettings(this)
         gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
 
-        // Toolbar（戻る矢印）
-        //findViewById<MaterialToolbar>(R.id.toolbar_learning)?.let { tb ->
-        //    setSupportActionBar(tb)
-        //    supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        //}
+        // Toolbar（戻る矢印）不要なのでコメントアウト
+        // findViewById<MaterialToolbar>(R.id.toolbar_learning)?.let { tb ->
+        //     setSupportActionBar(tb)
+        //     supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        // }
 
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
@@ -154,6 +155,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // デフォルトの背景Tintを保存（次の問題で戻す用）
         defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
+        // TTS 初期化
         tts = TextToSpeech(this, this)
 
         // SoundPool 初期化
@@ -228,7 +230,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) tts?.language = Locale.US
+        if (status == TextToSpeech.SUCCESS) {
+            tts?.language = Locale.US
+            // TTS 再生をメディア用途に固定（音量・出力ともにメディアに載せる）
+            tts?.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+        }
     }
 
     private fun loadSeIfExists(rawName: String): Int {
@@ -650,9 +661,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun speakCurrentWord() {
         val cw = currentWord ?: return
+        // 設定値が 0〜100 の場合は 0.0〜1.0 に正規化
+        val rawVol = settings.ttsVolume
+        val vol = if (rawVol > 1f) (rawVol / 100f).coerceIn(0f, 1f) else rawVol.coerceIn(0f, 1f)
+
         val params = Bundle().apply {
-            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, settings.ttsVolume) // 0.0..1.0
+            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, vol)
+            putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
         }
-        tts?.speak(cw.word, TextToSpeech.QUEUE_FLUSH, params, "tts_id")
+        tts?.speak(cw.word, TextToSpeech.QUEUE_FLUSH, params, "tts-${System.currentTimeMillis()}")
     }
 }
