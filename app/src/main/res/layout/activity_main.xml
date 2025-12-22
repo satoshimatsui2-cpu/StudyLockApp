@@ -7,198 +7,225 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_pattern_tile_repeat">
 
-    <androidx.core.widget.NestedScrollView
+    <!-- ガイドラインを使うための ConstraintLayout コンテナ -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp"
-        android:clipToPadding="false">
+        android:layout_height="match_parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+        <!-- 画面上部 5% ガイド（タイトル開始位置用） -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_top_5"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.05" />
 
-            <!-- ヘッダー（タイトル＋キャラクター） -->
+        <!-- 画面上部 8% ガイド（設定ボタン用） -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_top_8"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.08" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:padding="16dp"
+            android:clipToPadding="false"
+            app:layout_constraintTop_toBottomOf="@id/guideline_top_5"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
             <LinearLayout
-                android:id="@+id/header_main"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:paddingTop="64dp"
-                android:clipChildren="false"
-                android:clipToPadding="false">
+                android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/image_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:src="@drawable/logo_title"
-                    android:contentDescription="@string/app_name"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
-                    android:scaleX="1.5"
-                    android:scaleY="1.5"
-                    android:maxWidth="780dp"
-                    android:maxHeight="360dp" />
-
-                <ImageView
-                    android:id="@+id/image_character"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="40dp"
-                    android:layout_marginBottom="32dp"
-                    android:src="@drawable/logo_character"
-                    android:contentDescription="@string/app_name"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
-                    android:scaleX="1.5"
-                    android:scaleY="1.5"
-                    android:maxWidth="660dp"
-                    android:maxHeight="420dp" />
-
-            </LinearLayout>
-
-            <!-- ポイントカード -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardUseCompatPadding="true"
-                app:cardElevation="2dp">
-
+                <!-- ヘッダー（タイトル＋キャラクター） -->
                 <LinearLayout
+                    android:id="@+id/header_main"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingStart="32dp"
-                    android:paddingEnd="32dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:paddingTop="64dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
 
-                    <TextView
-                        android:id="@+id/text_points_top"
-                        android:layout_width="match_parent"
+                    <ImageView
+                        android:id="@+id/image_title"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/points_default"
-                        android:textSize="16sp"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textStyle="bold"
-                        tools:text="保有ポイント: 120" />
+                        android:layout_marginBottom="16dp"
+                        android:src="@drawable/logo_title"
+                        android:contentDescription="@string/app_name"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter"
+                        android:scaleX="1.5"
+                        android:scaleY="1.5"
+                        android:maxWidth="780dp"
+                        android:maxHeight="360dp" />
 
-                    <TextView
-                        android:id="@+id/text_point_stats_top"
-                        android:layout_width="match_parent"
+                    <ImageView
+                        android:id="@+id/image_character"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/point_stats_default"
-                        android:textSize="11sp"
-                        android:textColor="@color/md_onSurface_muted"
-                        android:paddingTop="6dp"
-                        tools:text="今日: 30 / 前日比: +10" />
+                        android:layout_marginTop="40dp"
+                        android:layout_marginBottom="32dp"
+                        android:src="@drawable/logo_character"
+                        android:contentDescription="@string/app_name"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter"
+                        android:scaleX="1.5"
+                        android:scaleY="1.5"
+                        android:maxWidth="660dp"
+                        android:maxHeight="420dp" />
+
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- 級選択（カード風に統一） -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:cardUseCompatPadding="true"
-                app:cardElevation="2dp"
-                app:cardCornerRadius="16dp">
-
-                <com.google.android.material.textfield.TextInputLayout
+                <!-- ポイントカード -->
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/hint_select_grade"
-                    android:padding="4dp"
-                    style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxBackgroundColor="?attr/colorSurface">
+                    app:cardUseCompatPadding="true"
+                    app:cardElevation="2dp">
 
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spinner_grade_top"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="none"
-                        android:hint="@string/hint_select_grade" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </com.google.android.material.card.MaterialCardView>
+                        android:orientation="vertical"
+                        android:paddingStart="32dp"
+                        android:paddingEnd="32dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp">
 
-            <TextView
-                android:id="@+id/text_grade_stats_top"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/grade_stats_default"
-                android:textSize="13sp"
-                android:textColor="@color/md_onSurface_muted"
-                tools:text="復習 12 • 新規 34/200" />
+                        <TextView
+                            android:id="@+id/text_points_top"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/points_default"
+                            android:textSize="16sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold"
+                            tools:text="保有ポイント: 120" />
 
-            <!-- STARTボタン -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_to_learning"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/action_start"
-                android:textAllCaps="false"
-                android:background="@drawable/sl_button_bg"
-                android:textColor="@color/sl_button_text"
-                android:paddingVertical="12dp"
-                app:backgroundTint="@null"
-                android:textSize="20sp"/>
+                        <TextView
+                            android:id="@+id/text_point_stats_top"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/point_stats_default"
+                            android:textSize="11sp"
+                            android:textColor="@color/md_onSurface_muted"
+                            android:paddingTop="6dp"
+                            tools:text="今日: 30 / 前日比: +10" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_to_list"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/action_word_list"
-                android:textAllCaps="false"
-                android:background="@drawable/sl_button_bg"
-                android:textColor="@color/sl_button_text"
-                android:paddingVertical="12dp"
-                app:backgroundTint="@null"
-                android:textSize="20sp"/>
+                <!-- 級選択（カード風に統一） -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardUseCompatPadding="true"
+                    app:cardElevation="2dp"
+                    app:cardCornerRadius="16dp">
 
-            <!-- 管理設定ボタン（右上に置き換えたので非表示推奨） -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_admin_settings"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/action_admin_settings"
-                android:textAllCaps="false"
-                android:background="@drawable/sl_button_bg"
-                android:textColor="@color/sl_button_text"
-                android:paddingVertical="12dp"
-                app:backgroundTint="@null"
-                android:textSize="20sp"
-                android:visibility="gone"/>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_select_grade"
+                        android:padding="4dp"
+                        style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxBackgroundColor="?attr/colorSurface">
 
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-    <ImageButton
-        android:id="@+id/button_admin_settings_top"
-        android:layout_width="60dp"
-        android:layout_height="80dp"
-        android:layout_gravity="end|top"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="12dp"
-        android:background="@drawable/settings_badge"
-        android:contentDescription="@string/action_admin_settings"
-        android:padding="0dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:elevation="8dp" />
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/spinner_grade_top"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:hint="@string/hint_select_grade" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </com.google.android.material.card.MaterialCardView>
 
+                <TextView
+                    android:id="@+id/text_grade_stats_top"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/grade_stats_default"
+                    android:textSize="13sp"
+                    android:textColor="@color/md_onSurface_muted"
+                    tools:text="復習 12 • 新規 34/200" />
+
+                <!-- STARTボタン -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_to_learning"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/action_start"
+                    android:textAllCaps="false"
+                    android:background="@drawable/sl_button_bg"
+                    android:textColor="@color/sl_button_text"
+                    android:paddingVertical="12dp"
+                    app:backgroundTint="@null"
+                    android:textSize="20sp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_to_list"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/action_word_list"
+                    android:textAllCaps="false"
+                    android:background="@drawable/sl_button_bg"
+                    android:textColor="@color/sl_button_text"
+                    android:paddingVertical="12dp"
+                    app:backgroundTint="@null"
+                    android:textSize="20sp"/>
+
+                <!-- 管理設定ボタン（右上に置き換えたので非表示推奨） -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_admin_settings"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/action_admin_settings"
+                    android:textAllCaps="false"
+                    android:background="@drawable/sl_button_bg"
+                    android:textColor="@color/sl_button_text"
+                    android:paddingVertical="12dp"
+                    app:backgroundTint="@null"
+                    android:textSize="20sp"
+                    android:visibility="gone"/>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- 右上の設定バッジ：上部 8% の位置に配置 -->
+        <ImageButton
+            android:id="@+id/button_admin_settings_top"
+            android:layout_width="60dp"
+            android:layout_height="80dp"
+            android:background="@drawable/settings_badge"
+            android:contentDescription="@string/action_admin_settings"
+            android:padding="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="8dp"
+            app:layout_constraintTop_toBottomOf="@id/guideline_top_8"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="12dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

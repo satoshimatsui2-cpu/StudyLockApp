@@ -1,186 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/scroll_admin"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
-    android:padding="16dp"
-    android:clipToPadding="false">
+    android:background="?attr/colorSurface">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+    <!-- 画面上部 5% のガイドライン -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_top_5"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.05" />
 
-        <TextView
+    <ScrollView
+        android:id="@+id/scroll_admin"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/guideline_top_5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="管理者設定"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:paddingBottom="6dp" />
+            android:orientation="vertical">
 
-        <!-- 回答間隔 -->
-        <TextView
-            android:id="@+id/text_interval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="回答間隔: 1.0 秒"
-            android:textColor="?attr/colorOnSurface" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="管理者設定"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:paddingBottom="6dp" />
 
-        <SeekBar
-            android:id="@+id/seek_interval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="95" />
+            <!-- 回答間隔 -->
+            <TextView
+                android:id="@+id/text_interval"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="回答間隔: 1.0 秒"
+                android:textColor="?attr/colorOnSurface" />
 
-        <!-- 誤答リトライ秒 -->
-        <TextView
-            android:id="@+id/text_wrong_retry"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="誤答リトライ: 60 秒"
-            android:textColor="?attr/colorOnSurface" />
+            <SeekBar
+                android:id="@+id/seek_interval"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="95" />
 
-        <SeekBar
-            android:id="@+id/seek_wrong_retry"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="590" />
+            <!-- 誤答リトライ秒 -->
+            <TextView
+                android:id="@+id/text_wrong_retry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="誤答リトライ: 60 秒"
+                android:textColor="?attr/colorOnSurface" />
 
-        <!-- Lv1リトライ秒 -->
-        <TextView
-            android:id="@+id/text_level1_retry"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="Lv1リトライ: 60 秒"
-            android:textColor="?attr/colorOnSurface" />
+            <SeekBar
+                android:id="@+id/seek_wrong_retry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="590" />
 
-        <SeekBar
-            android:id="@+id/seek_level1_retry"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="590" />
+            <!-- Lv1リトライ秒 -->
+            <TextView
+                android:id="@+id/text_level1_retry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="Lv1リトライ: 60 秒"
+                android:textColor="?attr/colorOnSurface" />
 
-        <!-- 10ポイントあたりの分数 (1〜10) -->
-        <TextView
-            android:id="@+id/text_unlock_min_per_10pt_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/admin_label_unlock_min_per_10pt" />
+            <SeekBar
+                android:id="@+id/seek_level1_retry"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="590" />
 
-        <TextView
-            android:id="@+id/text_unlock_min_per_10pt_value"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:text="@string/admin_label_unlock_min_per_10pt_value" />
+            <!-- 10ポイントあたりの分数 (1〜10) -->
+            <TextView
+                android:id="@+id/text_unlock_min_per_10pt_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/admin_label_unlock_min_per_10pt" />
 
-        <SeekBar
-            android:id="@+id/seek_unlock_min_per_10pt"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="9" /> <!-- progress:0..9 → 値:1..10 -->
+            <TextView
+                android:id="@+id/text_unlock_min_per_10pt_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:text="@string/admin_label_unlock_min_per_10pt_value" />
 
-        <!-- 正解SE -->
-        <TextView
-            android:id="@+id/text_se_correct"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="正解SE音量: 90%"
-            android:textColor="?attr/colorOnSurface" />
+            <SeekBar
+                android:id="@+id/seek_unlock_min_per_10pt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="9" /> <!-- progress:0..9 → 値:1..10 -->
 
-        <SeekBar
-            android:id="@+id/seek_se_correct"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" />
+            <!-- 正解SE -->
+            <TextView
+                android:id="@+id/text_se_correct"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="正解SE音量: 90%"
+                android:textColor="?attr/colorOnSurface" />
 
-        <!-- 不正解SE -->
-        <TextView
-            android:id="@+id/text_se_wrong"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="不正解SE音量: 90%"
-            android:textColor="?attr/colorOnSurface" />
+            <SeekBar
+                android:id="@+id/seek_se_correct"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100" />
 
-        <SeekBar
-            android:id="@+id/seek_se_wrong"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" />
+            <!-- 不正解SE -->
+            <TextView
+                android:id="@+id/text_se_wrong"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="不正解SE音量: 90%"
+                android:textColor="?attr/colorOnSurface" />
 
-        <!-- TTS -->
-        <TextView
-            android:id="@+id/text_tts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="単語発音(TTS)音量: 100%"
-            android:textColor="?attr/colorOnSurface" />
+            <SeekBar
+                android:id="@+id/seek_se_wrong"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100" />
 
-        <SeekBar
-            android:id="@+id/seek_tts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" />
+            <!-- TTS -->
+            <TextView
+                android:id="@+id/text_tts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="単語発音(TTS)音量: 100%"
+                android:textColor="?attr/colorOnSurface" />
 
-        <!-- 広告 -->
-        <TextView
-            android:id="@+id/text_ad"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="広告音量: 20%"
-            android:textColor="?attr/colorOnSurface" />
+            <SeekBar
+                android:id="@+id/seek_tts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100" />
 
-        <SeekBar
-            android:id="@+id/seek_ad"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" />
+            <!-- 広告 -->
+            <TextView
+                android:id="@+id/text_ad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:text="広告音量: 20%"
+                android:textColor="?attr/colorOnSurface" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_toggle_ad_mute"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="広告ミュート: OFF"
-            android:textAllCaps="false" />
+            <SeekBar
+                android:id="@+id/seek_ad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_save"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="保存"
-            android:textAllCaps="false" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_toggle_ad_mute"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="広告ミュート: OFF"
+                android:textAllCaps="false" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_open_timezone_setup"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="タイムゾーン設定を開く"
-            android:textAllCaps="false" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="保存"
+                android:textAllCaps="false" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_app_lock_settings"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="アプリロック設定"
-            android:textAllCaps="false" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_open_timezone_setup"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="タイムゾーン設定を開く"
+                android:textAllCaps="false" />
 
-    </LinearLayout>
-</ScrollView>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_app_lock_settings"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="アプリロック設定"
+                android:textAllCaps="false" />
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
