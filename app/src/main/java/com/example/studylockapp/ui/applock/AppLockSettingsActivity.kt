@@ -3,6 +3,7 @@ package com.example.studylockapp.ui.applock
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
@@ -20,6 +21,7 @@ import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class AppLockSettingsActivity : AppCompatActivity() {
 
@@ -64,32 +66,42 @@ class AppLockSettingsActivity : AppCompatActivity() {
         val db = AppDatabase.getInstance(this@AppLockSettingsActivity)
         val lockedDao = db.lockedAppDao()
 
-        val resolveInfos = withContext(Dispatchers.Default) {
-            val intent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
-                addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+        val display = withContext(Dispatchers.Default) {
+            // 1) ランチャーに出るアプリ
+            val launcherIntent = Intent(Intent.ACTION_MAIN, null).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
             }
-            pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        }
-
-        val installed = resolveInfos
-            .mapNotNull { info ->
+            val launcherApps = pm.queryIntentActivities(launcherIntent, 0).mapNotNull { info ->
                 val pkg = info.activityInfo?.packageName ?: return@mapNotNull null
                 if (pkg == packageName) return@mapNotNull null // 自アプリ除外
                 val label = info.loadLabel(pm)?.toString() ?: pkg
                 pkg to label
             }
-            .distinctBy { it.first }
-            .sortedBy { it.second.lowercase() }
 
-        val lockedMap = lockedDao.getAll().associateBy { it.packageName }
+            // 2) インストール済み（非システム）アプリも拾う
+            val installedApps = pm.getInstalledApplications(PackageManager.MATCH_ALL).mapNotNull { ai ->
+                if ((ai.flags and ApplicationInfo.FLAG_SYSTEM) != 0) return@mapNotNull null
+                val pkg = ai.packageName
+                if (pkg == packageName) return@mapNotNull null // 自アプリ除外
+                val label = ai.loadLabel(pm)?.toString() ?: pkg
+                pkg to label
+            }
 
-        val display = installed.map { (pkg, label) ->
-            val locked = lockedMap[pkg]
-            AppLockDisplayItem(
-                packageName = pkg,
-                label = label,
-                isLocked = locked?.isLocked ?: false
-            )
+            // 3) 重複を除外してソート
+            val merged = (launcherApps + installedApps)
+                .distinctBy { it.first }
+                .sortedBy { it.second.lowercase(Locale.getDefault()) }
+
+            val lockedMap = lockedDao.getAll().associateBy { it.packageName }
+
+            merged.map { (pkg, label) ->
+                val locked = lockedMap[pkg]
+                AppLockDisplayItem(
+                    packageName = pkg,
+                    label = label,
+                    isLocked = locked?.isLocked ?: false
+                )
+            }
         }
 
         withContext(Dispatchers.Main) {

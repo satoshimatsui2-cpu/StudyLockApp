@@ -21,8 +21,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="App label"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingVertical="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/switch_lock"

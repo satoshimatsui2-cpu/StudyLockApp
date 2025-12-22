@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 
 class AppLockAccessibilityService : AccessibilityService() {
@@ -64,27 +65,28 @@ class AppLockAccessibilityService : AccessibilityService() {
                 return@launch
             }
 
-            val nowSec = Instant.now().epochSecond
-
-            // 一時解放チェック
-            val unlock = db.appUnlockDao().get(pkg)
-            if (unlock != null) {
-                if (unlock.unlockedUntilSec > nowSec) {
-                    // まだ解放中
-                    Log.d("AppLockSvc", "pkg=$pkg unlocked until ${unlock.unlockedUntilSec}")
-                    return@launch
-                } else {
-                    // 期限切れ → DBから削除して、以降は確実にロック扱いへ戻す
-                    Log.d("AppLockSvc", "pkg=$pkg unlock expired at ${unlock.unlockedUntilSec}, clearing")
-                    db.appUnlockDao().clear(pkg)
-                }
+            if (isTemporarilyUnlocked(pkg)) {
+                Log.d("AppLockSvc", "pkg=$pkg is temporarily unlocked")
+                return@launch
             }
 
             val label = locked.label.ifBlank { pkg }
             Log.d("AppLockSvc", "Blocking pkg=$pkg label=$label")
-
             showBlockScreen(pkg, label)
         }
+    }
+
+    private suspend fun isTemporarilyUnlocked(pkg: String): Boolean {
+        val nowSec = Instant.now().epochSecond
+        // 期限切れを即クリア
+        withContext(Dispatchers.IO) {
+            db.appUnlockDao().clearExpired(nowSec)
+        }
+        // 期限内かどうか確認
+        val unlockedUntil = withContext(Dispatchers.IO) {
+            db.appUnlockDao().get(pkg)?.unlockedUntilSec ?: 0L
+        }
+        return unlockedUntil > nowSec
     }
 
     private fun showBlockScreen(pkg: String, label: String) {
