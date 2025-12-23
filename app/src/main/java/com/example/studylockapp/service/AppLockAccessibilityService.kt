@@ -34,6 +34,19 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     // 直近で前面にあったパッケージ（rootInActiveWindow が null の端末対策）
     private var lastForegroundPkg: String? = null
+    // IME などを除外した前面パッケージの記憶
+    private var lastNonImeForegroundPkg: String? = null
+
+    // --- デバッグ用 ---
+    private val APP_LOCK_DEBUG = true
+    private val APP_LOCK_TAG = "AppLockDebug"
+    private var lastDebugFrontPkg: String? = null
+
+    // IME（キーボード）など前面判定から除外するパッケージ
+    private val IGNORE_FOREGROUND_PKGS = setOf(
+        "com.google.android.inputmethod.latin",
+        "com.android.inputmethod.latin"
+    )
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -49,6 +62,14 @@ class AppLockAccessibilityService : AccessibilityService() {
 
         // 先にフォアグラウンド記録（自アプリの場合でも上書きする）
         lastForegroundPkg = pkg
+        // IME 以外かつ自アプリ以外なら最後の非 IME として記憶
+        if (pkg !in IGNORE_FOREGROUND_PKGS && pkg != packageName) {
+            lastNonImeForegroundPkg = pkg
+        }
+
+        if (APP_LOCK_DEBUG) {
+            Log.d(APP_LOCK_TAG, "event: pkg=$pkg")
+        }
 
         // settings 未初期化 or マスターOFFなら何もしない
         if (!::settings.isInitialized || !settings.isAppLockEnabled()) return
@@ -60,12 +81,28 @@ class AppLockAccessibilityService : AccessibilityService() {
 
         serviceScope.launch(Dispatchers.IO) {
             val locked = db.lockedAppDao().get(pkg)
+            val nowSec = Instant.now().epochSecond
+            val unlockEntry = db.appUnlockDao().get(pkg)
+            val unlockUntil = unlockEntry?.unlockedUntilSec ?: 0L
+
+            if (APP_LOCK_DEBUG) {
+                Log.d(
+                    APP_LOCK_TAG,
+                    "eventCheck: pkg=$pkg locked=${locked?.isLocked} unlockUntil=$unlockUntil now=$nowSec"
+                )
+            }
+
             if (locked?.isLocked != true) {
                 Log.d("AppLockSvc", "pkg=$pkg not locked or null")
                 return@launch
             }
 
-            if (isTemporarilyUnlocked(pkg)) {
+            // 期限切れを即クリア
+            db.appUnlockDao().clearExpired(nowSec)
+
+            // 再取得して判定
+            val unlockedUntil2 = db.appUnlockDao().get(pkg)?.unlockedUntilSec ?: 0L
+            if (unlockedUntil2 > nowSec) {
                 Log.d("AppLockSvc", "pkg=$pkg is temporarily unlocked")
                 return@launch
             }
@@ -116,7 +153,7 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     /**
      * 2秒ごとに解放期限切れを掃除し、前面アプリがロック対象なら即ブロックに戻す
-     * rootInActiveWindow が null の端末では lastForegroundPkg をフォールバックに利用
+     * rootInActiveWindow が null の端末では lastForegroundPkg / lastNonImeForegroundPkg をフォールバックに利用
      */
     private fun startExpiryWatcher() {
         val runnable = object : Runnable {
@@ -127,8 +164,14 @@ class AppLockAccessibilityService : AccessibilityService() {
                     return
                 }
 
-                // 現在前面にあるパッケージ名（null なら lastForegroundPkg を使用）
-                val topPkg = rootInActiveWindow?.packageName?.toString() ?: lastForegroundPkg
+                // 現在前面にあるパッケージ名を取得（IME なら無視してフォールバック）
+                val rootPkg = rootInActiveWindow?.packageName?.toString()
+                val candidate = when {
+                    rootPkg != null && rootPkg !in IGNORE_FOREGROUND_PKGS -> rootPkg
+                    lastForegroundPkg != null && lastForegroundPkg !in IGNORE_FOREGROUND_PKGS -> lastForegroundPkg
+                    else -> lastNonImeForegroundPkg
+                }
+                val topPkg = candidate
 
                 serviceScope.launch(Dispatchers.IO) {
                     val nowSec = Instant.now().epochSecond
@@ -136,16 +179,42 @@ class AppLockAccessibilityService : AccessibilityService() {
                     // 期限切れの解放を全削除
                     db.appUnlockDao().clearExpired(nowSec)
 
+                    // デバッグログ: 取得元やロック件数を可視化
+                    if (APP_LOCK_DEBUG) {
+                        val debugNowSec = System.currentTimeMillis() / 1000L
+                        val countLocked = db.lockedAppDao().countLocked()
+                        if (topPkg != lastDebugFrontPkg) {
+                            Log.d(
+                                APP_LOCK_TAG,
+                                "poll: nowSec=$debugNowSec rootPkg=$rootPkg lastFg=$lastForegroundPkg lastNonIme=$lastNonImeForegroundPkg front=$topPkg lockedCount=$countLocked (clearExpired executed)"
+                            )
+                            lastDebugFrontPkg = topPkg
+                        }
+                    }
+
                     // 前面パッケージがロック対象で、解放なし/期限切れなら即ブロック
                     if (topPkg != null && topPkg != packageName) {
                         val locked = db.lockedAppDao().get(topPkg)
+                        val unlock = db.appUnlockDao().get(topPkg)
+                        if (APP_LOCK_DEBUG) {
+                            val unlockUntil = unlock?.unlockedUntilSec ?: 0L
+                            Log.d(
+                                APP_LOCK_TAG,
+                                "pollCheck: pkg=$topPkg locked=${locked?.isLocked} unlockUntil=$unlockUntil now=$nowSec"
+                            )
+                        }
                         if (locked?.isLocked == true) {
-                            val unlock = db.appUnlockDao().get(topPkg)
                             if (unlock == null || unlock.unlockedUntilSec <= nowSec) {
                                 val label = locked.label.ifBlank { topPkg }
+                                if (APP_LOCK_DEBUG) {
+                                    Log.d(APP_LOCK_TAG, "pollAction: blocking pkg=$topPkg")
+                                }
                                 showBlockScreen(topPkg, label)
                             }
                         }
+                    } else if (APP_LOCK_DEBUG) {
+                        val reason = if (topPkg == null) "null/ignored" else "self"
+                        Log.d(APP_LOCK_TAG, "pollSkip: topPkg=$reason")
                     }
                 }
 
