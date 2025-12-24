@@ -18,6 +18,14 @@
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface"
             android:paddingBottom="6dp" />
+        <!-- TTS 音量 -->
+        <TextView
+            android:id="@+id/text_tts_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:text="発音音量: 100%"
+            android:textColor="?attr/colorOnSurface" />
 
         <!-- TTS 再生スピード -->
         <TextView
@@ -25,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="TTS再生スピード: 1.0x"
+            android:text="発音スピード: 1.0x"
             android:textColor="?attr/colorOnSurface" />
         <SeekBar
             android:id="@+id/seek_tts_speed"
@@ -39,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="TTSピッチ: 1.0"
+            android:text="発音ピッチ（声の高さ：推奨は0.5〜1.5）: 1.0"
             android:textColor="?attr/colorOnSurface" />
         <SeekBar
             android:id="@+id/seek_tts_pitch"
@@ -53,7 +61,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="正解SE音量: 90%"
+            android:text="正解サウンド音量: 90%"
             android:textColor="?attr/colorOnSurface" />
         <SeekBar
             android:id="@+id/seek_se_correct"
@@ -67,7 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="不正解SE音量: 90%"
+            android:text="不正解サウンド音量: 90%"
             android:textColor="?attr/colorOnSurface" />
         <SeekBar
             android:id="@+id/seek_se_wrong"
@@ -75,14 +83,6 @@
             android:layout_height="wrap_content"
             android:max="100" />
 
-        <!-- TTS 音量 -->
-        <TextView
-            android:id="@+id/text_tts_volume"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:text="TTS音量: 100%"
-            android:textColor="?attr/colorOnSurface" />
         <SeekBar
             android:id="@+id/seek_tts_volume"
             android:layout_width="match_parent"
