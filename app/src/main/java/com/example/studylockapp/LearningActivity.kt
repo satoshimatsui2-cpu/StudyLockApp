@@ -3,6 +3,7 @@ package com.example.studylockapp
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioAttributes
@@ -29,7 +30,6 @@ import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
-// import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
@@ -115,12 +115,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         settings = AppSettings(this)
         gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
 
-        // Toolbar（戻る矢印）不要なのでコメントアウト
-        // findViewById<MaterialToolbar>(R.id.toolbar_learning)?.let { tb ->
-        //     setSupportActionBar(tb)
-        //     supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        // }
-
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
         textPoints = findViewById(R.id.text_points)
@@ -184,6 +178,22 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         buttonPlayAudio.setOnClickListener { speakCurrentWord() }
 
+        // ★サウンド設定画面へ（明示的な ComponentName で起動し、例外をログ＋トーストに表示）
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.button_sound_settings)
+            ?.setOnClickListener {
+                try {
+                    Toast.makeText(this, "サウンド設定を開きます", Toast.LENGTH_SHORT).show()
+                    Log.d("LearningActivity", "Sound settings button clicked")
+                    val intent = Intent().apply {
+                        setClassName(this@LearningActivity, "com.example.studylockapp.SoundSettingsActivity")
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e("LearningActivity", "Failed to open SoundSettingsActivity", e)
+                    Toast.makeText(this, "起動に失敗: ${e.javaClass.simpleName}: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+
         updatePointView()
 
         // ★選択グレードのみ差分インポートしてから出題
@@ -213,6 +223,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
+        applyTtsParams() // ★追加: 画面復帰時に最新のスピード/ピッチを反映
         updatePointView()
     }
 
@@ -239,7 +250,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build()
             )
+            applyTtsParams() // ★追加: 初期化成功後にスピード/ピッチ反映
         }
+    }
+
+    // ★追加: 設定から TTS スピード/ピッチを適用
+    private fun applyTtsParams() {
+        val rate = settings.getTtsSpeed()
+        val pitch = settings.getTtsPitch()
+        tts?.setSpeechRate(rate)
+        tts?.setPitch(pitch)
     }
 
     private fun loadSeIfExists(rawName: String): Int {
@@ -661,6 +681,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun speakCurrentWord() {
         val cw = currentWord ?: return
+        applyTtsParams() // ★追加: 再生前に常にスピード/ピッチを反映
         // 設定値が 0〜100 の場合は 0.0〜1.0 に正規化
         val rawVol = settings.ttsVolume
         val vol = if (rawVol > 1f) (rawVol / 100f).coerceIn(0f, 1f) else rawVol.coerceIn(0f, 1f)

@@ -282,6 +282,13 @@
 
                 </androidx.gridlayout.widget.GridLayout>
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_sound_settings"
+                    style="@style/App.PrimaryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="サウンド設定" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,6 +3,7 @@ package com.example.studylockapp.data
 import android.content.Context
 import androidx.core.content.edit
 import java.time.ZoneId
+import kotlin.math.roundToInt
 
 class AppSettings(context: Context) {
 
@@ -12,13 +13,16 @@ class AppSettings(context: Context) {
         private const val KEY_ANSWER_INTERVAL_MS = "answer_interval_ms" // Long
         private const val DEFAULT_ZONE_ID = "Asia/Tokyo"
 
-        private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume"
+        // 音量・TTS
+        private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume" // 0..100 または 0f..1f が混在し得る
         private const val KEY_SE_WRONG_VOLUME = "se_wrong_volume"
         private const val KEY_TTS_VOLUME = "tts_volume"
+        private const val KEY_TTS_SPEED = "tts_speed"   // Float 0.5..1.5
+        private const val KEY_TTS_PITCH = "tts_pitch"   // Float 0.5..1.5
 
-        // 広告音量（AdMob等を入れた時に使う）
-        private const val KEY_AD_VOLUME = "ad_volume"     // Float 0..1
-        private const val KEY_AD_MUTED = "ad_muted"       // Boolean
+        // 広告音量
+        private const val KEY_AD_VOLUME = "ad_volume"
+        private const val KEY_AD_MUTED = "ad_muted"
 
         private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"
         private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"
@@ -31,37 +35,62 @@ class AppSettings(context: Context) {
         // --- App Lock ---
         private const val KEY_APP_LOCK_ENABLED = "appLockEnabled"
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
-//        private const val KEY_UNLOCK_DURATION_MIN = "unlockDurationMin"
         private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt" // 10pt あたりの分数（1〜10）
 
         // アクセシビリティ誘導を表示済みかどうか
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
     }
 
-    var answerIntervalMs: Long
-        get() = prefs.getLong(KEY_ANSWER_INTERVAL_MS, 1000L)
-        set(value) = prefs.edit { putLong(KEY_ANSWER_INTERVAL_MS, value) }
+    // --- 共通ヘルパ: Float/Int 混在への対応 ---
+    private fun readVolumePercent(key: String, defaultPercent: Int): Int {
+        val v = prefs.all[key]
+        return when (v) {
+            is Float -> (v * 100f).roundToInt().coerceIn(0, 100)
+            is Double -> (v * 100.0).roundToInt().coerceIn(0, 100)
+            is Int -> v.coerceIn(0, 100)
+            else -> defaultPercent
+        }
+    }
 
+    private fun writeVolumePercent(key: String, percent: Int) {
+        prefs.edit { putInt(key, percent.coerceIn(0, 100)) }
+    }
+
+    // 0.0〜1.0 で扱うプロパティ（内部保存は 0..100 の Int に統一）
     var seCorrectVolume: Float
-        get() = prefs.getFloat(KEY_SE_CORRECT_VOLUME, 0.9f).coerceIn(0f, 1f)
-        set(value) = prefs.edit { putFloat(KEY_SE_CORRECT_VOLUME, value.coerceIn(0f, 1f)) }
+        get() = readVolumePercent(KEY_SE_CORRECT_VOLUME, 90) / 100f
+        set(value) = writeVolumePercent(KEY_SE_CORRECT_VOLUME, (value * 100f).roundToInt())
 
     var seWrongVolume: Float
-        get() = prefs.getFloat(KEY_SE_WRONG_VOLUME, 0.9f).coerceIn(0f, 1f)
-        set(value) = prefs.edit { putFloat(KEY_SE_WRONG_VOLUME, value.coerceIn(0f, 1f)) }
+        get() = readVolumePercent(KEY_SE_WRONG_VOLUME, 90) / 100f
+        set(value) = writeVolumePercent(KEY_SE_WRONG_VOLUME, (value * 100f).roundToInt())
 
     var ttsVolume: Float
-        get() = prefs.getFloat(KEY_TTS_VOLUME, 1.0f).coerceIn(0f, 1f)
-        set(value) = prefs.edit { putFloat(KEY_TTS_VOLUME, value.coerceIn(0f, 1f)) }
+        get() = readVolumePercent(KEY_TTS_VOLUME, 100) / 100f
+        set(value) = writeVolumePercent(KEY_TTS_VOLUME, (value * 100f).roundToInt())
 
-    // 広告音量
     var adVolume: Float
-        get() = prefs.getFloat(KEY_AD_VOLUME, 0.2f).coerceIn(0f, 1f) // デフォルト小さめ
-        set(value) = prefs.edit { putFloat(KEY_AD_VOLUME, value.coerceIn(0f, 1f)) }
+        get() = readVolumePercent(KEY_AD_VOLUME, 20) / 100f // デフォルト小さめ
+        set(value) = writeVolumePercent(KEY_AD_VOLUME, (value * 100f).roundToInt())
 
     var adMuted: Boolean
         get() = prefs.getBoolean(KEY_AD_MUTED, false)
         set(value) = prefs.edit { putBoolean(KEY_AD_MUTED, value) }
+
+    // TTS スピード／ピッチ（0.5〜1.5）
+    fun getTtsSpeed(): Float = prefs.getFloat(KEY_TTS_SPEED, 1.0f).coerceIn(0.5f, 1.5f)
+    fun setTtsSpeed(value: Float) {
+        prefs.edit { putFloat(KEY_TTS_SPEED, value.coerceIn(0.5f, 1.5f)) }
+    }
+
+    fun getTtsPitch(): Float = prefs.getFloat(KEY_TTS_PITCH, 1.0f).coerceIn(0.5f, 1.5f)
+    fun setTtsPitch(value: Float) {
+        prefs.edit { putFloat(KEY_TTS_PITCH, value.coerceIn(0.5f, 1.5f)) }
+    }
+
+    var answerIntervalMs: Long
+        get() = prefs.getLong(KEY_ANSWER_INTERVAL_MS, 1000L)
+        set(value) = prefs.edit { putLong(KEY_ANSWER_INTERVAL_MS, value) }
 
     var wrongRetrySec: Long
         get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 60L)
@@ -127,17 +156,6 @@ class AppSettings(context: Context) {
 
     fun getUnlockCostPoints10Min(): Int =
         prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
-
-//    fun setUnlockCostPoints10Min(points: Int) {
-//        prefs.edit { putInt(KEY_UNLOCK_COST_POINTS_10MIN, points.coerceAtLeast(0)) }
-//    }
-
-//    fun getUnlockDurationMin(): Int =
-//        prefs.getInt(KEY_UNLOCK_DURATION_MIN, 10).coerceIn(1, 240) // 1〜240分にクランプ
-
-//    fun setUnlockDurationMin(min: Int) {
-//        prefs.edit { putInt(KEY_UNLOCK_DURATION_MIN, min.coerceIn(1, 240)) }
-//    }
 
     /**
      * 10pt あたりの解放分数（1〜10分）

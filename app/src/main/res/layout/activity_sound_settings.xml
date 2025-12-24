@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="サウンド設定"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingBottom="6dp" />
+
+        <!-- TTS 再生スピード -->
+        <TextView
+            android:id="@+id/text_tts_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:text="TTS再生スピード: 1.0x"
+            android:textColor="?attr/colorOnSurface" />
+        <SeekBar
+            android:id="@+id/seek_tts_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200" /> <!-- 0..200 => 0.5x..1.5x -->
+
+        <!-- TTS ピッチ -->
+        <TextView
+            android:id="@+id/text_tts_pitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:text="TTSピッチ: 1.0"
+            android:textColor="?attr/colorOnSurface" />
+        <SeekBar
+            android:id="@+id/seek_tts_pitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200" /> <!-- 0..200 => 0.5..1.5 -->
+
+        <!-- 正解SE -->
+        <TextView
+            android:id="@+id/text_se_correct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:text="正解SE音量: 90%"
+            android:textColor="?attr/colorOnSurface" />
+        <SeekBar
+            android:id="@+id/seek_se_correct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- 不正解SE -->
+        <TextView
+            android:id="@+id/text_se_wrong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:text="不正解SE音量: 90%"
+            android:textColor="?attr/colorOnSurface" />
+        <SeekBar
+            android:id="@+id/seek_se_wrong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- TTS 音量 -->
+        <TextView
+            android:id="@+id/text_tts_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:text="TTS音量: 100%"
+            android:textColor="?attr/colorOnSurface" />
+        <SeekBar
+            android:id="@+id/seek_tts_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- 広告 音量 -->
+        <TextView
+            android:id="@+id/text_ad_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:text="広告音量: 20%"
+            android:textColor="?attr/colorOnSurface" />
+        <SeekBar
+            android:id="@+id/seek_ad_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_toggle_ad_mute"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="広告ミュート: OFF"
+            android:textAllCaps="false" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_save_sound"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="保存"
+            android:textAllCaps="false" />
+    </LinearLayout>
+</ScrollView>

@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.util.TypedValue
 import android.view.accessibility.AccessibilityManager
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -12,12 +13,14 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,7 +61,14 @@ class MainActivity : AppCompatActivity() {
         buttonToLearning = findViewById(R.id.button_to_learning)
         textPointsTop = findViewById(R.id.text_points_top)
         textPointStatsTop = findViewById(R.id.text_point_stats_top)
-        textGradeStatsTop = findViewById(R.id.text_grade_stats_top) // ★activity_main.xmlに追加した前提
+        textGradeStatsTop = findViewById(R.id.text_grade_stats_top) // activity_main.xml にある前提
+
+        // カラー＆サイズ設定
+        val orange = ContextCompat.getColor(this, R.color.sl_button_bg)
+        val redHint = MaterialColors.getColor(gradeDropdown, com.google.android.material.R.attr.colorError)
+        gradeDropdown.setTextColor(orange)                 // 選択後はオレンジ
+        gradeDropdown.setHintTextColor(redHint)            // 未選択のヒントは赤
+        gradeDropdown.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f) // 約1.25倍
 
         buttonToLearning.isEnabled = false
         textGradeStatsTop.text = "復習 0 • 新規 0/0"
@@ -82,6 +92,9 @@ class MainActivity : AppCompatActivity() {
             if (key != null) {
                 textGradeStatsTop.text = gradeStatsMap[key] ?: "復習 0 • 新規 0/0"
             }
+            // 選択後の文字色はオレンジのまま
+            gradeDropdown.setTextColor(orange)
+            gradeDropdown.setHintTextColor(redHint)
         }
 
         // 学習画面へ（gradeFilter は DB の grade と一致する値を渡す：例 "5"）
@@ -200,9 +213,14 @@ class MainActivity : AppCompatActivity() {
             val selectedItem = items.firstOrNull { it.gradeKey == keepKey } ?: items.firstOrNull()
 
             // Exposed Dropdown は setAdapter + setText で反映
-            gradeDropdown.setAdapter(
-                ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, items)
-            )
+            val adapter = ArrayAdapter(
+                this@MainActivity,
+                R.layout.item_grade_dropdown,   // 項目も濃い色・大きめ
+                items
+            ).apply {
+                setDropDownViewResource(R.layout.item_grade_dropdown)
+            }
+            gradeDropdown.setAdapter(adapter)
 
             if (selectedItem != null) {
                 gradeDropdown.setText(selectedItem.label, false)
