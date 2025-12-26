@@ -8,18 +8,19 @@ import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.Spinner
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.settings.TimeZoneOptions
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 
 class TimeZoneSetupActivity : AppCompatActivity() {
 
     private lateinit var settings: AppSettings
-    private lateinit var spinner: Spinner
+    private lateinit var spinner: MaterialAutoCompleteTextView
     private lateinit var buttonOk: Button
 
     private companion object {
@@ -30,16 +31,29 @@ class TimeZoneSetupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_time_zone_setup)
 
+        // バックジェスチャーを無効化（初回強制用）
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // do nothing
+                }
+            }
+        )
+
         settings = AppSettings(this)
         spinner = findViewById(R.id.spinner_time_zone)
         buttonOk = findViewById(R.id.button_time_zone_ok)
 
-        // 候補は TimeZoneOptions に一本化
-        spinner.adapter = ArrayAdapter(
+        // 候補は TimeZoneOptions に一本化（選択表示をカスタム）
+        val adapter = ArrayAdapter(
             this,
-            android.R.layout.simple_spinner_dropdown_item,
+            R.layout.item_time_zone_spinner, // 選択表示・ドロップダウンともに共通
             TimeZoneOptions.displayList
-        )
+        ).apply {
+            setDropDownViewResource(R.layout.item_time_zone_spinner) // 既存レイアウトを流用
+        }
+        spinner.setAdapter(adapter)
 
         val storedId = settings.appTimeZoneId
         val initialIndex = if (storedId.isNullOrBlank()) {
@@ -48,10 +62,11 @@ class TimeZoneSetupActivity : AppCompatActivity() {
         } else {
             TimeZoneOptions.indexOfOrZero(storedId)
         }
-        spinner.setSelection(initialIndex)
+        // 選択状態を文字で反映（ドロップダウンを開かないので第二引数 false）
+        spinner.setText(TimeZoneOptions.displayList[initialIndex], false)
 
         buttonOk.setOnClickListener {
-            val sel = spinner.selectedItem.toString()
+            val sel = spinner.text?.toString().orEmpty()
             settings.setTimeZone(TimeZoneOptions.toZoneIdOrNull(sel)) // nullでも選択済みになる想定
             finish()
         }
@@ -60,12 +75,6 @@ class TimeZoneSetupActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         showAccessibilityIntroIfNeeded()
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        // 初回強制なら無効化（必要に応じて）
-        // do nothing
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {
@@ -89,12 +98,7 @@ class TimeZoneSetupActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.app_lock_accessibility_title))
-            .setMessage(
-                getString(
-                    R.string.app_lock_accessibility_intro,
-                    getString(R.string.app_name)
-                )
-            )
+            .setMessage(getString(R.string.app_lock_accessibility_intro)) // 引数なしで表示
             .setCancelable(false)
             .setPositiveButton(R.string.go_to_settings) { _, _ ->
                 startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))

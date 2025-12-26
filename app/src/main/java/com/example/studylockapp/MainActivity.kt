@@ -139,7 +139,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
-        textPointsTop.text = "ポイント: $total"
+        textPointsTop.text = "保有ポイント: $total"
 
         lifecycleScope.launch { updatePointStats() }
     }

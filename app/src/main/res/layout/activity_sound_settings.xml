@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:paddingTop="32dp"
     android:clipToPadding="false">
 
     <LinearLayout
@@ -10,22 +12,36 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- 上部余白（約32dp ≒ 画面高の5%目安） -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@android:color/transparent" />
+
+        <!-- タイトル -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="サウンド設定"
+            android:text="@string/sound_settings_title"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface"
             android:paddingBottom="6dp" />
+
         <!-- TTS 音量 -->
         <TextView
             android:id="@+id/text_tts_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="発音音量: 100%"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurface"
+            tools:text="発音音量: 100%" />
+
+        <SeekBar
+            android:id="@+id/seek_tts_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
 
         <!-- TTS 再生スピード -->
         <TextView
@@ -33,8 +49,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="発音スピード: 1.0x"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurface"
+            tools:text="発音スピード: 1.0x" />
+
         <SeekBar
             android:id="@+id/seek_tts_speed"
             android:layout_width="match_parent"
@@ -47,8 +64,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="発音ピッチ（声の高さ：推奨は0.5〜1.5）: 1.0"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurface"
+            tools:text="発音ピッチ（声の高さ）: 1.0" />
+
         <SeekBar
             android:id="@+id/seek_tts_pitch"
             android:layout_width="match_parent"
@@ -61,8 +79,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="正解サウンド音量: 90%"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurface"
+            tools:text="正解サウンド音量: 90%" />
+
         <SeekBar
             android:id="@+id/seek_se_correct"
             android:layout_width="match_parent"
@@ -75,16 +94,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="不正解サウンド音量: 90%"
-            android:textColor="?attr/colorOnSurface" />
-        <SeekBar
-            android:id="@+id/seek_se_wrong"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" />
+            android:textColor="?attr/colorOnSurface"
+            tools:text="不正解サウンド音量: 90%" />
 
         <SeekBar
-            android:id="@+id/seek_tts_volume"
+            android:id="@+id/seek_se_wrong"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="100" />
@@ -95,8 +109,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="14dp"
-            android:text="広告音量: 20%"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurface"
+            tools:text="広告音量: 20%" />
+
         <SeekBar
             android:id="@+id/seek_ad_volume"
             android:layout_width="match_parent"
@@ -109,15 +124,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="広告ミュート: OFF"
-            android:textAllCaps="false" />
+            android:text=""
+            android:textAllCaps="false"
+            tools:text="@string/sound_settings_ad_mute_off" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_sound"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="保存"
+            android:text="@string/sound_settings_save"
             android:textAllCaps="false" />
     </LinearLayout>
 </ScrollView>

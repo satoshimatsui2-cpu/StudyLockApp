@@ -1,26 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="20dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:gravity="center_vertical">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="タイムゾーンを選択してください（翌日判定・日次ポイント集計に使用します）後で設定からも変更出来ます。"
-        android:textSize="16sp" />
+        android:text="@string/time_zone_setup_description"
+        android:textSize="17sp"
+        android:textColor="?attr/colorOnSurface"
+        android:gravity="center_vertical" />
 
-    <Spinner
-        android:id="@+id/spinner_time_zone"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="12dp"
+        app:endIconMode="dropdown_menu">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/spinner_time_zone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:hint="@string/time_zone_setup_label"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:popupBackground="?attr/colorSurface"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/button_time_zone_ok"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="決定"
-        android:layout_marginTop="16dp" />
+        android:text="@string/time_zone_setup_decide"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical" />
 </LinearLayout>

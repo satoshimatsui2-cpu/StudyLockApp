@@ -8,23 +8,24 @@
     android:background="?attr/colorSurface">
 
     <com.google.android.material.materialswitch.MaterialSwitch
-    android:id="@+id/switch_enable_lock"
-    android:layout_width="match_parent"
+        android:id="@+id/switch_enable_lock"
+        android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:text="アプリロックを有効にする"
-        android:layout_marginTop="48dp"
-    android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+    android:layout_marginTop="48dp"
+    android:layout_gravity="start"
+    android:text="@string/app_lock_enable"
+    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+    android:textColor="?attr/colorOnSurface" />
 
     <TextView
-        android:id="@+id/text_lock_hint"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        android:text="ロック対象にしたいアプリを選んでください"
-        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp" />
+    android:id="@+id/text_lock_hint"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:text="@string/app_lock_hint"
+    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+    android:textColor="?attr/colorOnSurface" />
 
     <androidx.recyclerview.widget.RecyclerView
     android:id="@+id/recycler_apps"

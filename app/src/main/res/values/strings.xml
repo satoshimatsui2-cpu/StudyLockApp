@@ -9,7 +9,7 @@
     <string name="action_word_list">単語リスト</string>
     <string name="action_admin_settings">設定</string>
     <string name="title_top">StudyLock</string>
-    <string name="points_default">ポイント: 0</string>
+    <string name="points_default">保有ポイント: 0</string>
     <string name="point_stats_default">今日: 0 / 前日比: +0</string>
     <string name="cd_grade_dropdown">級を選択</string>
     <string name="admin_label_interval_sec">回答間隔: %.1f 秒</string>
@@ -38,6 +38,28 @@
     <string name="app_lock_accessibility_intro">アプリロック機能を利用するにはアクセシビリティサービスを有効にする必要があります。設定へ進みONにしてください。不要な場合は後から設定画面で解除も出来ます。</string>
     <string name="go_to_settings">設定へ</string>
     <string name="not_now">今は設定しない</string>
+    <!-- App Lock Settings -->
+    <string name="app_lock_enable">アプリロックを有効にする</string>
+    <string name="app_lock_hint">ロック対象にしたいアプリを選んでください</string>
+    <!-- Time zone setup -->
+    <!-- Time zone setup label -->
+    <string name="time_zone_setup_label">タイムゾーンを選択</string>
+    <string name="time_zone_setup_description">タイムゾーンを選択してください（翌日判定・日次ポイント集計に使用します）後で設定からも変更できます。</string>
+    <string name="time_zone_setup_decide">決定</string>
+    <!-- Sound settings labels -->
+    <string name="sound_settings_tts_speed">発音再生スピード: %1$.2fx</string>
+    <string name="sound_settings_tts_pitch">発音ピッチ（声の高さ）: %1$.2f</string>
+    <string name="sound_settings_se_correct">正解サウンド音量: %1$d%%</string>
+    <string name="sound_settings_se_wrong">不正解サウンド音量: %1$d%%</string>
+    <string name="sound_settings_tts_volume">発音音量: %1$d%%</string>
+    <string name="sound_settings_ad_volume">広告音量: %1$d%%</string>
+    <string name="sound_settings_ad_mute_on">広告ミュート: ON</string>
+    <string name="sound_settings_ad_mute_off">広告ミュート: OFF</string>
+    <string name="sound_settings_init_failed">画面初期化に失敗: %1$s</string>
+
+    <!-- Sound Settings -->
+    <string name="sound_settings_title">サウンド設定</string>
+    <string name="sound_settings_save">保存</string>
 
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
