@@ -86,6 +86,15 @@
         <item>1</item>
     </string-array>
 
+    <!-- Grade picker labels -->
+    <string name="grade_5">5級</string>
+    <string name="grade_4">4級</string>
+    <string name="grade_3">3級</string>
+    <string name="grade_25">準2級</string>
+    <string name="grade_2">2級</string>
+    <string name="grade_15">準1級</string>
+    <string name="grade_1">1級</string>
+
     <!-- ソート項目（一覧で使用） -->
     <string-array name="sort_items">
         <item>並び替えなし</item>
