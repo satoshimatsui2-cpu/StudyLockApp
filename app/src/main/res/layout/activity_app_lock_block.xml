@@ -24,13 +24,26 @@
         android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp" />
+
     <TextView
         android:id="@+id/text_points_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="所持: -- pt / コスト: -- pt"
+        android:text="@string/block_points_default"
         android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 開放時間表示を大きく -->
+    <TextView
+        android:id="@+id/text_unlock_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/block_unlock_time_default"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:gravity="center_horizontal"
         android:layout_marginBottom="12dp" />
 
     <com.google.android.material.textfield.TextInputLayout
@@ -45,11 +58,37 @@
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_use_all_points"
-        android:layout_width="wrap_content"
+    <!-- クリア / +10P / +100P を横並び（各30%） -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/block_use_all_points" />
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_points_clear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:text="@string/block_clear" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_points_plus_10"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:text="@string/block_plus_10" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_points_plus_100"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:text="@string/block_plus_100" />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_unlock_with_points"
@@ -65,19 +104,5 @@
         android:layout_height="wrap_content"
         android:text="学習へ戻る" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_to_settings"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="設定へ"
-        android:layout_marginTop="12dp" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_close"
-        style="@style/Widget.Material3.Button.TextButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="閉じる"
-        android:layout_marginTop="12dp" />
+    <!-- 「設定へ」「閉じる」ボタンは削除 -->
 </LinearLayout>

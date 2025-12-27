@@ -3,11 +3,9 @@ package com.example.studylockapp.ui.applock
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.EditText
 import android.widget.TextView
-import androidx.core.widget.addTextChangedListener
 import androidx.appcompat.app.AppCompatActivity
-import com.example.studylockapp.AdminSettingsActivity
+import androidx.core.widget.addTextChangedListener
 import com.example.studylockapp.LearningActivity
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
@@ -17,6 +15,7 @@ import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.db.AppUnlockEntity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,22 +56,27 @@ class AppLockBlockActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.text_block_app).text = lockedLabel
 
             val textPointsInfo = findViewById<TextView>(R.id.text_points_info)
-            val editPoints = findViewById<EditText>(R.id.edit_points_to_use)
-            val btnUseAll = findViewById<MaterialButton>(R.id.button_use_all_points)
-            val btnUnlock = findViewById<MaterialButton>(R.id.button_unlock_with_points)
+            val textUnlockTime = findViewById<TextView>(R.id.text_unlock_time)
+            val editPoints = findViewById<TextInputEditText>(R.id.edit_points_to_use)
+
+            val buttonClear = findViewById<MaterialButton>(R.id.button_points_clear)
+            val buttonPlus10 = findViewById<MaterialButton>(R.id.button_points_plus_10)
+            val buttonPlus100 = findViewById<MaterialButton>(R.id.button_points_plus_100)
+            val buttonUnlock = findViewById<MaterialButton>(R.id.button_unlock_with_points)
+            val buttonBack = findViewById<MaterialButton>(R.id.button_back_to_learning)
 
             val currentPt = pointManager.getTotal()
             val minPer10Pt = settings.getUnlockMinutesPer10Pt() // 1〜10 分
 
-            // 初期値：既定コストか全ポイントのどちらか小さい方を表示
-            val defaultUse = settings.getUnlockCostPoints10Min().coerceAtMost(currentPt)
-            editPoints.setText(defaultUse.toString())
+            // 初期値は 0
+            editPoints.setText("0")
 
             fun recalcAndRender() {
-                val raw = editPoints.text.toString().toIntOrNull() ?: 0
-                val usePt = if (currentPt > 0) raw.coerceIn(1, currentPt) else 0
+                val raw = editPoints.text?.toString()?.toIntOrNull() ?: 0
+                val usePt = if (currentPt > 0) raw.coerceIn(0, currentPt) else 0
                 val durationMin = if (usePt > 0) (usePt * minPer10Pt) / 10f else 0f
                 val durationSec = ceil(durationMin * 60f).toLong() // 0.1分=6秒刻み
+
                 textPointsInfo.text = getString(
                     R.string.block_points_info,
                     currentPt,
@@ -80,21 +84,33 @@ class AppLockBlockActivity : AppCompatActivity() {
                     durationMin.toDouble(), // 小数1桁表示
                     minPer10Pt
                 )
-                btnUnlock.isEnabled = usePt in 1..currentPt && durationSec > 0
+                textUnlockTime.text = getString(
+                    R.string.block_unlocked_message,  // 表示用に流用（%1$.1f分）
+                    durationMin.toDouble()
+                )
+                buttonUnlock.isEnabled = usePt in 1..currentPt && durationSec > 0
             }
 
             recalcAndRender()
 
-            btnUseAll.setOnClickListener {
-                editPoints.setText(if (currentPt > 0) currentPt.toString() else "0")
+            buttonClear.setOnClickListener {
+                editPoints.setText("0")
+                recalcAndRender()
+            }
+            buttonPlus10.setOnClickListener {
+                addPoints(editPoints, 10, currentPt)
+                recalcAndRender()
+            }
+            buttonPlus100.setOnClickListener {
+                addPoints(editPoints, 100, currentPt)
                 recalcAndRender()
             }
 
             editPoints.setOnFocusChangeListener { _, _ -> recalcAndRender() }
             editPoints.addTextChangedListener { recalcAndRender() }
 
-            btnUnlock.setOnClickListener {
-                val raw = editPoints.text.toString().toIntOrNull() ?: 0
+            buttonUnlock.setOnClickListener {
+                val raw = editPoints.text?.toString()?.toIntOrNull() ?: 0
                 val usePt = if (currentPt > 0) raw.coerceIn(1, currentPt) else 0
                 if (usePt <= 0) {
                     Snackbar.make(it, getString(R.string.block_invalid_points), Snackbar.LENGTH_SHORT).show()
@@ -111,26 +127,24 @@ class AppLockBlockActivity : AppCompatActivity() {
                 }
             }
 
-            findViewById<MaterialButton>(R.id.button_back_to_learning).setOnClickListener {
+            buttonBack.setOnClickListener {
                 startActivity(Intent(this, LearningActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 })
                 finish()
             }
-            findViewById<MaterialButton>(R.id.button_to_settings).setOnClickListener {
-                startActivity(Intent(this, AdminSettingsActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                })
-                finish()
-            }
-            findViewById<MaterialButton>(R.id.button_close).setOnClickListener {
-                finish()
-            }
+
         } catch (t: Throwable) {
             Log.e(TAG, "Failed to init AppLockBlockActivity", t)
             // クラッシュループを防ぐ
             finishAndRemoveTask()
         }
+    }
+
+    private fun addPoints(edit: TextInputEditText, delta: Int, maxPt: Int) {
+        val current = edit.text?.toString()?.toIntOrNull() ?: 0
+        val newVal = (current + delta).coerceIn(0, maxPt)
+        edit.setText(newVal.toString())
     }
 
     private suspend fun doUnlock(usePoints: Int, durationSec: Long, durationMin: Float) {
