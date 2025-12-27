@@ -10,10 +10,13 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -24,18 +27,20 @@ import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
-import com.example.studylockapp.data.CsvImporter
-import com.example.studylockapp.data.PointHistoryEntity
-import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
+import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.PointHistoryEntity
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -47,8 +52,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var currentMode = "meaning"
     private var gradeFilter: String = "All"   // TOPで選んだ級（DBのgradeと一致する値 例:"5"）
+    private var includeOtherGradesReview: Boolean = false
     private var currentWord: WordEntity? = null
-    private var allWords: List<WordEntity> = emptyList()
+    private var allWords: List<WordEntity> = emptyList()       // 選択グレードのみ or All
+    private var allWordsFull: List<WordEntity> = emptyList()   // 全グレード
     private var tts: TextToSpeech? = null
 
     // 設定（回答間隔/音量など）
@@ -72,11 +79,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var seCorrectId: Int = 0
     private var seWrongId: Int = 0
 
-    // 褒め言葉
-    private val praiseMessages = listOf(
-        "すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！"
-    )
-
     // Snackbarが重ならないように保持
     private var currentSnackbar: Snackbar? = null
 
@@ -89,7 +91,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textStudyStats: TextView
     private lateinit var textFeedback: TextView
 
-    // ★追加：Chip（意/聴）
+    // Chip（意/聴）
     private lateinit var chipMeaningReview: Chip
     private lateinit var chipMeaningNew: Chip
     private lateinit var chipListeningReview: Chip
@@ -100,6 +102,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var radioListening: RadioButton
     private lateinit var choiceButtons: List<Button>
     private lateinit var buttonPlayAudio: Button
+
+    // 任意：他グレード復習を含めるチェック（存在しない場合は無視）
+    private var checkIncludeOtherGrades: CheckBox? = null
 
     // --- モード別件数保持用データクラス ---
     private data class ModeStats(
@@ -143,6 +148,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             findViewById(R.id.button_choice_6)
         )
 
+// 他グレード復習を含めるチェックがあれば拾う（デフォルトON）
+        checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
+            // 先にONにする
+            isChecked = true
+            includeOtherGradesReview = true
+
+            setOnCheckedChangeListener { _, isChecked ->
+                includeOtherGradesReview = isChecked
+                loadNextQuestion()
+            }
+        }
+
         // フィードバックTextViewは使わないので隠す
         textFeedback.visibility = View.GONE
 
@@ -178,7 +195,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         buttonPlayAudio.setOnClickListener { speakCurrentWord() }
 
-        // ★サウンド設定画面へ（明示的な ComponentName で起動し、例外をログ＋トーストに表示）
+        // サウンド設定画面へ
         findViewById<com.google.android.material.button.MaterialButton>(R.id.button_sound_settings)
             ?.setOnClickListener {
                 try {
@@ -196,20 +213,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         updatePointView()
 
-        // ★選択グレードのみ差分インポートしてから出題
+        // 選択グレードのみ差分インポートしてから出題
         lifecycleScope.launch {
             val imported = withContext(Dispatchers.IO) {
-                if (gradeFilter != "All") {
-                    CsvImporter.importGradeIfNeeded(this@LearningActivity, gradeFilter)
-                } else {
-                    0
-                }
+                if (gradeFilter != "All") importMissingWordsForGrade(gradeFilter) else 0
             }
             if (imported > 0) {
-                Toast.makeText(
-                    this@LearningActivity,
-                    "${imported}件データインポートしました。",
-                    Toast.LENGTH_SHORT
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    getString(R.string.imported_count_message, imported),
+                    Snackbar.LENGTH_SHORT
                 ).show()
             }
             loadAllWordsThenQuestion()
@@ -223,38 +236,33 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
-        applyTtsParams() // ★追加: 画面復帰時に最新のスピード/ピッチを反映
+        applyTtsParams()
         updatePointView()
     }
 
     override fun onDestroy() {
         tts?.stop()
         tts?.shutdown()
-
         soundPool?.release()
         soundPool = null
-
         currentSnackbar?.dismiss()
         currentSnackbar = null
-
         super.onDestroy()
     }
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts?.language = Locale.US
-            // TTS 再生をメディア用途に固定（音量・出力ともにメディアに載せる）
             tts?.setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build()
             )
-            applyTtsParams() // ★追加: 初期化成功後にスピード/ピッチ反映
+            applyTtsParams()
         }
     }
 
-    // ★追加: 設定から TTS スピード/ピッチを適用
     private fun applyTtsParams() {
         val rate = settings.getTtsSpeed()
         val pitch = settings.getTtsPitch()
@@ -365,11 +373,53 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return result
     }
 
+    // CSVを読んで指定グレードの不足分だけインサート
+    private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
+        val db = AppDatabase.getInstance(this@LearningActivity)
+        val wordDao = db.wordDao()
+
+        val csvWords = readCsvWords().filter { it.grade == grade }
+        if (csvWords.isEmpty()) return@withContext 0
+
+        val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
+        val missing = csvWords.filter { existing[it.word] == null }
+        if (missing.isNotEmpty()) {
+            wordDao.insertAll(missing)
+        }
+        missing.size
+    }
+
+    private fun readCsvWords(): List<WordEntity> {
+        val result = mutableListOf<WordEntity>()
+        resources.openRawResource(R.raw.words).use { input ->
+            BufferedReader(InputStreamReader(input)).useLines { lines ->
+                lines.drop(1).forEach { line ->
+                    val cols = line.split(",")
+                    if (cols.size >= 8) {
+                        result.add(
+                            WordEntity(
+                                no = cols[0].toIntOrNull() ?: 0,
+                                grade = cols[1],
+                                word = cols[2],
+                                japanese = cols[3],
+                                english = cols[4],
+                                pos = cols[5],
+                                category = cols[6],
+                                actors = cols[7]
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        return result
+    }
+
     private fun loadAllWordsThenQuestion() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val words = db.wordDao().getAll()
-
+            allWordsFull = words
             allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
 
             updateStudyStatsView()
@@ -426,7 +476,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 chipListeningReview.text = "復 ${listeningStats.review}"
                 chipListeningNew.text = "新 ${listeningStats.newCount}/${listeningStats.total}"
 
-                // 互換用（見えないがログ/デバッグで確認したい時用）
                 textStudyStats.text =
                     "意[復:${meaningStats.review},新:${meaningStats.newCount}/${meaningStats.total}]\n" +
                             "聴[復:${listeningStats.review},新:${listeningStats.newCount}/${listeningStats.total}]"
@@ -448,6 +497,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
      * 出題優先順位
      * 1) nextDueAtSec <= NOW を古い順（最小nextDueAtSec）から
      * 2) progress無し（未学習）
+     * 3)（それでもなければ）対象プールからランダム
+     * 対象プール：
+     *  - 「復習に他のグレードも含める」ON かつ gradeFilter != All のとき、復習は全グレードから拾う
+     *  - 新規は選択グレード（または All の場合は全グレード）
      */
     private fun loadNextQuestion() {
         lifecycleScope.launch {
@@ -457,49 +510,74 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             resetChoiceButtons()
 
-            if (allWords.isEmpty()) {
-                textQuestionTitle.text = "出題する単語がありません"
-                textQuestionBody.text = ""
-                textQuestionBody.visibility = View.GONE
-                currentWord = null
-                choiceButtons.forEach {
-                    it.text = "----"
-                    it.isEnabled = false
-                }
+            if (allWordsFull.isEmpty()) {
+                showNoQuestion()
                 return@launch
             }
 
+            val wordMapFiltered = allWords.associateBy { it.no }
+            val wordMapAll = allWordsFull.associateBy { it.no }
+
             val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
-            val wordMap = allWords.associateBy { it.no }
-            val dueWord: WordEntity? = dueIdsOrdered.firstNotNullOfOrNull { wordMap[it] }
+            val dueWords = if (includeOtherGradesReview && gradeFilter != "All") {
+                dueIdsOrdered.mapNotNull { wordMapAll[it] }
+            } else {
+                dueIdsOrdered.mapNotNull { wordMapFiltered[it] }
+            }
 
             val progressedIds = progressDao.getProgressIds(currentMode).toSet()
-            val untouched = allWords.filter { it.no !in progressedIds }
-
-            val next = when {
-                dueWord != null -> dueWord
-                untouched.isNotEmpty() -> untouched.random()
-                else -> allWords.random()
+            val newWords = if (gradeFilter == "All") {
+                allWordsFull.filter { it.no !in progressedIds }
+            } else {
+                allWords.filter { it.no !in progressedIds }
             }
 
-            currentWord = next
+            val nextWord = when {
+                dueWords.isNotEmpty() -> dueWords.first()             // dueIdsOrdered は古い順想定
+                newWords.isNotEmpty() -> newWords.random()
+                else -> null
+            }
+
+            if (nextWord == null) {
+                showNoQuestion()
+                return@launch
+            }
+
+            currentWord = nextWord
+
+            val choicePool = if (includeOtherGradesReview && gradeFilter != "All") {
+                allWordsFull
+            } else {
+                if (gradeFilter == "All") allWordsFull else allWords
+            }
 
             val choices = if (currentMode == "meaning") {
-                buildChoicesMeaning(next, allWords, count = 6)
+                buildChoicesMeaning(nextWord, choicePool, count = 6)
             } else {
-                buildChoicesListening(next, allWords, count = 6)
+                buildChoicesListening(nextWord, choicePool, count = 6)
             }
 
-            val (title, body, options) = formatQuestionAndOptions(next, choices, currentMode)
+            val (title, body, options) = formatQuestionAndOptions(nextWord, choices, currentMode)
             textQuestionTitle.text = title
             textQuestionBody.text = body
             textQuestionBody.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
             choiceButtons.zip(options).forEach { (btn, txt) -> btn.text = txt }
 
-            val correctText = if (currentMode == "meaning") next.japanese else next.word
+            val correctText = if (currentMode == "meaning") nextWord.japanese else nextWord.word
             currentCorrectIndex = options.indexOf(correctText)
 
             if (currentMode == "listening") speakCurrentWord()
+        }
+    }
+
+    private fun showNoQuestion() {
+        textQuestionTitle.text = getString(R.string.no_question_available)
+        textQuestionBody.text = ""
+        textQuestionBody.visibility = View.GONE
+        currentWord = null
+        choiceButtons.forEach {
+            it.text = "----"
+            it.isEnabled = false
         }
     }
 
@@ -589,7 +667,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
-            val newCount = (current?.studyCount ?: 0) + 1  // ★学習回数を+1
+            val newCount = (current?.studyCount ?: 0) + 1  // 学習回数を+1
 
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
             Log.d("DUE_CALC", "wordId=$wordId mode=$currentMode")
@@ -613,7 +691,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 level = newLevel,
                 nextDueAtSec = nextDueAtSec,
                 lastAnsweredAt = System.currentTimeMillis(),
-                studyCount = newCount                    // ★学習回数を保存
+                studyCount = newCount
             )
             progressDao.upsert(updated)
 
@@ -639,7 +717,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
 
         val msg = if (isCorrect) {
-            val praise = praiseMessages.random()
+            val praise = listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
             "$praise +${addPoint}pt"
         } else {
             "不正解…"
@@ -681,8 +759,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun speakCurrentWord() {
         val cw = currentWord ?: return
-        applyTtsParams() // ★追加: 再生前に常にスピード/ピッチを反映
-        // 設定値が 0〜100 の場合は 0.0〜1.0 に正規化
+        applyTtsParams()
         val rawVol = settings.ttsVolume
         val vol = if (rawVol > 1f) (rawVol / 100f).coerceIn(0f, 1f) else rawVol.coerceIn(0f, 1f)
 

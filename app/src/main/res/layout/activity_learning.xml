@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_pattern_tile_repeat">
 
-    <!-- 画面上部 5% のガイドライン -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -102,6 +101,15 @@
                                 android:layout_height="wrap_content"
                                 android:text="リスニング"/>
                         </RadioGroup>
+
+                        <!-- 復習に他グレードも含める -->
+                        <com.google.android.material.checkbox.MaterialCheckBox
+                            android:id="@+id/checkbox_include_other_grades"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/label_include_other_grades"
+                            android:textColor="?attr/colorOnSurface"/>
 
                         <!-- 統計（意/聴） -->
                         <LinearLayout

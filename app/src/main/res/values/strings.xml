@@ -66,6 +66,10 @@
     <string name="block_plus_10">+10P</string>
     <string name="block_plus_100">+100P</string>
 
+    <string name="imported_count_message">%1$d 件インポートしました</string>
+    <string name="no_question_available">現在出題可能な問題がありません</string>
+    <string name="label_include_other_grades">復習に他のグレードも含める</string>
+
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
     <string-array name="grade_display_items">
