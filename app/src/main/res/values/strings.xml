@@ -70,6 +70,44 @@
     <string name="no_question_available">現在出題可能な問題がありません</string>
     <string name="label_include_other_grades">復習に他のグレードも含める</string>
 
+    <string name="admin_lock_title">管理者画面のロック</string>
+    <string name="admin_lock_desc">ONにすると管理者設定を開くたびに毎回PINを要求します</string>
+    <string name="admin_lock_enabled">管理者画面のロックを有効にしました</string>
+    <string name="admin_lock_disabled">管理者画面のロックを無効にしました</string>
+
+    <string name="admin_hide_button_title">管理者設定ボタンを隠す</string>
+    <string name="admin_hide_button_desc">ONにすると既存の管理者設定ボタンを隠し、タイトル長押しだけで入れるようにします</string>
+    <string name="admin_hide_button_enabled">管理者設定ボタンを隠しました（タイトル長押しで入れます）</string>
+    <string name="admin_hide_button_disabled">管理者設定ボタンを表示します</string>
+
+    <string name="admin_change_pin">PINを変更する</string>
+    <string name="admin_forgot_pin">PINを忘れた場合（復旧コード）</string>
+    <string name="admin_enter_pin_title">管理者PINを入力</string>
+    <string name="admin_enter_pin_hint">PIN</string>
+    <string name="admin_pin_ok">認証しました</string>
+    <string name="admin_pin_incorrect">PINが違います</string>
+    <string name="admin_pin_length_error">PINは4桁以上にしてください</string>
+    <string name="admin_pin_mismatch">確認用PINが一致しません</string>
+
+    <string name="admin_set_new_pin_title">新しいPINを設定</string>
+    <string name="admin_new_pin_hint">新しいPIN（4桁以上）</string>
+    <string name="admin_new_pin_confirm_hint">確認用PIN</string>
+
+    <string name="admin_recovery_title">復旧コードを入力</string>
+    <string name="admin_enter_recovery_hint">復旧コード（英数字）</string>
+    <string name="admin_recovery_incorrect">復旧コードが違います</string>
+    <string name="admin_recovery_generated_snackbar">復旧コードを生成しました: %1$s</string>
+
+    <string name="admin_recovery_show_dialog">復旧コードを控えてください：\n%1$s</string>
+    <string name="copy">コピー</string>
+    <string name="copied">コピーしました</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">キャンセル</string>
+    <string name="admin_app_lock_required_title">アプリロック機能を必須にする</string>
+    <string name="admin_app_lock_required_desc">ONにするとアクセシビリティによるアプリロックを必須にします。OFFだと任意です。</string>
+    <string name="admin_app_lock_required_on">アプリロック必須をONにしました</string>
+
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
     <string-array name="grade_display_items">

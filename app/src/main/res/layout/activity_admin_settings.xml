@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-    <!-- 画面上部 5% のガイドライン -->
+    <!-- 画面上部 7% のガイドライン -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_top_5"
         android:layout_width="0dp"
@@ -34,10 +34,93 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="管理者設定"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorOnSurface"
                 android:paddingBottom="6dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="保存して戻る"
+                android:textAllCaps="false" />
+
+            <!-- 管理者セキュリティ設定 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switch_admin_lock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_lock_title"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_lock_desc"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:paddingBottom="12dp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switch_app_lock_required"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_app_lock_required_title"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_app_lock_required_desc"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:paddingBottom="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_change_pin"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_change_pin" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_forgot_pin"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/admin_forgot_pin" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_app_lock_settings"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="ロックするアプリを選択する"
+                android:textAllCaps="false" />
 
             <!-- 回答間隔 -->
             <TextView
@@ -89,97 +172,22 @@
                 android:id="@+id/text_unlock_min_per_10pt_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/admin_label_unlock_min_per_10pt" />
+                android:text="@string/admin_label_unlock_min_per_10pt"
+                android:textColor="?attr/colorOnSurface"/>
 
             <TextView
                 android:id="@+id/text_unlock_min_per_10pt_value"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:text="@string/admin_label_unlock_min_per_10pt_value" />
+                android:text="@string/admin_label_unlock_min_per_10pt_value"
+                android:textColor="?attr/colorOnSurface"/>
 
             <SeekBar
                 android:id="@+id/seek_unlock_min_per_10pt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="9" /> <!-- progress:0..9 → 値:1..10 -->
-
-            <!-- 正解SE -->
-            <TextView
-                android:id="@+id/text_se_correct"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="14dp"
-                android:text="正解SE音量: 90%"
-                android:textColor="?attr/colorOnSurface" />
-
-            <SeekBar
-                android:id="@+id/seek_se_correct"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100" />
-
-            <!-- 不正解SE -->
-            <TextView
-                android:id="@+id/text_se_wrong"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="14dp"
-                android:text="不正解SE音量: 90%"
-                android:textColor="?attr/colorOnSurface" />
-
-            <SeekBar
-                android:id="@+id/seek_se_wrong"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100" />
-
-            <!-- TTS -->
-            <TextView
-                android:id="@+id/text_tts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="14dp"
-                android:text="単語発音(TTS)音量: 100%"
-                android:textColor="?attr/colorOnSurface" />
-
-            <SeekBar
-                android:id="@+id/seek_tts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100" />
-
-            <!-- 広告 -->
-            <TextView
-                android:id="@+id/text_ad"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="14dp"
-                android:text="広告音量: 20%"
-                android:textColor="?attr/colorOnSurface" />
-
-            <SeekBar
-                android:id="@+id/seek_ad"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_toggle_ad_mute"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="広告ミュート: OFF"
-                android:textAllCaps="false" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_save"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="保存"
-                android:textAllCaps="false" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_open_timezone_setup"
@@ -190,14 +198,7 @@
                 android:text="タイムゾーン設定を開く"
                 android:textAllCaps="false" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_app_lock_settings"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="アプリロック設定"
-                android:textAllCaps="false" />
+
 
         </LinearLayout>
     </ScrollView>

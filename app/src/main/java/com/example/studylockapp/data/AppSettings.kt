@@ -39,6 +39,10 @@ class AppSettings(context: Context) {
 
         // アクセシビリティ誘導を表示済みかどうか
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
+
+        // 追加: 外部から SharedPreferences を取得するためのヘルパー
+        fun getPrefs(context: Context) =
+            context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
 
     // --- 共通ヘルパ: Float/Int 混在への対応 ---

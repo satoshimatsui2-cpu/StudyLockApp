@@ -7,12 +7,16 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
+import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.studylockapp.R
+import com.example.studylockapp.data.AdminAuthManager
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.db.LockedAppEntity
@@ -34,6 +38,9 @@ class AppLockSettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_app_lock_settings)
 
         settings = AppSettings(this)
+
+        // 必須ONなら「ロック設定を全て解除する」テキストを非表示（ID不明のためテキスト一致で探索）
+        hideDisableAllIfRequired()
 
         val switchEnable = findViewById<MaterialSwitch>(R.id.switch_enable_lock)
         switchEnable.isChecked = settings.isAppLockEnabled()
@@ -59,6 +66,29 @@ class AppLockSettingsActivity : AppCompatActivity() {
         super.onResume()
         // アクセシビリティOFF & ロック有効/対象あり なら強制誘導
         maybeShowAccessibilityDialog()
+        hideDisableAllIfRequired()
+    }
+
+    private fun hideDisableAllIfRequired() {
+        val isRequired = AdminAuthManager.isAppLockRequired(this)
+        if (!isRequired) return
+        val root = findViewById<ViewGroup>(android.R.id.content) ?: return
+        val targetText = getString(R.string.app_lock_accessibility_disable_all)
+        val target = findViewWithText(root, targetText)
+        target?.visibility = View.GONE
+    }
+
+    // Viewツリーを走査してテキスト一致するViewを返す
+    private fun findViewWithText(view: View, text: String): View? {
+        if (view is TextView && view.text == text) return view
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                val found = findViewWithText(child, text)
+                if (found != null) return found
+            }
+        }
+        return null
     }
 
     private suspend fun loadApps() {
@@ -132,6 +162,8 @@ class AppLockSettingsActivity : AppCompatActivity() {
         if (accessibilityDialog?.isShowing == true) return
 
         val svcEnabled = isAppLockServiceEnabled()
+        val isRequired = AdminAuthManager.isAppLockRequired(this)
+
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@AppLockSettingsActivity)
             val lockedCount = db.lockedAppDao().countLocked()
@@ -139,7 +171,7 @@ class AppLockSettingsActivity : AppCompatActivity() {
             if (!svcEnabled && shouldForce) {
                 withContext(Dispatchers.Main) {
                     val msg = getString(R.string.app_lock_accessibility_message)
-                    accessibilityDialog = AlertDialog.Builder(this@AppLockSettingsActivity)
+                    val builder = AlertDialog.Builder(this@AppLockSettingsActivity)
                         .setTitle(R.string.app_lock_accessibility_title)
                         .setMessage(msg)
                         .setCancelable(false)
@@ -148,13 +180,16 @@ class AppLockSettingsActivity : AppCompatActivity() {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             })
                         }
-                        .setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
+                    // 必須ONなら全解除ボタンを出さない
+                    if (!isRequired) {
+                        builder.setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
                             lifecycleScope.launch(Dispatchers.IO) {
                                 settings.setAppLockEnabled(false)
                                 db.lockedAppDao().disableAllLocks()
                             }
                         }
-                        .show()
+                    }
+                    accessibilityDialog = builder.show()
                 }
             }
         }

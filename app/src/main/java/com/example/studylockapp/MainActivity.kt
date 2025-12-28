@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.studylockapp.data.AdminAuthManager
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
@@ -242,6 +243,8 @@ class MainActivity : AppCompatActivity() {
         if (accessibilityDialog?.isShowing == true) return
 
         val svcEnabled = isAppLockServiceEnabled()
+        val isRequired = AdminAuthManager.isAppLockRequired(this)
+
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@MainActivity)
             val lockedCount = db.lockedAppDao().countLocked()
@@ -249,7 +252,7 @@ class MainActivity : AppCompatActivity() {
             if (!svcEnabled && shouldForce) {
                 withContext(Dispatchers.Main) {
                     val msg = getString(R.string.app_lock_accessibility_message)
-                    accessibilityDialog = AlertDialog.Builder(this@MainActivity)
+                    val builder = AlertDialog.Builder(this@MainActivity)
                         .setTitle(R.string.app_lock_accessibility_title)
                         .setMessage(msg)
                         .setCancelable(false)
@@ -258,13 +261,16 @@ class MainActivity : AppCompatActivity() {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             })
                         }
-                        .setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
+                    // 必須ONなら全解除ボタンを出さない
+                    if (!isRequired) {
+                        builder.setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
                             lifecycleScope.launch(Dispatchers.IO) {
                                 settings.setAppLockEnabled(false)
                                 db.lockedAppDao().disableAllLocks()
                             }
                         }
-                        .show()
+                    }
+                    accessibilityDialog = builder.show()
                 }
             }
         }
