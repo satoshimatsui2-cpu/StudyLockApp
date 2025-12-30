@@ -4,6 +4,8 @@
     <!-- 共通文言（Lint: Hardcoded text 対策） -->
     <string name="hint_select_grade">級を選択</string>
     <string name="grade_stats_default">復習 0 • 新規 0/0</string>
+    <string name="label_grade_all">全級</string>
+    <string name="label_word_count">%1$d語</string>
 
     <string name="action_start">学習スタート</string>
     <string name="action_word_list">単語リスト</string>
@@ -68,7 +70,8 @@
 
     <string name="imported_count_message">%1$d 件インポートしました</string>
     <string name="no_question_available">現在出題可能な問題がありません</string>
-    <string name="label_include_other_grades">復習に他のグレードも含める</string>
+    <string name="label_include_other_grades">他レベルも含む</string>
+    <string name="label_auto_play_audio">自動再生</string>
 
     <string name="admin_lock_title">管理者画面のロック</string>
     <string name="admin_lock_desc">ONにすると管理者設定を開くたびに毎回PINを要求します</string>
@@ -107,6 +110,19 @@
     <string name="admin_app_lock_required_title">アプリロック機能を必須にする</string>
     <string name="admin_app_lock_required_desc">ONにするとアクセシビリティによるアプリロックを必須にします。OFFだと任意です。</string>
     <string name="admin_app_lock_required_on">アプリロック必須をONにしました</string>
+
+    <!-- Admin Settings Layout Strings -->
+    <string name="admin_settings_title">管理者設定</string>
+    <string name="admin_save_and_return">保存して戻る</string>
+    <string name="admin_select_lock_apps">ロックするアプリを選択する</string>
+    <string name="admin_open_timezone_settings">タイムゾーン設定を開く</string>
+
+    <!-- Learning Modes -->
+    <string name="mode_meaning">英日</string>
+    <string name="mode_listening">リスニング</string>
+    <string name="mode_japanese_to_english">日英</string>
+    <string name="mode_english_english_1">英英1</string>
+    <string name="mode_english_english_2">英英2</string>
 
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
