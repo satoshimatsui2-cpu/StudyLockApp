@@ -60,7 +60,7 @@
     <string name="sound_settings_init_failed">画面初期化に失敗: %1$s</string>
     <!-- Sound Settings -->
     <string name="sound_settings_title">サウンド設定</string>
-    <string name="sound_settings_save">保存</string>
+    <string name="sound_settings_save">保存して戻る</string>
     <!-- ロック画面 -->
     <string name="block_points_default">所持: 0 pt / コスト: 0 pt</string>
     <string name="block_unlock_time_default">開放まで --分</string>

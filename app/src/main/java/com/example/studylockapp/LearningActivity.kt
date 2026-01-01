@@ -15,7 +15,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
-import android.widget.ImageButton // 【修正1】追加
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -30,6 +30,8 @@ import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.PointHistoryEntity
+import com.example.studylockapp.data.db.WordProgressDao
+import com.example.studylockapp.data.db.PointHistoryDao
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
@@ -41,17 +43,18 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.Locale
 import kotlin.math.abs
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
-        const val MODE_MEANING = "meaning"
-        const val MODE_LISTENING = "listening"
-        const val MODE_JA_TO_EN = "japanese_to_english"
-        const val MODE_EN_EN_1 = "english_english_1"
-        const val MODE_EN_EN_2 = "english_english_2"
+        const val MODE_MEANING = "meaning" // 英 -> 日
+        const val MODE_LISTENING = "listening" // 音 -> 英
+        const val MODE_JA_TO_EN = "japanese_to_english" // 日 -> 英
+        const val MODE_EN_EN_1 = "english_english_1" // 英(単語) -> 英(意味)
+        const val MODE_EN_EN_2 = "english_english_2" // 英(意味) -> 英(単語)
     }
 
     private val viewModel: LearningViewModel by viewModels()
@@ -84,7 +87,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
-    // Chips
+    // Chips (for selection and stats)
     private lateinit var chipGroupMode: ChipGroup
     private lateinit var chipModeMeaning: Chip
     private lateinit var chipModeListening: Chip
@@ -93,10 +96,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var chipModeEnEn2: Chip
 
     private lateinit var choiceButtons: List<Button>
-
-    // 【修正2】型を ImageButton に変更
     private lateinit var buttonPlayAudio: ImageButton
-
+    private lateinit var buttonSoundSettings: ImageButton
     private var checkIncludeOtherGrades: CheckBox? = null
     private var checkboxAutoPlayAudio: CheckBox? = null
 
@@ -135,6 +136,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
         initSoundPool()
 
+        // チップ選択リスナー
         chipGroupMode.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.isEmpty()) return@setOnCheckedStateChangeListener
             val checkedId = checkedIds[0]
@@ -160,8 +162,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         buttonPlayAudio.setOnClickListener { speakCurrentWord() }
 
-        // 【修正3】ImageButton として取得するように変更
-        findViewById<ImageButton>(R.id.button_sound_settings).setOnClickListener {
+        buttonSoundSettings.setOnClickListener {
             try {
                 startActivity(Intent().apply {
                     setClassName(this@LearningActivity, "com.example.studylockapp.SoundSettingsActivity")
@@ -178,7 +179,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (gradeFilter != "All") importMissingWordsForGrade(gradeFilter) else 0
             }
             if (imported > 0) {
-                Snackbar.make(findViewById(android.R.id.content), getString(R.string.imported_count_message, imported), Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    getString(R.string.imported_count_message, imported),
+                    Snackbar.LENGTH_SHORT
+                ).show()
             }
             loadAllWordsThenQuestion()
         }
@@ -200,8 +205,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         chipModeEnEn1 = findViewById(R.id.chip_mode_en_en_1)
         chipModeEnEn2 = findViewById(R.id.chip_mode_en_en_2)
 
-        // ここで buttonPlayAudio が ImageButton としてキャストされます
         buttonPlayAudio = findViewById(R.id.button_play_audio)
+        buttonSoundSettings = findViewById(R.id.button_sound_settings)
 
         choiceButtons = listOf(
             findViewById(R.id.button_choice_1),
@@ -222,14 +227,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // --- 以降のメソッドは変更なし ---
-
     private fun initSoundPool() {
         val attrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
-        soundPool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(attrs).build()
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(2)
+            .setAudioAttributes(attrs)
+            .build()
         seCorrectId = loadSeIfExists("se_correct")
         seWrongId = loadSeIfExists("se_wrong")
     }
@@ -257,7 +263,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts?.language = Locale.US
-            tts?.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+            tts?.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
             applyTtsParams()
         }
     }
@@ -278,10 +289,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val root = findViewById<View>(android.R.id.content)
         val flashColor = ContextCompat.getColor(this, R.color.correct_flash)
         if (root.width == 0 || root.height == 0) return
+
         val drawable = ColorDrawable(flashColor)
         drawable.setBounds(0, 0, root.width, root.height)
         drawable.alpha = 0
         root.overlay.add(drawable)
+
         ValueAnimator.ofInt(0, 90, 0).apply {
             duration = 160L
             addUpdateListener { drawable.alpha = it.animatedValue as Int }
@@ -298,11 +311,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         flashCorrectBackground()
         val vol = settings.seCorrectVolume
         if (seCorrectId != 0) soundPool?.play(seCorrectId, vol, vol, 1, 0, 1f)
+
         val idx = currentCorrectIndex
         val v = choiceButtons.getOrNull(idx) ?: return
         v.animate().cancel()
         v.scaleX = 1f; v.scaleY = 1f
-        v.animate().scaleX(1.12f).scaleY(1.12f).setDuration(120).withEndAction { v.animate().scaleX(1f).scaleY(1f).setDuration(120).start() }.start()
+        v.animate().scaleX(1.12f).scaleY(1.12f).setDuration(120).withEndAction {
+            v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
+        }.start()
     }
 
     private fun playWrongEffect() {
@@ -350,7 +366,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     lines.drop(1).forEach { line ->
                         val cols = line.split(",")
                         if (cols.size >= 8) {
-                            result.add(WordEntity(no = cols[0].toIntOrNull() ?: 0, grade = cols[1], word = cols[2], japanese = cols[3], english = cols[4], pos = cols[5], category = cols[6], actors = cols[7]))
+                            result.add(WordEntity(
+                                no = cols[0].toIntOrNull() ?: 0,
+                                grade = cols[1],
+                                word = cols[2],
+                                japanese = cols[3],
+                                english = cols[4],
+                                pos = cols[5],
+                                category = cols[6],
+                                actors = cols[7]
+                            ))
                         }
                     }
                 }
@@ -379,7 +404,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
         val startedIds = progressDao.getProgressIds(mode).toSet()
         val newCount = wordIdSet.count { it !in startedIds }
-        return ModeStats(review = dueCount, newCount = newCount, total = wordIdSet.size)
+        return ModeStats(
+            review = dueCount,
+            newCount = newCount,
+            total = wordIdSet.size
+        )
     }
 
     private fun updateStudyStatsView() {
@@ -422,22 +451,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             resetChoiceButtons()
 
-            // ImageButtonの表示制御
-            when (currentMode) {
-                MODE_JA_TO_EN -> {
-                    checkboxAutoPlayAudio?.visibility = View.GONE
-                    buttonPlayAudio.visibility = View.GONE
-                }
-                MODE_MEANING, MODE_EN_EN_1, MODE_EN_EN_2 -> {
-                    checkboxAutoPlayAudio?.visibility = View.VISIBLE
-                    buttonPlayAudio.visibility = View.VISIBLE
-                }
-                else -> {
-                    checkboxAutoPlayAudio?.visibility = View.GONE
-                    buttonPlayAudio.visibility = View.VISIBLE
-                }
-            }
-
             if (allWordsFull.isEmpty()) {
                 showNoQuestion()
                 return@launch
@@ -446,7 +459,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val wordMapFiltered = allWords.associateBy { it.no }
             val wordMapAll = allWordsFull.associateBy { it.no }
             val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
-
+            
             val dueWords = if (includeOtherGradesReview && gradeFilter != "All") {
                 dueIdsOrdered.mapNotNull { wordMapAll[it] }
             } else {
@@ -478,24 +491,40 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val choices = buildChoices(nextWord, choicePool, 6)
             val (title, body, options) = formatQuestionAndOptions(nextWord, choices, currentMode)
-
+            
             textQuestionTitle.text = title
             textQuestionBody.text = body
             textQuestionBody.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
-
+            
             choiceButtons.forEach { it.textSize = if (currentMode == MODE_EN_EN_1) 12f else 14f }
-
+            
             choiceButtons.zip(options).forEach { (btn, txt) -> btn.text = txt }
 
             val correctStr = when (currentMode) {
                 MODE_MEANING -> nextWord.japanese ?: ""
                 MODE_LISTENING -> nextWord.word
                 MODE_JA_TO_EN -> nextWord.word
-                MODE_EN_EN_1 -> nextWord.english ?: ""
-                MODE_EN_EN_2 -> nextWord.word
+                MODE_EN_EN_1 -> nextWord.english ?: "" // Word -> Meaning
+                MODE_EN_EN_2 -> nextWord.word // Meaning -> Word
                 else -> nextWord.japanese ?: ""
             }
             currentCorrectIndex = options.indexOf(correctStr)
+
+            // ImageButtonの表示制御
+            when (currentMode) {
+                MODE_JA_TO_EN -> {
+                    checkboxAutoPlayAudio?.visibility = View.GONE
+                    buttonPlayAudio.visibility = View.GONE
+                }
+                MODE_MEANING, MODE_EN_EN_1, MODE_EN_EN_2 -> {
+                    checkboxAutoPlayAudio?.visibility = View.VISIBLE
+                    buttonPlayAudio.visibility = View.VISIBLE
+                }
+                else -> {
+                    checkboxAutoPlayAudio?.visibility = View.GONE
+                    buttonPlayAudio.visibility = View.VISIBLE
+                }
+            }
 
             if (currentMode == MODE_LISTENING) {
                 speakCurrentWord()
@@ -522,7 +551,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (pool.isEmpty()) return listOf(correct)
         val candidates = pool.filter { it.no != correct.no }
 
-        val sameGradePosHeadLen = candidates.filter { it.grade == correct.grade && it.pos == correct.pos && it.word.take(1).equals(correct.word.take(1), ignoreCase = true) && abs(it.word.length - correct.word.length) <= 1 }
+        val sameGradePosHeadLen = candidates.filter {
+            it.grade == correct.grade &&
+                    it.pos == correct.pos &&
+                    it.word.take(1).equals(correct.word.take(1), ignoreCase = true) &&
+                    abs(it.word.length - correct.word.length) <= 1
+        }
         val sameGradePos = candidates.filter { it.grade == correct.grade && it.pos == correct.pos }
         val sameGrade = candidates.filter { it.grade == correct.grade }
         val samePos = candidates.filter { it.pos == correct.pos }
@@ -534,13 +568,27 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return (distractors + correct).shuffled()
     }
 
-    private fun formatQuestionAndOptions(correct: WordEntity, choices: List<WordEntity>, mode: String): Triple<String, String, List<String>> {
+    private fun formatQuestionAndOptions(
+        correct: WordEntity,
+        choices: List<WordEntity>,
+        mode: String
+    ): Triple<String, String, List<String>> {
         return when (mode) {
-            MODE_MEANING -> Triple("この英単語の意味は？", correct.word, choices.map { it.japanese ?: "" })
-            MODE_LISTENING -> Triple("音声を聞いて正しい英単語を選んでください", "", choices.map { it.word })
-            MODE_JA_TO_EN -> Triple("この日本語に対応する英単語は？", correct.japanese ?: "", choices.map { it.word })
-            MODE_EN_EN_1 -> Triple("この単語の意味(定義)は？", correct.word, choices.map { it.english ?: "" })
-            MODE_EN_EN_2 -> Triple("この意味(定義)に対応する単語は？", correct.english ?: "", choices.map { it.word })
+            MODE_MEANING -> {
+                Triple("この英単語の意味は？", correct.word, choices.map { it.japanese ?: "" })
+            }
+            MODE_LISTENING -> {
+                Triple("音声を聞いて正しい英単語を選んでください", "", choices.map { it.word })
+            }
+            MODE_JA_TO_EN -> {
+                Triple("この日本語に対応する英単語は？", correct.japanese ?: "", choices.map { it.word })
+            }
+            MODE_EN_EN_1 -> {
+                Triple("この単語の意味(定義)は？", correct.word, choices.map { it.english ?: "" })
+            }
+            MODE_EN_EN_2 -> {
+                Triple("この意味(定義)に対応する単語は？", correct.english ?: "", choices.map { it.word })
+            }
             else -> Triple("", "", emptyList())
         }
     }
@@ -575,7 +623,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
             val pointManager = PointManager(this@LearningActivity)
-
+            
             val nowSec = nowEpochSec()
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
@@ -586,10 +634,25 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             pointManager.add(addPoint)
 
             if (addPoint > 0) {
-                db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = addPoint))
+                db.pointHistoryDao().insert(
+                    PointHistoryEntity(
+                        mode = currentMode,
+                        dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
+                        delta = addPoint
+                    )
+                )
             }
 
-            progressDao.upsert(WordProgressEntity(wordId = wordId, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec, lastAnsweredAt = System.currentTimeMillis(), studyCount = newCount))
+            progressDao.upsert(
+                WordProgressEntity(
+                    wordId = wordId,
+                    mode = currentMode,
+                    level = newLevel,
+                    nextDueAtSec = nextDueAtSec,
+                    lastAnsweredAt = System.currentTimeMillis(),
+                    studyCount = newCount
+                )
+            )
 
             updateStudyStatsView()
             showFeedbackSnackbar(isCorrect, addPoint)
@@ -601,7 +664,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showFeedbackSnackbar(isCorrect: Boolean, addPoint: Int) {
-        val bgColor = ContextCompat.getColor(this, if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
+        val bgColor = ContextCompat.getColor(
+            this,
+            if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
+        )
         val msg = if (isCorrect) {
             val praise = listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
             "$praise +${addPoint}pt"
