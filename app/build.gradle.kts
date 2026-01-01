@@ -68,6 +68,8 @@ dependencies {
     // Kotlin/AndroidX 基本
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2") // ViewModel
+    implementation("androidx.activity:activity-ktx:1.8.2") // by viewModels()
 
     // --- Room を追加 ---
     implementation("androidx.room:room-runtime:2.6.1")
