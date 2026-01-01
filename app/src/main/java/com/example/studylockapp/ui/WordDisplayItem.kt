@@ -3,14 +3,30 @@ package com.example.studylockapp.ui
 data class WordDisplayItem(
     val no: Int,
     val word: String,
-    val japanese: String,
     val grade: String,
-    val pos: String?,
-    val category: String?,
+
+    // English -> Japanese
     val mLevel: Int?,
     val mDue: Long?,
+    val mDueText: String,
+
+    // Listening
     val lLevel: Int?,
     val lDue: Long?,
-    val mDueText: String,
-    val lDueText: String
+    val lDueText: String,
+
+    // Japanese -> English
+    val jeLevel: Int?,
+    val jeDue: Long?,
+    val jeDueText: String,
+
+    // English -> English (Word -> Meaning)
+    val ee1Level: Int?,
+    val ee1Due: Long?,
+    val ee1DueText: String,
+
+    // English -> English (Meaning -> Word)
+    val ee2Level: Int?,
+    val ee2Due: Long?,
+    val ee2DueText: String
 )

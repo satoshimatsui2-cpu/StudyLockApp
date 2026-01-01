@@ -12,14 +12,22 @@ class WordAdapter(private var items: List<WordDisplayItem>) :
 
     class WordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val colWord: TextView = itemView.findViewById(R.id.col_word)
-        val colJapanese: TextView = itemView.findViewById(R.id.col_japanese)
         val colGrade: TextView = itemView.findViewById(R.id.col_grade)
-        val colPos: TextView = itemView.findViewById(R.id.col_pos)
-        val colCategory: TextView = itemView.findViewById(R.id.col_category)
+
         val colMLevel: TextView = itemView.findViewById(R.id.col_m_level)
         val colMDue: TextView = itemView.findViewById(R.id.col_m_due)
+
         val colLLevel: TextView = itemView.findViewById(R.id.col_l_level)
         val colLDue: TextView = itemView.findViewById(R.id.col_l_due)
+
+        val colJeLevel: TextView = itemView.findViewById(R.id.col_je_level)
+        val colJeDue: TextView = itemView.findViewById(R.id.col_je_due)
+
+        val colEe1Level: TextView = itemView.findViewById(R.id.col_ee1_level)
+        val colEe1Due: TextView = itemView.findViewById(R.id.col_ee1_due)
+
+        val colEe2Level: TextView = itemView.findViewById(R.id.col_ee2_level)
+        val colEe2Due: TextView = itemView.findViewById(R.id.col_ee2_due)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WordViewHolder {
@@ -31,15 +39,22 @@ class WordAdapter(private var items: List<WordDisplayItem>) :
     override fun onBindViewHolder(holder: WordViewHolder, position: Int) {
         val item = items[position]
         holder.colWord.text = item.word
-        holder.colJapanese.text = item.japanese
         holder.colGrade.text = item.grade
-        holder.colPos.text = item.pos ?: "-"
-        holder.colCategory.text = item.category
+
         holder.colMLevel.text = item.mLevel?.toString() ?: "-"
-        // ここを置き換え：事前に用意した文字列をそのまま表示
-        holder.colMDue.text = item.mDueText ?: "-"
+        holder.colMDue.text = item.mDueText
+
         holder.colLLevel.text = item.lLevel?.toString() ?: "-"
-        holder.colLDue.text = item.lDueText ?: "-"
+        holder.colLDue.text = item.lDueText
+
+        holder.colJeLevel.text = item.jeLevel?.toString() ?: "-"
+        holder.colJeDue.text = item.jeDueText
+
+        holder.colEe1Level.text = item.ee1Level?.toString() ?: "-"
+        holder.colEe1Due.text = item.ee1DueText
+
+        holder.colEe2Level.text = item.ee2Level?.toString() ?: "-"
+        holder.colEe2Due.text = item.ee2DueText
     }
 
     override fun getItemCount(): Int = items.size
