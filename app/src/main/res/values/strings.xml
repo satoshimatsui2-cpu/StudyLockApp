@@ -60,7 +60,7 @@
     <string name="sound_settings_init_failed">画面初期化に失敗: %1$s</string>
     <!-- Sound Settings -->
     <string name="sound_settings_title">サウンド設定</string>
-    <string name="sound_settings_save">保存して戻る</string>
+    <string name="sound_settings_save">保存</string>
     <!-- ロック画面 -->
     <string name="block_points_default">所持: 0 pt / コスト: 0 pt</string>
     <string name="block_unlock_time_default">開放まで --分</string>
@@ -70,7 +70,7 @@
 
     <string name="imported_count_message">%1$d 件インポートしました</string>
     <string name="no_question_available">現在出題可能な問題がありません</string>
-    <string name="label_include_other_grades">復習に他レベル含む</string>
+    <string name="label_include_other_grades">他レベルも含む</string>
     <string name="label_auto_play_audio">自動再生</string>
 
     <string name="admin_lock_title">管理者画面のロック</string>
@@ -139,7 +139,6 @@
 
     <!-- 一覧用のフィルタ選択肢（Allは残してOK） -->
     <string-array name="grade_filter_items">
-        <item>All</item>
         <item>5</item>
         <item>4</item>
         <item>3</item>

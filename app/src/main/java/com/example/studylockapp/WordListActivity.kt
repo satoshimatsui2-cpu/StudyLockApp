@@ -111,7 +111,6 @@ class WordListActivity : AppCompatActivity() {
     private fun gradeKeyToLabel(gradeKey: String): String = when (gradeKey) {
         "2.5" -> "準2級"
         "1.5" -> "準1級"
-        "All" -> "All"
         else -> "${gradeKey}級"
     }
 
@@ -128,6 +127,8 @@ class WordListActivity : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerGrade.adapter = adapter
 
+        // デフォルト選択を「5級」（通常配列の先頭）に設定
+        // grade_filter_items の並び順が 5, 4, 3... となっている前提
         spinnerGrade.setSelection(0, false)
         spinnerGrade.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -196,8 +197,9 @@ class WordListActivity : AppCompatActivity() {
         val pos = spinnerGrade.selectedItemPosition.takeIf { it in gradeValues.indices } ?: 0
         val gradeFilter = gradeValues[pos]
 
+        // All はなくなったので、常に gradeFilter でフィルタする
         val filtered = displayCache.filter { item ->
-            gradeFilter == "All" || item.grade == gradeFilter
+            item.grade == gradeFilter
         }
 
         val sorted = when (currentSort) {
