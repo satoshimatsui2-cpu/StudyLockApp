@@ -33,6 +33,7 @@ class AppLockBlockActivity : AppCompatActivity() {
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private lateinit var settings: AppSettings
     private lateinit var pointManager: PointManager
+    private lateinit var imageGeorge: ImageView
 
     private var lockedPkg: String = ""
     private var lockedLabel: String = ""
@@ -44,6 +45,7 @@ class AppLockBlockActivity : AppCompatActivity() {
 
             settings = AppSettings(this)
             pointManager = PointManager(this)
+            imageGeorge = findViewById(R.id.image_george_reaction)
 
             lockedPkg = intent.getStringExtra("lockedPackage") ?: ""
             lockedLabel = intent.getStringExtra("lockedLabel")?.takeIf { it.isNotBlank() } ?: run {
@@ -82,6 +84,19 @@ class AppLockBlockActivity : AppCompatActivity() {
             // 初期値は 0
             editPoints.setText("0")
 
+            fun updateGeorgeImage(points: Int) {
+                val imageResId = when {
+                    points >= 500 -> R.drawable.george_7 // george_8 がなかったので 7 に
+                    points >= 400 -> R.drawable.george_6
+                    points >= 300 -> R.drawable.george_5
+                    points >= 200 -> R.drawable.george_4
+                    points >= 100 -> R.drawable.george_3
+                    points >= 10 -> R.drawable.george_2
+                    else -> R.drawable.george_1
+                }
+                imageGeorge.setImageResource(imageResId)
+            }
+
             fun recalcAndRender() {
                 val raw = editPoints.text?.toString()?.toIntOrNull() ?: 0
                 val usePt = if (currentPt > 0) raw.coerceIn(0, currentPt) else 0
@@ -100,6 +115,9 @@ class AppLockBlockActivity : AppCompatActivity() {
                     durationMin.toDouble()
                 )
                 buttonUnlock.isEnabled = usePt in 1..currentPt && durationSec > 0
+
+                // Georgeの画像更新
+                updateGeorgeImage(usePt)
             }
 
             recalcAndRender()

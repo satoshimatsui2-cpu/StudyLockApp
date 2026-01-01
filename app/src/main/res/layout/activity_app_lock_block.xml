@@ -32,8 +32,16 @@
         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="8dp" />
 
+    <ImageView
+        android:id="@+id/image_george_reaction"
+        android:layout_width="210dp"
+        android:layout_height="210dp"
+        android:layout_marginBottom="16dp"
+        android:scaleType="fitCenter"
+        tools:src="@drawable/george_1"
+        android:contentDescription="George Reaction" />
     <TextView
         android:id="@+id/text_points_info"
         android:layout_width="match_parent"
@@ -43,7 +51,6 @@
         android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginBottom="8dp" />
 
-    <!-- 開放時間表示を大きく -->
     <TextView
         android:id="@+id/text_unlock_time"
         android:layout_width="match_parent"
@@ -67,7 +74,6 @@
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- クリア / +10P / +100P を横並び（各30%） -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -113,5 +119,4 @@
         android:layout_height="wrap_content"
         android:text="学習へ戻る" />
 
-    <!-- 「設定へ」「閉じる」ボタンは削除 -->
 </LinearLayout>
