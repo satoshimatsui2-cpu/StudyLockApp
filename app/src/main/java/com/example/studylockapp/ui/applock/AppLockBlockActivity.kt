@@ -3,6 +3,7 @@ package com.example.studylockapp.ui.applock
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
@@ -54,6 +55,16 @@ class AppLockBlockActivity : AppCompatActivity() {
                 }
             }
             findViewById<TextView>(R.id.text_block_app).text = lockedLabel
+
+            // アプリアイコンを表示する処理を追加
+            val iconView = findViewById<ImageView>(R.id.icon_blocked_app)
+            try {
+                val icon = packageManager.getApplicationIcon(lockedPkg)
+                iconView.setImageDrawable(icon)
+            } catch (e: Exception) {
+                // アイコン取得失敗時はデフォルト画像を表示するなどのフォールバック（XMLのtools:srcで代用）
+                Log.w(TAG, "Failed to load app icon for $lockedPkg", e)
+            }
 
             val textPointsInfo = findViewById<TextView>(R.id.text_points_info)
             val textUnlockTime = findViewById<TextView>(R.id.text_unlock_time)
