@@ -39,10 +39,15 @@ class AppSettings(context: Context) {
 
         // アクセシビリティ誘導を表示済みかどうか
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
+        private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
 
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    }
+    fun isEnableAdminLongPress(): Boolean = prefs.getBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, true)
+    fun setEnableAdminLongPress(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, enabled) }
     }
 
     // --- 共通ヘルパ: Float/Int 混在への対応 ---

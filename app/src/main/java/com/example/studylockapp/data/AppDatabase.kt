@@ -9,6 +9,7 @@ import com.example.studylockapp.data.db.AppUnlockEntity
 import com.example.studylockapp.data.db.LockedAppDao
 import com.example.studylockapp.data.db.LockedAppEntity
 import com.example.studylockapp.data.db.PointHistoryDao
+import com.example.studylockapp.data.db.UnlockHistoryDao
 import com.example.studylockapp.data.db.WordDao
 import com.example.studylockapp.data.db.WordProgressDao
 
@@ -18,9 +19,10 @@ import com.example.studylockapp.data.db.WordProgressDao
         WordProgressEntity::class,
         PointHistoryEntity::class,
         LockedAppEntity::class,
-        AppUnlockEntity::class
+        AppUnlockEntity::class,
+        UnlockHistoryEntity::class // 新しいEntityを追加
     ],
-    version = 4, // 現在の値に +1 していることを確認
+    version = 5, // バージョンをインクリメント
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun pointHistoryDao(): PointHistoryDao
     abstract fun lockedAppDao(): LockedAppDao
     abstract fun appUnlockDao(): AppUnlockDao
+    abstract fun unlockHistoryDao(): UnlockHistoryDao // 新しいDaoの参照を追加
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

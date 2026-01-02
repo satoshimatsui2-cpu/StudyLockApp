@@ -21,6 +21,11 @@
         android:theme="@style/Theme.StudyLockApp"
         >
 
+        <!-- ポイント履歴画面 -->
+        <activity
+            android:name=".ui.PointHistoryActivity"
+            android:exported="false" />
+
         <!-- アプリロック設定画面 -->
         <activity
             android:name=".ui.applock.AppLockSettingsActivity"

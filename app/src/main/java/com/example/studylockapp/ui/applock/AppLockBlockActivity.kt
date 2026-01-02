@@ -13,6 +13,7 @@ import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointHistoryEntity
 import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.UnlockHistoryEntity
 import com.example.studylockapp.data.db.AppUnlockEntity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
@@ -177,6 +178,7 @@ class AppLockBlockActivity : AppCompatActivity() {
     }
 
     private suspend fun doUnlock(usePoints: Int, durationSec: Long, durationMin: Float) {
+        val nowSec = Instant.now().epochSecond
         // ポイント減算 & 履歴追加
         pointManager.add(-usePoints)
         val db = AppDatabase.getInstance(this)
@@ -190,8 +192,17 @@ class AppLockBlockActivity : AppCompatActivity() {
             )
         )
 
+        // 新しい履歴テーブルにも書き込む
+        db.unlockHistoryDao().insert(
+            UnlockHistoryEntity(
+                packageName = lockedPkg,
+                usedPoints = usePoints,
+                unlockDurationSec = durationSec,
+                unlockedAt = nowSec
+            )
+        )
+
         // app_unlocks に期限を書き込む（秒）
-        val nowSec = Instant.now().epochSecond
         val untilSec = nowSec + durationSec
         db.appUnlockDao().upsert(
             AppUnlockEntity(

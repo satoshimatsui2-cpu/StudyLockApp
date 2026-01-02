@@ -54,7 +54,7 @@
                     android:clipToPadding="false">
 
                     <ImageView
-                        android:id="@+id/image_title"
+                        android:id="@+id/title_top"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
@@ -210,6 +210,29 @@
                         android:layout_weight="0.8"
                         android:layout_marginTop="10dp"
                         android:text="@string/action_word_list"
+                        android:textAllCaps="false"
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="12dp"
+                        app:backgroundTint="@null"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="1"
+                    android:gravity="center_horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_to_point_history"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.8"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/action_point_history"
                         android:textAllCaps="false"
                         android:background="@drawable/sl_button_bg"
                         android:textColor="@color/sl_button_text"

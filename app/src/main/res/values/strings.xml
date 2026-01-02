@@ -9,6 +9,7 @@
 
     <string name="action_start">学習スタート</string>
     <string name="action_word_list">単語リスト</string>
+    <string name="action_point_history">ポイント履歴</string>
     <string name="action_admin_settings">設定</string>
     <string name="title_top">StudyLock</string>
     <string name="points_default">保有ポイント: 0</string>

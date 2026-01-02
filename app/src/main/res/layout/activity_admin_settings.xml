@@ -80,6 +80,23 @@
                         android:paddingBottom="12dp" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switch_enable_long_press"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="タイトル長押しで管理画面を開く"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ONにすると、TOP画面のタイトルを長押しすることで、PIN入力なしでこの画面を開けるようになります。"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:paddingBottom="12dp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switch_app_lock_required"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -102,14 +119,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/admin_change_pin" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_forgot_pin"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/admin_forgot_pin" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

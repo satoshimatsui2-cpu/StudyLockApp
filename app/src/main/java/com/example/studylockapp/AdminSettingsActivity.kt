@@ -1,7 +1,5 @@
 package com.example.studylockapp
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -183,14 +181,12 @@ class AdminSettingsActivity : AppCompatActivity() {
     }
 
     /**
-     * 管理者ロック／アプリロック必須／PIN変更／復旧コードのUI初期化
-     * （対応するViewがレイアウトに無い場合は安全にreturn）
+     * 管理者ロック／アプリロック必須／PIN変更 のUI初期化
      */
     private fun setupAdminSecurityViews() {
         val switchAdminLock = findViewById<SwitchMaterial>(R.id.switch_admin_lock) ?: return
         val switchAppLockRequired = findViewById<SwitchMaterial>(R.id.switch_app_lock_required)
         val buttonChangePin = findViewById<MaterialButton>(R.id.button_change_pin) ?: return
-        val buttonForgotPin = findViewById<MaterialButton>(R.id.button_forgot_pin) ?: return
 
         // スイッチ文字色を濃く
         switchAdminLock.setTextColor(switchTextColor)
@@ -251,11 +247,6 @@ class AdminSettingsActivity : AppCompatActivity() {
                 onSuccess = { promptSetNewPin() },
                 onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }
             )
-        }
-
-        // PIN忘れ（復旧コードでリセット）
-        buttonForgotPin.setOnClickListener {
-            promptRecoveryAndResetPin()
         }
     }
 
@@ -324,59 +315,11 @@ class AdminSettingsActivity : AppCompatActivity() {
                     return@setPositiveButton
                 }
                 AdminAuthManager.setPin(this, p1)
-
-                // 復旧コードが未設定なら生成して保存 → ダイアログで表示
-                if (!AdminAuthManager.isRecoveryCodeSet(this)) {
-                    val code = AdminAuthManager.generateRecoveryCode()
-                    AdminAuthManager.setRecoveryCode(this, code)
-                    showRecoveryCodeDialog(code)
-                }
+                // 復旧コード関連は削除
                 onSuccess?.invoke()
             }
             .setNegativeButton(R.string.cancel) { _, _ -> onCancel?.invoke() }
             .setOnCancelListener { onCancel?.invoke() }
-            .show()
-    }
-
-    /** 復旧コード→新PIN設定 */
-    private fun promptRecoveryAndResetPin() {
-        val inputLayout = TextInputLayout(this).apply {
-            hint = getString(R.string.admin_enter_recovery_hint)
-        }
-        val edit = TextInputEditText(inputLayout.context).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            setTextColor(dialogTextColor)
-            setHintTextColor(dialogHintColor)
-        }
-        inputLayout.addView(edit)
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle(coloredTitle(getString(R.string.admin_recovery_title)))
-            .setView(inputLayout)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val code = edit.text?.toString().orEmpty()
-                if (AdminAuthManager.verifyRecoveryCode(this, code)) {
-                    promptSetNewPin()
-                } else {
-                    showToast(getString(R.string.admin_recovery_incorrect))
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-
-    /** 復旧コード表示ダイアログ（コピー可能） */
-    private fun showRecoveryCodeDialog(code: String) {
-        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        MaterialAlertDialogBuilder(this)
-            .setTitle(coloredTitle(getString(R.string.admin_recovery_title)))
-            .setMessage(getString(R.string.admin_recovery_show_dialog, code))
-            .setCancelable(false)
-            .setPositiveButton(R.string.ok, null)
-            .setNeutralButton(R.string.copy) { _, _ ->
-                cm.setPrimaryClip(ClipData.newPlainText("recovery", code))
-                showToast(getString(R.string.copied))
-            }
             .show()
     }
 

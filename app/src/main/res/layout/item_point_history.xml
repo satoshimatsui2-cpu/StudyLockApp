@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="#E0E0E0"
+    app:strokeWidth="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/img_app_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="App Icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@mipmap/ic_launcher" />
+
+        <TextView
+            android:id="@+id/text_app_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#111827"
+            app:layout_constraintEnd_toStartOf="@+id/btn_cancel"
+            app:layout_constraintStart_toEndOf="@+id/img_app_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="YouTube" />
+
+        <TextView
+            android:id="@+id/text_used_points"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:textColor="#6B7280"
+            app:layout_constraintStart_toStartOf="@+id/text_app_name"
+            app:layout_constraintTop_toBottomOf="@+id/text_app_name"
+            tools:text="消費: 100 pt" />
+
+        <TextView
+            android:id="@+id/text_unlocked_at"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="11sp"
+            android:textColor="#9CA3AF"
+            app:layout_constraintStart_toStartOf="@+id/text_used_points"
+            app:layout_constraintTop_toBottomOf="@+id/text_used_points"
+            tools:text="01/01 12:00:00" />
+
+        <TextView
+            android:id="@+id/text_remaining_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#0D47A1"
+            app:layout_constraintBottom_toBottomOf="@+id/text_used_points"
+            app:layout_constraintStart_toEndOf="@+id/text_used_points"
+            app:layout_constraintTop_toTopOf="@+id/text_used_points"
+            tools:text="残り 5分" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="キャンセル"
+            android:textSize="12sp"
+            android:minHeight="0dp"
+            android:paddingVertical="4dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

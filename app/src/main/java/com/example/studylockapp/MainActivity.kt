@@ -4,8 +4,13 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import android.widget.Button
@@ -19,6 +24,7 @@ import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.service.AppLockAccessibilityService
+import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -57,6 +63,9 @@ class MainActivity : AppCompatActivity() {
         textPointStatsTop = findViewById(R.id.text_point_stats_top)
         textGradeStatsTop = findViewById(R.id.text_grade_stats_top)
 
+        // タイトルを長押しで管理者画面へ（長押し時間を倍にする）
+        setupLongPressForAdmin()
+
         // 初期状態
         gradeButton.text = getString(R.string.hint_select_grade)
         gradeButton.setOnClickListener { showGradePickerDialog() }
@@ -65,11 +74,11 @@ class MainActivity : AppCompatActivity() {
 
         // 右上の設定バッジ
         findViewById<ImageButton>(R.id.button_admin_settings_top)?.setOnClickListener {
-            openAdminSettings()
+            openAdminSettings(isLongPressRoute = false)
         }
         // 旧「管理設定」ボタン（非表示でも安全）
         findViewById<Button>(R.id.button_admin_settings)?.setOnClickListener {
-            openAdminSettings()
+            openAdminSettings(isLongPressRoute = false)
         }
 
         // 学習画面へ（gradeFilter は DB の grade と一致する値：例 "5"）
@@ -87,9 +96,40 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, WordListActivity::class.java))
         }
 
+        // ポイント履歴画面へ
+        findViewById<Button>(R.id.button_to_point_history)?.setOnClickListener {
+            startActivity(Intent(this, PointHistoryActivity::class.java))
+        }
+
         // 起動時にポイントとグレード表示を更新
         updatePointView()
         updateGradeDropdownLabels()
+    }
+
+    private fun setupLongPressForAdmin() {
+        val settings = AppSettings(this)
+        if (!settings.isEnableAdminLongPress()) return
+
+        val titleView = findViewById<View>(R.id.title_top) ?: return
+        val longPressDuration = (ViewConfiguration.getLongPressTimeout() * 2).toLong()
+        val handler = Handler(Looper.getMainLooper())
+        var longPressRunnable: Runnable? = null
+
+        titleView.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    longPressRunnable = Runnable { openAdminSettings(isLongPressRoute = true) }
+                    handler.postDelayed(longPressRunnable!!, longPressDuration)
+                    true // イベントを消費して、クリックなどが発火しないようにする
+                }
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_CANCEL -> {
+                    longPressRunnable?.let { handler.removeCallbacks(it) }
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     override fun onResume() {
@@ -108,8 +148,10 @@ class MainActivity : AppCompatActivity() {
         updateGradeDropdownLabels()
     }
 
-    private fun openAdminSettings() {
-        startActivity(Intent(this, AdminSettingsActivity::class.java))
+    private fun openAdminSettings(isLongPressRoute: Boolean = false) {
+        startActivity(Intent(this, AdminSettingsActivity::class.java).apply {
+            putExtra("isLongPressRoute", isLongPressRoute)
+        })
     }
 
     private fun updatePointView() {
