@@ -81,7 +81,11 @@ class PointHistoryAdapter(
                     textRemaining.text = "残り ${remainingMin}分"
                     textRemaining.setTextColor(Color.parseColor("#0D47A1"))
                     btnCancel.visibility = View.VISIBLE
-                    btnCancel.setOnClickListener { onCancelClick(item) }
+                    btnCancel.isEnabled = true // 再利用のために毎回有効化
+                    btnCancel.setOnClickListener { 
+                        it.isEnabled = false // 即座にボタンを無効化
+                        onCancelClick(item) 
+                    }
                 }
                 else -> {
                     textRemaining.text = "完了"
@@ -98,6 +102,7 @@ class PointHistoryAdapter(
         }
 
         override fun areContentsTheSame(oldItem: UnlockHistoryEntity, newItem: UnlockHistoryEntity): Boolean {
+            // `cancelled` フラグの変更を検知するために、オブジェクト全体を比較する
             return oldItem == newItem
         }
     }
