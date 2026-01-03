@@ -67,11 +67,11 @@ class AppSettings(context: Context) {
 
     // 0.0〜1.0 で扱うプロパティ（内部保存は 0..100 の Int に統一）
     var seCorrectVolume: Float
-        get() = readVolumePercent(KEY_SE_CORRECT_VOLUME, 90) / 100f
+        get() = readVolumePercent(KEY_SE_CORRECT_VOLUME, 20) / 100f
         set(value) = writeVolumePercent(KEY_SE_CORRECT_VOLUME, (value * 100f).roundToInt())
 
     var seWrongVolume: Float
-        get() = readVolumePercent(KEY_SE_WRONG_VOLUME, 90) / 100f
+        get() = readVolumePercent(KEY_SE_WRONG_VOLUME, 20) / 100f
         set(value) = writeVolumePercent(KEY_SE_WRONG_VOLUME, (value * 100f).roundToInt())
 
     var ttsVolume: Float

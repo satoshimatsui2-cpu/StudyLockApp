@@ -49,6 +49,11 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         isAuthenticated = savedInstanceState?.getBoolean("authenticated", false) ?: false
 
+        // Check if launched via long press
+        if (intent.getBooleanExtra("isLongPressRoute", false)) {
+            isAuthenticated = true
+        }
+
         setupAdminSecurityViews()
         setupExistingControls()
     }
@@ -187,13 +192,16 @@ class AdminSettingsActivity : AppCompatActivity() {
         val switchAdminLock = findViewById<SwitchMaterial>(R.id.switch_admin_lock) ?: return
         val switchAppLockRequired = findViewById<SwitchMaterial>(R.id.switch_app_lock_required)
         val buttonChangePin = findViewById<MaterialButton>(R.id.button_change_pin) ?: return
+        val switchEnableLongPress = findViewById<SwitchMaterial>(R.id.switch_enable_long_press) ?: return
 
         // スイッチ文字色を濃く
         switchAdminLock.setTextColor(switchTextColor)
         switchAppLockRequired?.setTextColor(switchTextColor)
+        switchEnableLongPress.setTextColor(switchTextColor)
 
         switchAdminLock.isChecked = AdminAuthManager.isAdminLockEnabled(this)
         switchAppLockRequired?.isChecked = AdminAuthManager.isAppLockRequired(this)
+        switchEnableLongPress.isChecked = settings.isEnableAdminLongPress()
 
         // 管理者画面ロック ON/OFF
         switchAdminLock.setOnCheckedChangeListener { _, isChecked ->
@@ -238,6 +246,11 @@ class AdminSettingsActivity : AppCompatActivity() {
             } else if (isChecked) {
                 showToast(getString(R.string.admin_app_lock_required_on))
             }
+        }
+
+        // タイトル長押しで管理画面を開く
+        switchEnableLongPress.setOnCheckedChangeListener { _, isChecked ->
+            settings.setEnableAdminLongPress(isChecked)
         }
 
         // PIN変更

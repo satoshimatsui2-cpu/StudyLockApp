@@ -24,6 +24,7 @@ import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.service.AppLockAccessibilityService
+import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import com.google.android.material.button.MaterialButton
@@ -99,6 +100,11 @@ class MainActivity : AppCompatActivity() {
         // ポイント履歴画面へ
         findViewById<Button>(R.id.button_to_point_history)?.setOnClickListener {
             startActivity(Intent(this, PointHistoryActivity::class.java))
+        }
+
+        // 学習履歴画面へ
+        findViewById<Button>(R.id.button_to_learning_history)?.setOnClickListener {
+            startActivity(Intent(this, LearningHistoryActivity::class.java))
         }
 
         // 起動時にポイントとグレード表示を更新

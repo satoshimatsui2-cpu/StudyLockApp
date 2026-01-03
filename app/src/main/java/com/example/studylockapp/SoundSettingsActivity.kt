@@ -33,15 +33,14 @@ class SoundSettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
-            Log.d("SoundSettingsActivity", "onCreate start")
             setContentView(R.layout.activity_sound_settings)
             settings = AppSettings(this)
 
+            // Viewの初期化
             textTtsSpeed = findViewById(R.id.text_tts_speed)
             seekTtsSpeed = findViewById(R.id.seek_tts_speed)
             textTtsPitch = findViewById(R.id.text_tts_pitch)
             seekTtsPitch = findViewById(R.id.seek_tts_pitch)
-
             textSeCorrect = findViewById(R.id.text_se_correct)
             seekSeCorrect = findViewById(R.id.seek_se_correct)
             textSeWrong = findViewById(R.id.text_se_wrong)
@@ -53,104 +52,80 @@ class SoundSettingsActivity : AppCompatActivity() {
             btnToggleAdMute = findViewById(R.id.btn_toggle_ad_mute)
             btnSave = findViewById(R.id.btn_save_sound)
 
-            // 初期値セット（内部は 0..1 なので 0..100 に変換）
-            val speed = settings.getTtsSpeed()            // 0.5..1.5
-            val pitch = settings.getTtsPitch()            // 0.5..1.5
-            val seCorrect = (settings.seCorrectVolume * 100f).roundToInt().coerceIn(0, 100)
-            val seWrong = (settings.seWrongVolume * 100f).roundToInt().coerceIn(0, 100)
-            val ttsVol = (settings.ttsVolume * 100f).roundToInt().coerceIn(0, 100)
-            val adVol = (settings.adVolume * 100f).roundToInt().coerceIn(0, 100)
-            val adMute = settings.adMuted
+            // 初期値の設定
+            setupInitialValues()
 
-            seekTtsSpeed.progress = ((speed - 0.5f) * 200f).roundToInt().coerceIn(0, 200)
-            seekTtsPitch.progress = ((pitch - 0.5f) * 200f).roundToInt().coerceIn(0, 200)
-            seekSeCorrect.progress = seCorrect
-            seekSeWrong.progress = seWrong
-            seekTtsVolume.progress = ttsVol
-            seekAdVolume.progress = adVol
+            // リスナーの設定
+            setupListeners()
 
-            btnToggleAdMute.text = if (adMute) {
-                getString(R.string.sound_settings_ad_mute_on)
-            } else {
-                getString(R.string.sound_settings_ad_mute_off)
-            }
-
-            // 初期ラベル表示
-            textTtsSpeed.text = getString(R.string.sound_settings_tts_speed, speed)
-            textTtsPitch.text = getString(R.string.sound_settings_tts_pitch, pitch)
-            textSeCorrect.text = getString(R.string.sound_settings_se_correct, seCorrect)
-            textSeWrong.text = getString(R.string.sound_settings_se_wrong, seWrong)
-            textTtsVolume.text = getString(R.string.sound_settings_tts_volume, ttsVol)
-            textAdVolume.text = getString(R.string.sound_settings_ad_volume, adVol)
-
-            // リスナ設定
-            seekTtsSpeed.setOnSeekBarChangeListener(simpleSeekListener { p ->
-                val v = 0.5f + (p / 200f)
-                textTtsSpeed.text = getString(R.string.sound_settings_tts_speed, v)
-            })
-            seekTtsPitch.setOnSeekBarChangeListener(simpleSeekListener { p ->
-                val v = 0.5f + (p / 200f)
-                textTtsPitch.text = getString(R.string.sound_settings_tts_pitch, v)
-            })
-            seekSeCorrect.setOnSeekBarChangeListener(simpleSeekListener { p ->
-                textSeCorrect.text = getString(R.string.sound_settings_se_correct, p)
-            })
-            seekSeWrong.setOnSeekBarChangeListener(simpleSeekListener { p ->
-                textSeWrong.text = getString(R.string.sound_settings_se_wrong, p)
-            })
-            seekTtsVolume.setOnSeekBarChangeListener(simpleSeekListener { p ->
-                textTtsVolume.text = getString(R.string.sound_settings_tts_volume, p)
-            })
-            seekAdVolume.setOnSeekBarChangeListener(simpleSeekListener { p ->
-                textAdVolume.text = getString(R.string.sound_settings_ad_volume, p)
-            })
-
-            btnToggleAdMute.setOnClickListener {
-                val newMute = !settings.adMuted
-                settings.adMuted = newMute
-                btnToggleAdMute.text = if (newMute) {
-                    getString(R.string.sound_settings_ad_mute_on)
-                } else {
-                    getString(R.string.sound_settings_ad_mute_off)
-                }
-            }
-
-            btnSave.setOnClickListener {
-                val speedVal = 0.5f + (seekTtsSpeed.progress / 200f)
-                val pitchVal = 0.5f + (seekTtsPitch.progress / 200f)
-
-                settings.setTtsSpeed(speedVal)
-                settings.setTtsPitch(pitchVal)
-                settings.seCorrectVolume = seekSeCorrect.progress / 100f
-                settings.seWrongVolume = seekSeWrong.progress / 100f
-                settings.ttsVolume = seekTtsVolume.progress / 100f
-                settings.adVolume = seekAdVolume.progress / 100f
-                // ミュートはトグル時に反映済み
-
-                finish() // そのまま閉じる
-            }
-
-            Log.d("SoundSettingsActivity", "onCreate end OK")
         } catch (e: Exception) {
             Log.e("SoundSettingsActivity", "onCreate failed", e)
-            Toast.makeText(
-                this,
-                getString(R.string.sound_settings_init_failed, e.javaClass.simpleName),
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(this, getString(R.string.sound_settings_init_failed, e.javaClass.simpleName), Toast.LENGTH_LONG).show()
             finish()
         }
     }
 
-    private fun updateLabels() {
-        val speedVal = 0.5f + (seekTtsSpeed.progress / 200f)
-        val pitchVal = 0.5f + (seekTtsPitch.progress / 200f)
+    private fun setupInitialValues() {
+        // TTS Speed (0.5-1.5) -> SeekBar (0-20)
+        val speed = settings.getTtsSpeed()
+        seekTtsSpeed.progress = ((speed - 0.5f) / 0.05f).roundToInt()
+
+        // TTS Pitch (0.5-1.5) -> SeekBar (0-20)
+        val pitch = settings.getTtsPitch()
+        seekTtsPitch.progress = ((pitch - 0.5f) / 0.05f).roundToInt()
+
+        // Volumes (0-100%) -> SeekBar (0-20)
+        seekTtsVolume.progress = (settings.ttsVolume * 20f).roundToInt()
+        seekSeCorrect.progress = (settings.seCorrectVolume * 20f).roundToInt()
+        seekSeWrong.progress = (settings.seWrongVolume * 20f).roundToInt()
+        seekAdVolume.progress = (settings.adVolume * 20f).roundToInt()
+
+        btnToggleAdMute.text = if (settings.adMuted) getString(R.string.sound_settings_ad_mute_on) else getString(R.string.sound_settings_ad_mute_off)
+        
+        updateAllLabels()
+    }
+
+    private fun setupListeners() {
+        seekTtsSpeed.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
+        seekTtsPitch.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
+        seekTtsVolume.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
+        seekSeCorrect.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
+        seekSeWrong.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
+        seekAdVolume.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
+
+        btnToggleAdMute.setOnClickListener {
+            val newMute = !settings.adMuted
+            settings.adMuted = newMute
+            btnToggleAdMute.text = if (newMute) getString(R.string.sound_settings_ad_mute_on) else getString(R.string.sound_settings_ad_mute_off)
+        }
+
+        btnSave.setOnClickListener {
+            // TTS Speed/Pitch
+            settings.setTtsSpeed(0.5f + (seekTtsSpeed.progress * 0.05f))
+            settings.setTtsPitch(0.5f + (seekTtsPitch.progress * 0.05f))
+
+            // Volumes
+            settings.ttsVolume = seekTtsVolume.progress * 0.05f
+            settings.seCorrectVolume = seekSeCorrect.progress * 0.05f
+            settings.seWrongVolume = seekSeWrong.progress * 0.05f
+            settings.adVolume = seekAdVolume.progress * 0.05f
+
+            finish()
+        }
+    }
+
+    private fun updateAllLabels() {
+        // TTS Speed/Pitch
+        val speedVal = 0.5f + (seekTtsSpeed.progress * 0.05f)
+        val pitchVal = 0.5f + (seekTtsPitch.progress * 0.05f)
         textTtsSpeed.text = getString(R.string.sound_settings_tts_speed, speedVal)
         textTtsPitch.text = getString(R.string.sound_settings_tts_pitch, pitchVal)
-        textSeCorrect.text = getString(R.string.sound_settings_se_correct, seekSeCorrect.progress)
-        textSeWrong.text = getString(R.string.sound_settings_se_wrong, seekSeWrong.progress)
-        textTtsVolume.text = getString(R.string.sound_settings_tts_volume, seekTtsVolume.progress)
-        textAdVolume.text = getString(R.string.sound_settings_ad_volume, seekAdVolume.progress)
+
+        // Volumes
+        textTtsVolume.text = getString(R.string.sound_settings_tts_volume, seekTtsVolume.progress * 5)
+        textSeCorrect.text = getString(R.string.sound_settings_se_correct, seekSeCorrect.progress * 5)
+        textSeWrong.text = getString(R.string.sound_settings_se_wrong, seekSeWrong.progress * 5)
+        textAdVolume.text = getString(R.string.sound_settings_ad_volume, seekAdVolume.progress * 5)
     }
 
     private fun simpleSeekListener(onProgress: (Int) -> Unit) =

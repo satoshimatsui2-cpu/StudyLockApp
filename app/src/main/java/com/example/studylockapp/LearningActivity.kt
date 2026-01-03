@@ -30,7 +30,6 @@ import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.PointHistoryEntity
-import com.example.studylockapp.data.db.WordProgressDao
 import com.example.studylockapp.data.db.PointHistoryDao
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup

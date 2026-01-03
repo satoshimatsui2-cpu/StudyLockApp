@@ -21,6 +21,10 @@
         android:theme="@style/Theme.StudyLockApp"
         >
 
+        <activity
+            android:name=".ui.LearningHistoryActivity"
+            android:exported="false" />
+
         <!-- ポイント履歴画面 -->
         <activity
             android:name=".ui.PointHistoryActivity"

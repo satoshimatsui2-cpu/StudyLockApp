@@ -41,7 +41,7 @@
             android:id="@+id/seek_tts_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="100" />
+            android:max="20" />
 
         <!-- TTS 再生スピード -->
         <TextView
@@ -56,7 +56,7 @@
             android:id="@+id/seek_tts_speed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="200" /> <!-- 0..200 => 0.5x..1.5x -->
+            android:max="20" /> <!-- 0..20 => 0.5x..1.5x -->
 
         <!-- TTS ピッチ -->
         <TextView
@@ -71,7 +71,7 @@
             android:id="@+id/seek_tts_pitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="200" /> <!-- 0..200 => 0.5..1.5 -->
+            android:max="20" /> <!-- 0..20 => 0.5..1.5 -->
 
         <!-- 正解SE -->
         <TextView
@@ -86,7 +86,7 @@
             android:id="@+id/seek_se_correct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="100" />
+            android:max="20" />
 
         <!-- 不正解SE -->
         <TextView
@@ -101,7 +101,7 @@
             android:id="@+id/seek_se_wrong"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="100" />
+            android:max="20" />
 
         <!-- 広告 音量 -->
         <TextView
@@ -116,7 +116,7 @@
             android:id="@+id/seek_ad_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="100" />
+            android:max="20" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_toggle_ad_mute"

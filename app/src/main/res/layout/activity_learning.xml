@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_pattern_tile_repeat">
@@ -23,7 +24,7 @@
             android:fillViewport="true"
             android:padding="4dp"
             app:layout_constraintTop_toBottomOf="@id/guideline_top_5"
-            app:layout_constraintBottom_toTopOf="@id/layout_bottom_buttons"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -382,51 +383,43 @@
 
                 </LinearLayout>
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="16dp">
+
+                    <ImageButton
+                        android:id="@+id/button_sound_settings"
+                        android:layout_width="0dp"
+                        android:layout_height="64dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/setting_sound"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:scaleType="fitCenter"
+                        android:padding="0dp"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="サウンド設定" />
+
+                    <ImageButton
+                        android:id="@+id/button_play_audio"
+                        android:layout_width="0dp"
+                        android:layout_height="64dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:src="@drawable/play_sound"
+                        android:background="?attr/selectableItemBackground"
+                        android:scaleType="fitCenter"
+                        android:padding="0dp"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="音声を再生" />
+
+                </LinearLayout>
+
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layout_bottom_buttons"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="16dp"
-            android:paddingTop="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <ImageButton
-                android:id="@+id/button_play_audio"
-                android:layout_width="160dp"
-                android:layout_height="120dp"
-                android:src="@drawable/play_sound"
-                android:background="?attr/selectableItemBackground"
-                android:scaleType="fitCenter"
-                android:padding="0dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="音声を再生"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-            <ImageButton
-                android:id="@+id/button_sound_settings"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_marginEnd="0dp"
-                android:src="@drawable/setting_sound"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:scaleType="fitCenter"
-                android:padding="24dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="サウンド設定"
-
-                app:layout_constraintEnd_toStartOf="@id/button_play_audio"
-                app:layout_constraintTop_toTopOf="@id/button_play_audio"
-                app:layout_constraintBottom_toBottomOf="@id/button_play_audio" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
