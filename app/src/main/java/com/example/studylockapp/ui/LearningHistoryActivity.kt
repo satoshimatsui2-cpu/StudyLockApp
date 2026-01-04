@@ -105,7 +105,8 @@ class LearningHistoryActivity : AppCompatActivity() {
                         calendar.set(Calendar.SECOND, 59)
                         val endTime = calendar.timeInMillis
 
-                        val count = db.wordProgressDao().getLearnedWordCount(startTime, endTime)
+                        // 変更後: ログテーブルから取得 (履歴として正しく残っている)
+                        val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
                         entries.add(BarEntry((6 - i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.MONTH) + 1}/${calendar.get(Calendar.DAY_OF_MONTH)}")
                     }
@@ -122,7 +123,8 @@ class LearningHistoryActivity : AppCompatActivity() {
                         calendar.set(Calendar.HOUR_OF_DAY, 23)
                         val endTime = calendar.timeInMillis
 
-                        val count = db.wordProgressDao().getLearnedWordCount(startTime, endTime)
+                        // 変更後: ログテーブルから取得
+                        val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
                         entries.add(BarEntry((3-i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.WEEK_OF_YEAR)}週")
                     }
@@ -139,7 +141,8 @@ class LearningHistoryActivity : AppCompatActivity() {
                         calendar.set(Calendar.HOUR_OF_DAY, 23)
                         val endTime = calendar.timeInMillis
 
-                        val count = db.wordProgressDao().getLearnedWordCount(startTime, endTime)
+                        // 変更後: ログテーブルから取得
+                        val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
                         entries.add(BarEntry((5-i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.MONTH) + 1}月")
                     }

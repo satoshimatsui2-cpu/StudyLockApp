@@ -28,6 +28,7 @@ import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
+import com.example.studylockapp.data.WordStudyLogEntity
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.PointHistoryEntity
 import com.example.studylockapp.data.db.PointHistoryDao
@@ -641,6 +642,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     )
                 )
             }
+            
+            val currentTimestamp = System.currentTimeMillis()
+
+            val log = WordStudyLogEntity(
+                wordId = wordId,
+                mode = currentMode,
+                learnedAt = currentTimestamp
+            )
+            db.studyLogDao().insert(log)
 
             progressDao.upsert(
                 WordProgressEntity(
@@ -648,7 +658,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     mode = currentMode,
                     level = newLevel,
                     nextDueAtSec = nextDueAtSec,
-                    lastAnsweredAt = System.currentTimeMillis(),
+                    lastAnsweredAt = currentTimestamp,
                     studyCount = newCount
                 )
             )

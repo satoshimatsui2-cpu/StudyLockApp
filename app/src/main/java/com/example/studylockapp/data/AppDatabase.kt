@@ -12,6 +12,7 @@ import com.example.studylockapp.data.db.PointHistoryDao
 import com.example.studylockapp.data.db.UnlockHistoryDao
 import com.example.studylockapp.data.db.WordDao
 import com.example.studylockapp.data.db.WordProgressDao
+import com.example.studylockapp.data.db.StudyLogDao
 
 @Database(
     entities = [
@@ -20,18 +21,20 @@ import com.example.studylockapp.data.db.WordProgressDao
         PointHistoryEntity::class,
         LockedAppEntity::class,
         AppUnlockEntity::class,
-        UnlockHistoryEntity::class
+        UnlockHistoryEntity::class,
+        WordStudyLogEntity::class
     ],
-    version = 5, 
+    version = 6, 
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun wordDao(): com.example.studylockapp.data.db.WordDao
-    abstract fun wordProgressDao(): com.example.studylockapp.data.db.WordProgressDao
-    abstract fun pointHistoryDao(): com.example.studylockapp.data.db.PointHistoryDao
-    abstract fun lockedAppDao(): com.example.studylockapp.data.db.LockedAppDao
-    abstract fun appUnlockDao(): com.example.studylockapp.data.db.AppUnlockDao
-    abstract fun unlockHistoryDao(): com.example.studylockapp.data.db.UnlockHistoryDao
+    abstract fun wordDao(): WordDao
+    abstract fun wordProgressDao(): WordProgressDao
+    abstract fun pointHistoryDao(): PointHistoryDao
+    abstract fun lockedAppDao(): LockedAppDao
+    abstract fun appUnlockDao(): AppUnlockDao
+    abstract fun unlockHistoryDao(): UnlockHistoryDao
+    abstract fun studyLogDao(): StudyLogDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
