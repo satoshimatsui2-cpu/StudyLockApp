@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#232C35"/> <!-- 紺色の押下時（sl_button_strokeに近い色を少し暗く） -->
+            <stroke android:width="3dp" android:color="@color/sl_button_stroke"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#2E3A46"/> <!-- 紺色（sl_button_strokeと同じ色を使用） -->
+            <stroke android:width="3dp" android:color="@color/sl_button_stroke"/>
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+</selector>

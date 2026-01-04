@@ -5,32 +5,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_pattern_tile_repeat">
+    android:background="@drawable/bg_pattern_tile_repeat"
+    android:clipChildren="false">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_top_5"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.05" />
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_top_8"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.10" />
+        android:layout_height="match_parent"
+        android:clipChildren="false">
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:padding="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:paddingTop="50dp"
             android:clipToPadding="false"
-            app:layout_constraintTop_toBottomOf="@id/guideline_top_5"
+            android:clipChildren="false"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -38,7 +30,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:clipChildren="false">
 
                 <!-- ヘッダー -->
                 <LinearLayout
@@ -47,9 +40,9 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="40dp"
                     android:layout_marginBottom="8dp"
-                    android:paddingTop="72dp"
+                    android:paddingTop="0dp"
                     android:clipChildren="false"
                     android:clipToPadding="false">
 
@@ -65,13 +58,14 @@
                         android:scaleX="1.5"
                         android:scaleY="1.5"
                         android:maxWidth="780dp"
-                        android:maxHeight="360dp" />
+                        android:maxHeight="360dp"
+                        android:elevation="20dp" />
 
                     <ImageView
                         android:id="@+id/image_character"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="40dp"
+                        android:layout_marginTop="80dp"
                         android:layout_marginBottom="40dp"
                         android:src="@drawable/logo_character"
                         android:contentDescription="@string/app_name"
@@ -135,14 +129,63 @@
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
-                <!-- 級選択ボタン（他ボタンと同サイズ・同デザイン） -->
+                <!-- 履歴ボタン横並び（ポイント履歴、学習履歴） -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:weightSum="1"
                     android:gravity="center_horizontal"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginBottom="24dp">
+
+                    <!-- ポイント履歴・学習履歴をまとめるコンテナ（幅80%＋マージン） -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.8"
+                        android:layout_marginHorizontal="8dp"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_to_point_history"
+                            style="@style/Widget.Material3.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:text="@string/action_point_history"
+                            android:textAllCaps="false"
+                            android:background="@drawable/sl_button_bg_navy"
+                            android:textColor="@color/sl_button_text"
+                            android:paddingVertical="12dp"
+                            app:backgroundTint="@null"
+                            android:textSize="16sp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_to_learning_history"
+                            style="@style/Widget.Material3.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            android:text="@string/action_learning_history"
+                            android:textAllCaps="false"
+                            android:background="@drawable/sl_button_bg_navy"
+                            android:textColor="@color/sl_button_text"
+                            android:paddingVertical="12dp"
+                            app:backgroundTint="@null"
+                            android:textSize="16sp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 級選択ボタン（他ボタンと同サイズ・同デザイン） -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="1"
+                    android:gravity="center_horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/spinner_grade_top"
@@ -168,7 +211,7 @@
                     android:text="@string/grade_stats_default"
                     android:textSize="16sp"
                     android:textColor="?attr/colorOnSurface"
-                    android:gravity="center_horizontal" />   <!-- 追加 -->
+                    android:gravity="center_horizontal" />
 
                 <!-- STARTボタン（幅80%） -->
                 <LinearLayout
@@ -187,75 +230,6 @@
                         android:layout_weight="0.8"
                         android:layout_marginTop="12dp"
                         android:text="@string/action_start"
-                        android:textAllCaps="false"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="12dp"
-                        app:backgroundTint="@null"
-                        android:textSize="20sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
-                    android:gravity="center_horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_to_list"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/action_word_list"
-                        android:textAllCaps="false"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="12dp"
-                        app:backgroundTint="@null"
-                        android:textSize="20sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
-                    android:gravity="center_horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_to_point_history"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/action_point_history"
-                        android:textAllCaps="false"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="12dp"
-                        app:backgroundTint="@null"
-                        android:textSize="20sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
-                    android:gravity="center_horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_to_learning_history"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/action_learning_history"
                         android:textAllCaps="false"
                         android:background="@drawable/sl_button_bg"
                         android:textColor="@color/sl_button_text"
@@ -301,8 +275,9 @@
             android:clickable="true"
             android:focusable="true"
             android:elevation="8dp"
-            app:layout_constraintTop_toBottomOf="@id/guideline_top_8"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="50dp"
             android:layout_marginEnd="12dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -18,6 +18,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AdminAuthManager
 import com.example.studylockapp.data.AppDatabase
@@ -56,6 +57,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // アプリの表示領域をシステムバー（ステータスバーなど）の裏側まで広げる設定
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        
         setContentView(R.layout.activity_main)
 
         gradeButton = findViewById(R.id.spinner_grade_top)
@@ -90,11 +95,6 @@ class MainActivity : AppCompatActivity() {
                     putExtra("gradeFilter", gradeSelected)
                 }
             )
-        }
-
-        // 一覧画面へ
-        findViewById<Button>(R.id.button_to_list).setOnClickListener {
-            startActivity(Intent(this, WordListActivity::class.java))
         }
 
         // ポイント履歴画面へ
