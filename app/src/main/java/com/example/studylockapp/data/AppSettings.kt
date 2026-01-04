@@ -32,6 +32,8 @@ class AppSettings(context: Context) {
         // 「初回にタイムゾーン選択を済ませたか」
         private const val KEY_TIME_ZONE_CHOSEN = "time_zone_chosen" // Boolean
 
+        private const val KEY_LAST_SELECTED_GRADE = "last_selected_grade"
+
         // --- App Lock ---
         private const val KEY_APP_LOCK_ENABLED = "appLockEnabled"
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
@@ -108,6 +110,10 @@ class AppSettings(context: Context) {
     var level1RetrySec: Long
         get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 60L)
         set(v) = prefs.edit { putLong(KEY_LEVEL1_RETRY_SEC, v) }
+
+    var lastSelectedGrade: String?
+        get() = prefs.getString(KEY_LAST_SELECTED_GRADE, null)
+        set(value) = prefs.edit { putString(KEY_LAST_SELECTED_GRADE, value) }
 
     /**
      * タイムゾーンID（例: "Asia/Tokyo"）

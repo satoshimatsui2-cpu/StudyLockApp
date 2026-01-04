@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StudyLockApp</string>
+    <string name="app_name">EikenForSlacker</string>
 
     <!-- 共通文言（Lint: Hardcoded text 対策） -->
     <string name="hint_select_grade">級を選択</string>
@@ -8,17 +8,16 @@
     <string name="label_word_count">%1$d語</string>
 
     <string name="action_start">学習スタート</string>
-    <string name="action_word_list">単語リスト</string>
-    <string name="action_point_history">ポイント履歴</string>
+    <string name="action_point_history">ポイント</string>
     <string name="action_learning_history">学習履歴</string>
     <string name="action_admin_settings">設定</string>
-    <string name="title_top">StudyLock</string>
+    <string name="title_top">Eiken for Slacker</string>
     <string name="points_default">保有ポイント: 0</string>
     <string name="point_stats_default">今日: 0 / 前日比: +0</string>
     <string name="cd_grade_dropdown">級を選択</string>
     <string name="admin_label_interval_sec">回答間隔: %.1f 秒</string>
-    <string name="admin_label_wrong_retry_sec">誤答リトライ: %1$d 秒</string>
-    <string name="admin_label_level1_retry_sec">Lv1リトライ: %1$d 秒</string>
+    <string name="admin_label_wrong_retry_sec">当日再出題(不正解)まで: %1$d 秒</string>
+    <string name="admin_label_level1_retry_sec">当日再出題(正解)まで: %1$d 秒</string>
     <string name="admin_label_se_correct">正解SE音量: %1$d%%</string>
     <string name="admin_label_se_wrong">不正解SE音量: %1$d%%</string>
     <string name="admin_label_tts">単語発音(TTS)音量: %1$d%%</string>
@@ -35,11 +34,11 @@
     <string name="block_invalid_points">有効なポイント数を入力してください</string>
     <string name="block_points_info">所持: %1$dpt / 使用: %2$dpt（%3$.1f分解放, 10pt=%4$d分）</string>
     <string name="block_unlocked_message">%1$.1f分 開放</string>
-    <string name="app_lock_accessibility_message">ロックを有効にするには、アクセシビリティ設定で本アプリをオンにしてください。\nロックしない場合はアプリロック設定をすべて無効にしてください。</string>
+    <string name="app_lock_accessibility_message">ロックを有効にするには、アクセシビリティ設定で本アプリを「許可」してください。\nロックしない場合はアプリロック設定をすべて無効にしてください。</string>
     <string name="app_lock_accessibility_go_settings">アクセシビリティの設定を行う</string>
     <string name="app_lock_accessibility_disable_all">ロック設定を全て解除する</string>
     <string name="app_lock_accessibility_title">アクセシビリティの設定</string>
-    <string name="app_lock_accessibility_intro">アプリロック機能を利用するにはアクセシビリティサービスを有効にする必要があります。設定へ進みONにしてください。不要な場合は後から設定画面で解除も出来ます。</string>
+    <string name="app_lock_accessibility_intro">アプリロック機能を利用するにはアクセシビリティサービスを許可する必要があります。設定へ進み許可してください。不要な場合は後から設定画面で解除も出来ます。</string>
     <string name="go_to_settings">設定へ</string>
     <string name="not_now">今は設定しない</string>
     <!-- App Lock Settings -->
@@ -62,7 +61,7 @@
     <string name="sound_settings_init_failed">画面初期化に失敗: %1$s</string>
     <!-- Sound Settings -->
     <string name="sound_settings_title">サウンド設定</string>
-    <string name="sound_settings_save">保存</string>
+    <string name="sound_settings_save">保存して戻る</string>
     <!-- ロック画面 -->
     <string name="block_points_default">所持: 0 pt / コスト: 0 pt</string>
     <string name="block_unlock_time_default">開放まで --分</string>
@@ -98,12 +97,6 @@
     <string name="admin_new_pin_hint">新しいPIN（4桁以上）</string>
     <string name="admin_new_pin_confirm_hint">確認用PIN</string>
 
-    <string name="admin_recovery_title">復旧コードを入力</string>
-    <string name="admin_enter_recovery_hint">復旧コード（英数字）</string>
-    <string name="admin_recovery_incorrect">復旧コードが違います</string>
-    <string name="admin_recovery_generated_snackbar">復旧コードを生成しました: %1$s</string>
-
-    <string name="admin_recovery_show_dialog">復旧コードを控えてください：\n%1$s</string>
     <string name="copy">コピー</string>
     <string name="copied">コピーしました</string>
 

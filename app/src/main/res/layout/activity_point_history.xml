@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:elevation="4dp"
-        app:title="ポイント利用履歴"
+        app:title="ポイント"
         app:navigationIcon="@drawable/ic_arrow_back" 
         app:layout_constraintTop_toTopOf="parent" />
 

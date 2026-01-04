@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_pattern_tile_repeat">
@@ -11,19 +12,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_top_5"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.05" />
-
         <androidx.core.widget.NestedScrollView
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:fillViewport="true"
-            android:padding="4dp"
-            app:layout_constraintTop_toBottomOf="@id/guideline_top_5"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="4dp"
+            android:paddingTop="0dp"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -37,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="10dp">
+                    android:layout_marginTop="0dp">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
@@ -58,7 +55,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text=""
-                                android:textSize="20sp"
+                                android:textSize="16sp"
                                 android:textStyle="bold"
                                 android:textColor="#111827"
                                 android:gravity="center"/>
@@ -94,7 +91,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="保有ポイント: 0"
-                                android:textSize="18sp"
+                                android:textSize="15sp"
                                 android:textStyle="bold"
                                 android:textColor="#111827"
                                 android:gravity="center"/>
@@ -383,40 +380,42 @@
 
                 </LinearLayout>
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
                     android:layout_marginTop="16dp">
 
                     <ImageButton
-                        android:id="@+id/button_sound_settings"
-                        android:layout_width="0dp"
+                        android:id="@+id/button_play_audio"
+                        android:layout_width="wrap_content"
                         android:layout_height="64dp"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:src="@drawable/setting_sound"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:scaleType="fitCenter"
-                        android:padding="0dp"
                         android:adjustViewBounds="true"
-                        android:contentDescription="サウンド設定" />
+                        android:background="?attr/selectableItemBackground"
+                        android:contentDescription="音声を再生"
+                        android:padding="0dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/play_sound"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <ImageButton
-                        android:id="@+id/button_play_audio"
-                        android:layout_width="0dp"
-                        android:layout_height="64dp"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/play_sound"
-                        android:background="?attr/selectableItemBackground"
-                        android:scaleType="fitCenter"
-                        android:padding="0dp"
+                        android:id="@+id/button_sound_settings"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="24dp"
                         android:adjustViewBounds="true"
-                        android:contentDescription="音声を再生" />
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="サウンド設定"
+                        android:padding="0dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/setting_sound"
+                        app:layout_constraintBottom_toBottomOf="@+id/button_play_audio"
+                        app:layout_constraintEnd_toStartOf="@+id/button_play_audio"
+                        app:layout_constraintTop_toTopOf="@+id/button_play_audio" />
 
-                </LinearLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
