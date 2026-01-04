@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.studylockapp.data.WordEntity
 
 @Dao
@@ -17,4 +18,11 @@ interface WordDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(words: List<WordEntity>)
+
+    @Update
+    suspend fun update(word: WordEntity)
+
+    // 追加: 単語の意味と説明を更新するクエリ
+    @Query("UPDATE words SET japanese = :meaning, english = :englishDesc WHERE word = :word")
+    suspend fun updateWordInfo(word: String, meaning: String, englishDesc: String): Int
 }
