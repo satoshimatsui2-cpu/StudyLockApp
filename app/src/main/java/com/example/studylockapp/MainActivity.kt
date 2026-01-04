@@ -157,6 +157,8 @@ class MainActivity : AppCompatActivity() {
     private fun openAdminSettings(isLongPressRoute: Boolean = false) {
         startActivity(Intent(this, AdminSettingsActivity::class.java).apply {
             putExtra("isLongPressRoute", isLongPressRoute)
+            // タイトル長押し経由なら認証済みとして扱うフラグ
+            // ただし、管理者設定側でもこのIntentを受け取って認証フラグを立てる必要がある
         })
     }
 

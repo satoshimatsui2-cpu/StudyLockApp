@@ -9,6 +9,8 @@ import android.text.InputType
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
+import android.view.View
+import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
@@ -19,6 +21,7 @@ import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.service.AccessibilityUtils
 import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.applock.AppLockSettingsActivity
+import com.example.studylockapp.ui.setup.AuthenticatorSetupActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
@@ -31,6 +34,7 @@ class AdminSettingsActivity : AppCompatActivity() {
 
     private lateinit var settings: AppSettings
     private var isAuthenticated: Boolean = false
+    private lateinit var scrollView: ScrollView
 
     // スイッチ用（濃い目）
     private val switchTextColor by lazy {
@@ -46,6 +50,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_settings)
         settings = AppSettings(this)
+        scrollView = findViewById(R.id.scroll_admin)
 
         isAuthenticated = savedInstanceState?.getBoolean("authenticated", false) ?: false
 
@@ -72,14 +77,27 @@ class AdminSettingsActivity : AppCompatActivity() {
      * 管理者画面ロックがONなら毎回PINを要求。失敗/キャンセルでActivity終了。
      */
     private fun ensureAuthenticatedOrFinish() {
-        if (!AdminAuthManager.isAdminLockEnabled(this)) return
-        if (isAuthenticated) return
+        if (!AdminAuthManager.isAdminLockEnabled(this)) {
+            // ロックされていない場合はコンテンツを表示
+            scrollView.visibility = View.VISIBLE
+            return
+        }
+        if (isAuthenticated) {
+            // 認証済みの場合も表示
+            scrollView.visibility = View.VISIBLE
+            return
+        }
+
+        // ロック有効かつ未認証の場合、コンテンツを隠す
+        scrollView.visibility = View.INVISIBLE
 
         promptPinAndDo(
             title = getString(R.string.admin_enter_pin_title),
             onSuccess = {
                 isAuthenticated = true
                 showToast(getString(R.string.admin_pin_ok))
+                // 認証成功で表示
+                scrollView.visibility = View.VISIBLE
             },
             onFailure = { finish() },
             onCancel = { finish() }
@@ -116,20 +134,28 @@ class AdminSettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, AppLockSettingsActivity::class.java))
         }
 
+        // SeekBar Max設定
+        seekInterval.max = 19
+        seekWrongRetry.max = 118
+        seekLevel1Retry.max = 118
+
+        // 回答間隔: 0.5秒単位 (500ms)
+        // Range: 500ms .. 10000ms
+        // Step: 500ms
         fun intervalMsToProgress(ms: Long): Int {
             val clamped = ms.coerceIn(500L, 10_000L)
-            return ((clamped - 500L) / 100L).toInt() // 0..95
+            return ((clamped - 500L) / 500L).toInt() // 0..19
         }
         fun progressToIntervalMs(progress: Int): Long =
-            500L + (progress.coerceIn(0, 95) * 100L)
+            500L + (progress.coerceIn(0, 19) * 500L)
 
-        // リトライ秒（10..600）
+        // リトライ秒（10..600）: 5秒単位
         fun secToProgress(sec: Long): Int {
             val clamped = sec.coerceIn(10L, 600L)
-            return (clamped - 10L).toInt() // 0..590
+            return ((clamped - 10L) / 5L).toInt() // 0..118
         }
         fun progressToSec(progress: Int): Long =
-            (progress.coerceIn(0, 590) + 10).toLong() // 10..600
+            10L + (progress.coerceIn(0, 118) * 5L) // 10..600
 
         // 10ptあたり分数（1..10）: progress 0..9 → 値 1..10
         fun minPer10PtToProgress(value: Int): Int = value.coerceIn(1, 10) - 1
@@ -193,6 +219,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         val switchAppLockRequired = findViewById<SwitchMaterial>(R.id.switch_app_lock_required)
         val buttonChangePin = findViewById<MaterialButton>(R.id.button_change_pin) ?: return
         val switchEnableLongPress = findViewById<SwitchMaterial>(R.id.switch_enable_long_press) ?: return
+        val buttonSetupAuthenticator = findViewById<MaterialButton>(R.id.button_setup_authenticator)
 
         // スイッチ文字色を濃く
         switchAdminLock.setTextColor(switchTextColor)
@@ -261,6 +288,11 @@ class AdminSettingsActivity : AppCompatActivity() {
                 onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }
             )
         }
+
+        // Authenticator設定
+        buttonSetupAuthenticator?.setOnClickListener {
+            startActivity(Intent(this, AuthenticatorSetupActivity::class.java))
+        }
     }
 
     /** PIN入力ダイアログ */
@@ -281,7 +313,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         }
         inputLayout.addView(edit)
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(coloredTitle(title))
             .setView(inputLayout)
             .setPositiveButton(R.string.ok) { _, _ ->
@@ -294,6 +326,47 @@ class AdminSettingsActivity : AppCompatActivity() {
             }
             .setNegativeButton(R.string.cancel) { _, _ -> onCancel?.invoke() }
             .setOnCancelListener { onCancel?.invoke() }
+
+        // PINを忘れた場合（Authenticator設定済みの場合のみ表示）
+        if (AdminAuthManager.isTotpSet(this)) {
+            dialog.setNeutralButton(R.string.admin_forgot_pin) { _, _ ->
+                promptTotpAndResetPin(onSuccess)
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun promptTotpAndResetPin(onSuccess: () -> Unit) {
+        val inputLayout = TextInputLayout(this).apply {
+            hint = getString(R.string.totp_verify_hint)
+        }
+        val edit = TextInputEditText(inputLayout.context).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setTextColor(dialogTextColor)
+            setHintTextColor(dialogHintColor)
+        }
+        inputLayout.addView(edit)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(coloredTitle(getString(R.string.totp_enter_code_title)))
+            .setView(inputLayout)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val code = edit.text?.toString().orEmpty()
+                if (AdminAuthManager.verifyTotp(this, code)) {
+                    // 認証成功時、とりあえずPINをリセット（新規設定）させるか、
+                    // または一時的に認証済み状態にして、設定画面に入れるようにする
+                    // 今回は「認証済み状態にして設定画面へ」→そこでPIN変更できる
+                    showToast(getString(R.string.totp_reset_pin_success))
+                    // 自動的に新しいPINを設定させるフローに誘導
+                    promptSetNewPin(onSuccess)
+                } else {
+                    showToast(getString(R.string.totp_incorrect))
+                    // 再試行
+                    promptTotpAndResetPin(onSuccess)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 

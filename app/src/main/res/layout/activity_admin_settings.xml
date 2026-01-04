@@ -120,6 +120,22 @@
                         android:layout_height="wrap_content"
                         android:text="@string/admin_change_pin" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_setup_authenticator"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_setup_authenticator"
+                        android:layout_marginTop="8dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_setup_authenticator_desc"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:gravity="center"/>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -145,7 +161,7 @@
                 android:id="@+id/seek_interval"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="95" />
+                android:max="19" />
 
             <!-- 誤答リトライ秒 -->
             <TextView
@@ -153,14 +169,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="14dp"
-                tools:text="誤答リトライ: 60 秒"
+                tools:text="当日再出題（不正解）まで: 120 秒"
                 android:textColor="?attr/colorOnSurface" />
 
             <SeekBar
                 android:id="@+id/seek_wrong_retry"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="590" />
+                android:max="118" />
 
             <!-- Lv1リトライ秒 -->
             <TextView
@@ -168,14 +184,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="14dp"
-                tools:text="Lv1リトライ: 60 秒"
+                tools:text="当日再出題（正解字）まで: 120 秒"
                 android:textColor="?attr/colorOnSurface" />
 
             <SeekBar
                 android:id="@+id/seek_level1_retry"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="590" />
+                android:max="118" />
 
             <!-- 10ポイントあたりの分数 (1〜10) -->
             <TextView

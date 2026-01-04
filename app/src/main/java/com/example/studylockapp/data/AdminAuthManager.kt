@@ -2,8 +2,12 @@ package com.example.studylockapp.data
 
 import android.content.Context
 import android.util.Base64
+import java.nio.ByteBuffer
+import java.security.InvalidKeyException
 import java.security.MessageDigest
 import java.security.SecureRandom
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 object AdminAuthManager {
 
@@ -16,8 +20,9 @@ object AdminAuthManager {
     private const val KEY_ADMIN_PIN_SALT_B64 = "adminPinSaltB64"
     private const val KEY_ADMIN_PIN_HASH_B64 = "adminPinHashB64"
 
-    private const val KEY_ADMIN_RECOVERY_SALT_B64 = "adminRecoverySaltB64"
-    private const val KEY_ADMIN_RECOVERY_HASH_B64 = "adminRecoveryHashB64"
+    // TOTP Secret (Base32 encoded string is standard for Authenticator apps, but we store raw bytes or Base64 here)
+    // Authenticator用のURIにする際はBase32エンコードが必要。保存はBase64で統一して管理。
+    private const val KEY_TOTP_SECRET_B64 = "adminTotpSecretB64"
     // endregion
 
     // region Flags
@@ -62,7 +67,6 @@ object AdminAuthManager {
     }
 
     fun setPin(context: Context, pin: String) {
-        // UI側で数字のみ制限してもOKだが、ここでも最低限チェック
         require(pin.length >= 4) { "PIN must be at least 4 chars" }
 
         val salt = randomBytes(16)
@@ -87,51 +91,101 @@ object AdminAuthManager {
     }
     // endregion
 
-    // region Recovery code (英数字)
-    fun isRecoveryCodeSet(context: Context): Boolean {
-        val sp = prefs(context)
-        return sp.getString(KEY_ADMIN_RECOVERY_SALT_B64, null) != null &&
-                sp.getString(KEY_ADMIN_RECOVERY_HASH_B64, null) != null
+    // region TOTP (Google Authenticator)
+    fun isTotpSet(context: Context): Boolean {
+        return prefs(context).getString(KEY_TOTP_SECRET_B64, null) != null
     }
 
     /**
-     * 親が控える用の復旧コードを生成（表示はUI側で「初回のみ」運用）
-     * 紛らわしい文字を除外: 0,O,1,I,l など
+     * 新しいシークレットキー（20バイト推奨）を生成してBase32文字列（URI用）とBase64（保存用）を返す
+     * 保存はしない。ユーザーが確認後に setTotpSecret を呼ぶ想定。
      */
-    fun generateRecoveryCode(length: Int = 16): String {
-        require(length >= 12) { "Recovery code length should be >= 12" }
-
-        val chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
-        val rnd = SecureRandom()
-        val sb = StringBuilder(length)
-        repeat(length) {
-            sb.append(chars[rnd.nextInt(chars.length)])
-        }
-        return sb.toString()
+    fun generateTotpSecretKey(): ByteArray {
+        // 160 bits = 20 bytes is recommended for SHA1
+        return randomBytes(20)
     }
 
-    fun setRecoveryCode(context: Context, code: String) {
-        require(code.length >= 12) { "Recovery code must be at least 12 chars" }
-
-        val salt = randomBytes(16)
-        val hash = sha256(salt, code.toByteArray(Charsets.UTF_8))
-
+    fun setTotpSecret(context: Context, secretBytes: ByteArray) {
         prefs(context).edit()
-            .putString(KEY_ADMIN_RECOVERY_SALT_B64, b64(salt))
-            .putString(KEY_ADMIN_RECOVERY_HASH_B64, b64(hash))
+            .putString(KEY_TOTP_SECRET_B64, b64(secretBytes))
             .apply()
     }
 
-    fun verifyRecoveryCode(context: Context, code: String): Boolean {
-        val sp = prefs(context)
-        val saltB64 = sp.getString(KEY_ADMIN_RECOVERY_SALT_B64, null) ?: return false
-        val hashB64 = sp.getString(KEY_ADMIN_RECOVERY_HASH_B64, null) ?: return false
+    /**
+     * TOTPコード検証
+     * Google Authenticator仕様: HMAC-SHA1, 30秒ステップ, 6桁
+     * 前後1ステップ（計90秒）の猶予を持たせる
+     */
+    fun verifyTotp(context: Context, codeString: String): Boolean {
+        val secretB64 = prefs(context).getString(KEY_TOTP_SECRET_B64, null) ?: return false
+        val secret = fromB64(secretB64)
+        val code = codeString.toLongOrNull() ?: return false
 
-        val salt = fromB64(saltB64)
-        val expected = fromB64(hashB64)
-        val actual = sha256(salt, code.toByteArray(Charsets.UTF_8))
+        // Check current, prev, next intervals
+        val currentInterval = System.currentTimeMillis() / 1000 / 30
+        for (i in -1..1) {
+            if (generateTOTP(secret, currentInterval + i) == code) {
+                return true
+            }
+        }
+        return false
+    }
 
-        return MessageDigest.isEqual(expected, actual)
+    // TOTP algorithm implementation
+    private fun generateTOTP(secret: ByteArray, interval: Long): Long {
+        val data = ByteBuffer.allocate(8).putLong(interval).array()
+        val algo = "HmacSHA1"
+        try {
+            val mac = Mac.getInstance(algo)
+            mac.init(SecretKeySpec(secret, algo))
+            val hash = mac.doFinal(data)
+
+            // Dynamic truncation
+            val offset = hash[hash.size - 1].toInt() and 0xF
+            val binary = ((hash[offset].toInt() and 0x7F) shl 24) or
+                    ((hash[offset + 1].toInt() and 0xFF) shl 16) or
+                    ((hash[offset + 2].toInt() and 0xFF) shl 8) or
+                    (hash[offset + 3].toInt() and 0xFF)
+
+            return (binary % 1_000_000).toLong()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return -1
+        }
+    }
+
+    /**
+     * Base32 Encode (RFC 4648) for Google Authenticator URI
+     * Simplified implementation
+     */
+    fun toBase32(bytes: ByteArray): String {
+        val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+        var i = 0
+        var index = 0
+        var digit = 0
+        val sb = StringBuilder((bytes.size * 8 + 4) / 5)
+
+        while (i < bytes.size) {
+            val currByte = if (bytes[i] >= 0) bytes[i].toInt() else bytes[i].toInt() + 256
+
+            if (index > 3) {
+                val nextByte = if ((i + 1) < bytes.size)
+                    (if (bytes[i + 1] >= 0) bytes[i + 1].toInt() else bytes[i + 1].toInt() + 256)
+                else 0
+
+                digit = currByte and (0xFF shr index)
+                index = (index + 5) % 8
+                digit = digit shl index
+                digit = digit or (nextByte shr (8 - index))
+                i++
+            } else {
+                digit = (currByte shr (8 - (index + 5))) and 0x1F
+                index = (index + 5) % 8
+                if (index == 0) i++
+            }
+            sb.append(alphabet[digit])
+        }
+        return sb.toString()
     }
     // endregion
 
@@ -139,8 +193,8 @@ object AdminAuthManager {
         prefs(context).edit()
             .remove(KEY_ADMIN_PIN_SALT_B64)
             .remove(KEY_ADMIN_PIN_HASH_B64)
-            .remove(KEY_ADMIN_RECOVERY_SALT_B64)
-            .remove(KEY_ADMIN_RECOVERY_HASH_B64)
+            // .remove(KEY_TOTP_SECRET_B64) // TOTPは残すべきかもしれないが、初期化なら消す
+            .remove(KEY_TOTP_SECRET_B64)
             .apply()
     }
 
@@ -165,4 +219,3 @@ object AdminAuthManager {
         Base64.decode(s, Base64.NO_WRAP)
     // endregion
 }
-

@@ -104,11 +104,11 @@ class AppSettings(context: Context) {
         set(value) = prefs.edit { putLong(KEY_ANSWER_INTERVAL_MS, value) }
 
     var wrongRetrySec: Long
-        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 60L)
+        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 120L)
         set(v) = prefs.edit { putLong(KEY_WRONG_RETRY_SEC, v) }
 
     var level1RetrySec: Long
-        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 60L)
+        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 120L)
         set(v) = prefs.edit { putLong(KEY_LEVEL1_RETRY_SEC, v) }
 
     var lastSelectedGrade: String?

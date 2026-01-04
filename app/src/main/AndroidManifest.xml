@@ -45,6 +45,12 @@
         <activity
             android:name=".AdminSettingsActivity"
             android:exported="false" />
+            
+        <!-- Authenticator設定 -->
+        <activity
+            android:name=".ui.setup.AuthenticatorSetupActivity"
+            android:exported="false"
+            android:label="@string/totp_setup_title" />
 
         <!-- 学習画面 -->
         <activity

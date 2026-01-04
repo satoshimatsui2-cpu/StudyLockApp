@@ -15,7 +15,7 @@
     <string name="points_default">保有ポイント: 0</string>
     <string name="point_stats_default">今日: 0 / 前日比: +0</string>
     <string name="cd_grade_dropdown">級を選択</string>
-    <string name="admin_label_interval_sec">回答間隔: %.1f 秒</string>
+    <string name="admin_label_interval_sec">回答後、次の問題が出題されるまで: %.1f 秒</string>
     <string name="admin_label_wrong_retry_sec">当日再出題(不正解)まで: %1$d 秒</string>
     <string name="admin_label_level1_retry_sec">当日再出題(正解)まで: %1$d 秒</string>
     <string name="admin_label_se_correct">正解SE音量: %1$d%%</string>
@@ -75,17 +75,14 @@
     <string name="label_auto_play_audio">自動再生</string>
 
     <string name="admin_lock_title">管理者画面のロック</string>
-    <string name="admin_lock_desc">ONにすると管理者設定を開くたびに毎回PINを要求します</string>
+    <string name="admin_lock_desc">毎回PINを要求します</string>
     <string name="admin_lock_enabled">管理者画面のロックを有効にしました</string>
     <string name="admin_lock_disabled">管理者画面のロックを無効にしました</string>
-
-    <string name="admin_hide_button_title">管理者設定ボタンを隠す</string>
-    <string name="admin_hide_button_desc">ONにすると既存の管理者設定ボタンを隠し、タイトル長押しだけで入れるようにします</string>
     <string name="admin_hide_button_enabled">管理者設定ボタンを隠しました（タイトル長押しで入れます）</string>
     <string name="admin_hide_button_disabled">管理者設定ボタンを表示します</string>
 
     <string name="admin_change_pin">PINを変更する</string>
-    <string name="admin_forgot_pin">PINを忘れた場合（復旧コード）</string>
+    <string name="admin_forgot_pin">PINを忘れた場合</string>
     <string name="admin_enter_pin_title">管理者PINを入力</string>
     <string name="admin_enter_pin_hint">PIN</string>
     <string name="admin_pin_ok">認証しました</string>
@@ -103,7 +100,7 @@
     <string name="ok">OK</string>
     <string name="cancel">キャンセル</string>
     <string name="admin_app_lock_required_title">アプリロック機能を必須にする</string>
-    <string name="admin_app_lock_required_desc">ONにするとアクセシビリティによるアプリロックを必須にします。OFFだと任意です。</string>
+    <string name="admin_app_lock_required_desc">アクセシビリティを許可しないと利用できない</string>
     <string name="admin_app_lock_required_on">アプリロック必須をONにしました</string>
 
     <!-- Admin Settings Layout Strings -->
@@ -111,6 +108,18 @@
     <string name="admin_save_and_return">保存して戻る</string>
     <string name="admin_select_lock_apps">ロックするアプリを選択する</string>
     <string name="admin_open_timezone_settings">タイムゾーン設定を開く</string>
+    
+    <!-- TOTP -->
+    <string name="admin_setup_authenticator">Authenticator設定</string>
+    <string name="admin_setup_authenticator_desc">PINを忘れた場合のリセット手段</string>
+    <string name="totp_setup_title">Authenticator設定</string>
+    <string name="totp_setup_desc">Google Authenticator等のアプリでQRコードをスキャンし、表示される6桁のコードを入力してください。</string>
+    <string name="totp_verify_hint">6桁のコード</string>
+    <string name="totp_verify_btn">確認して有効化</string>
+    <string name="totp_incorrect">コードが違います</string>
+    <string name="totp_setup_complete">Authenticatorを設定しました</string>
+    <string name="totp_enter_code_title">認証コード入力</string>
+    <string name="totp_reset_pin_success">認証成功: PINをリセットしました。再度設定してください。</string>
 
     <!-- Learning Modes -->
     <string name="mode_meaning">英日</string>
