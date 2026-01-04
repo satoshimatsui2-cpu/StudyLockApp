@@ -43,9 +43,10 @@
                     android:layout_margin="16dp" />
                 
                 <TextView
+                    android:id="@+id/text_total_learned"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Total Learned: 1,240 Words"
+                    android:text="Total Learned: -- Words"
                     android:textAlignment="center"
                     android:textColor="#333333"
                     android:textStyle="bold"/>

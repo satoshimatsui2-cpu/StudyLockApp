@@ -3,6 +3,7 @@ package com.example.studylockapp.ui
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,6 +34,7 @@ class LearningHistoryActivity : AppCompatActivity() {
     private lateinit var sortChipGroup: ChipGroup
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: LearningHistoryAdapter
+    private lateinit var textTotalLearned: TextView // 追加
 
     private var fullList: List<WordHistoryItem> = emptyList()
     private lateinit var db: AppDatabase
@@ -56,6 +58,7 @@ class LearningHistoryActivity : AppCompatActivity() {
         gradeChipGroup = findViewById(R.id.grade_filter_group)
         sortChipGroup = findViewById(R.id.sort_chip_group)
         recyclerView = findViewById(R.id.recycler_history)
+        textTotalLearned = findViewById(R.id.text_total_learned) // 追加
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -89,6 +92,7 @@ class LearningHistoryActivity : AppCompatActivity() {
             val entries = ArrayList<BarEntry>()
             val labels = ArrayList<String>()
             val calendar = Calendar.getInstance()
+            var totalCount = 0 // 合計カウント用
 
             when (period) {
                 0 -> { // Daily
@@ -107,6 +111,7 @@ class LearningHistoryActivity : AppCompatActivity() {
 
                         // 変更後: ログテーブルから取得 (履歴として正しく残っている)
                         val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
+                        totalCount += count // 合計に加算
                         entries.add(BarEntry((6 - i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.MONTH) + 1}/${calendar.get(Calendar.DAY_OF_MONTH)}")
                     }
@@ -125,6 +130,7 @@ class LearningHistoryActivity : AppCompatActivity() {
 
                         // 変更後: ログテーブルから取得
                         val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
+                        totalCount += count // 合計に加算
                         entries.add(BarEntry((3-i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.WEEK_OF_YEAR)}週")
                     }
@@ -143,6 +149,7 @@ class LearningHistoryActivity : AppCompatActivity() {
 
                         // 変更後: ログテーブルから取得
                         val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
+                        totalCount += count // 合計に加算
                         entries.add(BarEntry((5-i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.MONTH) + 1}月")
                     }
@@ -160,6 +167,7 @@ class LearningHistoryActivity : AppCompatActivity() {
                 barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
                 barChart.data = data
                 barChart.invalidate()
+                textTotalLearned.text = "Total Learned: $totalCount Words" // テキスト更新
             }
         }
     }
