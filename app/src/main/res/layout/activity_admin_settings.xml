@@ -13,16 +13,35 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.07" />
+        app:layout_constraintGuide_percent="0.01" />
 
+    <!-- 保存ボタンを画面下部に固定 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_save"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/admin_save_and_return"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- スクロールビュー -->
+    <!-- scrollbars="none" でスクロールバーを非表示 -->
     <ScrollView
         android:id="@+id/scroll_admin"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="16dp"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
         android:clipToPadding="false"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/guideline_top_5"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btn_save"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -30,23 +49,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/admin_settings_title"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"
-                android:paddingBottom="6dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_save"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/admin_save_and_return"
-                android:textAllCaps="false" />
 
             <!-- 管理者セキュリティ設定 -->
             <com.google.android.material.card.MaterialCardView
@@ -223,6 +225,10 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/admin_open_timezone_settings"
                 android:textAllCaps="false" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="60dp" /> <!-- Bottom Padding for fab/button safety -->
 
         </LinearLayout>
     </ScrollView>
