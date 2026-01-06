@@ -42,7 +42,7 @@ class LearningHistoryActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: LearningHistoryAdapter
     private lateinit var textTotalLearned: TextView
-    private lateinit var searchView: SearchView // 追加
+    private lateinit var searchView: SearchView
 
     private var fullList: List<WordHistoryItem> = emptyList()
     private var currentFilterQuery: String = "" // 検索クエリ保持用
@@ -68,7 +68,7 @@ class LearningHistoryActivity : AppCompatActivity() {
         sortChipGroup = findViewById(R.id.sort_chip_group)
         recyclerView = findViewById(R.id.recycler_history)
         textTotalLearned = findViewById(R.id.text_total_learned)
-        searchView = findViewById(R.id.search_view) // 追加
+        searchView = findViewById(R.id.search_view)
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -102,6 +102,7 @@ class LearningHistoryActivity : AppCompatActivity() {
         barChart.description.isEnabled = false
         barChart.setDrawGridBackground(false)
         barChart.setFitBars(true)
+        // 初期アニメーション
         barChart.animateY(1000)
         
         val xAxis = barChart.xAxis
@@ -118,68 +119,113 @@ class LearningHistoryActivity : AppCompatActivity() {
             val entries = ArrayList<BarEntry>()
             val labels = ArrayList<String>()
             val calendar = Calendar.getInstance()
+            
             var totalCount = 0
 
+            // 集計には "getStudyCountInTerm" (延べ回数) を使用して、日次合計と週次・月次の整合性を取る
+            // ※復習も含めて学習した回数を表示する方針
+
             when (period) {
-                0 -> { // Daily
+                0 -> { // Daily (過去7日間)
                     for (i in 6 downTo 0) {
                         calendar.timeInMillis = System.currentTimeMillis()
                         calendar.add(Calendar.DAY_OF_YEAR, -i)
+                        
+                        // 00:00:00.000
                         calendar.set(Calendar.HOUR_OF_DAY, 0)
                         calendar.set(Calendar.MINUTE, 0)
                         calendar.set(Calendar.SECOND, 0)
+                        calendar.set(Calendar.MILLISECOND, 0)
                         val startTime = calendar.timeInMillis
 
+                        // 23:59:59.999
                         calendar.set(Calendar.HOUR_OF_DAY, 23)
                         calendar.set(Calendar.MINUTE, 59)
                         calendar.set(Calendar.SECOND, 59)
+                        calendar.set(Calendar.MILLISECOND, 999)
                         val endTime = calendar.timeInMillis
 
-                        val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
+                        // ここを変更: getLearnedWordCountInTerm -> getStudyCountInTerm
+                        val count = db.studyLogDao().getStudyCountInTerm(startTime, endTime)
                         totalCount += count
                         entries.add(BarEntry((6 - i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.MONTH) + 1}/${calendar.get(Calendar.DAY_OF_MONTH)}")
                     }
                 }
-                1 -> { // Weekly
+                1 -> { // Weekly (過去4週間)
                     for (i in 3 downTo 0) {
                         calendar.timeInMillis = System.currentTimeMillis()
-                        calendar.add(Calendar.WEEK_OF_YEAR, -i)
-                        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+                        
+                        // ロケールに依存せず確実に「今週の開始日」を取る
+                        // currentDow: 日=1, 月=2 ... 土=7
+                        val currentDow = calendar.get(Calendar.DAY_OF_WEEK)
+                        val firstDow = calendar.firstDayOfWeek
+                        
+                        // 今週の開始日までの差分日数 (マイナス方向)
+                        // 例: 今日水(4), 開始日(1) -> (4 - 1 + 7) % 7 = 3日戻る
+                        val diffDays = (currentDow - firstDow + 7) % 7
+                        calendar.add(Calendar.DAY_OF_YEAR, -diffDays)
+                        
+                        // 時間をリセットして「今週の開始日の00:00」にする
                         calendar.set(Calendar.HOUR_OF_DAY, 0)
+                        calendar.set(Calendar.MINUTE, 0)
+                        calendar.set(Calendar.SECOND, 0)
+                        calendar.set(Calendar.MILLISECOND, 0)
+
+                        // そこから i 週戻る
+                        calendar.add(Calendar.WEEK_OF_YEAR, -i)
                         val startTime = calendar.timeInMillis
 
-                        calendar.add(Calendar.DAY_OF_YEAR, 6)
-                        calendar.set(Calendar.HOUR_OF_DAY, 23)
-                        val endTime = calendar.timeInMillis
+                        // その週の終了日時（開始日 + 6日 の 23:59:59）
+                        val endCal = calendar.clone() as Calendar
+                        endCal.add(Calendar.DAY_OF_YEAR, 6)
+                        endCal.set(Calendar.HOUR_OF_DAY, 23)
+                        endCal.set(Calendar.MINUTE, 59)
+                        endCal.set(Calendar.SECOND, 59)
+                        endCal.set(Calendar.MILLISECOND, 999)
+                        val endTime = endCal.timeInMillis
 
-                        val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
+                        val count = db.studyLogDao().getStudyCountInTerm(startTime, endTime)
                         totalCount += count
-                        entries.add(BarEntry((3-i).toFloat(), count.toFloat()))
-                        labels.add("${calendar.get(Calendar.WEEK_OF_YEAR)}週")
+                        entries.add(BarEntry((3 - i).toFloat(), count.toFloat()))
+                        
+                        // ラベル: "M/D" (開始日)
+                        labels.add("${calendar.get(Calendar.MONTH) + 1}/${calendar.get(Calendar.DAY_OF_MONTH)}")
                     }
                 }
-                2 -> { // Monthly
+                2 -> { // Monthly (過去6ヶ月)
                     for (i in 5 downTo 0) {
                         calendar.timeInMillis = System.currentTimeMillis()
-                        calendar.add(Calendar.MONTH, -i)
+                        
+                        // 今月の1日へ移動
                         calendar.set(Calendar.DAY_OF_MONTH, 1)
                         calendar.set(Calendar.HOUR_OF_DAY, 0)
+                        calendar.set(Calendar.MINUTE, 0)
+                        calendar.set(Calendar.SECOND, 0)
+                        calendar.set(Calendar.MILLISECOND, 0)
+
+                        // そこから -i ヶ月戻る
+                        calendar.add(Calendar.MONTH, -i)
                         val startTime = calendar.timeInMillis
 
-                        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-                        calendar.set(Calendar.HOUR_OF_DAY, 23)
-                        val endTime = calendar.timeInMillis
+                        // その月の末日を取得
+                        val endCal = calendar.clone() as Calendar
+                        endCal.set(Calendar.DAY_OF_MONTH, endCal.getActualMaximum(Calendar.DAY_OF_MONTH))
+                        endCal.set(Calendar.HOUR_OF_DAY, 23)
+                        endCal.set(Calendar.MINUTE, 59)
+                        endCal.set(Calendar.SECOND, 59)
+                        endCal.set(Calendar.MILLISECOND, 999)
+                        val endTime = endCal.timeInMillis
 
-                        val count = db.studyLogDao().getLearnedWordCountInTerm(startTime, endTime)
+                        val count = db.studyLogDao().getStudyCountInTerm(startTime, endTime)
                         totalCount += count
-                        entries.add(BarEntry((5-i).toFloat(), count.toFloat()))
+                        entries.add(BarEntry((5 - i).toFloat(), count.toFloat()))
                         labels.add("${calendar.get(Calendar.MONTH) + 1}月")
                     }
                 }
             }
 
-            val dataSet = BarDataSet(entries, "学習単語数")
+            val dataSet = BarDataSet(entries, "学習回数") // ラベル変更
             dataSet.color = Color.parseColor("#2196F3")
             dataSet.valueTextSize = 10f
 
@@ -190,7 +236,9 @@ class LearningHistoryActivity : AppCompatActivity() {
                 barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
                 barChart.data = data
                 barChart.invalidate()
-                textTotalLearned.text = "Total Learned: $totalCount Words"
+                // データ更新時にアニメーションを実行
+                barChart.animateY(1000)
+                textTotalLearned.text = "Total Study: $totalCount" // ラベル変更
             }
         }
     }
@@ -226,7 +274,7 @@ class LearningHistoryActivity : AppCompatActivity() {
                     id = word.no.toLong(),
                     word = word.word,
                     meaning = word.japanese ?: "",
-                    englishDesc = word.english ?: "", // 追加: 英語の説明を保持できるようにDataクラスの拡張が必要
+                    englishDesc = word.english ?: "",
                     grade = word.grade,
                     statuses = statuses
                 )
@@ -282,11 +330,7 @@ class LearningHistoryActivity : AppCompatActivity() {
         val editEnglishDesc = dialogView.findViewById<TextInputEditText>(R.id.edit_english_desc)
 
         editMeaning.setText(item.meaning)
-        
-        // WordHistoryItem に englishDesc を追加していない場合、DBから再取得する必要があるが
-        // ここでは一旦 loadListData で englishDesc も詰めていると仮定して実装
-        // Data classの修正が必要
-        editEnglishDesc.setText(item.englishDesc) // 仮
+        editEnglishDesc.setText(item.englishDesc)
 
         AlertDialog.Builder(this)
             .setTitle("単語情報の修正: ${item.word}")
@@ -294,23 +338,20 @@ class LearningHistoryActivity : AppCompatActivity() {
             .setPositiveButton("保存") { _, _ ->
                 val newMeaning = editMeaning.text.toString()
                 val newEnglishDesc = editEnglishDesc.text.toString()
-                // 変更: updateWordInfo に word (String) を渡す
                 updateWordInfo(item.word, newMeaning, newEnglishDesc)
             }
             .setNegativeButton("キャンセル", null)
             .show()
     }
 
-    // 変更: wordId: Int ではなく word: String を受け取り、Daoの新しいメソッドを呼ぶ
     private fun updateWordInfo(word: String, newMeaning: String, newEnglishDesc: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             val wordDao = db.wordDao()
-            // 専用のUPDATEクエリを使用
             wordDao.updateWordInfo(word, newMeaning, newEnglishDesc)
             
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@LearningHistoryActivity, "修正しました", Toast.LENGTH_SHORT).show()
-                loadListData() // リスト再読み込み
+                loadListData()
             }
         }
     }

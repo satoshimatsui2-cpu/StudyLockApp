@@ -18,6 +18,13 @@ interface StudyLogDao {
     @Query("SELECT COUNT(DISTINCT wordId) FROM study_logs WHERE learnedAt BETWEEN :startTime AND :endTime")
     suspend fun getLearnedWordCountInTerm(startTime: Long, endTime: Long): Int
 
+    /**
+     * 指定期間内の学習回数（延べ数）をカウントする
+     * 同じ単語を複数回学習した場合もすべてカウントします
+     */
+    @Query("SELECT COUNT(*) FROM study_logs WHERE learnedAt BETWEEN :startTime AND :endTime")
+    suspend fun getStudyCountInTerm(startTime: Long, endTime: Long): Int
+
     // (オプション) モード別で集計したい場合
     @Query("SELECT COUNT(DISTINCT wordId) FROM study_logs WHERE mode = :mode AND learnedAt BETWEEN :startTime AND :endTime")
     suspend fun getLearnedWordCountInTermByMode(mode: String, startTime: Long, endTime: Long): Int
