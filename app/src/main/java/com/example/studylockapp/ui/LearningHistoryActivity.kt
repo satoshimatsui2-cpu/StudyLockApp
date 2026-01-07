@@ -122,9 +122,6 @@ class LearningHistoryActivity : AppCompatActivity() {
             
             var totalCount = 0
 
-            // 集計には "getStudyCountInTerm" (延べ回数) を使用して、日次合計と週次・月次の整合性を取る
-            // ※復習も含めて学習した回数を表示する方針
-
             when (period) {
                 0 -> { // Daily (過去7日間)
                     for (i in 6 downTo 0) {
@@ -145,7 +142,6 @@ class LearningHistoryActivity : AppCompatActivity() {
                         calendar.set(Calendar.MILLISECOND, 999)
                         val endTime = calendar.timeInMillis
 
-                        // ここを変更: getLearnedWordCountInTerm -> getStudyCountInTerm
                         val count = db.studyLogDao().getStudyCountInTerm(startTime, endTime)
                         totalCount += count
                         entries.add(BarEntry((6 - i).toFloat(), count.toFloat()))
@@ -156,27 +152,20 @@ class LearningHistoryActivity : AppCompatActivity() {
                     for (i in 3 downTo 0) {
                         calendar.timeInMillis = System.currentTimeMillis()
                         
-                        // ロケールに依存せず確実に「今週の開始日」を取る
-                        // currentDow: 日=1, 月=2 ... 土=7
                         val currentDow = calendar.get(Calendar.DAY_OF_WEEK)
                         val firstDow = calendar.firstDayOfWeek
                         
-                        // 今週の開始日までの差分日数 (マイナス方向)
-                        // 例: 今日水(4), 開始日(1) -> (4 - 1 + 7) % 7 = 3日戻る
                         val diffDays = (currentDow - firstDow + 7) % 7
                         calendar.add(Calendar.DAY_OF_YEAR, -diffDays)
                         
-                        // 時間をリセットして「今週の開始日の00:00」にする
                         calendar.set(Calendar.HOUR_OF_DAY, 0)
                         calendar.set(Calendar.MINUTE, 0)
                         calendar.set(Calendar.SECOND, 0)
                         calendar.set(Calendar.MILLISECOND, 0)
 
-                        // そこから i 週戻る
                         calendar.add(Calendar.WEEK_OF_YEAR, -i)
                         val startTime = calendar.timeInMillis
 
-                        // その週の終了日時（開始日 + 6日 の 23:59:59）
                         val endCal = calendar.clone() as Calendar
                         endCal.add(Calendar.DAY_OF_YEAR, 6)
                         endCal.set(Calendar.HOUR_OF_DAY, 23)
@@ -189,7 +178,6 @@ class LearningHistoryActivity : AppCompatActivity() {
                         totalCount += count
                         entries.add(BarEntry((3 - i).toFloat(), count.toFloat()))
                         
-                        // ラベル: "M/D" (開始日)
                         labels.add("${calendar.get(Calendar.MONTH) + 1}/${calendar.get(Calendar.DAY_OF_MONTH)}")
                     }
                 }
@@ -197,18 +185,15 @@ class LearningHistoryActivity : AppCompatActivity() {
                     for (i in 5 downTo 0) {
                         calendar.timeInMillis = System.currentTimeMillis()
                         
-                        // 今月の1日へ移動
                         calendar.set(Calendar.DAY_OF_MONTH, 1)
                         calendar.set(Calendar.HOUR_OF_DAY, 0)
                         calendar.set(Calendar.MINUTE, 0)
                         calendar.set(Calendar.SECOND, 0)
                         calendar.set(Calendar.MILLISECOND, 0)
 
-                        // そこから -i ヶ月戻る
                         calendar.add(Calendar.MONTH, -i)
                         val startTime = calendar.timeInMillis
 
-                        // その月の末日を取得
                         val endCal = calendar.clone() as Calendar
                         endCal.set(Calendar.DAY_OF_MONTH, endCal.getActualMaximum(Calendar.DAY_OF_MONTH))
                         endCal.set(Calendar.HOUR_OF_DAY, 23)
@@ -225,7 +210,7 @@ class LearningHistoryActivity : AppCompatActivity() {
                 }
             }
 
-            val dataSet = BarDataSet(entries, "学習回数") // ラベル変更
+            val dataSet = BarDataSet(entries, "学習回数") 
             dataSet.color = Color.parseColor("#2196F3")
             dataSet.valueTextSize = 10f
 
@@ -236,9 +221,8 @@ class LearningHistoryActivity : AppCompatActivity() {
                 barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
                 barChart.data = data
                 barChart.invalidate()
-                // データ更新時にアニメーションを実行
                 barChart.animateY(1000)
-                textTotalLearned.text = "Total Study: $totalCount" // ラベル変更
+                textTotalLearned.text = "Total Study: $totalCount"
             }
         }
     }
@@ -274,7 +258,7 @@ class LearningHistoryActivity : AppCompatActivity() {
                     id = word.no.toLong(),
                     word = word.word,
                     meaning = word.japanese ?: "",
-                    englishDesc = word.english ?: "",
+                    englishDesc = word.description ?: "",
                     grade = word.grade,
                     statuses = statuses
                 )

@@ -123,7 +123,8 @@
 
     <!-- Learning Modes -->
     <string name="mode_meaning">英日</string>
-    <string name="mode_listening">リスニング</string>
+    <string name="mode_listening">リスニング(英)</string>
+    <string name="mode_listening_jp">リスニング(日)</string>
     <string name="mode_japanese_to_english">日英</string>
     <string name="mode_english_english_1">英英1</string>
     <string name="mode_english_english_2">英英2</string>

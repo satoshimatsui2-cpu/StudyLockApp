@@ -54,6 +54,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     companion object {
         const val MODE_MEANING = "meaning" // 英 -> 日
         const val MODE_LISTENING = "listening" // 音 -> 英
+        const val MODE_LISTENING_JP = "listening_jp" // 音 -> 日
         const val MODE_JA_TO_EN = "japanese_to_english" // 日 -> 英
         const val MODE_EN_EN_1 = "english_english_1" // 英(単語) -> 英(意味)
         const val MODE_EN_EN_2 = "english_english_2" // 英(意味) -> 英(単語)
@@ -93,6 +94,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var chipGroupMode: ChipGroup
     private lateinit var chipModeMeaning: Chip
     private lateinit var chipModeListening: Chip
+    private lateinit var chipModeListeningJp: Chip
     private lateinit var chipModeJaToEn: Chip
     private lateinit var chipModeEnEn1: Chip
     private lateinit var chipModeEnEn2: Chip
@@ -152,6 +154,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val newMode = when (checkedId) {
                 R.id.chip_mode_meaning -> MODE_MEANING
                 R.id.chip_mode_listening -> MODE_LISTENING
+                R.id.chip_mode_listening_jp -> MODE_LISTENING_JP
                 R.id.chip_mode_ja_to_en -> MODE_JA_TO_EN
                 R.id.chip_mode_en_en_1 -> MODE_EN_EN_1
                 R.id.chip_mode_en_en_2 -> MODE_EN_EN_2
@@ -210,6 +213,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         chipGroupMode = findViewById(R.id.chip_group_mode)
         chipModeMeaning = findViewById(R.id.chip_mode_meaning)
         chipModeListening = findViewById(R.id.chip_mode_listening)
+        chipModeListeningJp = findViewById(R.id.chip_mode_listening_jp)
         chipModeJaToEn = findViewById(R.id.chip_mode_ja_to_en)
         chipModeEnEn1 = findViewById(R.id.chip_mode_en_en_1)
         chipModeEnEn2 = findViewById(R.id.chip_mode_en_en_2)
@@ -374,16 +378,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 BufferedReader(InputStreamReader(input)).useLines { lines ->
                     lines.drop(1).forEach { line ->
                         val cols = line.split(",")
-                        if (cols.size >= 8) {
+                        if (cols.size >= 7) {
                             result.add(WordEntity(
                                 no = cols[0].toIntOrNull() ?: 0,
                                 grade = cols[1],
                                 word = cols[2],
                                 japanese = cols[3],
-                                english = cols[4],
-                                pos = cols[5],
-                                category = cols[6],
-                                actors = cols[7]
+                                description = cols[4],
+                                smallTopicId = cols[5],
+                                mediumCategoryId = cols[6]
                             ))
                         }
                     }
@@ -428,6 +431,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val mStats = computeModeStats(wordIdSet, MODE_MEANING, nowSec)
             val lStats = computeModeStats(wordIdSet, MODE_LISTENING, nowSec)
+            val lJpStats = computeModeStats(wordIdSet, MODE_LISTENING_JP, nowSec)
             val jeStats = computeModeStats(wordIdSet, MODE_JA_TO_EN, nowSec)
             val ee1Stats = computeModeStats(wordIdSet, MODE_EN_EN_1, nowSec)
             val ee2Stats = computeModeStats(wordIdSet, MODE_EN_EN_2, nowSec)
@@ -435,6 +439,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             withContext(Dispatchers.Main) {
                 chipModeMeaning.text = "${getString(R.string.mode_meaning)} (復:${mStats.review})"
                 chipModeListening.text = "${getString(R.string.mode_listening)} (復:${lStats.review})"
+                chipModeListeningJp.text = "${getString(R.string.mode_listening_jp)} (復:${lJpStats.review})"
                 chipModeJaToEn.text = "${getString(R.string.mode_japanese_to_english)} (復:${jeStats.review})"
                 chipModeEnEn1.text = "${getString(R.string.mode_english_english_1)} (復:${ee1Stats.review})"
                 chipModeEnEn2.text = "${getString(R.string.mode_english_english_2)} (復:${ee2Stats.review})"
@@ -512,8 +517,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val correctStr = when (currentMode) {
                 MODE_MEANING -> nextWord.japanese ?: ""
                 MODE_LISTENING -> nextWord.word
+                MODE_LISTENING_JP -> nextWord.japanese ?: ""
                 MODE_JA_TO_EN -> nextWord.word
-                MODE_EN_EN_1 -> nextWord.english ?: "" // Word -> Meaning
+                MODE_EN_EN_1 -> nextWord.description ?: "" // Word -> Meaning
                 MODE_EN_EN_2 -> nextWord.word // Meaning -> Word
                 else -> nextWord.japanese ?: ""
             }
@@ -529,17 +535,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     checkboxAutoPlayAudio?.visibility = View.VISIBLE
                     buttonPlayAudio.visibility = View.VISIBLE
                 }
-                else -> {
+                else -> { // Listening, ListeningJp
                     checkboxAutoPlayAudio?.visibility = View.GONE
                     buttonPlayAudio.visibility = View.VISIBLE
                 }
             }
 
-            if (currentMode == MODE_LISTENING) {
+            if (currentMode == MODE_LISTENING || currentMode == MODE_LISTENING_JP) {
                 speakCurrentWord()
             } else if (checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE) {
                 if (currentMode == MODE_EN_EN_2) {
-                    val textToSpeak = nextWord.english ?: ""
+                    val textToSpeak = nextWord.description ?: ""
                     speakText(textToSpeak)
                 } else {
                     speakCurrentWord()
@@ -560,19 +566,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (pool.isEmpty()) return listOf(correct)
         val candidates = pool.filter { it.no != correct.no }
 
-        val sameGradePosHeadLen = candidates.filter {
+        val sameGradeCategoryHeadLen = candidates.filter {
             it.grade == correct.grade &&
-                    it.pos == correct.pos &&
+                    it.mediumCategoryId == correct.mediumCategoryId &&
                     it.word.take(1).equals(correct.word.take(1), ignoreCase = true) &&
                     abs(it.word.length - correct.word.length) <= 1
         }
-        val sameGradePos = candidates.filter { it.grade == correct.grade && it.pos == correct.pos }
+        val sameGradeCategory = candidates.filter { it.grade == correct.grade && it.mediumCategoryId == correct.mediumCategoryId }
         val sameGrade = candidates.filter { it.grade == correct.grade }
-        val samePos = candidates.filter { it.pos == correct.pos }
+        val sameCategory = candidates.filter { it.mediumCategoryId == correct.mediumCategoryId }
         val sameHead = candidates.filter { it.word.take(1).equals(correct.word.take(1), ignoreCase = true) }
         val lenNear = candidates.filter { abs(it.word.length - correct.word.length) <= 2 }
 
-        val merged = (sameGradePosHeadLen + sameGradePos + sameGrade + samePos + sameHead + lenNear + candidates).distinct()
+        val merged = (sameGradeCategoryHeadLen + sameGradeCategory + sameGrade + sameCategory + sameHead + lenNear + candidates).distinct()
         val distractors = merged.shuffled().take(count - 1)
         return (distractors + correct).shuffled()
     }
@@ -589,14 +595,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             MODE_LISTENING -> {
                 Triple("音声を聞いて正しい英単語を選んでください", "", choices.map { it.word })
             }
+            MODE_LISTENING_JP -> {
+                Triple("音声を聞いて正しい意味を選んでください", "", choices.map { it.japanese ?: "" })
+            }
             MODE_JA_TO_EN -> {
                 Triple("この日本語に対応する英単語は？", correct.japanese ?: "", choices.map { it.word })
             }
             MODE_EN_EN_1 -> {
-                Triple("この単語の意味(定義)は？", correct.word, choices.map { it.english ?: "" })
+                Triple("この単語の意味(定義)は？", correct.word, choices.map { it.description ?: "" })
             }
             MODE_EN_EN_2 -> {
-                Triple("この意味(定義)に対応する単語は？", correct.english ?: "", choices.map { it.word })
+                Triple("この意味(定義)に対応する単語は？", correct.description ?: "", choices.map { it.word })
             }
             else -> Triple("", "", emptyList())
         }
@@ -609,8 +618,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val isCorrect = when (currentMode) {
             MODE_MEANING -> selectedText == (cw.japanese ?: "")
             MODE_LISTENING -> selectedText == cw.word
+            MODE_LISTENING_JP -> selectedText == (cw.japanese ?: "")
             MODE_JA_TO_EN -> selectedText == cw.word
-            MODE_EN_EN_1 -> selectedText == (cw.english ?: "")
+            MODE_EN_EN_1 -> selectedText == (cw.description ?: "")
             MODE_EN_EN_2 -> selectedText == cw.word
             else -> false
         }

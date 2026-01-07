@@ -23,6 +23,6 @@ interface WordDao {
     suspend fun update(word: WordEntity)
 
     // 追加: 単語の意味と説明を更新するクエリ
-    @Query("UPDATE words SET japanese = :meaning, english = :englishDesc WHERE word = :word")
-    suspend fun updateWordInfo(word: String, meaning: String, englishDesc: String): Int
+    @Query("UPDATE words SET japanese = :meaning, description = :description WHERE word = :word")
+    suspend fun updateWordInfo(word: String, meaning: String, description: String): Int
 }

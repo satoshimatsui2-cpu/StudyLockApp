@@ -67,8 +67,9 @@ object CsvImporter {
                     }
 
                     val cols = parseCsvLine(row)
-                    if (cols.size < 8) {
-                        Log.w("CSV_IMPORT", "skip row (col size < 8): size=${cols.size} row=$row")
+                    // no,grade,word,japanese,description,small_topic_id,medium_category_id
+                    if (cols.size < 7) {
+                        Log.w("CSV_IMPORT", "skip row (col size < 7): size=${cols.size} row=$row")
                         continue
                     }
 
@@ -79,10 +80,9 @@ object CsvImporter {
                                 grade = cols[1],
                                 word = cols[2],
                                 japanese = cols[3],
-                                english = cols[4],
-                                pos = cols[5],
-                                category = cols[6],
-                                actors = cols[7]
+                                description = cols[4],
+                                smallTopicId = cols[5],
+                                mediumCategoryId = cols[6]
                             )
                         )
                     } catch (e: Exception) {

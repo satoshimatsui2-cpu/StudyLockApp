@@ -7,10 +7,9 @@ import androidx.room.PrimaryKey
 data class WordEntity(
     val no: Int,
     val grade: String,
-    @PrimaryKey val word: String, // PK を word に変更
+    @PrimaryKey val word: String,
     val japanese: String,
-    val english: String?,
-    val pos: String?,
-    val category: String?,
-    val actors: String?
+    val description: String?,
+    val smallTopicId: String?,
+    val mediumCategoryId: String?
 )

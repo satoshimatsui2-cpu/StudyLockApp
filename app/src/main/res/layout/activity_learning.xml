@@ -142,31 +142,43 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/mode_meaning"
+                                app:chipIcon="@drawable/ic_translate_24"
                                 android:checked="true"/>
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chip_mode_listening"
                                 style="@style/Widget.Material3.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/mode_listening"/>
+                                android:text="@string/mode_listening"
+                                app:chipIcon="@drawable/ic_headphones_24"/>
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_mode_listening_jp"
+                                style="@style/Widget.Material3.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/mode_listening_jp"
+                                app:chipIcon="@drawable/ic_headphones_24"/>
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chip_mode_ja_to_en"
                                 style="@style/Widget.Material3.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/mode_japanese_to_english"/>
+                                android:text="@string/mode_japanese_to_english"
+                                app:chipIcon="@drawable/ic_text_fields_24"/>
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chip_mode_en_en_1"
                                 style="@style/Widget.Material3.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/mode_english_english_1"/>
+                                android:text="@string/mode_english_english_1"
+                                app:chipIcon="@drawable/ic_book_24"/>
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chip_mode_en_en_2"
                                 style="@style/Widget.Material3.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/mode_english_english_2"/>
+                                android:text="@string/mode_english_english_2"
+                                app:chipIcon="@drawable/ic_book_24"/>
                         </com.google.android.material.chip.ChipGroup>
 
                         <LinearLayout
