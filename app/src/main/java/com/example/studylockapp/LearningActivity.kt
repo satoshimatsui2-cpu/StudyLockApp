@@ -114,7 +114,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
-    // ★追加: スクリプト表示用と次へボタン
+    // スクリプト表示用と次へボタン
     private lateinit var textScriptDisplay: TextView
     private lateinit var buttonNextQuestion: Button
 
@@ -198,7 +198,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        // ★追加: 「次へ」ボタンの動作設定
+        // 「次へ」ボタンの動作設定
         buttonNextQuestion.setOnClickListener {
             loadNextQuestion()
         }
@@ -233,7 +233,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textTotalWords = findViewById(R.id.text_total_words)
         textFeedback = findViewById(R.id.text_feedback)
 
-        // ★追加: 新しいView要素
+        // 新しいView要素
         textScriptDisplay = findViewById(R.id.text_script_display)
         buttonNextQuestion = findViewById(R.id.button_next_question)
 
@@ -658,6 +658,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.visibility = View.VISIBLE
             ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[i])
         }
+
+        // ★修正: 以前にGONEにした親コンテナを復活させる
+        if (choiceButtons.size >= 6) {
+            val button5 = choiceButtons[4]
+            val parentRow = button5.parent as? View
+            parentRow?.visibility = View.VISIBLE
+        }
+
         currentCorrectIndex = -1
     }
 
@@ -666,7 +674,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             conversationTts?.stop()
             tts?.stop()
 
-            // ★追加: 画面状態のリセット
+            // 画面状態のリセット
             textScriptDisplay.visibility = View.GONE
             textFeedback.visibility = View.GONE
             buttonNextQuestion.visibility = View.GONE
@@ -689,28 +697,37 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 currentListeningQuestion = question
                 currentWord = null
 
-                // ★修正: 要望1 対応 (質問文を隠す)
+                // 質問文を隠す
                 textQuestionTitle.text = "会話を聞いて質問に答えてください"
                 textQuestionBody.text = question.question
-                textQuestionBody.visibility = View.GONE // ここで非表示
+                textQuestionBody.visibility = View.GONE // 非表示
 
+                // ★修正: 4択表示＆レイアウト詰め
                 choiceButtons.forEachIndexed { index, btn ->
-                    if (index < question.options.size) {
+                    if (index < question.options.size) { // index 0-3
                         btn.text = question.options[index]
                         btn.visibility = View.VISIBLE
                         btn.textSize = 14f
-                    } else {
+                    } else { // index 4-5
                         btn.visibility = View.INVISIBLE
                     }
                 }
-                currentCorrectIndex = question.correctIndex
 
-                if (checkboxAutoPlayAudio?.isChecked == true) {
-                    delay(500)
-                    conversationTts?.playScript(question.script)
+                // ★修正: 5,6番目のボタンが入っている行(親Layout)ごと消して上に詰める
+                if (choiceButtons.size >= 6) {
+                    val button5 = choiceButtons[4]
+                    val parentRow = button5.parent as? View
+                    parentRow?.visibility = View.GONE
                 }
 
-                checkboxAutoPlayAudio?.visibility = View.VISIBLE
+                currentCorrectIndex = question.correctIndex
+
+                // ★修正: チェックボックスを非表示＆強制再生
+                checkboxAutoPlayAudio?.visibility = View.GONE
+                // (ifチェックを外して強制実行)
+                delay(500)
+                conversationTts?.playScript(question.script)
+
                 buttonPlayAudio.visibility = View.VISIBLE
 
                 return@launch
@@ -777,6 +794,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
             currentCorrectIndex = options.indexOf(correctStr)
 
+            // 単語モードでのUI制御（チェックボックスは復活）
             when (currentMode) {
                 MODE_JA_TO_EN -> {
                     checkboxAutoPlayAudio?.visibility = View.GONE
@@ -877,7 +895,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             if (isCorrect) playCorrectEffect() else playWrongEffect()
 
-            // ★修正: 要望2 対応 (スクリプトと質問を表示)
+            // スクリプトと質問を表示
             val q = currentListeningQuestion
             if (q != null) {
                 val scriptText = q.script
@@ -893,7 +911,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             showFeedbackSnackbar(isCorrect, 10)
 
-            // ★修正: 要望3 対応 (テストモードは常に手動遷移)
+            // テストモードは常に手動遷移
             showNextButton()
             return
         }
@@ -973,7 +991,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             showFeedbackSnackbar(isCorrect, addPoint)
             updatePointView()
 
-            // ★修正: 要望3 対応 (学習モードでも間違えたら手動遷移)
+            // 学習モードでも間違えたら手動遷移
             if (!isCorrect) {
                 showNextButton()
             } else {
@@ -983,7 +1001,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // ★追加: 「次へ」ボタンを表示するヘルパー
+    // 「次へ」ボタンを表示するヘルパー
     private fun showNextButton() {
         buttonNextQuestion.visibility = View.VISIBLE
     }
