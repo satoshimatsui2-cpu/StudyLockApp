@@ -49,7 +49,7 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.abs
 
-// リスニング問題用データクラス
+// リスニング問題用データクラス（DBには保存せず、CSVから読み込んでメモリで持つ）
 data class ListeningQuestion(
     val id: Int,
     val grade: String,
@@ -70,6 +70,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         const val MODE_EN_EN_1 = "english_english_1"
         const val MODE_EN_EN_2 = "english_english_2"
 
+        // テスト用モード定義
         const val MODE_TEST_FILL_BLANK = "test_fill_blank"
         const val MODE_TEST_SORT = "test_sort"
         const val MODE_TEST_LISTEN_Q1 = "test_listen_q1"
@@ -92,7 +93,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentListeningQuestion: ListeningQuestion? = null
 
     private var tts: TextToSpeech? = null
-    // 会話用TTS
     private var conversationTts: ConversationTtsManager? = null
 
     private lateinit var settings: AppSettings
@@ -115,11 +115,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
-    // スクリプト表示用とボタン類
     private lateinit var textScriptDisplay: TextView
-    private lateinit var layoutActionButtons: LinearLayout // ボタンの親コンテナ
+    private lateinit var layoutActionButtons: LinearLayout
     private lateinit var buttonNextQuestion: Button
-    private lateinit var buttonReplayAudio: Button // ★追加: 再生ボタン
+    private lateinit var buttonReplayAudio: Button
 
     private lateinit var layoutModeSelector: View
     private lateinit var selectorIconMode: ImageView
@@ -176,7 +175,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
         tts = TextToSpeech(this, this)
-        // 会話TTS初期化
         conversationTts = ConversationTtsManager(this)
 
         initSoundPool()
@@ -201,12 +199,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        // 「次へ」ボタンの動作設定
         buttonNextQuestion.setOnClickListener {
             loadNextQuestion()
         }
 
-        // ★追加: 「再生」ボタンの動作設定 (解説画面用)
         buttonReplayAudio.setOnClickListener {
             speakCurrentWord()
         }
@@ -225,7 +221,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 ).show()
             }
 
-            // リスニングCSV読み込み
+            // CSV読み込み (ListeningQuestionのリストを作るだけ。DBには入れない)
             listeningQuestions = loadListeningQuestionsFromCsv()
 
             loadAllWordsThenQuestion()
@@ -241,11 +237,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textTotalWords = findViewById(R.id.text_total_words)
         textFeedback = findViewById(R.id.text_feedback)
 
-        // 新しいView要素
         textScriptDisplay = findViewById(R.id.text_script_display)
-        layoutActionButtons = findViewById(R.id.layout_action_buttons) // 親レイアウト
+        layoutActionButtons = findViewById(R.id.layout_action_buttons)
         buttonNextQuestion = findViewById(R.id.button_next_question)
-        buttonReplayAudio = findViewById(R.id.button_replay_audio) // ★追加
+        buttonReplayAudio = findViewById(R.id.button_replay_audio)
 
         layoutModeSelector = findViewById(R.id.layout_mode_selector)
         selectorIconMode = findViewById(R.id.selector_icon_mode)
@@ -291,40 +286,39 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ViewCompat.setBackgroundTintList(iconContainer, ColorStateList.valueOf(adjustAlpha(color, 0.15f)))
             icon.setColorFilter(color)
 
-            if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) {
+            // 統計情報を表示
+            // TEST_LISTEN_Q2以外でも将来的にデータを追加すれば表示されるようになる
+            val stats = currentStats[modeKey]
+            if (stats != null) {
+                textReview.text = "${stats.review}"
+                textNew.text = "${stats.newCount}"
+                val rate = if (stats.total > 0) (stats.mastered * 100 / stats.total) else 0
+                textMaster.text = "${rate}%"
+                textReview.setTextColor(if (stats.review > 0) ContextCompat.getColor(this, R.color.choice_wrong) else 0xFF9CA3AF.toInt())
+            } else {
                 textReview.text = "-"
                 textNew.text = "-"
                 textMaster.text = "-"
-                card.alpha = 0.7f
-                card.setOnClickListener { Toast.makeText(this, "開発中機能です", Toast.LENGTH_SHORT).show() }
-            } else {
-                val stats = currentStats[modeKey]
-                if (stats != null) {
-                    textReview.text = "${stats.review}"
-                    textNew.text = "${stats.newCount}"
-                    val rate = if (stats.total > 0) (stats.mastered * 100 / stats.total) else 0
-                    textMaster.text = "${rate}%"
-                    textReview.setTextColor(if (stats.review > 0) ContextCompat.getColor(this, R.color.choice_wrong) else 0xFF9CA3AF.toInt())
-                } else if (modeKey == MODE_TEST_LISTEN_Q2) {
-                    textReview.text = "-"
-                    textNew.text = "-"
-                    textMaster.text = "-"
-                }
+            }
 
-                if (currentMode == modeKey) {
-                    card.strokeColor = color
-                    card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
-                    card.setCardBackgroundColor(adjustAlpha(color, 0.05f))
-                }
+            // まだデータがないテストモードは薄くする
+            if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) {
+                card.alpha = 0.5f
+            }
 
-                card.setOnClickListener {
-                    if (currentMode != modeKey) {
-                        currentMode = modeKey
-                        updateStudyStatsView()
-                        loadNextQuestion()
-                    }
-                    dialog.dismiss()
+            if (currentMode == modeKey) {
+                card.strokeColor = color
+                card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                card.setCardBackgroundColor(adjustAlpha(color, 0.05f))
+            }
+
+            card.setOnClickListener {
+                if (currentMode != modeKey) {
+                    currentMode = modeKey
+                    updateStudyStatsView()
+                    loadNextQuestion()
                 }
+                dialog.dismiss()
             }
         }
 
@@ -338,7 +332,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
         setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
         setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_forum_24, R.color.mode_blue, true)
-        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_forum_24, R.color.mode_blue)
+        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_forum_24, R.color.mode_blue, true)
 
         dialog.show()
     }
@@ -574,6 +568,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val words = db.wordDao().getAll()
+
+            // 全単語ロード（リスニング問題IDと被らないか確認はするが、リスニングデータはDBに入れないので安心）
             allWordsFull = words
             allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
 
@@ -584,12 +580,33 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    // モードごとの成績計算（ここがポイント）
     private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val progressDao = db.wordProgressDao()
 
-        val progresses = progressDao.getAllProgressForMode(mode)
+        // ★重要: 会話リスニングモードの場合は、wordIdSet (単語ID) ではなく、listeningQuestions の ID を対象にする
+        if (mode == MODE_TEST_LISTEN_Q2) {
+            val allQIds = listeningQuestions.map { it.id }.toSet()
 
+            // word_progressテーブルから、このモードのデータを取得
+            // ※ここでは wordId にリスニングのIDが入っている
+            val progresses = progressDao.getAllProgressForMode(mode)
+
+            val startedCount = progresses.filter { it.wordId in allQIds }.size
+            val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in allQIds }
+            val masteredCount = progresses.count { it.wordId in allQIds && it.level >= 6 }
+
+            return ModeStats(
+                review = dueCount,
+                newCount = allQIds.size - startedCount,
+                total = allQIds.size,
+                mastered = masteredCount
+            )
+        }
+
+        // 通常の単語モード
+        val progresses = progressDao.getAllProgressForMode(mode)
         val targetProgresses = progresses.filter { it.wordId in wordIdSet }
         val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
         val startedCount = targetProgresses.size
@@ -604,7 +621,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updateStudyStatsView() {
         lifecycleScope.launch(Dispatchers.IO) {
-            if (allWords.isEmpty()) return@launch
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
             val nowSec = nowEpochSec()
 
@@ -615,16 +631,22 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val ee1Stats = computeModeStats(wordIdSet, MODE_EN_EN_1, nowSec)
             val ee2Stats = computeModeStats(wordIdSet, MODE_EN_EN_2, nowSec)
 
+            // ★追加: リスニングテスト用の統計計算
+            // 将来他のテストが増えたらここに追加
+            val lq2Stats = computeModeStats(emptySet(), MODE_TEST_LISTEN_Q2, nowSec)
+
             currentStats = mapOf(
                 MODE_MEANING to mStats,
                 MODE_LISTENING to lStats,
                 MODE_LISTENING_JP to lJpStats,
                 MODE_JA_TO_EN to jeStats,
                 MODE_EN_EN_1 to ee1Stats,
-                MODE_EN_EN_2 to ee2Stats
+                MODE_EN_EN_2 to ee2Stats,
+                MODE_TEST_LISTEN_Q2 to lq2Stats
             )
 
             withContext(Dispatchers.Main) {
+                // UI更新
                 val currentStat = currentStats[currentMode]
                 val modeName = when(currentMode) {
                     MODE_MEANING -> getString(R.string.mode_meaning)
@@ -646,15 +668,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 selectorIconMode.setImageResource(iconRes)
                 selectorTextTitle.text = modeName
 
-                if (currentMode == MODE_TEST_LISTEN_Q2) {
-                    selectorTextReview.text = "-"
-                    selectorTextNew.text = "-"
-                    selectorTextMaster.text = "-"
-                } else if (currentStat != null) {
+                if (currentStat != null) {
                     selectorTextReview.text = "${currentStat.review}"
                     selectorTextNew.text = "${currentStat.newCount}"
                     val rate = if (currentStat.total > 0) (currentStat.mastered * 100 / currentStat.total) else 0
                     selectorTextMaster.text = "${rate}%"
+                } else {
+                    selectorTextReview.text = "-"
+                    selectorTextNew.text = "-"
+                    selectorTextMaster.text = "-"
                 }
             }
         }
@@ -683,10 +705,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             conversationTts?.stop()
             tts?.stop()
 
-            // 画面状態のリセット
             textScriptDisplay.visibility = View.GONE
             textFeedback.visibility = View.GONE
-            layoutActionButtons.visibility = View.GONE // ★修正: コンテナごと隠す
+            layoutActionButtons.visibility = View.GONE
             textQuestionBody.visibility = View.VISIBLE
 
             val db = AppDatabase.getInstance(this@LearningActivity)
@@ -695,48 +716,58 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             resetChoiceButtons()
 
-            // ▼▼▼ 会話リスニングモードの分岐処理 ▼▼▼
+            // ▼▼▼ 会話リスニングモード ▼▼▼
             if (currentMode == MODE_TEST_LISTEN_Q2) {
                 if (listeningQuestions.isEmpty()) {
                     showNoQuestion()
                     return@launch
                 }
 
-                val question = listeningQuestions.random()
-                currentListeningQuestion = question
+                // ★既存のテーブル(word_progress)から学習状況を取得
+                // Due（復習）優先ロジック
+                val allQMap = listeningQuestions.associateBy { it.id }
+                val dueIds = progressDao.getDueWordIdsOrdered(MODE_TEST_LISTEN_Q2, nowSec)
+                val dueQuestions = dueIds.mapNotNull { allQMap[it] }
+
+                val progressedIds = progressDao.getProgressIds(MODE_TEST_LISTEN_Q2).toSet()
+                val newQuestions = listeningQuestions.filter { it.id !in progressedIds }
+
+                val nextQ = when {
+                    dueQuestions.isNotEmpty() -> dueQuestions.first()
+                    newQuestions.isNotEmpty() -> newQuestions.random()
+                    else -> listeningQuestions.random() // 全て完了ならランダム復習
+                }
+
+                currentListeningQuestion = nextQ
                 currentWord = null
 
-                // 質問文を隠す
                 textQuestionTitle.text = "会話を聞いて質問に答えてください"
-                textQuestionBody.text = question.question
+                textQuestionBody.text = nextQ.question
                 textQuestionBody.visibility = View.GONE
 
-                // 4択表示＆レイアウト詰め
                 choiceButtons.forEachIndexed { index, btn ->
-                    if (index < question.options.size) { // index 0-3
-                        btn.text = question.options[index]
+                    if (index < nextQ.options.size) {
+                        btn.text = nextQ.options[index]
                         btn.visibility = View.VISIBLE
                         btn.textSize = 14f
-                    } else { // index 4-5
+                    } else {
                         btn.visibility = View.INVISIBLE
                     }
                 }
 
-                // 5,6番目のボタンが入っている行(親Layout)ごと消して上に詰める
                 if (choiceButtons.size >= 6) {
                     val button5 = choiceButtons[4]
                     val parentRow = button5.parent as? View
                     parentRow?.visibility = View.GONE
                 }
 
-                currentCorrectIndex = question.correctIndex
+                currentCorrectIndex = nextQ.correctIndex
 
-                // ★修正: 他レベル含むチェックボックスを非表示＆強制再生
-                checkIncludeOtherGrades?.visibility = View.GONE // ← ここで消す
+                checkIncludeOtherGrades?.visibility = View.GONE
                 checkboxAutoPlayAudio?.visibility = View.GONE
 
                 delay(500)
-                conversationTts?.playScript(question.script)
+                conversationTts?.playScript(nextQ.script)
 
                 buttonPlayAudio.visibility = View.VISIBLE
 
@@ -744,7 +775,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
             // ▲▲▲
 
-            // ★修正: テストモード以外ならチェックボックスを復活
+            // 通常の単語学習モード
             checkIncludeOtherGrades?.visibility = View.VISIBLE
 
             if (allWordsFull.isEmpty()) {
@@ -893,6 +924,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun onChoiceSelected(selectedIndex: Int) {
+        // リスニングモードの正誤判定
         if (currentMode == MODE_TEST_LISTEN_Q2) {
             val isCorrect = (selectedIndex == currentCorrectIndex)
 
@@ -906,26 +938,28 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             if (isCorrect) playCorrectEffect() else playWrongEffect()
 
-            // ★修正: 重複していた Q: の表示を削除
             val q = currentListeningQuestion
             if (q != null) {
                 val scriptText = q.script
                     .replace("Question:", "\n[Question]")
                     .replace("Narrator:", "\n[Narrator]")
-                
-                textScriptDisplay.text = "$scriptText"
+
+                textScriptDisplay.text = "$scriptText\n\n${q.question}"
                 textScriptDisplay.visibility = View.VISIBLE
+
+                // 結果を保存。IDにはリスニング問題のID(4000~)を使う
+                onAnsweredInternal(q.id, isCorrect)
+            } else {
+                showNextButton()
             }
 
             textFeedback.text = currentListeningQuestion?.explanation ?: ""
             textFeedback.visibility = View.VISIBLE
 
-            showFeedbackSnackbar(isCorrect, 10)
-
-            showNextButton()
             return
         }
 
+        // 通常モードの正誤判定
         val cw = currentWord ?: return
         val selectedText = choiceButtons.getOrNull(selectedIndex)?.text?.toString() ?: return
 
@@ -954,10 +988,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun onAnsweredInternal(wordId: Int, isCorrect: Boolean) {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
-            val progressDao = db.wordProgressDao()
+            val progressDao = db.wordProgressDao() // 共通のDAOを使う
             val pointManager = PointManager(this@LearningActivity)
 
             val nowSec = nowEpochSec()
+
+            // ★ポイント: どんなモードであれ、(wordId, mode) のペアで保存・取得するだけ
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
             val newCount = (current?.studyCount ?: 0) + 1
@@ -978,13 +1014,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val currentTimestamp = System.currentTimeMillis()
 
-            val log = WordStudyLogEntity(
-                wordId = wordId,
-                mode = currentMode,
-                learnedAt = currentTimestamp
-            )
-            db.studyLogDao().insert(log)
-
+            // 共通テーブルに保存
             progressDao.upsert(
                 WordProgressEntity(
                     wordId = wordId,
@@ -996,22 +1026,27 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
             )
 
+            // ログ保存（テストモードも保存してOK）
+            db.studyLogDao().insert(
+                WordStudyLogEntity(
+                    wordId = wordId,
+                    mode = currentMode,
+                    learnedAt = currentTimestamp
+                )
+            )
+
             updateStudyStatsView()
             showFeedbackSnackbar(isCorrect, addPoint)
             updatePointView()
 
-            if (!isCorrect) {
-                showNextButton()
+            // テストモードは解説を見せたいので手動遷移、通常モードは自動遷移
+            if (currentMode == MODE_TEST_LISTEN_Q2 || !isCorrect) {
+                layoutActionButtons.visibility = View.VISIBLE
             } else {
                 delay(settings.answerIntervalMs)
                 loadNextQuestion()
             }
         }
-    }
-
-    // ★修正: ボタンコンテナを表示
-    private fun showNextButton() {
-        layoutActionButtons.visibility = View.VISIBLE
     }
 
     private fun showFeedbackSnackbar(isCorrect: Boolean, addPoint: Int) {
@@ -1075,5 +1110,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_MUSIC)
         }
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "tts-${System.currentTimeMillis()}")
+    }
+
+    private fun showNextButton() {
+        layoutActionButtons.visibility = View.VISIBLE
     }
 }
