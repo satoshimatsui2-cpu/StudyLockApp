@@ -17,6 +17,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -114,9 +115,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
-    // スクリプト表示用と次へボタン
+    // スクリプト表示用とボタン類
     private lateinit var textScriptDisplay: TextView
+    private lateinit var layoutActionButtons: LinearLayout // ボタンの親コンテナ
     private lateinit var buttonNextQuestion: Button
+    private lateinit var buttonReplayAudio: Button // ★追加: 再生ボタン
 
     private lateinit var layoutModeSelector: View
     private lateinit var selectorIconMode: ImageView
@@ -203,6 +206,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             loadNextQuestion()
         }
 
+        // ★追加: 「再生」ボタンの動作設定 (解説画面用)
+        buttonReplayAudio.setOnClickListener {
+            speakCurrentWord()
+        }
+
         updatePointView()
 
         lifecycleScope.launch {
@@ -235,7 +243,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // 新しいView要素
         textScriptDisplay = findViewById(R.id.text_script_display)
+        layoutActionButtons = findViewById(R.id.layout_action_buttons) // 親レイアウト
         buttonNextQuestion = findViewById(R.id.button_next_question)
+        buttonReplayAudio = findViewById(R.id.button_replay_audio) // ★追加
 
         layoutModeSelector = findViewById(R.id.layout_mode_selector)
         selectorIconMode = findViewById(R.id.selector_icon_mode)
@@ -659,7 +669,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[i])
         }
 
-        // ★修正: 以前にGONEにした親コンテナを復活させる
         if (choiceButtons.size >= 6) {
             val button5 = choiceButtons[4]
             val parentRow = button5.parent as? View
@@ -677,8 +686,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // 画面状態のリセット
             textScriptDisplay.visibility = View.GONE
             textFeedback.visibility = View.GONE
-            buttonNextQuestion.visibility = View.GONE
-            textQuestionBody.visibility = View.VISIBLE // 基本は表示
+            layoutActionButtons.visibility = View.GONE // ★修正: コンテナごと隠す
+            textQuestionBody.visibility = View.VISIBLE
 
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
@@ -700,9 +709,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // 質問文を隠す
                 textQuestionTitle.text = "会話を聞いて質問に答えてください"
                 textQuestionBody.text = question.question
-                textQuestionBody.visibility = View.GONE // 非表示
+                textQuestionBody.visibility = View.GONE
 
-                // ★修正: 4択表示＆レイアウト詰め
+                // 4択表示＆レイアウト詰め
                 choiceButtons.forEachIndexed { index, btn ->
                     if (index < question.options.size) { // index 0-3
                         btn.text = question.options[index]
@@ -713,7 +722,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
                 }
 
-                // ★修正: 5,6番目のボタンが入っている行(親Layout)ごと消して上に詰める
+                // 5,6番目のボタンが入っている行(親Layout)ごと消して上に詰める
                 if (choiceButtons.size >= 6) {
                     val button5 = choiceButtons[4]
                     val parentRow = button5.parent as? View
@@ -722,9 +731,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 currentCorrectIndex = question.correctIndex
 
-                // ★修正: チェックボックスを非表示＆強制再生
+                // ★修正: 他レベル含むチェックボックスを非表示＆強制再生
+                checkIncludeOtherGrades?.visibility = View.GONE // ← ここで消す
                 checkboxAutoPlayAudio?.visibility = View.GONE
-                // (ifチェックを外して強制実行)
+
                 delay(500)
                 conversationTts?.playScript(question.script)
 
@@ -733,6 +743,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return@launch
             }
             // ▲▲▲
+
+            // ★修正: テストモード以外ならチェックボックスを復活
+            checkIncludeOtherGrades?.visibility = View.VISIBLE
 
             if (allWordsFull.isEmpty()) {
                 showNoQuestion()
@@ -794,7 +807,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
             currentCorrectIndex = options.indexOf(correctStr)
 
-            // 単語モードでのUI制御（チェックボックスは復活）
             when (currentMode) {
                 MODE_JA_TO_EN -> {
                     checkboxAutoPlayAudio?.visibility = View.GONE
@@ -881,7 +893,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun onChoiceSelected(selectedIndex: Int) {
-        // ▼▼▼ 会話リスニングモードの正誤判定 ▼▼▼
         if (currentMode == MODE_TEST_LISTEN_Q2) {
             val isCorrect = (selectedIndex == currentCorrectIndex)
 
@@ -895,14 +906,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             if (isCorrect) playCorrectEffect() else playWrongEffect()
 
-            // スクリプトと質問を表示
+            // ★修正: 重複していた Q: の表示を削除
             val q = currentListeningQuestion
             if (q != null) {
                 val scriptText = q.script
                     .replace("Question:", "\n[Question]")
                     .replace("Narrator:", "\n[Narrator]")
 
-                textScriptDisplay.text = "$scriptText\n\nQ: ${q.question}"
+                // Q: を付けずに質問文だけ改行して表示
+                textScriptDisplay.text = "$scriptText\n\n${q.question}"
                 textScriptDisplay.visibility = View.VISIBLE
             }
 
@@ -911,11 +923,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             showFeedbackSnackbar(isCorrect, 10)
 
-            // テストモードは常に手動遷移
             showNextButton()
             return
         }
-        // ▲▲▲
 
         val cw = currentWord ?: return
         val selectedText = choiceButtons.getOrNull(selectedIndex)?.text?.toString() ?: return
@@ -991,7 +1001,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             showFeedbackSnackbar(isCorrect, addPoint)
             updatePointView()
 
-            // 学習モードでも間違えたら手動遷移
             if (!isCorrect) {
                 showNextButton()
             } else {
@@ -1001,9 +1010,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // 「次へ」ボタンを表示するヘルパー
+    // ★修正: ボタンコンテナを表示
     private fun showNextButton() {
-        buttonNextQuestion.visibility = View.VISIBLE
+        layoutActionButtons.visibility = View.VISIBLE
     }
 
     private fun showFeedbackSnackbar(isCorrect: Boolean, addPoint: Int) {

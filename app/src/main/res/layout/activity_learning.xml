@@ -178,7 +178,6 @@
                                         android:layout_height="20dp"
                                         android:src="@drawable/ic_review_24"
                                         app:tint="#EF4444"/>
-
                                     <TextView
                                         android:id="@+id/selector_text_review"
                                         android:layout_width="wrap_content"
@@ -203,7 +202,6 @@
                                         android:paddingTop="1dp"
                                         android:paddingBottom="1dp"
                                         android:gravity="center"/>
-
                                     <TextView
                                         android:id="@+id/selector_text_new"
                                         android:layout_width="wrap_content"
@@ -220,7 +218,6 @@
                                         android:layout_height="20dp"
                                         android:src="@drawable/ic_emoji_events_24"
                                         app:tint="#F59E0B"/>
-
                                     <TextView
                                         android:id="@+id/selector_text_master"
                                         android:layout_width="wrap_content"
@@ -244,6 +241,7 @@
                                 app:layout_constraintBottom_toBottomOf="parent"/>
 
                         </androidx.constraintlayout.widget.ConstraintLayout>
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -316,16 +314,36 @@
                                 android:textColor="#111827"
                                 android:visibility="gone"/>
 
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_next_question"
-                                style="@style/Widget.Material3.Button"
+                            <LinearLayout
+                                android:id="@+id/layout_action_buttons"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="16dp"
-                                android:text="次の問題へ"
-                                android:textSize="16sp"
+                                android:orientation="horizontal"
+                                android:gravity="center"
                                 android:visibility="gone"
-                                app:iconGravity="textEnd"/>
+                                android:layout_marginTop="16dp">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/button_replay_audio"
+                                    style="@style/Widget.Material3.Button.OutlinedButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="8dp"
+                                    android:text="音声を再生"
+                                    app:icon="@drawable/ic_headphones_24"
+                                    app:iconGravity="textStart"/>
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/button_next_question"
+                                    style="@style/Widget.Material3.Button"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="次の問題へ"
+                                    app:icon="@drawable/ic_arrow_forward_24"
+                                    app:iconGravity="textEnd"/>
+                            </LinearLayout>
 
                         </LinearLayout>
                     </LinearLayout>
@@ -517,9 +535,9 @@
                         android:padding="0dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/setting_sound"
-                        app:layout_constraintBottom_toBottomOf="@+id/button_play_audio"
-                        app:layout_constraintEnd_toStartOf="@+id/button_play_audio"
-                        app:layout_constraintTop_toTopOf="@+id/button_play_audio" />
+                        app:layout_constraintBottom_toBottomOf="@id/button_play_audio"
+                        app:layout_constraintEnd_toStartOf="@id/button_play_audio"
+                        app:layout_constraintTop_toTopOf="@id/button_play_audio" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
