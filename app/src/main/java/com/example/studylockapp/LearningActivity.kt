@@ -318,17 +318,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_purple)
-        setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_outline_cards_stack_24, R.color.mode_teal)
-        setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_outline_cards_stack_24, R.color.mode_teal)
+        setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
+        setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_headphones_24, R.color.mode_teal)
+        setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_headphones_24, R.color.mode_teal)
         setupRow(R.id.row_ja_to_en, MODE_JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
         setupRow(R.id.row_en_en_1, MODE_EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
         setupRow(R.id.row_en_en_2, MODE_EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
 
         setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
         setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
-        setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_forum_24, R.color.mode_blue, true)
-        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_forum_24, R.color.mode_blue, true)
+        setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_headphones_24, R.color.mode_teal, true)
+        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_outline_conversation_24, R.color.mode_teal, true)
 
         dialog.show()
     }
@@ -863,26 +863,130 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         choiceButtons.forEach { it.text = "----"; it.isEnabled = false }
     }
 
+// --- 選択肢生成ロジック変更開始 ---
+
+    /**
+     * グレードを比較可能な数値に変換するヘルパー
+     * ※ご自身のグレード表記に合わせて調整してください（例: "5"->5, "JH1"->7 など）
+     * ここでは単純な数値変換、失敗時は0としています。
+     */
+    // --- 選択肢生成ロジック修正版（Null安全対応） ---
+
+    private fun getGradeValue(grade: String?): Int {
+        return grade?.toIntOrNull() ?: 0
+    }
+
     private fun buildChoices(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
-        if (pool.isEmpty()) return listOf(correct)
         val candidates = pool.filter { it.no != correct.no }
+        if (candidates.isEmpty()) return listOf(correct)
 
-        val sameGradeCategoryHeadLen = candidates.filter {
-            it.grade == correct.grade &&
-                    it.mediumCategoryId == correct.mediumCategoryId &&
-                    it.word.take(1).equals(correct.word.take(1), ignoreCase = true) &&
-                    abs(it.word.length - correct.word.length) <= 1
+        val distractors = when (currentMode) {
+            MODE_LISTENING, MODE_LISTENING_JP -> {
+                getListeningChoices(correct, candidates, count - 1)
+            }
+            else -> {
+                getStandardChoices(correct, candidates, count - 1)
+            }
         }
-        val sameGradeCategory = candidates.filter { it.grade == correct.grade && it.mediumCategoryId == correct.mediumCategoryId }
-        val sameGrade = candidates.filter { it.grade == correct.grade }
-        val sameCategory = candidates.filter { it.mediumCategoryId == correct.mediumCategoryId }
-        val sameHead = candidates.filter { it.word.take(1).equals(correct.word.take(1), ignoreCase = true) }
-        val lenNear = candidates.filter { abs(it.word.length - correct.word.length) <= 2 }
 
-        val merged = (sameGradeCategoryHeadLen + sameGradeCategory + sameGrade + sameCategory + sameHead + lenNear + candidates).distinct()
-        val distractors = merged.shuffled().take(count - 1)
         return (distractors + correct).shuffled()
     }
+
+    private fun getStandardChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
+        // 1. グレード一致
+        val sameGradePool = candidates.filter { it.grade == correct.grade }
+
+        if (sameGradePool.isEmpty()) {
+            return candidates.shuffled().take(count)
+        }
+
+        // 2. small_topic 一致 (Nullチェックを追加)
+        // it.smallTopicId が null の場合は false 扱いにする
+        val correctSmallTopic = correct.smallTopicId
+        val sameSmallTopic = if (!correctSmallTopic.isNullOrEmpty()) {
+            sameGradePool.filter {
+                !it.smallTopicId.isNullOrEmpty() && it.smallTopicId == correctSmallTopic
+            }.shuffled()
+        } else {
+            emptyList()
+        }
+
+        // 3. medium_category 一致
+        val pickedIds = sameSmallTopic.map { it.no }.toSet()
+        val correctMediumCategory = correct.mediumCategoryId
+
+        val sameMediumCategory = if (!correctMediumCategory.isNullOrEmpty()) {
+            sameGradePool.filter {
+                it.no !in pickedIds &&
+                        !it.mediumCategoryId.isNullOrEmpty() &&
+                        it.mediumCategoryId == correctMediumCategory
+            }.shuffled()
+        } else {
+            emptyList()
+        }
+
+        // 4. その他
+        val others = sameGradePool.filter {
+            it.no !in pickedIds && (it.mediumCategoryId != correctMediumCategory || correctMediumCategory.isNullOrEmpty())
+        }.shuffled()
+
+        return (sameSmallTopic + sameMediumCategory + others).take(count)
+    }
+
+    private fun getListeningChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
+        val correctGradeVal = getGradeValue(correct.grade)
+        val correctWord = correct.word // 万が一 null なら空文字扱いなどの対策が必要だが通常は非null想定
+        val correctLen = correctWord.length
+        val prefix2 = correctWord.take(2).lowercase()
+        val prefix1 = correctWord.take(1).lowercase()
+
+        // ベース条件: グレード数値が正解以上(易しい) かつ 文字数差3以内
+        val validPool = candidates.filter { word ->
+            val wWord = word.word
+            val gVal = getGradeValue(word.grade)
+            val lenDiff = abs(wWord.length - correctLen)
+
+            gVal >= correctGradeVal && lenDiff <= 3
+        }
+
+        val poolToUse = if (validPool.size < count) {
+            candidates.filter { abs(it.word.length - correctLen) <= 3 }
+        } else {
+            validPool
+        }
+
+        // 優先順位1: 頭2文字一致
+        val priority1 = poolToUse.filter {
+            it.word.lowercase().startsWith(prefix2)
+        }.shuffled()
+
+        // 優先順位2: 頭1文字一致
+        val p1Ids = priority1.map { it.no }.toSet()
+        val priority2 = poolToUse.filter {
+            it.no !in p1Ids && it.word.lowercase().startsWith(prefix1)
+        }.shuffled()
+
+        // 優先順位3: 文字数差1以内
+        val p1p2Ids = p1Ids + priority2.map { it.no }
+        val priority3 = poolToUse.filter {
+            it.no !in p1p2Ids && abs(it.word.length - correctLen) <= 1
+        }.shuffled()
+
+        val others = poolToUse.filter {
+            it.no !in p1p2Ids && it.no !in priority3.map { w -> w.no }
+        }.shuffled()
+
+        val result = (priority1 + priority2 + priority3 + others).take(count)
+
+        if (result.size < count) {
+            val existingIds = result.map { it.no }.toSet() + correct.no
+            val remainder = candidates.filter { it.no !in existingIds }.shuffled().take(count - result.size)
+            return result + remainder
+        }
+
+        return result
+    }
+    // --- 選択肢生成ロジック変更終了 ---
 
     private fun formatQuestionAndOptions(
         correct: WordEntity,
