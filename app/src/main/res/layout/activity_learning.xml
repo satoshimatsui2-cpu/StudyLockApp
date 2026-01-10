@@ -174,16 +174,17 @@
                                     android:gravity="center_vertical">
 
                                     <ImageView
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
                                         android:src="@drawable/ic_review_24"
                                         app:tint="#EF4444"/>
+
                                     <TextView
                                         android:id="@+id/selector_text_review"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0"
-                                        android:textSize="14sp"
+                                        android:textSize="16sp"
                                         android:textColor="#EF4444"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"
@@ -193,7 +194,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="NEW"
-                                        android:textSize="9sp"
+                                        android:textSize="11sp"
                                         android:textStyle="bold"
                                         android:textColor="@android:color/white"
                                         android:background="@drawable/bg_new_badge"
@@ -202,28 +203,30 @@
                                         android:paddingTop="1dp"
                                         android:paddingBottom="1dp"
                                         android:gravity="center"/>
+
                                     <TextView
                                         android:id="@+id/selector_text_new"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0"
-                                        android:textSize="14sp"
+                                        android:textSize="16sp"
                                         android:textColor="#10B981"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"
                                         android:layout_marginEnd="12dp"/>
 
                                     <ImageView
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
                                         android:src="@drawable/ic_emoji_events_24"
                                         app:tint="#F59E0B"/>
+
                                     <TextView
                                         android:id="@+id/selector_text_master"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0%"
-                                        android:textSize="14sp"
+                                        android:textSize="16sp"
                                         android:textColor="#F59E0B"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"/>
@@ -286,14 +289,45 @@
                             android:paddingTop="4dp"
                             android:paddingBottom="4dp"/>
 
-                        <TextView
-                            android:id="@+id/text_feedback"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text=""
-                            android:textSize="14sp"
-                            android:textColor="#111827"
-                            android:layout_marginTop="6dp"/>
+                            android:orientation="vertical"
+                            android:layout_marginTop="6dp">
+
+                            <TextView
+                                android:id="@+id/text_script_display"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:textSize="14sp"
+                                android:textColor="#374151"
+                                android:background="#F3F4F6"
+                                android:padding="8dp"
+                                android:layout_marginBottom="8dp"
+                                android:visibility="gone" />
+
+                            <TextView
+                                android:id="@+id/text_feedback"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:textSize="14sp"
+                                android:textColor="#111827"
+                                android:visibility="gone"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/button_next_question"
+                                style="@style/Widget.Material3.Button"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                android:text="次の問題へ"
+                                android:textSize="16sp"
+                                android:visibility="gone"
+                                app:iconGravity="textEnd"/>
+
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

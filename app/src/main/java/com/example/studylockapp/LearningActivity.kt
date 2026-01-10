@@ -48,21 +48,31 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.abs
 
+// リスニング問題用データクラス
+data class ListeningQuestion(
+    val id: Int,
+    val grade: String,
+    val script: String,
+    val question: String,
+    val options: List<String>,
+    val correctIndex: Int, // 0-based
+    val explanation: String
+)
+
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
-        const val MODE_MEANING = "meaning" // 英 -> 日
-        const val MODE_LISTENING = "listening" // 音 -> 英
-        const val MODE_LISTENING_JP = "listening_jp" // 音 -> 日
-        const val MODE_JA_TO_EN = "japanese_to_english" // 日 -> 英
-        const val MODE_EN_EN_1 = "english_english_1" // 英(単語) -> 英(意味)
-        const val MODE_EN_EN_2 = "english_english_2" // 英(意味) -> 英(単語)
+        const val MODE_MEANING = "meaning"
+        const val MODE_LISTENING = "listening"
+        const val MODE_LISTENING_JP = "listening_jp"
+        const val MODE_JA_TO_EN = "japanese_to_english"
+        const val MODE_EN_EN_1 = "english_english_1"
+        const val MODE_EN_EN_2 = "english_english_2"
 
-        // 新規追加 (テストモード用)
         const val MODE_TEST_FILL_BLANK = "test_fill_blank"
         const val MODE_TEST_SORT = "test_sort"
         const val MODE_TEST_LISTEN_Q1 = "test_listen_q1"
-        const val MODE_TEST_LISTEN_Q2 = "test_listen_q2"
+        const val MODE_TEST_LISTEN_Q2 = "test_listen_q2" // 会話リスニング
     }
 
     private val viewModel: LearningViewModel by viewModels()
@@ -70,10 +80,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentMode = MODE_MEANING
     private var gradeFilter: String = "All"
     private var includeOtherGradesReview: Boolean = false
+
+    // 単語学習用データ
     private var currentWord: WordEntity? = null
     private var allWords: List<WordEntity> = emptyList()
     private var allWordsFull: List<WordEntity> = emptyList()
+
+    // リスニング学習用データ
+    private var listeningQuestions: List<ListeningQuestion> = emptyList()
+    private var currentListeningQuestion: ListeningQuestion? = null
+
     private var tts: TextToSpeech? = null
+    // 会話用TTS
+    private var conversationTts: ConversationTtsManager? = null
 
     private lateinit var settings: AppSettings
     private var currentCorrectIndex: Int = -1
@@ -95,7 +114,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
-    // ★修正: モード選択用レイアウトのパーツ
+    // ★追加: スクリプト表示用と次へボタン
+    private lateinit var textScriptDisplay: TextView
+    private lateinit var buttonNextQuestion: Button
+
     private lateinit var layoutModeSelector: View
     private lateinit var selectorIconMode: ImageView
     private lateinit var selectorTextTitle: TextView
@@ -103,7 +125,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var selectorTextNew: TextView
     private lateinit var selectorTextMaster: TextView
 
-    // 統計データ保持用
     private var currentStats: Map<String, ModeStats> = emptyMap()
 
     private lateinit var choiceButtons: List<Button>
@@ -116,7 +137,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val review: Int,
         val newCount: Int,
         val total: Int,
-        val mastered: Int // Lv6以上
+        val mastered: Int
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,7 +161,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             isChecked = true
             includeOtherGradesReview = true
             setOnCheckedChangeListener { _, isChecked ->
-                includeOtherGradesReview = isChecked
                 loadNextQuestion()
             }
         }
@@ -153,9 +173,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
         tts = TextToSpeech(this, this)
+        // 会話TTS初期化
+        conversationTts = ConversationTtsManager(this)
+
         initSoundPool()
 
-        // ★修正: レイアウト自体をクリック可能に
         layoutModeSelector.setOnClickListener {
             showModeSelectionSheet()
         }
@@ -176,6 +198,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
+        // ★追加: 「次へ」ボタンの動作設定
+        buttonNextQuestion.setOnClickListener {
+            loadNextQuestion()
+        }
+
         updatePointView()
 
         lifecycleScope.launch {
@@ -189,6 +216,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     Snackbar.LENGTH_SHORT
                 ).show()
             }
+
+            // リスニングCSV読み込み
+            listeningQuestions = loadListeningQuestionsFromCsv()
+
             loadAllWordsThenQuestion()
         }
     }
@@ -202,7 +233,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textTotalWords = findViewById(R.id.text_total_words)
         textFeedback = findViewById(R.id.text_feedback)
 
-        // ★修正: 各パーツを取得
+        // ★追加: 新しいView要素
+        textScriptDisplay = findViewById(R.id.text_script_display)
+        buttonNextQuestion = findViewById(R.id.button_next_question)
+
         layoutModeSelector = findViewById(R.id.layout_mode_selector)
         selectorIconMode = findViewById(R.id.selector_icon_mode)
         selectorTextTitle = findViewById(R.id.selector_text_title)
@@ -223,7 +257,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
     }
 
-    // ボトムシートを表示するメソッド
     private fun showModeSelectionSheet() {
         val dialog = BottomSheetDialog(this)
         dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
@@ -248,7 +281,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ViewCompat.setBackgroundTintList(iconContainer, ColorStateList.valueOf(adjustAlpha(color, 0.15f)))
             icon.setColorFilter(color)
 
-            if (isTestMode) {
+            if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) {
                 textReview.text = "-"
                 textNew.text = "-"
                 textMaster.text = "-"
@@ -262,6 +295,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val rate = if (stats.total > 0) (stats.mastered * 100 / stats.total) else 0
                     textMaster.text = "${rate}%"
                     textReview.setTextColor(if (stats.review > 0) ContextCompat.getColor(this, R.color.choice_wrong) else 0xFF9CA3AF.toInt())
+                } else if (modeKey == MODE_TEST_LISTEN_Q2) {
+                    textReview.text = "-"
+                    textNew.text = "-"
+                    textMaster.text = "-"
                 }
 
                 if (currentMode == modeKey) {
@@ -281,7 +318,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        // 基本学習モード
         setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_purple)
         setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_outline_cards_stack_24, R.color.mode_teal)
         setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_outline_cards_stack_24, R.color.mode_teal)
@@ -289,11 +325,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupRow(R.id.row_en_en_1, MODE_EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
         setupRow(R.id.row_en_en_2, MODE_EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
 
-        // テストモード
         setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
         setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
         setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_forum_24, R.color.mode_blue, true)
-        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_forum_24, R.color.mode_blue, true)
+        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_forum_24, R.color.mode_blue)
 
         dialog.show()
     }
@@ -336,9 +371,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         updatePointView()
     }
 
+    override fun onPause() {
+        super.onPause()
+        conversationTts?.stop()
+    }
+
     override fun onDestroy() {
         tts?.stop()
         tts?.shutdown()
+        conversationTts?.shutdown()
+
         soundPool?.release()
         soundPool = null
         currentSnackbar?.dismiss()
@@ -468,6 +510,56 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return result
     }
 
+    private suspend fun loadListeningQuestionsFromCsv(): List<ListeningQuestion> = withContext(Dispatchers.IO) {
+        val result = mutableListOf<ListeningQuestion>()
+        try {
+            val resId = resources.getIdentifier("listening2", "raw", packageName)
+            if (resId == 0) return@withContext emptyList()
+
+            resources.openRawResource(resId).use { input ->
+                BufferedReader(InputStreamReader(input)).useLines { lines ->
+                    lines.drop(1).forEach { line ->
+                        val cols = parseCsvLine(line)
+                        if (cols.size >= 11) {
+                            val options = listOf(cols[5], cols[6], cols[7], cols[8])
+                            val correctIdx = (cols[9].toIntOrNull() ?: 1) - 1
+                            result.add(ListeningQuestion(
+                                id = cols[0].toIntOrNull() ?: 0,
+                                grade = cols[1],
+                                script = cols[3].replace("\\n", "\n"),
+                                question = cols[4],
+                                options = options,
+                                correctIndex = correctIdx,
+                                explanation = cols[10]
+                            ))
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("LearningActivity", "Error reading listening CSV", e)
+        }
+        return@withContext result
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        var current = StringBuilder()
+        var inQuotes = false
+        for (char in line) {
+            when {
+                char == '"' -> inQuotes = !inQuotes
+                char == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current = StringBuilder()
+                }
+                else -> current.append(char)
+            }
+        }
+        result.add(current.toString())
+        return result
+    }
+
     private fun loadAllWordsThenQuestion() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
@@ -486,7 +578,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val progressDao = db.wordProgressDao()
 
-        // DAOに追加された高速化メソッドを使用
         val progresses = progressDao.getAllProgressForMode(mode)
 
         val targetProgresses = progresses.filter { it.wordId in wordIdSet }
@@ -497,7 +588,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             review = dueCount,
             newCount = wordIdSet.size - startedCount,
             total = wordIdSet.size,
-            mastered = targetProgresses.count { it.level >= 6 } // Lv6以上
+            mastered = targetProgresses.count { it.level >= 6 }
         )
     }
 
@@ -524,7 +615,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             )
 
             withContext(Dispatchers.Main) {
-                // ★修正: リッチなボタン（Layout）の各要素を更新
                 val currentStat = currentStats[currentMode]
                 val modeName = when(currentMode) {
                     MODE_MEANING -> getString(R.string.mode_meaning)
@@ -533,18 +623,24 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     MODE_JA_TO_EN -> getString(R.string.mode_japanese_to_english)
                     MODE_EN_EN_1 -> getString(R.string.mode_english_english_1)
                     MODE_EN_EN_2 -> getString(R.string.mode_english_english_2)
+                    MODE_TEST_LISTEN_Q2 -> "会話文リスニング"
                     else -> "選択中"
                 }
 
                 val iconRes = when(currentMode) {
                     MODE_MEANING -> R.drawable.ic_flash_cards_24
+                    MODE_TEST_LISTEN_Q2 -> R.drawable.ic_forum_24
                     else -> R.drawable.ic_outline_cards_stack_24
                 }
 
                 selectorIconMode.setImageResource(iconRes)
                 selectorTextTitle.text = modeName
 
-                if (currentStat != null) {
+                if (currentMode == MODE_TEST_LISTEN_Q2) {
+                    selectorTextReview.text = "-"
+                    selectorTextNew.text = "-"
+                    selectorTextMaster.text = "-"
+                } else if (currentStat != null) {
                     selectorTextReview.text = "${currentStat.review}"
                     selectorTextNew.text = "${currentStat.newCount}"
                     val rate = if (currentStat.total > 0) (currentStat.mastered * 100 / currentStat.total) else 0
@@ -559,6 +655,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.isClickable = true
             btn.isEnabled = true
             btn.alpha = 1f
+            btn.visibility = View.VISIBLE
             ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[i])
         }
         currentCorrectIndex = -1
@@ -566,11 +663,59 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun loadNextQuestion() {
         lifecycleScope.launch {
+            conversationTts?.stop()
+            tts?.stop()
+
+            // ★追加: 画面状態のリセット
+            textScriptDisplay.visibility = View.GONE
+            textFeedback.visibility = View.GONE
+            buttonNextQuestion.visibility = View.GONE
+            textQuestionBody.visibility = View.VISIBLE // 基本は表示
+
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
             val nowSec = nowEpochSec()
 
             resetChoiceButtons()
+
+            // ▼▼▼ 会話リスニングモードの分岐処理 ▼▼▼
+            if (currentMode == MODE_TEST_LISTEN_Q2) {
+                if (listeningQuestions.isEmpty()) {
+                    showNoQuestion()
+                    return@launch
+                }
+
+                val question = listeningQuestions.random()
+                currentListeningQuestion = question
+                currentWord = null
+
+                // ★修正: 要望1 対応 (質問文を隠す)
+                textQuestionTitle.text = "会話を聞いて質問に答えてください"
+                textQuestionBody.text = question.question
+                textQuestionBody.visibility = View.GONE // ここで非表示
+
+                choiceButtons.forEachIndexed { index, btn ->
+                    if (index < question.options.size) {
+                        btn.text = question.options[index]
+                        btn.visibility = View.VISIBLE
+                        btn.textSize = 14f
+                    } else {
+                        btn.visibility = View.INVISIBLE
+                    }
+                }
+                currentCorrectIndex = question.correctIndex
+
+                if (checkboxAutoPlayAudio?.isChecked == true) {
+                    delay(500)
+                    conversationTts?.playScript(question.script)
+                }
+
+                checkboxAutoPlayAudio?.visibility = View.VISIBLE
+                buttonPlayAudio.visibility = View.VISIBLE
+
+                return@launch
+            }
+            // ▲▲▲
 
             if (allWordsFull.isEmpty()) {
                 showNoQuestion()
@@ -626,13 +771,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 MODE_LISTENING -> nextWord.word
                 MODE_LISTENING_JP -> nextWord.japanese ?: ""
                 MODE_JA_TO_EN -> nextWord.word
-                MODE_EN_EN_1 -> nextWord.description ?: "" // Word -> Meaning
-                MODE_EN_EN_2 -> nextWord.word // Meaning -> Word
+                MODE_EN_EN_1 -> nextWord.description ?: ""
+                MODE_EN_EN_2 -> nextWord.word
                 else -> nextWord.japanese ?: ""
             }
             currentCorrectIndex = options.indexOf(correctStr)
 
-            // ImageButtonの表示制御
             when (currentMode) {
                 MODE_JA_TO_EN -> {
                     checkboxAutoPlayAudio?.visibility = View.GONE
@@ -642,7 +786,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     checkboxAutoPlayAudio?.visibility = View.VISIBLE
                     buttonPlayAudio.visibility = View.VISIBLE
                 }
-                else -> { // Listening, ListeningJp
+                else -> {
                     checkboxAutoPlayAudio?.visibility = View.GONE
                     buttonPlayAudio.visibility = View.VISIBLE
                 }
@@ -719,6 +863,42 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun onChoiceSelected(selectedIndex: Int) {
+        // ▼▼▼ 会話リスニングモードの正誤判定 ▼▼▼
+        if (currentMode == MODE_TEST_LISTEN_Q2) {
+            val isCorrect = (selectedIndex == currentCorrectIndex)
+
+            choiceButtons.forEach { it.isClickable = false }
+            if (currentCorrectIndex in choiceButtons.indices) {
+                ViewCompat.setBackgroundTintList(choiceButtons[currentCorrectIndex], greenTint)
+            }
+            if (!isCorrect && selectedIndex in choiceButtons.indices) {
+                ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
+            }
+
+            if (isCorrect) playCorrectEffect() else playWrongEffect()
+
+            // ★修正: 要望2 対応 (スクリプトと質問を表示)
+            val q = currentListeningQuestion
+            if (q != null) {
+                val scriptText = q.script
+                    .replace("Question:", "\n[Question]")
+                    .replace("Narrator:", "\n[Narrator]")
+
+                textScriptDisplay.text = "$scriptText\n\nQ: ${q.question}"
+                textScriptDisplay.visibility = View.VISIBLE
+            }
+
+            textFeedback.text = currentListeningQuestion?.explanation ?: ""
+            textFeedback.visibility = View.VISIBLE
+
+            showFeedbackSnackbar(isCorrect, 10)
+
+            // ★修正: 要望3 対応 (テストモードは常に手動遷移)
+            showNextButton()
+            return
+        }
+        // ▲▲▲
+
         val cw = currentWord ?: return
         val selectedText = choiceButtons.getOrNull(selectedIndex)?.text?.toString() ?: return
 
@@ -793,9 +973,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             showFeedbackSnackbar(isCorrect, addPoint)
             updatePointView()
 
-            delay(settings.answerIntervalMs)
-            loadNextQuestion()
+            // ★修正: 要望3 対応 (学習モードでも間違えたら手動遷移)
+            if (!isCorrect) {
+                showNextButton()
+            } else {
+                delay(settings.answerIntervalMs)
+                loadNextQuestion()
+            }
         }
+    }
+
+    // ★追加: 「次へ」ボタンを表示するヘルパー
+    private fun showNextButton() {
+        buttonNextQuestion.visibility = View.VISIBLE
     }
 
     private fun showFeedbackSnackbar(isCorrect: Boolean, addPoint: Int) {
@@ -838,6 +1028,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun speakCurrentWord() {
+        if (currentMode == MODE_TEST_LISTEN_Q2) {
+            currentListeningQuestion?.let { q ->
+                conversationTts?.playScript(q.script)
+            }
+            return
+        }
+
         val cw = currentWord ?: return
         speakText(cw.word)
     }

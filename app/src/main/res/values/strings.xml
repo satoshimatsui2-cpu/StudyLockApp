@@ -122,12 +122,12 @@
     <string name="totp_reset_pin_success">認証成功: PINをリセットしました。再度設定してください。</string>
 
     <!-- Learning Modes -->
-    <string name="mode_meaning">英日</string>
-    <string name="mode_listening">リスニング(英)</string>
-    <string name="mode_listening_jp">リスニング(日)</string>
-    <string name="mode_japanese_to_english">日英</string>
-    <string name="mode_english_english_1">英英1</string>
-    <string name="mode_english_english_2">英英2</string>
+    <string name="mode_meaning">英単語→日本語</string>
+    <string name="mode_listening">リスニング(英語→英語)</string>
+    <string name="mode_listening_jp">リスニング(英語→日本語)</string>
+    <string name="mode_japanese_to_english">日本語→英単語</string>
+    <string name="mode_english_english_1">英単語→英語意味</string>
+    <string name="mode_english_english_2">英語意味→英単語</string>
 
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
