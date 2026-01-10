@@ -127,15 +127,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@drawable/bg_outlined_selector"
-                            android:padding="12dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp"
                             android:clickable="true"
                             android:focusable="true"
                             android:layout_marginBottom="8dp">
 
                             <ImageView
                                 android:id="@+id/selector_icon_mode"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:src="@drawable/ic_flash_cards_24"
                                 app:tint="#0D47A1"
                                 app:layout_constraintStart_toStartOf="parent"
@@ -146,9 +149,9 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="14dp"
                                 app:layout_constraintStart_toEndOf="@id/selector_icon_mode"
-                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintEnd_toStartOf="@+id/selector_icon_arrow"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintBottom_toBottomOf="parent">
 
@@ -157,7 +160,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="英単語の意味"
-                                    android:textSize="15sp"
+                                    android:textSize="16sp"
                                     android:textStyle="bold"
                                     android:textColor="#0D47A1"
                                     android:singleLine="true"
@@ -167,12 +170,12 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    android:layout_marginTop="4dp"
+                                    android:layout_marginTop="6dp"
                                     android:gravity="center_vertical">
 
                                     <ImageView
-                                        android:layout_width="12dp"
-                                        android:layout_height="12dp"
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
                                         android:src="@drawable/ic_review_24"
                                         app:tint="#EF4444"/>
                                     <TextView
@@ -180,7 +183,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0"
-                                        android:textSize="12sp"
+                                        android:textSize="14sp"
                                         android:textColor="#EF4444"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"
@@ -190,29 +193,29 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="NEW"
-                                        android:textSize="7sp"
+                                        android:textSize="9sp"
                                         android:textStyle="bold"
                                         android:textColor="@android:color/white"
                                         android:background="@drawable/bg_new_badge"
-                                        android:paddingStart="3dp"
-                                        android:paddingEnd="3dp"
-                                        android:paddingTop="0dp"
-                                        android:paddingBottom="0dp"
+                                        android:paddingStart="4dp"
+                                        android:paddingEnd="4dp"
+                                        android:paddingTop="1dp"
+                                        android:paddingBottom="1dp"
                                         android:gravity="center"/>
                                     <TextView
                                         android:id="@+id/selector_text_new"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0"
-                                        android:textSize="12sp"
+                                        android:textSize="14sp"
                                         android:textColor="#10B981"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"
                                         android:layout_marginEnd="12dp"/>
 
                                     <ImageView
-                                        android:layout_width="12dp"
-                                        android:layout_height="12dp"
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
                                         android:src="@drawable/ic_emoji_events_24"
                                         app:tint="#F59E0B"/>
                                     <TextView
@@ -220,7 +223,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0%"
-                                        android:textSize="12sp"
+                                        android:textSize="14sp"
                                         android:textColor="#F59E0B"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"/>
@@ -228,10 +231,10 @@
                             </LinearLayout>
 
                             <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:src="@drawable/ic_sort_24"
-                                android:rotation="270"
+                                android:id="@+id/selector_icon_arrow"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/ic_expand_more_24"
                                 app:tint="#BDBDBD"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
