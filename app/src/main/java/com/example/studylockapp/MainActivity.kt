@@ -7,11 +7,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import android.widget.Button
 import android.widget.ImageButton
@@ -25,11 +23,11 @@ import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.service.AppLockAccessibilityService
+import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -252,37 +250,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // モーダルでグレード選択
+    // 既存の showGradePickerDialog をこれに書き換え
     private fun showGradePickerDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_grade_picker, null)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogView)
-            .create()
-
-        dialog.setOnShowListener {
-            val width = (resources.displayMetrics.widthPixels * 0.9f).toInt()
-            dialog.window?.let { w ->
-                w.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-                w.setGravity(Gravity.CENTER)
-            }
+        // BottomSheetを表示
+        val sheet = GradeBottomSheet { selectedGrade ->
+            // 選ばれた時の処理（既存の処理を呼ぶだけ）
+            applyGradeSelection(selectedGrade)
         }
-
-        val gradeMap = mapOf(
-            R.id.button_grade_5 to "5",
-            R.id.button_grade_4 to "4",
-            R.id.button_grade_3 to "3",
-            R.id.button_grade_25 to "2.5",
-            R.id.button_grade_2 to "2",
-            R.id.button_grade_15 to "1.5",
-            R.id.button_grade_1 to "1"
-        )
-        gradeMap.forEach { (id, grade) ->
-            dialogView.findViewById<MaterialButton>(id)?.setOnClickListener {
-                applyGradeSelection(grade)
-                dialog.dismiss()
-            }
-        }
-        dialog.show()
+        sheet.show(supportFragmentManager, "GradeBottomSheet")
     }
 
     private fun applyGradeSelection(grade: String) {
