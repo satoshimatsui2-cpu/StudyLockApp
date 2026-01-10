@@ -108,37 +108,46 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
             val trimmedLine = line.trim()
             if (trimmedLine.isEmpty()) continue
 
-            // --- ラベルによる条件分岐 ---
+            // --- 話者・ラベルごとのピッチ設定 ---
             when {
-                // ★パターン1: 「Question:」で始まる場合 -> "Question" と発声してから読む
+                // パターン1: Question (質問)
                 trimmedLine.startsWith("Question:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    // 1. "Question" (1.2秒待機後)
                     result.add(TtsSpeechLine("Question", 1.0f, 1200L))
-                    // 2. 本文 (Questionと言った後、1.0秒待機)
                     result.add(TtsSpeechLine(content, 1.0f, 1000L))
                 }
 
-                // ★パターン2: 「Narrator:」で始まる場合 -> 普通に読む (説明文など)
+                // パターン2: Narrator (ナレーター)
                 trimmedLine.startsWith("Narrator:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    // ナレーターの声は標準(1.0f)、会話の後なので少し間(1000ms)を開ける
                     result.add(TtsSpeechLine(content, 1.0f, 1000L))
                 }
 
-                // ★パターン3: 男性/男の子
-                trimmedLine.startsWith("Man:") || trimmedLine.startsWith("Boy:") -> {
+                // パターン3: Man (成人男性) -> かなり低い
+                trimmedLine.startsWith("Man:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    result.add(TtsSpeechLine(content, 0.7f, 600L))
+                    result.add(TtsSpeechLine(content, 0.55f, 600L))
                 }
 
-                // ★パターン4: 女性/女の子
-                trimmedLine.startsWith("Woman:") || trimmedLine.startsWith("Girl:") -> {
+                // パターン4: Boy (男の子) -> 少し低い〜中くらい
+                trimmedLine.startsWith("Boy:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    result.add(TtsSpeechLine(content, 1.4f, 600L))
+                    result.add(TtsSpeechLine(content, 0.9f, 600L))
                 }
 
-                // それ以外（ラベルなしなど）
+                // パターン5: Woman (成人女性) -> 少し高い
+                trimmedLine.startsWith("Woman:") -> {
+                    val content = trimmedLine.substringAfter(":").trim()
+                    result.add(TtsSpeechLine(content, 1.2f, 600L))
+                }
+
+                // パターン6: Girl (女の子) -> かなり高い
+                trimmedLine.startsWith("Girl:") -> {
+                    val content = trimmedLine.substringAfter(":").trim()
+                    result.add(TtsSpeechLine(content, 1.45f, 600L))
+                }
+
+                // それ以外
                 else -> {
                     result.add(TtsSpeechLine(trimmedLine, 1.0f, 600L))
                 }

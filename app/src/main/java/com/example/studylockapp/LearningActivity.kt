@@ -912,9 +912,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val scriptText = q.script
                     .replace("Question:", "\n[Question]")
                     .replace("Narrator:", "\n[Narrator]")
-
-                // Q: を付けずに質問文だけ改行して表示
-                textScriptDisplay.text = "$scriptText\n\n${q.question}"
+                
+                textScriptDisplay.text = "$scriptText"
                 textScriptDisplay.visibility = View.VISIBLE
             }
 
