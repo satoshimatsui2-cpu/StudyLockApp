@@ -57,10 +57,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // アプリの表示領域をシステムバー（ステータスバーなど）の裏側まで広げる設定
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        
+
         setContentView(R.layout.activity_main)
 
         gradeButton = findViewById(R.id.spinner_grade_top)
@@ -97,7 +97,13 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        // ポイント履歴画面へ
+        // ▼▼▼ 追加: ポイントカード（矢印付き）をクリックした時の処理 ▼▼▼
+        findViewById<View>(R.id.card_to_point_history)?.setOnClickListener {
+            startActivity(Intent(this, PointHistoryActivity::class.java))
+        }
+        // ▲▲▲ 追加ここまで ▲▲▲
+
+        // ポイント履歴ボタン（既存の青いボタン）
         findViewById<Button>(R.id.button_to_point_history)?.setOnClickListener {
             startActivity(Intent(this, PointHistoryActivity::class.java))
         }

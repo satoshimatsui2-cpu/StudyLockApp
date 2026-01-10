@@ -89,45 +89,70 @@
                     android:gravity="center_horizontal">
 
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_to_point_history"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.8"
                         android:layout_marginHorizontal="8dp"
                         app:cardUseCompatPadding="true"
                         app:cardElevation="4dp"
-
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
                         app:strokeColor="@color/sl_button_stroke"
                         app:strokeWidth="2dp">
 
-                        <LinearLayout
+                        <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center_horizontal"
                             android:padding="10dp">
 
-                            <TextView
-                                android:id="@+id/text_points_top"
-                                android:layout_width="match_parent"
+                            <LinearLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="@string/points_default"
-                                android:textSize="18sp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textStyle="bold"
+                                android:orientation="vertical"
                                 android:gravity="center_horizontal"
-                                tools:text="保有ポイント: 120" />
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toStartOf="@+id/arrow_icon"
+                                android:layout_marginEnd="8dp">
 
-                            <TextView
-                                android:id="@+id/text_point_stats_top"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/point_stats_default"
-                                android:textSize="12sp"
-                                android:textColor="?attr/colorOnSurface"
-                                android:paddingTop="6dp"
-                                android:gravity="center_horizontal"
-                                tools:text="今日: 30 / 前日比: +10" />
-                        </LinearLayout>
+                                <TextView
+                                    android:id="@+id/text_points_top"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/points_default"
+                                    android:textSize="18sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:textStyle="bold"
+                                    android:gravity="center_horizontal"
+                                    tools:text="保有ポイント: 120" />
+
+                                <TextView
+                                    android:id="@+id/text_point_stats_top"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/point_stats_default"
+                                    android:textSize="12sp"
+                                    android:textColor="?attr/colorOnSurface"
+                                    android:paddingTop="6dp"
+                                    android:gravity="center_horizontal"
+                                    tools:text="今日: 30 / 前日比: +10" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:id="@+id/arrow_icon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_arrow_right"
+                                app:tint="?attr/colorOnSurface"
+                                android:contentDescription="@string/action_point_history"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent" />
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
@@ -202,7 +227,14 @@
                         android:paddingVertical="12dp"
                         android:background="@drawable/sl_button_bg"
                         app:backgroundTint="@null"
-                        android:textColor="@color/sl_button_text" />
+                        android:textColor="@color/sl_button_text"
+                        app:icon="@drawable/ic_expand_more"
+                        app:iconGravity="textEnd"
+                        app:iconTint="@color/sl_button_text"
+                        app:iconSize="32dp"
+
+                        app:iconPadding="4dp"
+                        />
                 </LinearLayout>
 
                 <TextView
@@ -270,18 +302,20 @@
 
         <ImageButton
             android:id="@+id/button_admin_settings_top"
-            android:layout_width="60dp"
-            android:layout_height="80dp"
-            android:background="@drawable/settings_badge"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_settings"
+            android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/action_admin_settings"
-            android:padding="0dp"
             android:clickable="true"
             android:focusable="true"
             android:elevation="8dp"
+            app:tint="@color/sl_button_stroke"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="50dp"
-            android:layout_marginEnd="12dp" />
+            android:layout_marginEnd="16dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
