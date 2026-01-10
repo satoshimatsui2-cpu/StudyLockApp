@@ -221,7 +221,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 ).show()
             }
 
-            // CSV読み込み (ListeningQuestionのリストを作るだけ。DBには入れない)
             listeningQuestions = loadListeningQuestionsFromCsv()
 
             loadAllWordsThenQuestion()
@@ -286,8 +285,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ViewCompat.setBackgroundTintList(iconContainer, ColorStateList.valueOf(adjustAlpha(color, 0.15f)))
             icon.setColorFilter(color)
 
-            // 統計情報を表示
-            // TEST_LISTEN_Q2以外でも将来的にデータを追加すれば表示されるようになる
             val stats = currentStats[modeKey]
             if (stats != null) {
                 textReview.text = "${stats.review}"
@@ -301,7 +298,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 textMaster.text = "-"
             }
 
-            // まだデータがないテストモードは薄くする
             if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) {
                 card.alpha = 0.5f
             }
@@ -569,7 +565,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val words = db.wordDao().getAll()
 
-            // 全単語ロード（リスニング問題IDと被らないか確認はするが、リスニングデータはDBに入れないので安心）
             allWordsFull = words
             allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
 
@@ -580,17 +575,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // モードごとの成績計算（ここがポイント）
     private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val progressDao = db.wordProgressDao()
 
-        // ★重要: 会話リスニングモードの場合は、wordIdSet (単語ID) ではなく、listeningQuestions の ID を対象にする
         if (mode == MODE_TEST_LISTEN_Q2) {
             val allQIds = listeningQuestions.map { it.id }.toSet()
 
-            // word_progressテーブルから、このモードのデータを取得
-            // ※ここでは wordId にリスニングのIDが入っている
             val progresses = progressDao.getAllProgressForMode(mode)
 
             val startedCount = progresses.filter { it.wordId in allQIds }.size
@@ -605,7 +596,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             )
         }
 
-        // 通常の単語モード
         val progresses = progressDao.getAllProgressForMode(mode)
         val targetProgresses = progresses.filter { it.wordId in wordIdSet }
         val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
@@ -630,9 +620,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val jeStats = computeModeStats(wordIdSet, MODE_JA_TO_EN, nowSec)
             val ee1Stats = computeModeStats(wordIdSet, MODE_EN_EN_1, nowSec)
             val ee2Stats = computeModeStats(wordIdSet, MODE_EN_EN_2, nowSec)
-
-            // ★追加: リスニングテスト用の統計計算
-            // 将来他のテストが増えたらここに追加
             val lq2Stats = computeModeStats(emptySet(), MODE_TEST_LISTEN_Q2, nowSec)
 
             currentStats = mapOf(
@@ -646,7 +633,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             )
 
             withContext(Dispatchers.Main) {
-                // UI更新
                 val currentStat = currentStats[currentMode]
                 val modeName = when(currentMode) {
                     MODE_MEANING -> getString(R.string.mode_meaning)
@@ -723,8 +709,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     return@launch
                 }
 
-                // ★既存のテーブル(word_progress)から学習状況を取得
-                // Due（復習）優先ロジック
+                // 復習優先ロジック
                 val allQMap = listeningQuestions.associateBy { it.id }
                 val dueIds = progressDao.getDueWordIdsOrdered(MODE_TEST_LISTEN_Q2, nowSec)
                 val dueQuestions = dueIds.mapNotNull { allQMap[it] }
@@ -735,7 +720,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val nextQ = when {
                     dueQuestions.isNotEmpty() -> dueQuestions.first()
                     newQuestions.isNotEmpty() -> newQuestions.random()
-                    else -> listeningQuestions.random() // 全て完了ならランダム復習
+                    else -> listeningQuestions.random()
                 }
 
                 currentListeningQuestion = nextQ
@@ -767,9 +752,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 checkboxAutoPlayAudio?.visibility = View.GONE
 
                 delay(500)
-                conversationTts?.playScript(nextQ.script)
 
-                buttonPlayAudio.visibility = View.VISIBLE
+                // ★修正箇所: ボタン非表示とスクリプトの2回ループ設定
+                buttonPlayAudio.visibility = View.GONE
+                val repeatScript = nextQ.script + "\nWait: 2000\n" + nextQ.script
+                conversationTts?.playScript(repeatScript)
 
                 return@launch
             }
@@ -777,6 +764,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             // 通常の単語学習モード
             checkIncludeOtherGrades?.visibility = View.VISIBLE
+            // 通常モードでは再生ボタンを表示
+            buttonPlayAudio.visibility = View.VISIBLE
 
             if (allWordsFull.isEmpty()) {
                 showNoQuestion()
@@ -993,7 +982,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val nowSec = nowEpochSec()
 
-            // ★ポイント: どんなモードであれ、(wordId, mode) のペアで保存・取得するだけ
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
             val newCount = (current?.studyCount ?: 0) + 1
@@ -1026,7 +1014,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
             )
 
-            // ログ保存（テストモードも保存してOK）
             db.studyLogDao().insert(
                 WordStudyLogEntity(
                     wordId = wordId,
@@ -1039,7 +1026,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             showFeedbackSnackbar(isCorrect, addPoint)
             updatePointView()
 
-            // テストモードは解説を見せたいので手動遷移、通常モードは自動遷移
             if (currentMode == MODE_TEST_LISTEN_Q2 || !isCorrect) {
                 layoutActionButtons.visibility = View.VISIBLE
             } else {

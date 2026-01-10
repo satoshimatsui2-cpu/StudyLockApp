@@ -85,6 +85,20 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
             engine.setPitch(nextLine.pitch)
             val utteranceId = "id_${System.currentTimeMillis()}_${nextLine.hashCode()}"
 
+            // テキストが空の場合は、Waitコマンドとして無音再生のみを行い、完了後に次へ進む
+            if (nextLine.text.isEmpty()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    engine.playSilentUtterance(nextLine.preDelayMs, TextToSpeech.QUEUE_ADD, utteranceId)
+                } else {
+                    @Suppress("DEPRECATION")
+                    engine.playSilence(nextLine.preDelayMs, TextToSpeech.QUEUE_ADD, HashMap<String, String>().apply {
+                        put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
+                    })
+                }
+                return
+            }
+
+            // 通常の再生処理
             if (nextLine.preDelayMs > 0) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     engine.playSilentUtterance(nextLine.preDelayMs, TextToSpeech.QUEUE_ADD, "${utteranceId}_silence")
@@ -110,6 +124,13 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
 
             // --- 話者・ラベルごとのピッチ設定 ---
             when {
+                // パターン0: Wait (待機)
+                trimmedLine.startsWith("Wait:") -> {
+                    val ms = trimmedLine.substringAfter(":").trim().toLongOrNull() ?: 1000L
+                    // テキストを空にすることで playNextLine で無音再生のみを行う
+                    result.add(TtsSpeechLine("", 1.0f, ms))
+                }
+
                 // パターン1: Question (質問)
                 trimmedLine.startsWith("Question:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
@@ -126,25 +147,25 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
                 // パターン3: Man (成人男性) -> かなり低い
                 trimmedLine.startsWith("Man:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    result.add(TtsSpeechLine(content, 0.55f, 600L))
+                    result.add(TtsSpeechLine(content, 0.6f, 600L))
                 }
 
                 // パターン4: Boy (男の子) -> 少し低い〜中くらい
                 trimmedLine.startsWith("Boy:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    result.add(TtsSpeechLine(content, 0.9f, 600L))
+                    result.add(TtsSpeechLine(content, 0.90f, 600L))
                 }
 
                 // パターン5: Woman (成人女性) -> 少し高い
                 trimmedLine.startsWith("Woman:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    result.add(TtsSpeechLine(content, 1.2f, 600L))
+                    result.add(TtsSpeechLine(content, 1.15f, 600L))
                 }
 
                 // パターン6: Girl (女の子) -> かなり高い
                 trimmedLine.startsWith("Girl:") -> {
                     val content = trimmedLine.substringAfter(":").trim()
-                    result.add(TtsSpeechLine(content, 1.45f, 600L))
+                    result.add(TtsSpeechLine(content, 1.35f, 600L))
                 }
 
                 // それ以外
