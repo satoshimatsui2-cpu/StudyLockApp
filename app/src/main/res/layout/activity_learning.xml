@@ -122,70 +122,127 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="学習モードを選択 (復習数)"
-                            android:textSize="12sp"
-                            android:textColor="#6B7280"
-                            android:layout_marginBottom="4dp"/>
-
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chip_group_mode"
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:id="@+id/layout_mode_selector"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:singleSelection="true"
-                            app:selectionRequired="true">
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_mode_meaning"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/mode_meaning"
-                                app:chipIcon="@drawable/ic_translate_24"
-                                android:checked="true"/>
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_mode_listening"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/mode_listening"
-                                app:chipIcon="@drawable/ic_headphones_24"/>
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_mode_listening_jp"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/mode_listening_jp"
-                                app:chipIcon="@drawable/ic_headphones_24"/>
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_mode_ja_to_en"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/mode_japanese_to_english"
-                                app:chipIcon="@drawable/ic_text_fields_24"/>
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_mode_en_en_1"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/mode_english_english_1"
-                                app:chipIcon="@drawable/ic_book_24"/>
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_mode_en_en_2"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/mode_english_english_2"
-                                app:chipIcon="@drawable/ic_book_24"/>
-                        </com.google.android.material.chip.ChipGroup>
+                            android:background="@drawable/bg_outlined_selector"
+                            android:padding="12dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginBottom="8dp">
 
+                            <ImageView
+                                android:id="@+id/selector_icon_mode"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_flash_cards_24"
+                                app:tint="#0D47A1"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginStart="12dp"
+                                app:layout_constraintStart_toEndOf="@id/selector_icon_mode"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent">
+
+                                <TextView
+                                    android:id="@+id/selector_text_title"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="英単語の意味"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#0D47A1"
+                                    android:singleLine="true"
+                                    android:ellipsize="end"/>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_marginTop="4dp"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="12dp"
+                                        android:layout_height="12dp"
+                                        android:src="@drawable/ic_review_24"
+                                        app:tint="#EF4444"/>
+                                    <TextView
+                                        android:id="@+id/selector_text_review"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0"
+                                        android:textSize="12sp"
+                                        android:textColor="#EF4444"
+                                        android:textStyle="bold"
+                                        android:layout_marginStart="4dp"
+                                        android:layout_marginEnd="12dp"/>
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="NEW"
+                                        android:textSize="7sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@android:color/white"
+                                        android:background="@drawable/bg_new_badge"
+                                        android:paddingStart="3dp"
+                                        android:paddingEnd="3dp"
+                                        android:paddingTop="0dp"
+                                        android:paddingBottom="0dp"
+                                        android:gravity="center"/>
+                                    <TextView
+                                        android:id="@+id/selector_text_new"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0"
+                                        android:textSize="12sp"
+                                        android:textColor="#10B981"
+                                        android:textStyle="bold"
+                                        android:layout_marginStart="4dp"
+                                        android:layout_marginEnd="12dp"/>
+
+                                    <ImageView
+                                        android:layout_width="12dp"
+                                        android:layout_height="12dp"
+                                        android:src="@drawable/ic_emoji_events_24"
+                                        app:tint="#F59E0B"/>
+                                    <TextView
+                                        android:id="@+id/selector_text_master"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0%"
+                                        android:textSize="12sp"
+                                        android:textColor="#F59E0B"
+                                        android:textStyle="bold"
+                                        android:layout_marginStart="4dp"/>
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_sort_24"
+                                android:rotation="270"
+                                app:tint="#BDBDBD"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent"/>
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginTop="8dp">
+                            android:layout_marginTop="0dp">
                             <com.google.android.material.checkbox.MaterialCheckBox
                                 android:id="@+id/checkbox_include_other_grades"
                                 android:layout_width="wrap_content"

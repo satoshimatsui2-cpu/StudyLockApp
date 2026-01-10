@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="24dp"
+    android:background="#F9FAFB">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/bg_bottom_sheet_handle"
+            android:backgroundTint="#D1D5DB" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="基本学習モード"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#6B7280"
+            android:layout_marginBottom="12dp"
+            android:layout_marginStart="4dp"/>
+
+        <include layout="@layout/item_mode_row" android:id="@+id/row_meaning" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_listening" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_listening_jp" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_ja_to_en" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_en_en_1" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_en_en_2" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="実力テスト (Beta)"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#6B7280"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp"
+            android:layout_marginStart="4dp"/>
+
+        <include layout="@layout/item_mode_row" android:id="@+id/row_test_fill" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_test_sort" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_test_listen_q1" />
+        <include layout="@layout/item_mode_row" android:id="@+id/row_test_listen_q2" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

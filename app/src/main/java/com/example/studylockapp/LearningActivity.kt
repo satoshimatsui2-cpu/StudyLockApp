@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -27,15 +28,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.PointHistoryEntity
+import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.ProgressCalculator
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordProgressEntity
 import com.example.studylockapp.data.WordStudyLogEntity
-import com.example.studylockapp.data.PointManager
-import com.example.studylockapp.data.PointHistoryEntity
-import com.example.studylockapp.data.db.PointHistoryDao
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -45,7 +45,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZonedDateTime
 import java.util.Locale
 import kotlin.math.abs
 
@@ -58,6 +57,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         const val MODE_JA_TO_EN = "japanese_to_english" // 日 -> 英
         const val MODE_EN_EN_1 = "english_english_1" // 英(単語) -> 英(意味)
         const val MODE_EN_EN_2 = "english_english_2" // 英(意味) -> 英(単語)
+
+        // 新規追加 (テストモード用)
+        const val MODE_TEST_FILL_BLANK = "test_fill_blank"
+        const val MODE_TEST_SORT = "test_sort"
+        const val MODE_TEST_LISTEN_Q1 = "test_listen_q1"
+        const val MODE_TEST_LISTEN_Q2 = "test_listen_q2"
     }
 
     private val viewModel: LearningViewModel by viewModels()
@@ -90,14 +95,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
-    // Chips (for selection and stats)
-    private lateinit var chipGroupMode: ChipGroup
-    private lateinit var chipModeMeaning: Chip
-    private lateinit var chipModeListening: Chip
-    private lateinit var chipModeListeningJp: Chip
-    private lateinit var chipModeJaToEn: Chip
-    private lateinit var chipModeEnEn1: Chip
-    private lateinit var chipModeEnEn2: Chip
+    // ★修正: モード選択用レイアウトのパーツ
+    private lateinit var layoutModeSelector: View
+    private lateinit var selectorIconMode: ImageView
+    private lateinit var selectorTextTitle: TextView
+    private lateinit var selectorTextReview: TextView
+    private lateinit var selectorTextNew: TextView
+    private lateinit var selectorTextMaster: TextView
+
+    // 統計データ保持用
+    private var currentStats: Map<String, ModeStats> = emptyMap()
 
     private lateinit var choiceButtons: List<Button>
     private lateinit var buttonPlayAudio: ImageButton
@@ -108,7 +115,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private data class ModeStats(
         val review: Int,
         val newCount: Int,
-        val total: Int
+        val total: Int,
+        val mastered: Int // Lv6以上
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,25 +155,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
         initSoundPool()
 
-        // チップ選択リスナー
-        chipGroupMode.setOnCheckedStateChangeListener { group, checkedIds ->
-            if (checkedIds.isEmpty()) return@setOnCheckedStateChangeListener
-            val checkedId = checkedIds[0]
-            val newMode = when (checkedId) {
-                R.id.chip_mode_meaning -> MODE_MEANING
-                R.id.chip_mode_listening -> MODE_LISTENING
-                R.id.chip_mode_listening_jp -> MODE_LISTENING_JP
-                R.id.chip_mode_ja_to_en -> MODE_JA_TO_EN
-                R.id.chip_mode_en_en_1 -> MODE_EN_EN_1
-                R.id.chip_mode_en_en_2 -> MODE_EN_EN_2
-                else -> MODE_MEANING
-            }
-
-            if (currentMode != newMode) {
-                currentMode = newMode
-                updateStudyStatsView()
-                loadNextQuestion()
-            }
+        // ★修正: レイアウト自体をクリック可能に
+        layoutModeSelector.setOnClickListener {
+            showModeSelectionSheet()
         }
 
         choiceButtons.forEachIndexed { index, btn ->
@@ -210,13 +202,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textTotalWords = findViewById(R.id.text_total_words)
         textFeedback = findViewById(R.id.text_feedback)
 
-        chipGroupMode = findViewById(R.id.chip_group_mode)
-        chipModeMeaning = findViewById(R.id.chip_mode_meaning)
-        chipModeListening = findViewById(R.id.chip_mode_listening)
-        chipModeListeningJp = findViewById(R.id.chip_mode_listening_jp)
-        chipModeJaToEn = findViewById(R.id.chip_mode_ja_to_en)
-        chipModeEnEn1 = findViewById(R.id.chip_mode_en_en_1)
-        chipModeEnEn2 = findViewById(R.id.chip_mode_en_en_2)
+        // ★修正: 各パーツを取得
+        layoutModeSelector = findViewById(R.id.layout_mode_selector)
+        selectorIconMode = findViewById(R.id.selector_icon_mode)
+        selectorTextTitle = findViewById(R.id.selector_text_title)
+        selectorTextReview = findViewById(R.id.selector_text_review)
+        selectorTextNew = findViewById(R.id.selector_text_new)
+        selectorTextMaster = findViewById(R.id.selector_text_master)
 
         buttonPlayAudio = findViewById(R.id.button_play_audio)
         buttonSoundSettings = findViewById(R.id.button_sound_settings)
@@ -229,6 +221,86 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             findViewById(R.id.button_choice_5),
             findViewById(R.id.button_choice_6)
         )
+    }
+
+    // ボトムシートを表示するメソッド
+    private fun showModeSelectionSheet() {
+        val dialog = BottomSheetDialog(this)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        val view = layoutInflater.inflate(R.layout.layout_mode_selection_sheet, null)
+        dialog.setContentView(view)
+
+        fun setupRow(rowId: Int, modeKey: String, title: String, iconRes: Int, colorRes: Int, isTestMode: Boolean = false) {
+            val card = view.findViewById<MaterialCardView>(rowId) ?: return
+            val iconContainer = card.findViewById<View>(R.id.icon_container)
+            val icon = card.findViewById<ImageView>(R.id.icon_mode)
+            val textTitle = card.findViewById<TextView>(R.id.text_mode_title)
+
+            val textReview = card.findViewById<TextView>(R.id.text_stat_review)
+            val textNew = card.findViewById<TextView>(R.id.text_stat_new)
+            val textMaster = card.findViewById<TextView>(R.id.text_stat_master)
+
+            textTitle.text = title
+            icon.setImageResource(iconRes)
+
+            val color = ContextCompat.getColor(this, colorRes)
+            ViewCompat.setBackgroundTintList(iconContainer, ColorStateList.valueOf(adjustAlpha(color, 0.15f)))
+            icon.setColorFilter(color)
+
+            if (isTestMode) {
+                textReview.text = "-"
+                textNew.text = "-"
+                textMaster.text = "-"
+                card.alpha = 0.7f
+                card.setOnClickListener { Toast.makeText(this, "開発中機能です", Toast.LENGTH_SHORT).show() }
+            } else {
+                val stats = currentStats[modeKey]
+                if (stats != null) {
+                    textReview.text = "${stats.review}"
+                    textNew.text = "${stats.newCount}"
+                    val rate = if (stats.total > 0) (stats.mastered * 100 / stats.total) else 0
+                    textMaster.text = "${rate}%"
+                    textReview.setTextColor(if (stats.review > 0) ContextCompat.getColor(this, R.color.choice_wrong) else 0xFF9CA3AF.toInt())
+                }
+
+                if (currentMode == modeKey) {
+                    card.strokeColor = color
+                    card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                    card.setCardBackgroundColor(adjustAlpha(color, 0.05f))
+                }
+
+                card.setOnClickListener {
+                    if (currentMode != modeKey) {
+                        currentMode = modeKey
+                        updateStudyStatsView()
+                        loadNextQuestion()
+                    }
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        // 基本学習モード
+        setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_purple)
+        setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_outline_cards_stack_24, R.color.mode_teal)
+        setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_outline_cards_stack_24, R.color.mode_teal)
+        setupRow(R.id.row_ja_to_en, MODE_JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
+        setupRow(R.id.row_en_en_1, MODE_EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
+        setupRow(R.id.row_en_en_2, MODE_EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
+
+        // テストモード
+        setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
+        setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
+        setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_forum_24, R.color.mode_blue, true)
+        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_forum_24, R.color.mode_blue, true)
+
+        dialog.show()
+    }
+
+    private fun adjustAlpha(color: Int, factor: Float): Int {
+        val alpha = (255 * factor).toInt()
+        return (color and 0x00FFFFFF) or (alpha shl 24)
     }
 
     private fun observeViewModel() {
@@ -413,13 +485,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val progressDao = db.wordProgressDao()
+
+        // DAOに追加された高速化メソッドを使用
+        val progresses = progressDao.getAllProgressForMode(mode)
+
+        val targetProgresses = progresses.filter { it.wordId in wordIdSet }
         val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
-        val startedIds = progressDao.getProgressIds(mode).toSet()
-        val newCount = wordIdSet.count { it !in startedIds }
+        val startedCount = targetProgresses.size
+
         return ModeStats(
             review = dueCount,
-            newCount = newCount,
-            total = wordIdSet.size
+            newCount = wordIdSet.size - startedCount,
+            total = wordIdSet.size,
+            mastered = targetProgresses.count { it.level >= 6 } // Lv6以上
         )
     }
 
@@ -436,13 +514,42 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val ee1Stats = computeModeStats(wordIdSet, MODE_EN_EN_1, nowSec)
             val ee2Stats = computeModeStats(wordIdSet, MODE_EN_EN_2, nowSec)
 
+            currentStats = mapOf(
+                MODE_MEANING to mStats,
+                MODE_LISTENING to lStats,
+                MODE_LISTENING_JP to lJpStats,
+                MODE_JA_TO_EN to jeStats,
+                MODE_EN_EN_1 to ee1Stats,
+                MODE_EN_EN_2 to ee2Stats
+            )
+
             withContext(Dispatchers.Main) {
-                chipModeMeaning.text = "${getString(R.string.mode_meaning)} (復:${mStats.review})"
-                chipModeListening.text = "${getString(R.string.mode_listening)} (復:${lStats.review})"
-                chipModeListeningJp.text = "${getString(R.string.mode_listening_jp)} (復:${lJpStats.review})"
-                chipModeJaToEn.text = "${getString(R.string.mode_japanese_to_english)} (復:${jeStats.review})"
-                chipModeEnEn1.text = "${getString(R.string.mode_english_english_1)} (復:${ee1Stats.review})"
-                chipModeEnEn2.text = "${getString(R.string.mode_english_english_2)} (復:${ee2Stats.review})"
+                // ★修正: リッチなボタン（Layout）の各要素を更新
+                val currentStat = currentStats[currentMode]
+                val modeName = when(currentMode) {
+                    MODE_MEANING -> getString(R.string.mode_meaning)
+                    MODE_LISTENING -> getString(R.string.mode_listening)
+                    MODE_LISTENING_JP -> getString(R.string.mode_listening_jp)
+                    MODE_JA_TO_EN -> getString(R.string.mode_japanese_to_english)
+                    MODE_EN_EN_1 -> getString(R.string.mode_english_english_1)
+                    MODE_EN_EN_2 -> getString(R.string.mode_english_english_2)
+                    else -> "選択中"
+                }
+
+                val iconRes = when(currentMode) {
+                    MODE_MEANING -> R.drawable.ic_flash_cards_24
+                    else -> R.drawable.ic_outline_cards_stack_24
+                }
+
+                selectorIconMode.setImageResource(iconRes)
+                selectorTextTitle.text = modeName
+
+                if (currentStat != null) {
+                    selectorTextReview.text = "${currentStat.review}"
+                    selectorTextNew.text = "${currentStat.newCount}"
+                    val rate = if (currentStat.total > 0) (currentStat.mastered * 100 / currentStat.total) else 0
+                    selectorTextMaster.text = "${rate}%"
+                }
             }
         }
     }
@@ -473,7 +580,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val wordMapFiltered = allWords.associateBy { it.no }
             val wordMapAll = allWordsFull.associateBy { it.no }
             val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
-            
+
             val dueWords = if (includeOtherGradesReview && gradeFilter != "All") {
                 dueIdsOrdered.mapNotNull { wordMapAll[it] }
             } else {
@@ -505,13 +612,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val choices = buildChoices(nextWord, choicePool, 6)
             val (title, body, options) = formatQuestionAndOptions(nextWord, choices, currentMode)
-            
+
             textQuestionTitle.text = title
             textQuestionBody.text = body
             textQuestionBody.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
-            
+
             choiceButtons.forEach { it.textSize = if (currentMode == MODE_EN_EN_1) 12f else 14f }
-            
+
             choiceButtons.zip(options).forEach { (btn, txt) -> btn.text = txt }
 
             val correctStr = when (currentMode) {
@@ -642,7 +749,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
             val pointManager = PointManager(this@LearningActivity)
-            
+
             val nowSec = nowEpochSec()
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
@@ -661,7 +768,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     )
                 )
             }
-            
+
             val currentTimestamp = System.currentTimeMillis()
 
             val log = WordStudyLogEntity(

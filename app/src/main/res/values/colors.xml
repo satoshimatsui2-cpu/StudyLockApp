@@ -52,5 +52,10 @@
     <color name="sl_button_text">#F7EBD9</color>
 
     <color name="ic_launcher_background">#00A4B7</color>
-
+    <color name="mode_purple">#9C27B0</color>
+    <color name="mode_teal">#009688</color>
+    <color name="mode_indigo">#3F51B5</color>
+    <color name="mode_orange">#FF9800</color>
+    <color name="mode_pink">#E91E63</color>
+    <color name="mode_blue">#2196F3</color>
 </resources>

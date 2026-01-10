@@ -41,4 +41,7 @@ interface WordProgressDao {
 
     @Query("SELECT COUNT(DISTINCT wordId) FROM word_progress WHERE lastAnsweredAt BETWEEN :startTime AND :endTime")
     suspend fun getLearnedWordCount(startTime: Long, endTime: Long): Int
+
+    @Query("SELECT * FROM word_progress WHERE mode = :mode")
+    suspend fun getAllProgressForMode(mode: String): List<WordProgressEntity>
 }
