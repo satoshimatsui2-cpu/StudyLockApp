@@ -162,7 +162,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
             isChecked = true
             includeOtherGradesReview = true
-            setOnCheckedChangeListener { _, isChecked ->
+            setOnCheckedChangeListener { _, _ ->
                 loadNextQuestion()
             }
         }
@@ -194,7 +194,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 startActivity(Intent().apply {
                     setClassName(this@LearningActivity, "com.example.studylockapp.SoundSettingsActivity")
                 })
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Toast.makeText(this, "起動に失敗", Toast.LENGTH_SHORT).show()
             }
         }
