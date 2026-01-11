@@ -13,13 +13,7 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -27,23 +21,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.studylockapp.data.AppDatabase
-import com.example.studylockapp.data.AppSettings
-import com.example.studylockapp.data.PointHistoryEntity
-import com.example.studylockapp.data.PointManager
-import com.example.studylockapp.data.ProgressCalculator
-import com.example.studylockapp.data.WordEntity
-import com.example.studylockapp.data.WordProgressEntity
-import com.example.studylockapp.data.WordStudyLogEntity
+import com.example.studylockapp.data.*
 import com.example.studylockapp.learning.AnswerResult
 import com.example.studylockapp.learning.QuestionUiState
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.time.Instant
@@ -51,9 +35,19 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.abs
 
+/**
+ * 学習画面のアクティビティ。
+ * * 役割:
+ * 1. 従来の単語学習モード（Meaning, Listening等）のロジック実行
+ * 2. 新しい会話学習モード（ViewModel主導）のUIホスティング
+ * 3. TTS (TextToSpeech) と SoundPool の管理
+ * 4. 学習履歴（DB）の更新と統計表示
+ */
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
+    // region Constants & Modes
     companion object {
+        // Standard Modes
         const val MODE_MEANING = "meaning"
         const val MODE_LISTENING = "listening"
         const val MODE_LISTENING_JP = "listening_jp"
@@ -61,43 +55,43 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         const val MODE_EN_EN_1 = "english_english_1"
         const val MODE_EN_EN_2 = "english_english_2"
 
-        // テスト用モード定義
+        // Test/Beta Modes
         const val MODE_TEST_FILL_BLANK = "test_fill_blank"
         const val MODE_TEST_SORT = "test_sort"
         const val MODE_TEST_LISTEN_Q1 = "test_listen_q1"
-        const val MODE_TEST_LISTEN_Q2 = "test_listen_q2" // 会話リスニング
+        const val MODE_TEST_LISTEN_Q2 = "test_listen_q2" // Conversation Listening
     }
+    // endregion
 
+    // region ViewModel & State
     private val viewModel: LearningViewModel by viewModels()
 
     private var currentMode = MODE_MEANING
     private var gradeFilter: String = "All"
     private var includeOtherGradesReview: Boolean = false
 
-    // 単語学習用データ
+    // Vocabulary Data (Legacy Logic)
     private var currentWord: WordEntity? = null
     private var allWords: List<WordEntity> = emptyList()
     private var allWordsFull: List<WordEntity> = emptyList()
-
-    // リスニング学習用データ
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
-    // private var currentListeningQuestion: ListeningQuestion? = null // ← 削除: ViewModel管理へ
 
+    // Answer State
+    private var currentCorrectIndex: Int = -1
+    private var currentStats: Map<String, ModeStats> = emptyMap()
+    // endregion
+
+    // region System Services (TTS, Sound, DB)
     private var tts: TextToSpeech? = null
     private var conversationTts: ConversationTtsManager? = null
-
-    private lateinit var settings: AppSettings
-    private var currentCorrectIndex: Int = -1
-    private lateinit var defaultChoiceTints: List<ColorStateList?>
-
-    private val greenTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_correct)) }
-    private val redTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_wrong)) }
-
     private var soundPool: SoundPool? = null
     private var seCorrectId: Int = 0
     private var seWrongId: Int = 0
-    private var currentSnackbar: Snackbar? = null
+    private lateinit var settings: AppSettings
+    // endregion
 
+    // region UI Components
+    // Headers & Stats
     private lateinit var textQuestionTitle: TextView
     private lateinit var textQuestionBody: TextView
     private lateinit var textPoints: TextView
@@ -106,25 +100,31 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
+    // Question Area
     private lateinit var textScriptDisplay: TextView
     private lateinit var layoutActionButtons: LinearLayout
     private lateinit var buttonNextQuestion: Button
     private lateinit var buttonReplayAudio: Button
+    private lateinit var choiceButtons: List<Button>
+    private lateinit var defaultChoiceTints: List<ColorStateList?>
 
+    // Controls
     private lateinit var layoutModeSelector: View
     private lateinit var selectorIconMode: ImageView
     private lateinit var selectorTextTitle: TextView
     private lateinit var selectorTextReview: TextView
     private lateinit var selectorTextNew: TextView
     private lateinit var selectorTextMaster: TextView
-
-    private var currentStats: Map<String, ModeStats> = emptyMap()
-
-    private lateinit var choiceButtons: List<Button>
     private lateinit var buttonPlayAudio: ImageButton
     private lateinit var buttonSoundSettings: ImageButton
     private var checkIncludeOtherGrades: CheckBox? = null
     private var checkboxAutoPlayAudio: CheckBox? = null
+    private var currentSnackbar: Snackbar? = null
+
+    // Helper for Choice Colors
+    private val greenTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_correct)) }
+    private val redTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_wrong)) }
+    // endregion
 
     private data class ModeStats(
         val review: Int,
@@ -133,232 +133,63 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val mastered: Int
     )
 
+    // region Lifecycle Methods
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_learning)
+        setupWindowInsets()
 
+        settings = AppSettings(this)
+        gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
+
+        // Initialize Components
+        initViews()
+        initMediaServices()
+
+        // Setup Logic
+        setupObservers()
+        setupListeners()
+
+        // Load Initial Data
+        lifecycleScope.launch {
+            loadInitialData()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applyTtsParams()
+        updatePointView()
+        updateStudyStatsView()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        conversationTts?.stop()
+    }
+
+    override fun onDestroy() {
+        tts?.stop()
+        tts?.shutdown()
+        conversationTts?.shutdown()
+        soundPool?.release()
+        currentSnackbar?.dismiss()
+        super.onDestroy()
+    }
+    // endregion
+
+    // region Initialization & Setup
+    private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        settings = AppSettings(this)
-        gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
-
-        initViews()
-
-        // ▼ 変更点1: ViewModelの監視を開始
-        observeViewModel()
-
-        // 元々のViewModel監視（ヘッダー情報など）
-        viewModel.gradeName.observe(this) { gradeName ->
-            textCurrentGrade?.text = gradeName
-        }
-        viewModel.wordCount.observe(this) { count ->
-            textTotalWords?.text = getString(R.string.label_word_count, count)
-        }
-
-        checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
-            isChecked = true
-            includeOtherGradesReview = true
-            setOnCheckedChangeListener { _, _ ->
-                if (currentMode != MODE_TEST_LISTEN_Q2) {
-                    loadNextQuestion()
-                }
-            }
-        }
-
-        checkboxAutoPlayAudio = findViewById<CheckBox?>(R.id.checkbox_auto_play_audio)?.apply {
-            isChecked = true
-        }
-
-        textFeedback.visibility = View.GONE
-        defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
-
-        tts = TextToSpeech(this, this)
-        conversationTts = ConversationTtsManager(this)
-
-        initSoundPool()
-
-        layoutModeSelector.setOnClickListener {
-            showModeSelectionSheet()
-        }
-
-        choiceButtons.forEachIndexed { index, btn ->
-            btn.setOnClickListener { onChoiceSelected(index) }
-        }
-
-        buttonPlayAudio.setOnClickListener { speakCurrentWord() }
-
-        buttonSoundSettings.setOnClickListener {
-            try {
-                startActivity(Intent().apply {
-                    setClassName(this@LearningActivity, "com.example.studylockapp.SoundSettingsActivity")
-                })
-            } catch (_: Exception) {
-                Toast.makeText(this, "起動に失敗", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        buttonNextQuestion.setOnClickListener {
-            // ▼ 変更点2: 会話モードならViewModelへ委譲
-            if (currentMode == MODE_TEST_LISTEN_Q2) {
-                viewModel.loadNextQuestion()
-            } else {
-                loadNextQuestion()
-            }
-        }
-
-        buttonReplayAudio.setOnClickListener {
-            speakCurrentWord()
-        }
-
-        updatePointView()
-
-        lifecycleScope.launch {
-            val imported = withContext(Dispatchers.IO) {
-                if (gradeFilter != "All") importMissingWordsForGrade(gradeFilter) else 0
-            }
-            if (imported > 0) {
-                Snackbar.make(
-                    findViewById(android.R.id.content),
-                    getString(R.string.imported_count_message, imported),
-                    Snackbar.LENGTH_SHORT
-                ).show()
-            }
-
-            // CSV読み込み
-            listeningQuestions = loadListeningQuestionsFromCsv()
-
-            // ▼ 変更点3: ViewModelにデータを渡す
-            viewModel.listeningQuestions = listeningQuestions
-
-            loadAllWordsThenQuestion()
-        }
-    }
-
-    // ▼ 変更点4: ViewModel監視用メソッドの追加
-    private fun observeViewModel() {
-        // UI状態の監視
-        lifecycleScope.launch {
-            viewModel.questionUiState.collect { state ->
-                // 新しい状態が来たら、とりあえず既存UIをリセット
-                if (state !is QuestionUiState.Loading) {
-                    resetUiForNewQuestion()
-                }
-
-                when (state) {
-                    is QuestionUiState.Conversation -> {
-                        setupUiForConversation(state)
-                    }
-                    is QuestionUiState.Loading -> {
-                        // 必要ならローディング表示
-                    }
-                    is QuestionUiState.Empty -> {
-                        showNoQuestion()
-                    }
-                    else -> {
-                        // MultipleChoiceなどはまだ既存ロジック(loadNextQuestion)側で描画しているので
-                        // ここでは何もしない（将来的に移行）
-                    }
-                }
-            }
-        }
-
-        // 判定結果の監視
-        lifecycleScope.launch {
-            viewModel.answerResult.collect { result ->
-                showFeedbackSnackbar(result)
-                updatePointView()
-            }
-        }
-    }
-
-    // ▼ 変更点5: 会話モード用UIセットアップ
-    private fun setupUiForConversation(state: QuestionUiState.Conversation) {
-        textQuestionTitle.text = "会話を聞いて質問に答えてください"
-
-        // 本文（スクリプト）は最初は隠す運用であれば visibility=GONE でも良いが、
-        // 既存ロジックに合わせて回答後に表示、あるいは最初から表示など調整
-        // ここでは「回答後に表示」のためにStateに含める設計になっているか確認が必要。
-        // Strategy側で "question" に質問文を入れている前提で表示
-        textQuestionBody.text = state.question
-        textQuestionBody.visibility = View.VISIBLE
-
-        textScriptDisplay.text = ""
-        textScriptDisplay.visibility = View.GONE
-
-        // 選択肢ボタン
-        choiceButtons.forEachIndexed { index, btn ->
-            if (index < state.choices.size) {
-                btn.text = state.choices[index]
-                btn.visibility = View.VISIBLE
-                btn.isEnabled = true
-                ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[index])
-            } else {
-                btn.visibility = View.GONE
-            }
-        }
-
-        // レイアウト調整
-        checkIncludeOtherGrades?.visibility = View.GONE
-        checkboxAutoPlayAudio?.visibility = View.GONE
-        buttonPlayAudio.visibility = View.GONE // 自動再生するなら隠す
-        layoutActionButtons.visibility = View.GONE
-
-        // 音声再生
-        val repeatScript = state.script + "\nWait: 2000\n" + state.script
-        conversationTts?.playScript(repeatScript)
-    }
-
-    // ▼ 変更点6: 判定結果表示（ViewModel用）
-    private fun showFeedbackSnackbar(result: AnswerResult) {
-        // 音再生
-        val vol = if (result.isCorrect) settings.seCorrectVolume else settings.seWrongVolume
-        val seId = if (result.isCorrect) seCorrectId else seWrongId
-        if (seId != 0) {
-            soundPool?.play(seId, vol, vol, 1, 0, 1f)
-        }
-
-        // 背景色
-        val bgColor = ContextCompat.getColor(
-            this,
-            if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
-        )
-
-        // 正解演出（ボタンの色変えなど）は本来Stateで持つべきだが、簡易的にここで処理
-        // 正解のボタンを探すのは難しいので（Indexが来ないと）、フィードバック表示に集中
-        choiceButtons.forEach { it.isEnabled = false }
-
-        // スナックバー表示
-        currentSnackbar?.dismiss()
-        val root = findViewById<View>(android.R.id.content)
-        currentSnackbar = Snackbar.make(root, result.feedback, Snackbar.LENGTH_INDEFINITE).apply {
-            setBackgroundTint(bgColor)
-            setTextColor(android.graphics.Color.WHITE)
-            setAction("次へ") {
-                viewModel.loadNextQuestion()
-            }
-            show()
-        }
-
-        // 次へボタンなども表示しておく
-        layoutActionButtons.visibility = View.VISIBLE
-    }
-
-    private fun resetUiForNewQuestion() {
-        textFeedback.visibility = View.GONE
-        textScriptDisplay.visibility = View.GONE
-        choiceButtons.forEachIndexed { index, button ->
-            ViewCompat.setBackgroundTintList(button, defaultChoiceTints[index])
-            button.isEnabled = true
-        }
-        layoutActionButtons.visibility = View.GONE
     }
 
     private fun initViews() {
+        // Find Views
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
         textPoints = findViewById(R.id.text_points)
@@ -390,91 +221,27 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             findViewById(R.id.button_choice_5),
             findViewById(R.id.button_choice_6)
         )
-    }
+        defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
-    private fun showModeSelectionSheet() {
-        val dialog = BottomSheetDialog(this)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
-
-        val view = layoutInflater.inflate(R.layout.layout_mode_selection_sheet, null)
-        dialog.setContentView(view)
-
-        fun setupRow(rowId: Int, modeKey: String, title: String, iconRes: Int, colorRes: Int, isTestMode: Boolean = false) {
-            val card = view.findViewById<MaterialCardView>(rowId) ?: return
-            val iconContainer = card.findViewById<View>(R.id.icon_container)
-            val icon = card.findViewById<ImageView>(R.id.icon_mode)
-            val textTitle = card.findViewById<TextView>(R.id.text_mode_title)
-            val textReview = card.findViewById<TextView>(R.id.text_stat_review)
-            val textNew = card.findViewById<TextView>(R.id.text_stat_new)
-            val textMaster = card.findViewById<TextView>(R.id.text_stat_master)
-
-            textTitle.text = title
-            icon.setImageResource(iconRes)
-            val color = ContextCompat.getColor(this, colorRes)
-            ViewCompat.setBackgroundTintList(iconContainer, ColorStateList.valueOf(adjustAlpha(color, 0.15f)))
-            icon.setColorFilter(color)
-
-            val stats = currentStats[modeKey]
-            if (stats != null) {
-                textReview.text = "${stats.review}"
-                textNew.text = "${stats.newCount}"
-                val rate = if (stats.total > 0) (stats.mastered * 100 / stats.total) else 0
-                textMaster.text = "${rate}%"
-            } else {
-                textReview.text = "-"
-                textNew.text = "-"
-                textMaster.text = "-"
-            }
-
-            if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) {
-                card.alpha = 0.5f
-            }
-
-            if (currentMode == modeKey) {
-                card.strokeColor = color
-                card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
-                card.setCardBackgroundColor(adjustAlpha(color, 0.05f))
-            }
-
-            card.setOnClickListener {
-                currentMode = modeKey
-
-                // ▼▼▼ 修正: どのモードでも必ず画面(アイコン・タイトル)を更新する ▼▼▼
-                updateStudyStatsView()
-
-                if (modeKey == MODE_TEST_LISTEN_Q2) {
-                    viewModel.setMode(modeKey) // ViewModelにモード設定
-                } else {
-                    loadNextQuestion() // 既存ロジック
-                }
-                dialog.dismiss()
-            }
+        // Optional/Checkboxes
+        checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
+            isChecked = true
+            includeOtherGradesReview = true
+        }
+        checkboxAutoPlayAudio = findViewById<CheckBox?>(R.id.checkbox_auto_play_audio)?.apply {
+            isChecked = true
         }
 
-        setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
-        setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_headphones_24, R.color.mode_teal)
-        setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_headphones_24, R.color.mode_teal)
-        setupRow(R.id.row_ja_to_en, MODE_JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
-        setupRow(R.id.row_en_en_1, MODE_EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
-        setupRow(R.id.row_en_en_2, MODE_EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
-
-        // テスト系モード
-        setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
-        setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
-        setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_headphones_24, R.color.mode_teal, true)
-        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_outline_conversation_24, R.color.mode_teal, true)
-
-        dialog.show()
+        // Initial Visibility
+        textFeedback.visibility = View.GONE
+        updatePointView()
     }
 
-    private fun adjustAlpha(color: Int, factor: Float): Int {
-        val alpha = (255 * factor).toInt()
-        return (color and 0x00FFFFFF) or (alpha shl 24)
+    private fun initMediaServices() {
+        tts = TextToSpeech(this, this)
+        conversationTts = ConversationTtsManager(this)
+        initSoundPool()
     }
-
-    // observeViewModel に移行したため、ViewModelの監視設定は initViews や onCreate に移動しました。
-    // private fun observeViewModel() { ... }
-    // ※元のコードのobserveViewModelは、gradeNameなどを監視していた部分。onCreateにインライン化するか、新しいobserveViewModelに統合します。
 
     private fun initSoundPool() {
         val attrs = AudioAttributes.Builder()
@@ -489,216 +256,134 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         seWrongId = loadSeIfExists("se_wrong")
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
+    private suspend fun loadInitialData() {
+        // Import Data
+        val imported = withContext(Dispatchers.IO) {
+            if (gradeFilter != "All") importMissingWordsForGrade(gradeFilter) else 0
+        }
+        if (imported > 0) {
+            Snackbar.make(findViewById(android.R.id.content), getString(R.string.imported_count_message, imported), Snackbar.LENGTH_SHORT).show()
+        }
+
+        // Load CSVs
+        listeningQuestions = loadListeningQuestionsFromCsv()
+        viewModel.listeningQuestions = listeningQuestions // Pass to ViewModel
+
+        // Load Words and Start
+        loadAllWordsThenQuestion()
     }
+    // endregion
 
-    override fun onResume() {
-        super.onResume()
-        applyTtsParams()
-        updatePointView()
-        // ▼ 追加: 画面に戻ったときも統計を最新にする
-        updateStudyStatsView()
-    }
+    // region Event Listeners & Observers
+    private fun setupListeners() {
+        layoutModeSelector.setOnClickListener { showModeSelectionSheet() }
 
-    override fun onPause() {
-        super.onPause()
-        conversationTts?.stop()
-    }
+        choiceButtons.forEachIndexed { index, btn ->
+            btn.setOnClickListener { onChoiceSelected(index) }
+        }
 
-    override fun onDestroy() {
-        tts?.stop()
-        tts?.shutdown()
-        conversationTts?.shutdown()
+        buttonPlayAudio.setOnClickListener { speakCurrentWord() }
 
-        soundPool?.release()
-        soundPool = null
-        currentSnackbar?.dismiss()
-        super.onDestroy()
-    }
+        buttonSoundSettings.setOnClickListener {
+            runCatching {
+                startActivity(Intent().apply { setClassName(this@LearningActivity, "com.example.studylockapp.SoundSettingsActivity") })
+            }.onFailure { Toast.makeText(this, "起動に失敗", Toast.LENGTH_SHORT).show() }
+        }
 
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            tts?.language = Locale.US
-            tts?.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .build()
-            )
-            applyTtsParams()
+        buttonNextQuestion.setOnClickListener {
+            routeNextQuestionAction()
+        }
+
+        buttonReplayAudio.setOnClickListener { speakCurrentWord() }
+
+        checkIncludeOtherGrades?.setOnCheckedChangeListener { _, _ ->
+            if (currentMode != MODE_TEST_LISTEN_Q2) loadNextQuestionLegacy()
         }
     }
 
-    private fun applyTtsParams() {
-        val rate = settings.getTtsSpeed()
-        val pitch = settings.getTtsPitch()
-        tts?.setSpeechRate(rate)
-        tts?.setPitch(pitch)
+    private fun setupObservers() {
+        // ViewModel Data Observers
+        viewModel.gradeName.observe(this) { textCurrentGrade?.text = it }
+        viewModel.wordCount.observe(this) { textTotalWords?.text = getString(R.string.label_word_count, it) }
+
+        // ViewModel State Observers (for Conversation Mode)
+        lifecycleScope.launch {
+            viewModel.questionUiState.collect { state ->
+                handleQuestionUiState(state)
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.answerResult.collect { result ->
+                handleAnswerResult(result)
+            }
+        }
     }
+    // endregion
 
-    private fun loadSeIfExists(rawName: String): Int {
-        val resId = resources.getIdentifier(rawName, "raw", packageName)
-        return if (resId != 0) soundPool?.load(this, resId, 1) ?: 0 else 0
-    }
-
-    private fun flashCorrectBackground() {
-        val root = findViewById<View>(android.R.id.content)
-        val flashColor = ContextCompat.getColor(this, R.color.correct_flash)
-        if (root.width == 0 || root.height == 0) return
-
-        val drawable = ColorDrawable(flashColor)
-        drawable.setBounds(0, 0, root.width, root.height)
-        drawable.alpha = 0
-        root.overlay.add(drawable)
-
-        ValueAnimator.ofInt(0, 90, 0).apply {
-            duration = 160L
-            addUpdateListener { drawable.alpha = it.animatedValue as Int }
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    root.overlay.remove(drawable)
-                }
-            })
-            start()
+    // region Logic: Routing & Mode Handling
+    /**
+     * Determines whether to use Legacy Logic or ViewModel Logic based on Current Mode.
+     */
+    private fun routeNextQuestionAction() {
+        if (currentMode == MODE_TEST_LISTEN_Q2) {
+            viewModel.loadNextQuestion()
+        } else {
+            loadNextQuestionLegacy()
         }
     }
 
-    private fun playCorrectEffect() {
-        flashCorrectBackground()
-        val vol = settings.seCorrectVolume
-        if (seCorrectId != 0) soundPool?.play(seCorrectId, vol, vol, 1, 0, 1f)
+    private fun handleQuestionUiState(state: QuestionUiState) {
+        if (state !is QuestionUiState.Loading) {
+            resetUiForNewQuestion()
+        }
 
-        val idx = currentCorrectIndex
-        val v = choiceButtons.getOrNull(idx) ?: return
-        v.animate().cancel()
-        v.scaleX = 1f; v.scaleY = 1f
-        v.animate().scaleX(1.12f).scaleY(1.12f).setDuration(120).withEndAction {
-            v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
-        }.start()
-    }
-
-    private fun playWrongEffect() {
-        val vol = settings.seWrongVolume
-        if (seWrongId != 0) soundPool?.play(seWrongId, vol, vol, 1, 0, 1f)
-    }
-
-    private fun nowEpochSec(): Long = System.currentTimeMillis() / 1000L
-
-    private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
-        val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
-        val zone = settings.getAppZoneId()
-        val result: Pair<Int, Long> = when {
-            !isCorrect -> newLevel to (nowSec + settings.wrongRetrySec)
-            newLevel == 1 -> newLevel to (nowSec + settings.level1RetrySec)
+        when (state) {
+            is QuestionUiState.Conversation -> renderConversationUi(state)
+            is QuestionUiState.Loading -> { /* Show Loading if needed */ }
+            is QuestionUiState.Empty -> showNoQuestion()
             else -> {
-                val days = when (newLevel) {
-                    2 -> 1; 3 -> 3; 4 -> 7; 5 -> 14; 6 -> 30; 7 -> 60; else -> 90
-                }
-                val baseDate = Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate()
-                val dueDate = baseDate.plusDays(days.toLong())
-                val dueAtSec = dueDate.atStartOfDay(zone).toEpochSecond()
-                newLevel to dueAtSec
+                // Other states handled by legacy logic for now
             }
         }
-        return result
     }
 
-    private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
-        val db = AppDatabase.getInstance(this@LearningActivity)
-        val wordDao = db.wordDao()
-        val csvWords = readCsvWords().filter { it.grade == grade }
-        if (csvWords.isEmpty()) return@withContext 0
-        val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
-        val missing = csvWords.filter { existing[it.word] == null }
-        if (missing.isNotEmpty()) wordDao.insertAll(missing)
-        missing.size
+    private fun handleAnswerResult(result: AnswerResult) {
+        showFeedbackSnackbar(result)
+        updatePointView()
+        // Note: Legacy logic updates UI directly inside onAnsweredInternal
     }
 
-    private fun readCsvWords(): List<WordEntity> {
-        val result = mutableListOf<WordEntity>()
-        try {
-            resources.openRawResource(R.raw.words).use { input ->
-                BufferedReader(InputStreamReader(input)).useLines { lines ->
-                    lines.drop(1).forEach { line ->
-                        // ▼▼▼ 修正: split(",") ではなく、頑丈な parseCsvLine を使う ▼▼▼
-                        val cols = parseCsvLine(line)
+    private fun renderConversationUi(state: QuestionUiState.Conversation) {
+        textQuestionTitle.text = "会話を聞いて質問に答えてください"
+        textQuestionBody.text = state.question
+        textQuestionBody.visibility = View.VISIBLE
+        textScriptDisplay.visibility = View.GONE
 
-                        if (cols.size >= 7) {
-                            // スペース除去(trim)を行ってから数値変換
-                            // これで " 1" や "1 " も正しく "1" として認識される
-                            val id = cols[0].trim().toIntOrNull() ?: 0
+        // Hide standard controls
+        checkIncludeOtherGrades?.visibility = View.GONE
+        checkboxAutoPlayAudio?.visibility = View.GONE
+        buttonPlayAudio.visibility = View.GONE
+        layoutActionButtons.visibility = View.GONE
 
-                            // IDが0（変換失敗）の場合はスキップせず、そのまま登録（既存ロジック維持）
-                            // 必要であれば if (id != 0) で囲んで除外も可能
-                            result.add(WordEntity(
-                                no = id,
-                                grade = cols[1].trim(),
-                                word = cols[2].trim(),
-                                japanese = cols[3].trim(),
-                                description = cols[4].trim(),
-                                smallTopicId = cols[5].trim(),
-                                mediumCategoryId = cols[6].trim()
-                            ))
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) { Log.e("LearningActivity", "Error reading CSV", e) }
-        return result
-    }
-
-    private suspend fun loadListeningQuestionsFromCsv(): List<ListeningQuestion> = withContext(Dispatchers.IO) {
-        val result = mutableListOf<ListeningQuestion>()
-        try {
-            val resId = resources.getIdentifier("listening2", "raw", packageName)
-            if (resId == 0) return@withContext emptyList()
-
-            resources.openRawResource(resId).use { input ->
-                BufferedReader(InputStreamReader(input)).useLines { lines ->
-                    lines.drop(1).forEach { line ->
-                        val cols = parseCsvLine(line)
-                        if (cols.size >= 11) {
-                            val options = listOf(cols[5], cols[6], cols[7], cols[8])
-                            val correctIdx = (cols[9].toIntOrNull() ?: 1) - 1
-                            result.add(ListeningQuestion(
-                                id = cols[0].toIntOrNull() ?: 0,
-                                grade = cols[1],
-                                script = cols[3].replace("\\n", "\n"),
-                                question = cols[4],
-                                options = options,
-                                correctIndex = correctIdx,
-                                explanation = cols[10]
-                            ))
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("LearningActivity", "Error reading listening CSV", e)
-        }
-        return@withContext result
-    }
-
-    private fun parseCsvLine(line: String): List<String> {
-        val result = mutableListOf<String>()
-        var current = StringBuilder()
-        var inQuotes = false
-        for (char in line) {
-            when {
-                char == '"' -> inQuotes = !inQuotes
-                char == ',' && !inQuotes -> {
-                    result.add(current.toString())
-                    current = StringBuilder()
-                }
-                else -> current.append(char)
+        // Setup Choices
+        choiceButtons.forEachIndexed { index, btn ->
+            if (index < state.choices.size) {
+                btn.text = state.choices[index]
+                btn.visibility = View.VISIBLE
+                btn.isEnabled = true
+                ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[index])
+            } else {
+                btn.visibility = View.GONE
             }
         }
-        result.add(current.toString())
-        return result
-    }
 
+        // Auto Play
+        val repeatScript = state.script + "\nWait: 2000\n" + state.script
+        conversationTts?.playScript(repeatScript)
+    }
+    // endregion
+
+    // region Logic: Legacy Word Learning (Standard Modes)
     private fun loadAllWordsThenQuestion() {
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@LearningActivity)
@@ -708,284 +393,172 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             allWords = if (gradeFilter == "All") words else words.filter { it.grade == gradeFilter }
 
             viewModel.setGradeInfo(gradeFilter, allWords)
-
             updateStudyStatsView()
 
-            // 会話モード以外の場合は、既存のロード処理を走らせる
             if (currentMode != MODE_TEST_LISTEN_Q2) {
-                loadNextQuestion()
+                loadNextQuestionLegacy()
             }
         }
     }
 
-    // computeModeStats メソッドは変更なし
-    private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
-        val db = AppDatabase.getInstance(this@LearningActivity)
-        val progressDao = db.wordProgressDao()
-
-        if (mode == MODE_TEST_LISTEN_Q2) {
-            val allQIds = listeningQuestions.map { it.id }.toSet()
-            val progresses = progressDao.getAllProgressForMode(mode)
-            val startedCount = progresses.filter { it.wordId in allQIds }.size
-            val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in allQIds }
-            val masteredCount = progresses.count { it.wordId in allQIds && it.level >= 6 }
-
-            return ModeStats(
-                review = dueCount,
-                newCount = allQIds.size - startedCount,
-                total = allQIds.size,
-                mastered = masteredCount
-            )
-        }
-
-        val progresses = progressDao.getAllProgressForMode(mode)
-        val targetProgresses = progresses.filter { it.wordId in wordIdSet }
-        val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
-        val startedCount = targetProgresses.size
-
-        return ModeStats(
-            review = dueCount,
-            newCount = wordIdSet.size - startedCount,
-            total = wordIdSet.size,
-            mastered = targetProgresses.count { it.level >= 6 }
-        )
-    }
-
-    private fun updateStudyStatsView() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
-            val nowSec = nowEpochSec()
-
-            val mStats = computeModeStats(wordIdSet, MODE_MEANING, nowSec)
-            val lStats = computeModeStats(wordIdSet, MODE_LISTENING, nowSec)
-            val lJpStats = computeModeStats(wordIdSet, MODE_LISTENING_JP, nowSec)
-            val jeStats = computeModeStats(wordIdSet, MODE_JA_TO_EN, nowSec)
-            val ee1Stats = computeModeStats(wordIdSet, MODE_EN_EN_1, nowSec)
-            val ee2Stats = computeModeStats(wordIdSet, MODE_EN_EN_2, nowSec)
-            val lq2Stats = computeModeStats(emptySet(), MODE_TEST_LISTEN_Q2, nowSec)
-
-            currentStats = mapOf(
-                MODE_MEANING to mStats,
-                MODE_LISTENING to lStats,
-                MODE_LISTENING_JP to lJpStats,
-                MODE_JA_TO_EN to jeStats,
-                MODE_EN_EN_1 to ee1Stats,
-                MODE_EN_EN_2 to ee2Stats,
-                MODE_TEST_LISTEN_Q2 to lq2Stats
-            )
-
-            withContext(Dispatchers.Main) {
-                val currentStat = currentStats[currentMode]
-
-                // モード名の取得
-                val modeName = when(currentMode) {
-                    MODE_MEANING -> getString(R.string.mode_meaning)
-                    MODE_LISTENING -> getString(R.string.mode_listening)
-                    MODE_LISTENING_JP -> getString(R.string.mode_listening_jp)
-                    MODE_JA_TO_EN -> getString(R.string.mode_japanese_to_english)
-                    MODE_EN_EN_1 -> getString(R.string.mode_english_english_1)
-                    MODE_EN_EN_2 -> getString(R.string.mode_english_english_2)
-                    MODE_TEST_LISTEN_Q2 -> "会話文リスニング"
-                    MODE_TEST_FILL_BLANK -> "穴埋め"
-                    MODE_TEST_SORT -> "並び替え"
-                    MODE_TEST_LISTEN_Q1 -> "リスニング質問"
-                    else -> "選択中"
-                }
-
-                // アイコンの選択（showModeSelectionSheetと一致させる）
-                val iconRes = when(currentMode) {
-                    // 単語帳系
-                    MODE_MEANING -> R.drawable.ic_flash_cards_24
-                    MODE_JA_TO_EN,
-                    MODE_EN_EN_1,
-                    MODE_EN_EN_2 -> R.drawable.ic_outline_cards_stack_24
-
-                    // リスニング系
-                    MODE_LISTENING,
-                    MODE_LISTENING_JP,
-                    MODE_TEST_LISTEN_Q1 -> R.drawable.ic_headphones_24
-
-                    // 会話文リスニング（モード選択画面で使用しているアイコンに統一）
-                    MODE_TEST_LISTEN_Q2 -> R.drawable.ic_outline_conversation_24
-
-                    // テスト系
-                    MODE_TEST_FILL_BLANK -> R.drawable.ic_edit_24
-                    MODE_TEST_SORT -> R.drawable.ic_sort_24
-
-                    // その他デフォルト
-                    else -> R.drawable.ic_outline_cards_stack_24
-                }
-
-                selectorIconMode.setImageResource(iconRes)
-                selectorTextTitle.text = modeName
-
-                if (currentStat != null) {
-                    selectorTextReview.text = "${currentStat.review}"
-                    selectorTextNew.text = "${currentStat.newCount}"
-                    val rate = if (currentStat.total > 0) (currentStat.mastered * 100 / currentStat.total) else 0
-                    selectorTextMaster.text = "${rate}%"
-                } else {
-                    selectorTextReview.text = "-"
-                    selectorTextNew.text = "-"
-                    selectorTextMaster.text = "-"
-                }
-            }
-        }
-    }
-
-    private fun resetChoiceButtons() {
-        choiceButtons.forEachIndexed { i, btn ->
-            btn.isClickable = true
-            btn.isEnabled = true
-            btn.alpha = 1f
-            btn.visibility = View.VISIBLE
-            ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[i])
-        }
-
-        if (choiceButtons.size >= 6) {
-            val button5 = choiceButtons[4]
-            val parentRow = button5.parent as? View
-            parentRow?.visibility = View.VISIBLE
-        }
-
-        currentCorrectIndex = -1
-    }
-
-    // ▼ 変更点8: loadNextQuestionから会話モードのロジックを削除
-    private fun loadNextQuestion() {
-        // 会話モードはViewModel管理のため、ここでは処理しない
-        if (currentMode == MODE_TEST_LISTEN_Q2) {
-            viewModel.loadNextQuestion()
-            return
-        }
-
+    private fun loadNextQuestionLegacy() {
         lifecycleScope.launch {
-            conversationTts?.stop()
-            tts?.stop()
-
-            textScriptDisplay.visibility = View.GONE
-            textFeedback.visibility = View.GONE
-            layoutActionButtons.visibility = View.GONE
-            textQuestionBody.visibility = View.VISIBLE
-
-            val db = AppDatabase.getInstance(this@LearningActivity)
-            val progressDao = db.wordProgressDao()
-            val nowSec = nowEpochSec()
-
-            resetChoiceButtons()
-
-            // ★削除済み: ここにあった MODE_TEST_LISTEN_Q2 の巨大なifブロックを削除しました
-
-            // 通常の単語学習モード
-            checkIncludeOtherGrades?.visibility = View.VISIBLE
-            // 通常モードでは再生ボタンを表示
-            buttonPlayAudio.visibility = View.VISIBLE
+            // UI Reset
+            stopMedia()
+            resetStandardUi()
 
             if (allWordsFull.isEmpty()) {
                 showNoQuestion()
                 return@launch
             }
 
-            // ... (以下、単語選択ロジックはそのまま) ...
-
-            val wordMapFiltered = allWords.associateBy { it.no }
-            val wordMapAll = allWordsFull.associateBy { it.no }
-            val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
-
-            val dueWords = if (includeOtherGradesReview && gradeFilter != "All") {
-                dueIdsOrdered.mapNotNull { wordMapAll[it] }
-            } else {
-                dueIdsOrdered.mapNotNull { wordMapFiltered[it] }
-            }
-
-            val progressedIds = progressDao.getProgressIds(currentMode).toSet()
-            val newWords = if (gradeFilter == "All") {
-                allWordsFull.filter { it.no !in progressedIds }
-            } else {
-                allWords.filter { it.no !in progressedIds }
-            }
-
-            val nextWord = when {
-                dueWords.isNotEmpty() -> dueWords.first()
-                newWords.isNotEmpty() -> newWords.random()
-                else -> null
-            }
-
+            // Word Selection Logic
+            val nextWord = selectNextWord()
             if (nextWord == null) {
                 showNoQuestion()
                 return@launch
             }
-
             currentWord = nextWord
-            val choicePool = if (includeOtherGradesReview && gradeFilter != "All") allWordsFull else {
-                if (gradeFilter == "All") allWordsFull else allWords
-            }
 
+            // Choices & Display Generation
+            val choicePool = getChoicePool()
             val choices = buildChoices(nextWord, choicePool, 6)
             val (title, body, options) = formatQuestionAndOptions(nextWord, choices, currentMode)
 
+            // Update Views
             textQuestionTitle.text = title
             textQuestionBody.text = body
             textQuestionBody.visibility = if (body.isEmpty()) View.GONE else View.VISIBLE
 
             choiceButtons.forEach { it.textSize = if (currentMode == MODE_EN_EN_1) 12f else 14f }
-
             choiceButtons.zip(options).forEach { (btn, txt) -> btn.text = txt }
 
-            val correctStr = when (currentMode) {
-                MODE_MEANING -> nextWord.japanese ?: ""
-                MODE_LISTENING -> nextWord.word
-                MODE_LISTENING_JP -> nextWord.japanese ?: ""
-                MODE_JA_TO_EN -> nextWord.word
-                MODE_EN_EN_1 -> nextWord.description ?: ""
-                MODE_EN_EN_2 -> nextWord.word
-                else -> nextWord.japanese ?: ""
-            }
+            // Set Correct Answer Index
+            val correctStr = getCorrectStringForMode(nextWord, currentMode)
             currentCorrectIndex = options.indexOf(correctStr)
 
-            // 再生ボタン制御
-            when (currentMode) {
-                MODE_JA_TO_EN -> {
-                    checkboxAutoPlayAudio?.visibility = View.GONE
-                    buttonPlayAudio.visibility = View.GONE
-                }
-                MODE_MEANING, MODE_EN_EN_1, MODE_EN_EN_2 -> {
-                    checkboxAutoPlayAudio?.visibility = View.VISIBLE
-                    buttonPlayAudio.visibility = View.VISIBLE
-                }
-                else -> {
-                    checkboxAutoPlayAudio?.visibility = View.GONE
-                    buttonPlayAudio.visibility = View.VISIBLE
-                }
-            }
-
-            if (currentMode == MODE_LISTENING || currentMode == MODE_LISTENING_JP) {
-                speakCurrentWord()
-            } else if (checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE) {
-                if (currentMode == MODE_EN_EN_2) {
-                    val textToSpeak = nextWord.description ?: ""
-                    speakText(textToSpeak)
-                } else {
-                    speakCurrentWord()
-                }
-            }
+            // Auto Play Audio Handling
+            handleAutoPlayAudio(nextWord)
         }
     }
 
-    private fun showNoQuestion() {
-        textQuestionTitle.text = getString(R.string.no_question_available)
-        textQuestionBody.text = ""
-        textQuestionBody.visibility = View.GONE
-        currentWord = null
-        choiceButtons.forEach { it.text = "----"; it.isEnabled = false }
+    private fun onChoiceSelected(selectedIndex: Int) {
+        // Branch to ViewModel if needed
+        if (currentMode == MODE_TEST_LISTEN_Q2) {
+            viewModel.submitAnswer(selectedIndex)
+            return
+        }
+
+        // Legacy Processing
+        val cw = currentWord ?: return
+        val selectedText = choiceButtons.getOrNull(selectedIndex)?.text?.toString() ?: return
+
+        val isCorrect = checkLegacyAnswer(cw, selectedText)
+
+        // Visual Feedback (Button Colors)
+        choiceButtons.forEach { it.isClickable = false }
+        if (currentCorrectIndex in choiceButtons.indices) {
+            ViewCompat.setBackgroundTintList(choiceButtons[currentCorrectIndex], greenTint)
+        }
+        if (!isCorrect && selectedIndex != currentCorrectIndex && selectedIndex in choiceButtons.indices) {
+            ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
+        }
+
+        if (isCorrect) playCorrectEffect() else playWrongEffect()
+        processAnswerResultLegacy(cw.no, isCorrect)
     }
 
-    // getGradeValue, buildChoices, getStandardChoices, getListeningChoices, formatQuestionAndOptions
-    // これらは変更なしのため省略... (既存コードを維持)
-    // ※コード量削減のためここでは省略しますが、実装時には既存メソッドを消さないよう注意してください
+    private fun processAnswerResultLegacy(wordId: Int, isCorrect: Boolean) {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val progressDao = db.wordProgressDao()
+            val pointManager = PointManager(this@LearningActivity)
+            val nowSec = nowEpochSec()
 
-    private fun getGradeValue(grade: String?): Int {
-        return grade?.toIntOrNull() ?: 0
+            // Calculate Progress (Spaced Repetition)
+            val current = withContext(Dispatchers.IO) { progressDao.getProgress(wordId, currentMode) }
+            val currentLevel = current?.level ?: 0
+            val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
+            val addPoint = ProgressCalculator.calcPoint(isCorrect, currentLevel)
+
+            // Save to DB
+            pointManager.add(addPoint)
+            if (addPoint > 0) {
+                withContext(Dispatchers.IO) {
+                    db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = addPoint))
+                }
+            }
+
+            withContext(Dispatchers.IO) {
+                progressDao.upsert(WordProgressEntity(wordId = wordId, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec, lastAnsweredAt = System.currentTimeMillis(), studyCount = (current?.studyCount ?: 0) + 1))
+                db.studyLogDao().insert(WordStudyLogEntity(wordId = wordId, mode = currentMode, learnedAt = System.currentTimeMillis()))
+            }
+
+            // Post-Save UI Update
+            updateStudyStatsView()
+            showFeedbackSnackbarInternal(isCorrect, addPoint)
+            updatePointView()
+
+            if (!isCorrect) {
+                layoutActionButtons.visibility = View.VISIBLE
+            } else {
+                delay(settings.answerIntervalMs)
+                loadNextQuestionLegacy() // Loop
+            }
+        }
+    }
+    // endregion
+
+    // region Logic: Word Selection & Formatting (Helper Methods)
+    private suspend fun selectNextWord(): WordEntity? {
+        val db = AppDatabase.getInstance(this)
+        val progressDao = db.wordProgressDao()
+        val nowSec = nowEpochSec()
+        val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
+
+        val wordMapFiltered = allWords.associateBy { it.no }
+        val wordMapAll = allWordsFull.associateBy { it.no }
+
+        // 1. Check Review Words
+        val dueWords = if (includeOtherGradesReview && gradeFilter != "All") {
+            dueIdsOrdered.mapNotNull { wordMapAll[it] }
+        } else {
+            dueIdsOrdered.mapNotNull { wordMapFiltered[it] }
+        }
+        if (dueWords.isNotEmpty()) return dueWords.first()
+
+        // 2. Check New Words
+        val progressedIds = progressDao.getProgressIds(currentMode).toSet()
+        val newWords = if (gradeFilter == "All") {
+            allWordsFull.filter { it.no !in progressedIds }
+        } else {
+            allWords.filter { it.no !in progressedIds }
+        }
+        return if (newWords.isNotEmpty()) newWords.random() else null
+    }
+
+    private fun getChoicePool(): List<WordEntity> {
+        return if (includeOtherGradesReview && gradeFilter != "All") allWordsFull else {
+            if (gradeFilter == "All") allWordsFull else allWords
+        }
+    }
+
+    private fun checkLegacyAnswer(word: WordEntity, selectedText: String): Boolean {
+        return when (currentMode) {
+            MODE_MEANING, MODE_LISTENING_JP -> selectedText == (word.japanese ?: "")
+            MODE_LISTENING, MODE_JA_TO_EN, MODE_EN_EN_2 -> selectedText == word.word
+            MODE_EN_EN_1 -> selectedText == (word.description ?: "")
+            else -> false
+        }
+    }
+
+    private fun getCorrectStringForMode(word: WordEntity, mode: String): String {
+        return when (mode) {
+            MODE_MEANING, MODE_LISTENING_JP -> word.japanese ?: ""
+            MODE_LISTENING, MODE_JA_TO_EN, MODE_EN_EN_2 -> word.word
+            MODE_EN_EN_1 -> word.description ?: ""
+            else -> word.japanese ?: ""
+        }
     }
 
     private fun buildChoices(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
@@ -993,16 +566,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (candidates.isEmpty()) return listOf(correct)
 
         val distractors = when (currentMode) {
-            MODE_LISTENING, MODE_LISTENING_JP -> {
-                getListeningChoices(correct, candidates, count - 1)
-            }
-            else -> {
-                getStandardChoices(correct, candidates, count - 1)
-            }
+            MODE_LISTENING, MODE_LISTENING_JP -> getListeningChoices(correct, candidates, count - 1)
+            else -> getStandardChoices(correct, candidates, count - 1)
         }
         return (distractors + correct).shuffled()
     }
 
+    // Existing choice generation logic maintained (getStandardChoices, getListeningChoices, formatQuestionAndOptions)
+    // ... [These methods are pure logic and kept as is, but moved to this region for organization] ...
     private fun getStandardChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
         val sameGradePool = candidates.filter { it.grade == correct.grade }
         if (sameGradePool.isEmpty()) return candidates.shuffled().take(count)
@@ -1028,7 +599,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun getListeningChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
-        val correctGradeVal = getGradeValue(correct.grade)
+        val correctGradeVal = correct.grade?.toIntOrNull() ?: 0
         val correctWord = correct.word
         val correctLen = correctWord.length
         val prefix2 = correctWord.take(2).lowercase()
@@ -1036,7 +607,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         val validPool = candidates.filter { word ->
             val wWord = word.word
-            val gVal = getGradeValue(word.grade)
+            val gVal = word.grade?.toIntOrNull() ?: 0
             val lenDiff = abs(wWord.length - correctLen)
             gVal >= correctGradeVal && lenDiff <= 3
         }
@@ -1063,11 +634,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return result
     }
 
-    private fun formatQuestionAndOptions(
-        correct: WordEntity,
-        choices: List<WordEntity>,
-        mode: String
-    ): Triple<String, String, List<String>> {
+    private fun formatQuestionAndOptions(correct: WordEntity, choices: List<WordEntity>, mode: String): Triple<String, String, List<String>> {
         return when (mode) {
             MODE_MEANING -> Triple("この英単語の意味は？", correct.word, choices.map { it.japanese ?: "" })
             MODE_LISTENING -> Triple("音声を聞いて正しい英単語を選んでください", "", choices.map { it.word })
@@ -1078,125 +645,71 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             else -> Triple("", "", emptyList())
         }
     }
+    // endregion
 
-    // ▼ 変更点9: onChoiceSelectedでの委譲
-    private fun onChoiceSelected(selectedIndex: Int) {
-        // 会話モードはViewModelへ委譲
-        if (currentMode == MODE_TEST_LISTEN_Q2) {
-            viewModel.submitAnswer(selectedIndex)
-            return
+    // region UI Helpers (Update, Reset, Effects)
+    private fun resetUiForNewQuestion() {
+        textFeedback.visibility = View.GONE
+        textScriptDisplay.visibility = View.GONE
+        choiceButtons.forEachIndexed { index, button ->
+            ViewCompat.setBackgroundTintList(button, defaultChoiceTints[index])
+            button.isEnabled = true
         }
-
-        // 通常モードの判定（既存ロジック）
-        val cw = currentWord ?: return
-        val selectedText = choiceButtons.getOrNull(selectedIndex)?.text?.toString() ?: return
-
-        val isCorrect = when (currentMode) {
-            MODE_MEANING -> selectedText == (cw.japanese ?: "")
-            MODE_LISTENING -> selectedText == cw.word
-            MODE_LISTENING_JP -> selectedText == (cw.japanese ?: "")
-            MODE_JA_TO_EN -> selectedText == cw.word
-            MODE_EN_EN_1 -> selectedText == (cw.description ?: "")
-            MODE_EN_EN_2 -> selectedText == cw.word
-            else -> false
-        }
-
-        choiceButtons.forEach { it.isClickable = false }
-        if (currentCorrectIndex in choiceButtons.indices) {
-            ViewCompat.setBackgroundTintList(choiceButtons[currentCorrectIndex], greenTint)
-        }
-        if (!isCorrect && selectedIndex != currentCorrectIndex && selectedIndex in choiceButtons.indices) {
-            ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
-        }
-
-        if (isCorrect) playCorrectEffect() else playWrongEffect()
-        onAnsweredInternal(cw.no, isCorrect)
+        layoutActionButtons.visibility = View.GONE
     }
 
-    private fun onAnsweredInternal(wordId: Int, isCorrect: Boolean) {
-        lifecycleScope.launch {
-            val db = AppDatabase.getInstance(this@LearningActivity)
-            val progressDao = db.wordProgressDao()
-            val pointManager = PointManager(this@LearningActivity)
-
-            val nowSec = nowEpochSec()
-
-            // データの取得と計算
-            val current = withContext(Dispatchers.IO) {
-                progressDao.getProgress(wordId, currentMode)
-            }
-            val currentLevel = current?.level ?: 0
-            val newCount = (current?.studyCount ?: 0) + 1
-
-            val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
-            val addPoint = ProgressCalculator.calcPoint(isCorrect, currentLevel)
-            pointManager.add(addPoint)
-
-            if (addPoint > 0) {
-                withContext(Dispatchers.IO) {
-                    db.pointHistoryDao().insert(
-                        PointHistoryEntity(
-                            mode = currentMode,
-                            dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
-                            delta = addPoint
-                        )
-                    )
-                }
-            }
-
-            val currentTimestamp = System.currentTimeMillis()
-
-            // ▼▼▼ 修正: DB保存を確実に待機してから次へ進む ▼▼▼
-            withContext(Dispatchers.IO) {
-                progressDao.upsert(
-                    WordProgressEntity(
-                        wordId = wordId,
-                        mode = currentMode,
-                        level = newLevel,
-                        nextDueAtSec = nextDueAtSec,
-                        lastAnsweredAt = currentTimestamp,
-                        studyCount = newCount
-                    )
-                )
-
-                db.studyLogDao().insert(
-                    WordStudyLogEntity(
-                        wordId = wordId,
-                        mode = currentMode,
-                        learnedAt = currentTimestamp
-                    )
-                )
-            }
-            // ▲▲▲ 修正ここまで ▲▲▲
-
-            // DB保存が完了した後に統計を更新
-            updateStudyStatsView()
-            showFeedbackSnackbarInternal(isCorrect, addPoint)
-            updatePointView()
-
-            if (!isCorrect) {
-                layoutActionButtons.visibility = View.VISIBLE
-            } else {
-                delay(settings.answerIntervalMs)
-                loadNextQuestion()
-            }
+    private fun resetStandardUi() {
+        resetUiForNewQuestion()
+        choiceButtons.forEach { btn ->
+            btn.isClickable = true
+            btn.alpha = 1f
+            btn.visibility = View.VISIBLE
         }
+        if (choiceButtons.size >= 6) {
+            (choiceButtons[4].parent as? View)?.visibility = View.VISIBLE
+        }
+        currentCorrectIndex = -1
+        checkIncludeOtherGrades?.visibility = View.VISIBLE
+        buttonPlayAudio.visibility = View.VISIBLE
     }
 
-    // 既存モード用のスナックバー
+    private fun showNoQuestion() {
+        textQuestionTitle.text = getString(R.string.no_question_available)
+        textQuestionBody.text = ""
+        textQuestionBody.visibility = View.GONE
+        currentWord = null
+        choiceButtons.forEach { it.text = "----"; it.isEnabled = false }
+    }
+
+    private fun showFeedbackSnackbar(result: AnswerResult) {
+        // Shared logic for sound and visual feedback
+        val vol = if (result.isCorrect) settings.seCorrectVolume else settings.seWrongVolume
+        val seId = if (result.isCorrect) seCorrectId else seWrongId
+        if (seId != 0) soundPool?.play(seId, vol, vol, 1, 0, 1f)
+
+        val bgColor = ContextCompat.getColor(this, if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
+        choiceButtons.forEach { it.isEnabled = false }
+
+        currentSnackbar?.dismiss()
+        val root = findViewById<View>(android.R.id.content)
+        currentSnackbar = Snackbar.make(root, result.feedback, Snackbar.LENGTH_INDEFINITE).apply {
+            setBackgroundTint(bgColor)
+            setTextColor(android.graphics.Color.WHITE)
+            setAction("次へ") { viewModel.loadNextQuestion() }
+            show()
+        }
+        layoutActionButtons.visibility = View.VISIBLE
+    }
+
     private fun showFeedbackSnackbarInternal(isCorrect: Boolean, addPoint: Int) {
-        val bgColor = ContextCompat.getColor(
-            this,
-            if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
-        )
+        val bgColor = ContextCompat.getColor(this, if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
         val msg = if (isCorrect) {
             val praise = listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
             "$praise +${addPoint}pt"
         } else "不正解…"
 
         currentSnackbar?.dismiss()
-        val root = findViewById<View>(android.R.id.content)
-        currentSnackbar = Snackbar.make(root, msg, Snackbar.LENGTH_SHORT).apply {
+        currentSnackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).apply {
             setBackgroundTint(bgColor)
             setTextColor(android.graphics.Color.WHITE)
             duration = settings.answerIntervalMs.toInt().coerceIn(600, 4000)
@@ -1204,37 +717,220 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun flashCorrectBackground() {
+        val root = findViewById<View>(android.R.id.content)
+        val flashColor = ContextCompat.getColor(this, R.color.correct_flash)
+        if (root.width == 0 || root.height == 0) return
+
+        val drawable = ColorDrawable(flashColor)
+        drawable.setBounds(0, 0, root.width, root.height)
+        drawable.alpha = 0
+        root.overlay.add(drawable)
+
+        ValueAnimator.ofInt(0, 90, 0).apply {
+            duration = 160L
+            addUpdateListener { drawable.alpha = it.animatedValue as Int }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) { root.overlay.remove(drawable) }
+            })
+            start()
+        }
+    }
+
+    private fun playCorrectEffect() {
+        flashCorrectBackground()
+        val vol = settings.seCorrectVolume
+        if (seCorrectId != 0) soundPool?.play(seCorrectId, vol, vol, 1, 0, 1f)
+
+        val v = choiceButtons.getOrNull(currentCorrectIndex) ?: return
+        v.animate().cancel()
+        v.scaleX = 1f; v.scaleY = 1f
+        v.animate().scaleX(1.12f).scaleY(1.12f).setDuration(120).withEndAction {
+            v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
+        }.start()
+    }
+
+    private fun playWrongEffect() {
+        val vol = settings.seWrongVolume
+        if (seWrongId != 0) soundPool?.play(seWrongId, vol, vol, 1, 0, 1f)
+    }
+
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
         textPoints.text = "保有ポイント: $total"
-        lifecycleScope.launch { updatePointStats() }
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val today = LocalDate.now(settings.getAppZoneId()).toEpochDay()
+            val todaySum = db.pointHistoryDao().getSumByDate(today)
+            val yesterdaySum = db.pointHistoryDao().getSumByDate(today - 1)
+            val diff = todaySum - yesterdaySum
+            textPointStats.text = "今日: $todaySum / 前日比: ${if (diff >= 0) "+" else "-"}${abs(diff)}"
+        }
+    }
+    // endregion
+
+    // region Statistics & Mode Selection
+    private fun showModeSelectionSheet() {
+        val dialog = BottomSheetDialog(this)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+        val view = layoutInflater.inflate(R.layout.layout_mode_selection_sheet, null)
+        dialog.setContentView(view)
+
+        // Helper to configure each row
+        fun setupRow(rowId: Int, modeKey: String, title: String, iconRes: Int, colorRes: Int, isTestMode: Boolean = false) {
+            val card = view.findViewById<MaterialCardView>(rowId) ?: return
+            val icon = card.findViewById<ImageView>(R.id.icon_mode)
+            val textTitle = card.findViewById<TextView>(R.id.text_mode_title)
+            val textReview = card.findViewById<TextView>(R.id.text_stat_review)
+            val textNew = card.findViewById<TextView>(R.id.text_stat_new)
+            val textMaster = card.findViewById<TextView>(R.id.text_stat_master)
+
+            textTitle.text = title
+            icon.setImageResource(iconRes)
+            val color = ContextCompat.getColor(this, colorRes)
+            icon.setColorFilter(color)
+            ViewCompat.setBackgroundTintList(card.findViewById(R.id.icon_container), ColorStateList.valueOf(adjustAlpha(color, 0.15f)))
+
+            val stats = currentStats[modeKey]
+            textReview.text = stats?.review?.toString() ?: "-"
+            textNew.text = stats?.newCount?.toString() ?: "-"
+            textMaster.text = if ((stats?.total ?: 0) > 0) "${stats!!.mastered * 100 / stats.total}%" else "-"
+
+            if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) card.alpha = 0.5f
+
+            if (currentMode == modeKey) {
+                card.strokeColor = color
+                card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                card.setCardBackgroundColor(adjustAlpha(color, 0.05f))
+            }
+
+            card.setOnClickListener {
+                currentMode = modeKey
+                updateStudyStatsView()
+                if (modeKey == MODE_TEST_LISTEN_Q2) viewModel.setMode(modeKey) else loadNextQuestionLegacy()
+                dialog.dismiss()
+            }
+        }
+
+        // Setup Rows
+        setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
+        setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_headphones_24, R.color.mode_teal)
+        setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_headphones_24, R.color.mode_teal)
+        setupRow(R.id.row_ja_to_en, MODE_JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
+        setupRow(R.id.row_en_en_1, MODE_EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
+        setupRow(R.id.row_en_en_2, MODE_EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
+
+        setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
+        setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
+        setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_headphones_24, R.color.mode_teal, true)
+        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_outline_conversation_24, R.color.mode_teal, true)
+
+        dialog.show()
     }
 
-    private suspend fun updatePointStats() {
+    private fun updateStudyStatsView() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
+            val nowSec = nowEpochSec()
+
+            // Parallel calculation could be better, but sequential is safe here
+            currentStats = mapOf(
+                MODE_MEANING to computeModeStats(wordIdSet, MODE_MEANING, nowSec),
+                MODE_LISTENING to computeModeStats(wordIdSet, MODE_LISTENING, nowSec),
+                MODE_LISTENING_JP to computeModeStats(wordIdSet, MODE_LISTENING_JP, nowSec),
+                MODE_JA_TO_EN to computeModeStats(wordIdSet, MODE_JA_TO_EN, nowSec),
+                MODE_EN_EN_1 to computeModeStats(wordIdSet, MODE_EN_EN_1, nowSec),
+                MODE_EN_EN_2 to computeModeStats(wordIdSet, MODE_EN_EN_2, nowSec),
+                MODE_TEST_LISTEN_Q2 to computeModeStats(emptySet(), MODE_TEST_LISTEN_Q2, nowSec)
+            )
+
+            withContext(Dispatchers.Main) { updateModeUi() }
+        }
+    }
+
+    private fun updateModeUi() {
+        val modeName = when(currentMode) {
+            MODE_MEANING -> getString(R.string.mode_meaning)
+            MODE_LISTENING -> getString(R.string.mode_listening)
+            MODE_LISTENING_JP -> getString(R.string.mode_listening_jp)
+            MODE_JA_TO_EN -> getString(R.string.mode_japanese_to_english)
+            MODE_EN_EN_1 -> getString(R.string.mode_english_english_1)
+            MODE_EN_EN_2 -> getString(R.string.mode_english_english_2)
+            MODE_TEST_LISTEN_Q2 -> "会話文リスニング"
+            else -> "選択中"
+        }
+        val iconRes = when(currentMode) {
+            MODE_LISTENING, MODE_LISTENING_JP -> R.drawable.ic_headphones_24
+            MODE_TEST_LISTEN_Q2 -> R.drawable.ic_outline_conversation_24
+            MODE_TEST_FILL_BLANK -> R.drawable.ic_edit_24
+            MODE_TEST_SORT -> R.drawable.ic_sort_24
+            else -> R.drawable.ic_outline_cards_stack_24
+        }
+
+        selectorIconMode.setImageResource(iconRes)
+        selectorTextTitle.text = modeName
+
+        val stat = currentStats[currentMode]
+        selectorTextReview.text = stat?.review?.toString() ?: "-"
+        selectorTextNew.text = stat?.newCount?.toString() ?: "-"
+        selectorTextMaster.text = if ((stat?.total ?: 0) > 0) "${stat!!.mastered * 100 / stat.total}%" else "-"
+    }
+
+    private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
         val db = AppDatabase.getInstance(this@LearningActivity)
-        val histDao = db.pointHistoryDao()
-        val zone = settings.getAppZoneId()
-        val today = LocalDate.now(zone).toEpochDay()
-        val yesterday = today - 1
-        val todaySum = histDao.getSumByDate(today)
-        val yesterdaySum = histDao.getSumByDate(yesterday)
-        val diff = todaySum - yesterdaySum
-        val diffSign = if (diff >= 0) "+" else "-"
-        textPointStats.text = "今日: $todaySum / 前日比: $diffSign${abs(diff)}"
+        val progressDao = db.wordProgressDao()
+
+        if (mode == MODE_TEST_LISTEN_Q2) {
+            val allQIds = listeningQuestions.map { it.id }.toSet()
+            val progresses = progressDao.getAllProgressForMode(mode)
+            return ModeStats(
+                review = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in allQIds },
+                newCount = allQIds.size - progresses.filter { it.wordId in allQIds }.size,
+                total = allQIds.size,
+                mastered = progresses.count { it.wordId in allQIds && it.level >= 6 }
+            )
+        }
+
+        val progresses = progressDao.getAllProgressForMode(mode)
+        val targetProgresses = progresses.filter { it.wordId in wordIdSet }
+        return ModeStats(
+            review = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet },
+            newCount = wordIdSet.size - targetProgresses.size,
+            total = wordIdSet.size,
+            mastered = targetProgresses.count { it.level >= 6 }
+        )
+    }
+
+    private fun adjustAlpha(color: Int, factor: Float): Int {
+        val alpha = (255 * factor).toInt()
+        return (color and 0x00FFFFFF) or (alpha shl 24)
+    }
+    // endregion
+
+    // region Audio & TTS
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            tts?.language = Locale.US
+            tts?.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+            applyTtsParams()
+        }
+    }
+
+    private fun applyTtsParams() {
+        tts?.setSpeechRate(settings.getTtsSpeed())
+        tts?.setPitch(settings.getTtsPitch())
+    }
+
+    private fun loadSeIfExists(rawName: String): Int {
+        val resId = resources.getIdentifier(rawName, "raw", packageName)
+        return if (resId != 0) soundPool?.load(this, resId, 1) ?: 0 else 0
     }
 
     private fun speakCurrentWord() {
         if (currentMode == MODE_TEST_LISTEN_Q2) {
-            // ViewModel管理下ではStrategyがTTSを再生すべきだが、
-            // 自動再生されない場合の「再生ボタン」用
-            // 本当はViewModel経由で再呼び出ししたいが、簡易的にViewModel.lastStateを参照するか、
-            // スナックバーの「次へ」に任せる
-            // ここではViewModelに「もう一度再生」イベントを送るのが正解ですが未実装なので何もしないか、
-            // 以下の記述で逃げる
-            // viewModel.replayAudio()
+            // Replay logic for conversation handled by ViewModel or Strategy if implemented
             return
         }
-
         val cw = currentWord ?: return
         speakText(cw.word)
     }
@@ -1251,7 +947,138 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "tts-${System.currentTimeMillis()}")
     }
 
-    private fun showNextButton() {
-        layoutActionButtons.visibility = View.VISIBLE
+    private fun stopMedia() {
+        conversationTts?.stop()
+        tts?.stop()
     }
+
+    private fun handleAutoPlayAudio(word: WordEntity) {
+        when (currentMode) {
+            MODE_JA_TO_EN -> {
+                checkboxAutoPlayAudio?.visibility = View.GONE
+                buttonPlayAudio.visibility = View.GONE
+            }
+            MODE_MEANING, MODE_EN_EN_1, MODE_EN_EN_2 -> {
+                checkboxAutoPlayAudio?.visibility = View.VISIBLE
+                buttonPlayAudio.visibility = View.VISIBLE
+            }
+            else -> {
+                checkboxAutoPlayAudio?.visibility = View.GONE
+                buttonPlayAudio.visibility = View.VISIBLE
+            }
+        }
+
+        if (currentMode == MODE_LISTENING || currentMode == MODE_LISTENING_JP) {
+            speakCurrentWord()
+        } else if (checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE) {
+            if (currentMode == MODE_EN_EN_2) speakText(word.description ?: "") else speakCurrentWord()
+        }
+    }
+    // endregion
+
+    // region Utilities (CSV, Time, Math)
+    private fun nowEpochSec(): Long = System.currentTimeMillis() / 1000L
+
+    /**
+     * Spaced Repetition Logic.
+     * Calculates the next due date based on correctness and current level.
+     */
+    private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
+        val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
+        val zone = settings.getAppZoneId()
+
+        if (!isCorrect) return newLevel to (nowSec + settings.wrongRetrySec)
+        if (newLevel == 1) return newLevel to (nowSec + settings.level1RetrySec)
+
+        val days = when (newLevel) {
+            2 -> 1; 3 -> 3; 4 -> 7; 5 -> 14; 6 -> 30; 7 -> 60; else -> 90
+        }
+        val baseDate = Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate()
+        val dueDate = baseDate.plusDays(days.toLong())
+        return newLevel to dueDate.atStartOfDay(zone).toEpochSecond()
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        var current = StringBuilder()
+        var inQuotes = false
+        for (char in line) {
+            when {
+                char == '"' -> inQuotes = !inQuotes
+                char == ',' && !inQuotes -> {
+                    result.add(current.toString())
+                    current = StringBuilder()
+                }
+                else -> current.append(char)
+            }
+        }
+        result.add(current.toString())
+        return result
+    }
+
+    // CSV Imports (run on IO context)
+    private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
+        val db = AppDatabase.getInstance(this@LearningActivity)
+        val wordDao = db.wordDao()
+        val csvWords = readCsvWords().filter { it.grade == grade }
+        if (csvWords.isEmpty()) return@withContext 0
+        val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
+        val missing = csvWords.filter { existing[it.word] == null }
+        if (missing.isNotEmpty()) wordDao.insertAll(missing)
+        missing.size
+    }
+
+    private fun readCsvWords(): List<WordEntity> {
+        val result = mutableListOf<WordEntity>()
+        try {
+            resources.openRawResource(R.raw.words).use { input ->
+                BufferedReader(InputStreamReader(input)).useLines { lines ->
+                    lines.drop(1).forEach { line ->
+                        val cols = parseCsvLine(line)
+                        if (cols.size >= 7) {
+                            result.add(WordEntity(
+                                no = cols[0].trim().toIntOrNull() ?: 0,
+                                grade = cols[1].trim(),
+                                word = cols[2].trim(),
+                                japanese = cols[3].trim(),
+                                description = cols[4].trim(),
+                                smallTopicId = cols[5].trim(),
+                                mediumCategoryId = cols[6].trim()
+                            ))
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) { Log.e("LearningActivity", "Error reading CSV", e) }
+        return result
+    }
+
+    private suspend fun loadListeningQuestionsFromCsv(): List<ListeningQuestion> = withContext(Dispatchers.IO) {
+        val result = mutableListOf<ListeningQuestion>()
+        try {
+            val resId = resources.getIdentifier("listening2", "raw", packageName)
+            if (resId != 0) {
+                resources.openRawResource(resId).use { input ->
+                    BufferedReader(InputStreamReader(input)).useLines { lines ->
+                        lines.drop(1).forEach { line ->
+                            val cols = parseCsvLine(line)
+                            if (cols.size >= 11) {
+                                result.add(ListeningQuestion(
+                                    id = cols[0].toIntOrNull() ?: 0,
+                                    grade = cols[1],
+                                    script = cols[3].replace("\\n", "\n"),
+                                    question = cols[4],
+                                    options = listOf(cols[5], cols[6], cols[7], cols[8]),
+                                    correctIndex = (cols[9].toIntOrNull() ?: 1) - 1,
+                                    explanation = cols[10]
+                                ))
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) { Log.e("LearningActivity", "Error reading listening CSV", e) }
+        result
+    }
+    // endregion
 }
