@@ -28,8 +28,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.time.Instant
 import java.time.LocalDate
 import java.util.Locale
@@ -96,7 +94,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textQuestionTitle: TextView
     private lateinit var textQuestionBody: TextView
     private lateinit var textPoints: TextView
-    // Deleted: textPointStats, textTotalWords
     private var textCurrentGrade: TextView? = null
     private lateinit var textFeedback: TextView
 
@@ -186,9 +183,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
         textPoints = findViewById(R.id.text_points)
-        // Deleted: textPointStats = findViewById(R.id.text_point_stats)
         textCurrentGrade = findViewById(R.id.text_current_grade)
-        // Deleted: textTotalWords = findViewById(R.id.text_total_words)
         textFeedback = findViewById(R.id.text_feedback)
 
         textScriptDisplay = findViewById(R.id.text_script_display)
@@ -245,6 +240,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private suspend fun loadInitialData() {
+        // ▼▼▼ 修正: CsvDataLoaderを使用 ▼▼▼
         val imported = withContext(Dispatchers.IO) {
             if (gradeFilter != "All") importMissingWordsForGrade(gradeFilter) else 0
         }
@@ -252,7 +248,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Snackbar.make(findViewById(android.R.id.content), getString(R.string.imported_count_message, imported), Snackbar.LENGTH_SHORT).show()
         }
 
-        listeningQuestions = loadListeningQuestionsFromCsv()
+        // ▼▼▼ 修正: CsvDataLoaderを使用 ▼▼▼
+        listeningQuestions = withContext(Dispatchers.IO) {
+            CsvDataLoader(this@LearningActivity).loadListeningQuestions()
+        }
         viewModel.listeningQuestions = listeningQuestions
 
         val db = AppDatabase.getInstance(this@LearningActivity)
@@ -294,7 +293,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun setupObservers() {
         viewModel.gradeName.observe(this) { textCurrentGrade?.text = it }
-        // Deleted: viewModel.wordCount observer
 
         lifecycleScope.launch {
             viewModel.questionUiState.collect { state ->
@@ -458,13 +456,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         processAnswerResultLegacy(ctx.word.no, isCorrect)
     }
 
-    // ▼▼▼ 修正箇所：UI更新処理のみを行うメソッドに変更 ▼▼▼
     private fun processAnswerResultLegacy(wordId: Int, isCorrect: Boolean) {
         lifecycleScope.launch {
-            // ロジック部分を分離したメソッドを呼び出し
             val addPoint = registerAnswerToDb(wordId, isCorrect)
 
-            // ここからはUI操作のみ
             updateStudyStatsView()
             showFeedbackSnackbarInternal(isCorrect, addPoint)
             updatePointView()
@@ -478,11 +473,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // ▼▼▼ 修正箇所：新しく追加したDB/計算用メソッド ▼▼▼
-    /**
-     * 正解・不正解の結果をデータベースに登録し、獲得ポイントを返す
-     * (UI操作は行わない)
-     */
     private suspend fun registerAnswerToDb(wordId: Int, isCorrect: Boolean): Int {
         return withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@LearningActivity)
@@ -495,27 +485,23 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
             val points = ProgressCalculator.calcPoint(isCorrect, currentLevel)
 
-            // ポイント付与
             pointManager.add(points)
             if (points > 0) {
                 db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = points))
             }
 
-            // 学習履歴更新
             progressDao.upsert(WordProgressEntity(
                 wordId = wordId, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec,
                 lastAnsweredAt = System.currentTimeMillis(), studyCount = (current?.studyCount ?: 0) + 1
             ))
             db.studyLogDao().insert(WordStudyLogEntity(wordId = wordId, mode = currentMode, learnedAt = System.currentTimeMillis()))
 
-            points // 獲得ポイントを返す
+            points
         }
     }
-    // ▲▲▲ 修正箇所ここまで ▲▲▲
-
     // endregion
 
-    // region Helper Logic (Selection, CSV, Time)
+    // region Helper Logic (Selection, Time)
     private suspend fun selectNextWord(): WordEntity? {
         val db = AppDatabase.getInstance(this)
         val progressDao = db.wordProgressDao()
@@ -634,7 +620,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val wordDao = db.wordDao()
-        val csvWords = readCsvWords().filter { it.grade == grade }
+        // ▼▼▼ 修正: CsvDataLoaderを使用 ▼▼▼
+        val csvWords = CsvDataLoader(this@LearningActivity).loadWords().filter { it.grade == grade }
         if (csvWords.isEmpty()) return@withContext 0
         val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
         val missing = csvWords.filter { existing[it.word] == null }
@@ -642,75 +629,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         missing.size
     }
 
-    private fun readCsvWords(): List<WordEntity> {
-        val result = mutableListOf<WordEntity>()
-        runCatching {
-            resources.openRawResource(R.raw.words).use { input ->
-                BufferedReader(InputStreamReader(input)).useLines { lines ->
-                    lines.drop(1).forEach { line ->
-                        val cols = parseCsvLine(line)
-                        if (cols.size >= 7) {
-                            result.add(WordEntity(
-                                no = cols[0].trim().toIntOrNull() ?: 0,
-                                grade = cols[1].trim(),
-                                word = cols[2].trim(),
-                                japanese = cols[3].trim(),
-                                description = cols[4].trim(),
-                                smallTopicId = cols[5].trim(),
-                                mediumCategoryId = cols[6].trim()
-                            ))
-                        }
-                    }
-                }
-            }
-        }.onFailure { Log.e("LearningActivity", "Error reading CSV", it) }
-        return result
-    }
-
-    private suspend fun loadListeningQuestionsFromCsv(): List<ListeningQuestion> = withContext(Dispatchers.IO) {
-        val result = mutableListOf<ListeningQuestion>()
-        runCatching {
-            val resId = resources.getIdentifier("listening2", "raw", packageName)
-            if (resId != 0) {
-                resources.openRawResource(resId).use { input ->
-                    BufferedReader(InputStreamReader(input)).useLines { lines ->
-                        lines.drop(1).forEach { line ->
-                            val cols = parseCsvLine(line)
-                            if (cols.size >= 11) {
-                                // ▼▼▼ 修正点: CSVの1列目(ID)をトリムして空白を除去 ▼▼▼
-                                val id = cols[0].trim().toIntOrNull() ?: 0
-                                result.add(ListeningQuestion(
-                                    id = id,
-                                    grade = cols[1],
-                                    script = cols[3].replace("\\n", "\n"),
-                                    question = cols[4],
-                                    options = listOf(cols[5], cols[6], cols[7], cols[8]),
-                                    correctIndex = (cols[9].toIntOrNull() ?: 1) - 1,
-                                    explanation = cols[10]
-                                ))
-                            }
-                        }
-                    }
-                }
-            }
-        }.onFailure { Log.e("LearningActivity", "Error reading listening CSV", it) }
-        result
-    }
-
-    private fun parseCsvLine(line: String): List<String> {
-        val result = mutableListOf<String>()
-        var current = StringBuilder()
-        var inQuotes = false
-        for (char in line) {
-            when {
-                char == '"' -> inQuotes = !inQuotes
-                char == ',' && !inQuotes -> { result.add(current.toString()); current = StringBuilder() }
-                else -> current.append(char)
-            }
-        }
-        result.add(current.toString())
-        return result
-    }
+    // Deleted: readCsvWords, loadListeningQuestionsFromCsv, parseCsvLine are now in CsvDataLoader
     // endregion
 
     // region UI Utilities (Stats, Effects, Sound)
