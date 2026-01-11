@@ -181,4 +181,10 @@
     <string name="action_play_audio">音声を再生</string>
     <string name="action_next_question">次の問題へ</string>
     <string name="dummy_choice">Choice</string>
+    <string name="question_title_meaning">この英単語の意味は？</string>
+    <string name="question_title_listening">音声を聞いて正しい英単語を選んでください</string>
+    <string name="question_title_listening_jp">音声を聞いて正しい意味を選んでください</string>
+    <string name="question_title_ja_to_en">この日本語に対応する英単語は？</string>
+    <string name="question_title_en_en_1">この単語の意味(定義)は？</string>
+    <string name="question_title_en_en_2">この意味(定義)に対応する単語は？</string>
 </resources>

@@ -584,12 +584,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun formatQuestionAndOptions(correct: WordEntity, choices: List<WordEntity>, mode: String): Triple<String, String, List<String>> {
         return when (mode) {
-            MODE_MEANING -> Triple("この英単語の意味は？", correct.word, choices.map { it.japanese ?: "" })
-            MODE_LISTENING -> Triple("音声を聞いて正しい英単語を選んでください", "", choices.map { it.word })
-            MODE_LISTENING_JP -> Triple("音声を聞いて正しい意味を選んでください", "", choices.map { it.japanese ?: "" })
-            MODE_JA_TO_EN -> Triple("この日本語に対応する英単語は？", correct.japanese ?: "", choices.map { it.word })
-            MODE_EN_EN_1 -> Triple("この単語の意味(定義)は？", correct.word, choices.map { it.description ?: "" })
-            MODE_EN_EN_2 -> Triple("この意味(定義)に対応する単語は？", correct.description ?: "", choices.map { it.word })
+            MODE_MEANING -> Triple(getString(R.string.question_title_meaning), correct.word, choices.map { it.japanese ?: "" })
+            MODE_LISTENING -> Triple(getString(R.string.question_title_listening), "", choices.map { it.word })
+            MODE_LISTENING_JP -> Triple(getString(R.string.question_title_listening_jp), "", choices.map { it.japanese ?: "" })
+            MODE_JA_TO_EN -> Triple(getString(R.string.question_title_ja_to_en), correct.japanese ?: "", choices.map { it.word })
+            MODE_EN_EN_1 -> Triple(getString(R.string.question_title_en_en_1), correct.word, choices.map { it.description ?: "" })
+            MODE_EN_EN_2 -> Triple(getString(R.string.question_title_en_en_2), correct.description ?: "", choices.map { it.word })
             else -> Triple("", "", emptyList())
         }
     }
