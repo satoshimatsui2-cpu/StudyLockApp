@@ -458,33 +458,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         processAnswerResultLegacy(ctx.word.no, isCorrect)
     }
 
+    // ▼▼▼ 修正箇所：UI更新処理のみを行うメソッドに変更 ▼▼▼
     private fun processAnswerResultLegacy(wordId: Int, isCorrect: Boolean) {
         lifecycleScope.launch {
-            val db = AppDatabase.getInstance(this@LearningActivity)
-            val progressDao = db.wordProgressDao()
-            val pointManager = PointManager(this@LearningActivity)
-            val nowSec = nowEpochSec()
+            // ロジック部分を分離したメソッドを呼び出し
+            val addPoint = registerAnswerToDb(wordId, isCorrect)
 
-            val addPoint = withContext(Dispatchers.IO) {
-                val current = progressDao.getProgress(wordId, currentMode)
-                val currentLevel = current?.level ?: 0
-                val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
-                val points = ProgressCalculator.calcPoint(isCorrect, currentLevel)
-
-                pointManager.add(points)
-                if (points > 0) {
-                    db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = points))
-                }
-
-                progressDao.upsert(WordProgressEntity(
-                    wordId = wordId, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec,
-                    lastAnsweredAt = System.currentTimeMillis(), studyCount = (current?.studyCount ?: 0) + 1
-                ))
-                db.studyLogDao().insert(WordStudyLogEntity(wordId = wordId, mode = currentMode, learnedAt = System.currentTimeMillis()))
-
-                points
-            }
-
+            // ここからはUI操作のみ
             updateStudyStatsView()
             showFeedbackSnackbarInternal(isCorrect, addPoint)
             updatePointView()
@@ -497,6 +477,42 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
     }
+
+    // ▼▼▼ 修正箇所：新しく追加したDB/計算用メソッド ▼▼▼
+    /**
+     * 正解・不正解の結果をデータベースに登録し、獲得ポイントを返す
+     * (UI操作は行わない)
+     */
+    private suspend fun registerAnswerToDb(wordId: Int, isCorrect: Boolean): Int {
+        return withContext(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val progressDao = db.wordProgressDao()
+            val pointManager = PointManager(this@LearningActivity)
+            val nowSec = nowEpochSec()
+
+            val current = progressDao.getProgress(wordId, currentMode)
+            val currentLevel = current?.level ?: 0
+            val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
+            val points = ProgressCalculator.calcPoint(isCorrect, currentLevel)
+
+            // ポイント付与
+            pointManager.add(points)
+            if (points > 0) {
+                db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = points))
+            }
+
+            // 学習履歴更新
+            progressDao.upsert(WordProgressEntity(
+                wordId = wordId, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec,
+                lastAnsweredAt = System.currentTimeMillis(), studyCount = (current?.studyCount ?: 0) + 1
+            ))
+            db.studyLogDao().insert(WordStudyLogEntity(wordId = wordId, mode = currentMode, learnedAt = System.currentTimeMillis()))
+
+            points // 獲得ポイントを返す
+        }
+    }
+    // ▲▲▲ 修正箇所ここまで ▲▲▲
+
     // endregion
 
     // region Helper Logic (Selection, CSV, Time)
