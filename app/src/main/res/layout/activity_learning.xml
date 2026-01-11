@@ -57,7 +57,7 @@
                                 android:text=""
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="#111827"
+                                android:textColor="@color/text_primary"
                                 android:gravity="center"/>
 
                         </LinearLayout>
@@ -81,10 +81,10 @@
                                 android:id="@+id/text_points"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="保有ポイント: 0"
+                                android:text="@string/label_points_format"
                                 android:textSize="15sp"
                                 android:textStyle="bold"
-                                android:textColor="#111827"
+                                android:textColor="@color/text_primary"
                                 android:gravity="center"/>
 
                         </LinearLayout>
@@ -122,7 +122,7 @@
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:src="@drawable/ic_flash_cards_24"
-                                app:tint="#0D47A1"
+                                app:tint="@color/text_link"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintBottom_toBottomOf="parent" />
@@ -141,10 +141,10 @@
                                     android:id="@+id/selector_text_title"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="英単語の意味"
+                                    android:text="@string/label_mode_meaning"
                                     android:textSize="16sp"
                                     android:textStyle="bold"
-                                    android:textColor="#0D47A1"
+                                    android:textColor="@color/text_link"
                                     android:singleLine="true"
                                     android:ellipsize="end"/>
 
@@ -159,14 +159,14 @@
                                         android:layout_width="20dp"
                                         android:layout_height="20dp"
                                         android:src="@drawable/ic_review_24"
-                                        app:tint="#EF4444"/>
+                                        app:tint="@color/badge_review"/>
                                     <TextView
                                         android:id="@+id/selector_text_review"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0"
                                         android:textSize="16sp"
-                                        android:textColor="#EF4444"
+                                        android:textColor="@color/badge_review"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"
                                         android:layout_marginEnd="12dp"/>
@@ -174,7 +174,7 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="NEW"
+                                        android:text="@string/label_new"
                                         android:textSize="11sp"
                                         android:textStyle="bold"
                                         android:textColor="@android:color/white"
@@ -190,7 +190,7 @@
                                         android:layout_height="wrap_content"
                                         android:text="0"
                                         android:textSize="16sp"
-                                        android:textColor="#10B981"
+                                        android:textColor="@color/badge_new"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"
                                         android:layout_marginEnd="12dp"/>
@@ -199,14 +199,14 @@
                                         android:layout_width="20dp"
                                         android:layout_height="20dp"
                                         android:src="@drawable/ic_emoji_events_24"
-                                        app:tint="#F59E0B"/>
+                                        app:tint="@color/badge_master"/>
                                     <TextView
                                         android:id="@+id/selector_text_master"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0%"
                                         android:textSize="16sp"
-                                        android:textColor="#F59E0B"
+                                        android:textColor="@color/badge_master"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"/>
                                 </LinearLayout>
@@ -251,9 +251,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
-                            android:text="問題文が入ります"
+                            android:text="@string/dummy_question_title"
                             android:textSize="13sp"
-                            android:textColor="#6B7280"
+                            android:textColor="@color/text_secondary"
                             android:textAlignment="center"/>
 
                         <TextView
@@ -261,7 +261,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="WORD HERE"
+                            android:text="@string/dummy_word"
                             android:textSize="26sp"
                             android:textStyle="bold"
                             android:textColor="#000000"
@@ -293,7 +293,7 @@
                                 android:layout_height="wrap_content"
                                 android:text=""
                                 android:textSize="14sp"
-                                android:textColor="#111827"
+                                android:textColor="@color/text_primary"
                                 android:visibility="gone"/>
 
                             <LinearLayout
@@ -312,7 +312,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:layout_marginEnd="8dp"
-                                    android:text="音声を再生"
+                                    android:text="@string/action_play_audio"
                                     app:icon="@drawable/ic_headphones_24"
                                     app:iconGravity="textStart"/>
 
@@ -322,7 +322,7 @@
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="次の問題へ"
+                                    android:text="@string/action_next_question"
                                     app:icon="@drawable/ic_arrow_forward_24"
                                     app:iconGravity="textEnd"/>
                             </LinearLayout>
@@ -345,45 +345,13 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_choice_1"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:layout_margin="3dp"
-                            android:minHeight="88dp"
-                            android:maxLines="2"
-                            android:gravity="center"
-                            android:elevation="4dp"
-                            app:backgroundTint="@android:color/white"
-                            app:strokeColor="#0D47A1"
-                            app:strokeWidth="3dp"
-                            android:textColor="#111827"
-                            android:text="Choice"
-                            app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="12sp"
-                            app:autoSizeMaxTextSize="18sp"
-                            app:autoSizeStepGranularity="1sp" />
+                            style="@style/ChoiceButtonStyle"
+                            android:text="@string/dummy_choice" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_choice_2"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:layout_margin="3dp"
-                            android:minHeight="88dp"
-                            android:maxLines="2"
-                            android:gravity="center"
-                            android:elevation="4dp"
-                            app:backgroundTint="@android:color/white"
-                            app:strokeColor="#0D47A1"
-                            app:strokeWidth="3dp"
-                            android:textColor="#111827"
-                            android:text="Choice"
-                            app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="12sp"
-                            app:autoSizeMaxTextSize="18sp"
-                            app:autoSizeStepGranularity="1sp" />
+                            style="@style/ChoiceButtonStyle"
+                            android:text="@string/dummy_choice" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -394,45 +362,13 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_choice_3"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:layout_margin="3dp"
-                            android:minHeight="88dp"
-                            android:maxLines="2"
-                            android:gravity="center"
-                            android:elevation="4dp"
-                            app:backgroundTint="@android:color/white"
-                            app:strokeColor="#0D47A1"
-                            app:strokeWidth="3dp"
-                            android:textColor="#111827"
-                            android:text="Choice"
-                            app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="12sp"
-                            app:autoSizeMaxTextSize="18sp"
-                            app:autoSizeStepGranularity="1sp" />
+                            style="@style/ChoiceButtonStyle"
+                            android:text="@string/dummy_choice" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_choice_4"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:layout_margin="3dp"
-                            android:minHeight="88dp"
-                            android:maxLines="2"
-                            android:gravity="center"
-                            android:elevation="4dp"
-                            app:backgroundTint="@android:color/white"
-                            app:strokeColor="#0D47A1"
-                            app:strokeWidth="3dp"
-                            android:textColor="#111827"
-                            android:text="Choice"
-                            app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="12sp"
-                            app:autoSizeMaxTextSize="18sp"
-                            app:autoSizeStepGranularity="1sp" />
+                            style="@style/ChoiceButtonStyle"
+                            android:text="@string/dummy_choice" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -443,45 +379,13 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_choice_5"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:layout_margin="3dp"
-                            android:minHeight="88dp"
-                            android:maxLines="2"
-                            android:gravity="center"
-                            android:elevation="4dp"
-                            app:backgroundTint="@android:color/white"
-                            app:strokeColor="#0D47A1"
-                            app:strokeWidth="3dp"
-                            android:textColor="#111827"
-                            android:text="Choice"
-                            app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="12sp"
-                            app:autoSizeMaxTextSize="18sp"
-                            app:autoSizeStepGranularity="1sp" />
+                            style="@style/ChoiceButtonStyle"
+                            android:text="@string/dummy_choice" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_choice_6"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:layout_margin="3dp"
-                            android:minHeight="88dp"
-                            android:maxLines="2"
-                            android:gravity="center"
-                            android:elevation="4dp"
-                            app:backgroundTint="@android:color/white"
-                            app:strokeColor="#0D47A1"
-                            app:strokeWidth="3dp"
-                            android:textColor="#111827"
-                            android:text="Choice"
-                            app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="12sp"
-                            app:autoSizeMaxTextSize="18sp"
-                            app:autoSizeStepGranularity="1sp" />
+                            style="@style/ChoiceButtonStyle"
+                            android:text="@string/dummy_choice" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -497,7 +401,7 @@
                         android:layout_height="64dp"
                         android:adjustViewBounds="true"
                         android:background="?attr/selectableItemBackground"
-                        android:contentDescription="音声を再生"
+                        android:contentDescription="@string/action_play_audio"
                         android:padding="0dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/play_sound"

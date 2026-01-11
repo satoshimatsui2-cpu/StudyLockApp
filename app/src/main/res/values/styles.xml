@@ -11,4 +11,22 @@
         <item name="android:maxLines">2</item>
         <item name="android:textAllCaps">false</item>
     </style>
+    <style name="ChoiceButtonStyle" parent="Widget.Material3.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">3dp</item>
+        <item name="android:minHeight">88dp</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:gravity">center</item>
+        <item name="android:elevation">4dp</item>
+        <item name="backgroundTint">@android:color/white</item>
+        <item name="strokeColor">@color/text_link</item>
+        <item name="strokeWidth">3dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="autoSizeTextType">uniform</item>
+        <item name="autoSizeMinTextSize">12sp</item>
+        <item name="autoSizeMaxTextSize">18sp</item>
+        <item name="autoSizeStepGranularity">1sp</item>
+    </style>
 </resources>

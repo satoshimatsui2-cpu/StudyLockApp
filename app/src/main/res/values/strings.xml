@@ -172,4 +172,13 @@
         <item>M-NextDue</item>
         <item>L-NextDue</item>
     </string-array>
+
+    <string name="label_points_format">保有ポイント: 0</string>
+    <string name="label_mode_meaning">英単語の意味</string>
+    <string name="label_new">NEW</string>
+    <string name="dummy_question_title">問題文が入ります</string>
+    <string name="dummy_word">WORD HERE</string>
+    <string name="action_play_audio">音声を再生</string>
+    <string name="action_next_question">次の問題へ</string>
+    <string name="dummy_choice">Choice</string>
 </resources>
