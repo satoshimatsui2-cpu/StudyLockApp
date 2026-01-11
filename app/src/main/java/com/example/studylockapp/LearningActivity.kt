@@ -437,26 +437,28 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             card.setOnClickListener {
-                // ▼ 変更点7: モード切り替え時の分岐
                 currentMode = modeKey
+
+                // ▼▼▼ 修正: どのモードでも必ず画面(アイコン・タイトル)を更新する ▼▼▼
+                updateStudyStatsView()
 
                 if (modeKey == MODE_TEST_LISTEN_Q2) {
                     viewModel.setMode(modeKey) // ViewModelにモード設定
                 } else {
-                    updateStudyStatsView()
                     loadNextQuestion() // 既存ロジック
                 }
                 dialog.dismiss()
             }
         }
 
-        // setupRow呼び出しは変更なし
         setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
         setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_headphones_24, R.color.mode_teal)
         setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_headphones_24, R.color.mode_teal)
         setupRow(R.id.row_ja_to_en, MODE_JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
         setupRow(R.id.row_en_en_1, MODE_EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
         setupRow(R.id.row_en_en_2, MODE_EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
+
+        // テスト系モード
         setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
         setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
         setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_headphones_24, R.color.mode_teal, true)
@@ -774,6 +776,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             withContext(Dispatchers.Main) {
                 val currentStat = currentStats[currentMode]
+
+                // モード名の取得
                 val modeName = when(currentMode) {
                     MODE_MEANING -> getString(R.string.mode_meaning)
                     MODE_LISTENING -> getString(R.string.mode_listening)
@@ -782,12 +786,33 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     MODE_EN_EN_1 -> getString(R.string.mode_english_english_1)
                     MODE_EN_EN_2 -> getString(R.string.mode_english_english_2)
                     MODE_TEST_LISTEN_Q2 -> "会話文リスニング"
+                    MODE_TEST_FILL_BLANK -> "穴埋め"
+                    MODE_TEST_SORT -> "並び替え"
+                    MODE_TEST_LISTEN_Q1 -> "リスニング質問"
                     else -> "選択中"
                 }
 
+                // アイコンの選択（showModeSelectionSheetと一致させる）
                 val iconRes = when(currentMode) {
+                    // 単語帳系
                     MODE_MEANING -> R.drawable.ic_flash_cards_24
-                    MODE_TEST_LISTEN_Q2 -> R.drawable.ic_forum_24
+                    MODE_JA_TO_EN,
+                    MODE_EN_EN_1,
+                    MODE_EN_EN_2 -> R.drawable.ic_outline_cards_stack_24
+
+                    // リスニング系
+                    MODE_LISTENING,
+                    MODE_LISTENING_JP,
+                    MODE_TEST_LISTEN_Q1 -> R.drawable.ic_headphones_24
+
+                    // 会話文リスニング（モード選択画面で使用しているアイコンに統一）
+                    MODE_TEST_LISTEN_Q2 -> R.drawable.ic_outline_conversation_24
+
+                    // テスト系
+                    MODE_TEST_FILL_BLANK -> R.drawable.ic_edit_24
+                    MODE_TEST_SORT -> R.drawable.ic_sort_24
+
+                    // その他デフォルト
                     else -> R.drawable.ic_outline_cards_stack_24
                 }
 
