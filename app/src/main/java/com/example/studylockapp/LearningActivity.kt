@@ -37,21 +37,11 @@ import kotlin.math.abs
 
 /**
  * 学習画面のアクティビティ。
- *
- * 【設計方針】
- * 1. ハイブリッド構成:
- * - 新機能 (会話モード) は [LearningViewModel] と [QuestionUiState] によるリアクティブな設計。
- * - 既存機能 (単語学習) は Activity 内の [loadNextQuestionLegacy] 周辺に集約された命令的な設計。
- * * 2. データフロー (単語学習):
- * - [prepareQuestionData]: DB/計算処理 (IOスレッド) -> [LegacyQuestionContext] を生成
- * - [renderLegacyQuestion]: UI描画処理 (Mainスレッド)
- * - [loadingJob]: 非同期処理の競合（連打など）を防止
  */
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // region Constants & Modes
     companion object {
-        // Standard Modes
         const val MODE_MEANING = "meaning"
         const val MODE_LISTENING = "listening"
         const val MODE_LISTENING_JP = "listening_jp"
@@ -59,7 +49,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         const val MODE_EN_EN_1 = "english_english_1"
         const val MODE_EN_EN_2 = "english_english_2"
 
-        // Test/Beta Modes
         const val MODE_TEST_FILL_BLANK = "test_fill_blank"
         const val MODE_TEST_SORT = "test_sort"
         const val MODE_TEST_LISTEN_Q1 = "test_listen_q1"
@@ -70,24 +59,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // region ViewModel & Data
     private val viewModel: LearningViewModel by viewModels()
 
-    // Activity State
     private var currentMode = MODE_MEANING
     private var gradeFilter: String = "All"
     private var includeOtherGradesReview: Boolean = false
-    private var loadingJob: Job? = null // 非同期処理の重複防止用
+    private var loadingJob: Job? = null
 
-    // Legacy Data Cache
     private var allWords: List<WordEntity> = emptyList()
     private var allWordsFull: List<WordEntity> = emptyList()
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
 
-    // Current Question Context (Legacy)
     private var currentLegacyContext: LegacyQuestionContext? = null
 
-    /**
-     * レガシーモードの1問分のデータを保持するクラス。
-     * これにより、DB取得(IO)と描画(Main)の間で受け渡す情報を一元化する。
-     */
     private data class LegacyQuestionContext(
         val word: WordEntity,
         val title: String,
@@ -98,7 +80,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val audioText: String
     )
 
-    // Statistics Cache
     private var currentStats: Map<String, ModeStats> = emptyMap()
     // endregion
 
@@ -115,9 +96,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textQuestionTitle: TextView
     private lateinit var textQuestionBody: TextView
     private lateinit var textPoints: TextView
-    private lateinit var textPointStats: TextView
+    // Deleted: textPointStats, textTotalWords
     private var textCurrentGrade: TextView? = null
-    private var textTotalWords: TextView? = null
     private lateinit var textFeedback: TextView
 
     private lateinit var textScriptDisplay: TextView
@@ -165,7 +145,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupObservers()
         setupListeners()
 
-        // 初期データの読み込み開始
         lifecycleScope.launch {
             loadInitialData()
         }
@@ -181,7 +160,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onPause() {
         super.onPause()
         conversationTts?.stop()
-        loadingJob?.cancel() // 画面を離れるときはロード処理をキャンセル
+        loadingJob?.cancel()
     }
 
     override fun onDestroy() {
@@ -207,9 +186,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
         textPoints = findViewById(R.id.text_points)
-        textPointStats = findViewById(R.id.text_point_stats)
+        // Deleted: textPointStats = findViewById(R.id.text_point_stats)
         textCurrentGrade = findViewById(R.id.text_current_grade)
-        textTotalWords = findViewById(R.id.text_total_words)
+        // Deleted: textTotalWords = findViewById(R.id.text_total_words)
         textFeedback = findViewById(R.id.text_feedback)
 
         textScriptDisplay = findViewById(R.id.text_script_display)
@@ -276,7 +255,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         listeningQuestions = loadListeningQuestionsFromCsv()
         viewModel.listeningQuestions = listeningQuestions
 
-        // 単語リストロード
         val db = AppDatabase.getInstance(this@LearningActivity)
         allWordsFull = withContext(Dispatchers.IO) { db.wordDao().getAll() }
         allWords = if (gradeFilter == "All") allWordsFull else allWordsFull.filter { it.grade == gradeFilter }
@@ -284,7 +262,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         updateStudyStatsView()
 
-        // モードに応じた初期表示
         routeNextQuestionAction()
     }
     // endregion
@@ -317,9 +294,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun setupObservers() {
         viewModel.gradeName.observe(this) { textCurrentGrade?.text = it }
-        viewModel.wordCount.observe(this) { textTotalWords?.text = getString(R.string.label_word_count, it) }
+        // Deleted: viewModel.wordCount observer
 
-        // 会話モード用のState監視
         lifecycleScope.launch {
             viewModel.questionUiState.collect { state ->
                 if (state !is QuestionUiState.Loading) resetUiForNewQuestion()
@@ -327,20 +303,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 when (state) {
                     is QuestionUiState.Conversation -> renderConversationUi(state)
                     is QuestionUiState.Empty -> showNoQuestion()
-                    else -> {} // Loading or others
+                    else -> {}
                 }
             }
         }
 
-        // 会話モードの回答監視
         lifecycleScope.launch {
             viewModel.answerResult.collect { result ->
                 showFeedbackSnackbar(result)
                 updatePointView()
-
-                // ▼▼▼ この1行を追加してください！ ▼▼▼
                 updateStudyStatsView()
-                // ▲▲▲ これで正解した瞬間にNEWが減ります ▲▲▲
             }
         }
     }
@@ -355,14 +327,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // 会話モード(ViewModel主導)の描画
     private fun renderConversationUi(state: QuestionUiState.Conversation) {
         textQuestionTitle.text = "会話を聞いて質問に答えてください"
         textQuestionBody.text = state.question
         textQuestionBody.visibility = View.VISIBLE
         textScriptDisplay.visibility = View.GONE
 
-        // 固有UI設定
         checkIncludeOtherGrades?.visibility = View.GONE
         checkboxAutoPlayAudio?.visibility = View.GONE
         buttonPlayAudio.visibility = View.GONE
@@ -385,15 +355,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // endregion
 
     // region Logic: Legacy Word Learning (Main Pipeline)
-
-    /**
-     * レガシーモード（単語学習）の次の問題を読み込むメインパイプライン。
-     * [loadingJob] により、連打時などは前の処理をキャンセルして最新の要求のみを処理する。
-     */
     private fun loadNextQuestionLegacy() {
         loadingJob?.cancel()
         loadingJob = lifecycleScope.launch {
-            // 1. UI Reset
             stopMedia()
             resetStandardUi()
 
@@ -402,19 +366,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return@launch
             }
 
-            // 2. Data Preparation (Heavy Logic on IO)
             val nextContext = withContext(Dispatchers.IO) {
                 prepareQuestionData()
             }
 
-            // 3. UI Rendering (Main)
             if (nextContext == null) {
                 showNoQuestion()
             } else {
                 currentLegacyContext = nextContext
                 renderLegacyQuestion(nextContext)
 
-                // 4. Audio Playback
                 if (nextContext.shouldAutoPlay) {
                     speakText(nextContext.audioText)
                 }
@@ -422,24 +383,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    /**
-     * 次の問題データを決定・生成する純粋なロジック部分。
-     * UIへの依存を持たず、計算結果([LegacyQuestionContext])を返すのみ。
-     */
     private suspend fun prepareQuestionData(): LegacyQuestionContext? {
-        // Step A: 単語選択
         val nextWord = selectNextWord() ?: return null
 
-        // Step B: 選択肢生成
         val choicePool = getChoicePool()
         val choices = buildChoices(nextWord, choicePool, 6)
 
-        // Step C: 文字列フォーマット
         val (title, body, options) = formatQuestionAndOptions(nextWord, choices, currentMode)
         val correctStr = getCorrectStringForMode(nextWord, currentMode)
         val correctIndex = options.indexOf(correctStr)
 
-        // Step D: 自動再生判定
         val shouldAuto = when (currentMode) {
             MODE_JA_TO_EN -> false
             MODE_LISTENING, MODE_LISTENING_JP -> true
@@ -459,9 +412,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
     }
 
-    /**
-     * 生成されたデータをUIに反映する。
-     */
     private fun renderLegacyQuestion(ctx: LegacyQuestionContext) {
         textQuestionTitle.text = ctx.title
         textQuestionBody.text = ctx.body
@@ -470,7 +420,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         choiceButtons.forEach { it.textSize = if (currentMode == MODE_EN_EN_1) 12f else 14f }
         choiceButtons.zip(ctx.options).forEach { (btn, txt) -> btn.text = txt }
 
-        // 再生ボタンの表示制御
         when (currentMode) {
             MODE_JA_TO_EN -> {
                 checkboxAutoPlayAudio?.visibility = View.GONE
@@ -493,11 +442,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             return
         }
 
-        // レガシーモード判定
         val ctx = currentLegacyContext ?: return
         val isCorrect = selectedIndex == ctx.correctIndex
 
-        // 視覚フィードバック
         choiceButtons.forEach { it.isClickable = false }
         if (ctx.correctIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[ctx.correctIndex], greenTint)
@@ -508,7 +455,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         if (isCorrect) playCorrectEffect() else playWrongEffect()
 
-        // 結果処理
         processAnswerResultLegacy(ctx.word.no, isCorrect)
     }
 
@@ -519,7 +465,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val pointManager = PointManager(this@LearningActivity)
             val nowSec = nowEpochSec()
 
-            // DB更新 (IO)
             val addPoint = withContext(Dispatchers.IO) {
                 val current = progressDao.getProgress(wordId, currentMode)
                 val currentLevel = current?.level ?: 0
@@ -540,8 +485,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 points
             }
 
-            // UI更新 (Main)
-            updateStudyStatsView() // 統計更新
+            updateStudyStatsView()
             showFeedbackSnackbarInternal(isCorrect, addPoint)
             updatePointView()
 
@@ -565,7 +509,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val wordMapFiltered = allWords.associateBy { it.no }
         val wordMapAll = allWordsFull.associateBy { it.no }
 
-        // 1. 復習対象
         val dueWords = if (includeOtherGradesReview && gradeFilter != "All") {
             dueIdsOrdered.mapNotNull { wordMapAll[it] }
         } else {
@@ -573,7 +516,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         if (dueWords.isNotEmpty()) return dueWords.first()
 
-        // 2. 新規学習対象
         val progressedIds = progressDao.getProgressIds(currentMode).toSet()
         val newWords = if (gradeFilter == "All") {
             allWordsFull.filter { it.no !in progressedIds }
@@ -600,12 +542,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return (distractors + correct).shuffled()
     }
 
-    // ※ 既存の複雑な選択肢生成ロジックはそのまま維持
     private fun getStandardChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
         val sameGradePool = candidates.filter { it.grade == correct.grade }
         if (sameGradePool.isEmpty()) return candidates.shuffled().take(count)
 
-        // (省略なしで記述)
         val correctSmallTopic = correct.smallTopicId
         val sameSmallTopic = if (!correctSmallTopic.isNullOrEmpty()) {
             sameGradePool.filter { !it.smallTopicId.isNullOrEmpty() && it.smallTopicId == correctSmallTopic }.shuffled()
@@ -620,7 +560,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun getListeningChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
-        // (省略なしで記述)
         val correctGradeVal = correct.grade?.toIntOrNull() ?: 0
         val correctLen = correct.word.length
         val validPool = candidates.filter {
@@ -722,8 +661,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         lines.drop(1).forEach { line ->
                             val cols = parseCsvLine(line)
                             if (cols.size >= 11) {
+                                // ▼▼▼ 修正点: CSVの1列目(ID)をトリムして空白を除去 ▼▼▼
+                                val id = cols[0].trim().toIntOrNull() ?: 0
                                 result.add(ListeningQuestion(
-                                    id = cols[0].toIntOrNull() ?: 0,
+                                    id = id,
                                     grade = cols[1],
                                     script = cols[3].replace("\\n", "\n"),
                                     question = cols[4],
@@ -821,7 +762,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun playCorrectEffect() {
-        // 背景フラッシュ
         val root = findViewById<View>(android.R.id.content)
         val flashColor = ContextCompat.getColor(this, R.color.correct_flash)
         if (root.width > 0 && root.height > 0) {
@@ -860,14 +800,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun updatePointView() {
         val total = PointManager(this).getTotal()
         textPoints.text = "保有ポイント: $total"
-        lifecycleScope.launch {
-            val db = AppDatabase.getInstance(this@LearningActivity)
-            val today = LocalDate.now(settings.getAppZoneId()).toEpochDay()
-            val todaySum = db.pointHistoryDao().getSumByDate(today)
-            val yesterdaySum = db.pointHistoryDao().getSumByDate(today - 1)
-            val diff = todaySum - yesterdaySum
-            textPointStats.text = "今日: $todaySum / 前日比: ${if (diff >= 0) "+" else "-"}${abs(diff)}"
-        }
     }
 
     private fun showModeSelectionSheet() {

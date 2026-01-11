@@ -60,15 +60,6 @@
                                 android:textColor="#111827"
                                 android:gravity="center"/>
 
-                            <TextView
-                                android:id="@+id/text_total_words"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp"
-                                android:text=""
-                                android:textSize="13sp"
-                                android:textColor="#6B7280"
-                                android:gravity="center"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -96,15 +87,6 @@
                                 android:textColor="#111827"
                                 android:gravity="center"/>
 
-                            <TextView
-                                android:id="@+id/text_point_stats"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="6dp"
-                                android:text="今日: 0 / 前日比: +0"
-                                android:textSize="13sp"
-                                android:textColor="#6B7280"
-                                android:gravity="center"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
