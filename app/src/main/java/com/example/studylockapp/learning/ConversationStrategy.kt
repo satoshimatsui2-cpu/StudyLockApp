@@ -7,14 +7,18 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.max
+import com.example.studylockapp.data.AppSettings
+import android.content.Context
 
 class ConversationStrategy(
+    private val context: Context, // AppSettingsのためにContextを追加
     private val questions: List<ListeningQuestion>,
     private val progressDao: WordProgressDao,
     override val modeKey: String = "test_listen_q2"
 ) : LearningModeStrategy {
 
     private var currentQuestion: ListeningQuestion? = null
+    private val settings = AppSettings(context)
 
     override suspend fun createQuestion(): QuestionUiState {
         if (questions.isEmpty()) return QuestionUiState.Empty
@@ -96,7 +100,7 @@ class ConversationStrategy(
         // 文字列テンプレートを使用して安全に改行を埋め込む
         val feedback = "$title\n$explanation"
 
-        val points = if (isCorrect) 10 else 0
+        val points = if (isCorrect) settings.getBasePointConversation() else 0
 
         return AnswerResult(isCorrect, feedback, points)
     }

@@ -43,6 +43,10 @@ class AppSettings(context: Context) {
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
 
+        // ベースポイント設定
+        private const val KEY_BASE_POINT_LEGACY = "base_point_legacy"
+        private const val KEY_BASE_POINT_CONVERSATION = "base_point_conversation"
+
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -188,5 +192,16 @@ class AppSettings(context: Context) {
 
     fun setHasShownAccessibilityIntro(shown: Boolean) {
         prefs.edit { putBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, shown) }
+    }
+
+    // --- Base Points ---
+    fun getBasePointLegacy(): Int = prefs.getInt(KEY_BASE_POINT_LEGACY, 10).coerceIn(1, 10)
+    fun setBasePointLegacy(value: Int) {
+        prefs.edit { putInt(KEY_BASE_POINT_LEGACY, value.coerceIn(1, 10)) }
+    }
+
+    fun getBasePointConversation(): Int = prefs.getInt(KEY_BASE_POINT_CONVERSATION, 10).coerceIn(1, 10)
+    fun setBasePointConversation(value: Int) {
+        prefs.edit { putInt(KEY_BASE_POINT_CONVERSATION, value.coerceIn(1, 10)) }
     }
 }

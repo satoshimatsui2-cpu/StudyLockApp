@@ -30,7 +30,7 @@ sealed class QuestionUiState {
 data class AnswerResult(
     val isCorrect: Boolean,
     val feedback: String,
-    val earnedPoints: Int
+    val points: Int
 )
 
 /**

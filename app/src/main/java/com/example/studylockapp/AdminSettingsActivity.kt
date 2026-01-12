@@ -10,8 +10,10 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.ScrollView
 import android.widget.SeekBar
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -108,6 +110,38 @@ class AdminSettingsActivity : AppCompatActivity() {
      * 既存のシークバー等の設定UI（音量関連は削除済み）
      */
     private fun setupExistingControls() {
+        // --- ポイント設定用SeekBarのセットアップ ---
+        val textPointLegacy = findViewById<TextView>(R.id.text_point_legacy)
+        val seekPointLegacy = findViewById<SeekBar>(R.id.seek_point_legacy)
+        val textPointConversation = findViewById<TextView>(R.id.text_point_conversation)
+        val seekPointConversation = findViewById<SeekBar>(R.id.seek_point_conversation)
+
+        seekPointLegacy.max = 9
+        seekPointConversation.max = 9
+
+        fun progressToPoint(progress: Int): Int = progress + 1
+        fun pointToProgress(point: Int): Int = point - 1
+
+        seekPointLegacy.progress = pointToProgress(settings.getBasePointLegacy())
+        seekPointConversation.progress = pointToProgress(settings.getBasePointConversation())
+
+        fun refreshPointLabels() {
+            textPointLegacy.text = "通常モード: ${progressToPoint(seekPointLegacy.progress)} pt"
+            textPointConversation.text = "会話モード: ${progressToPoint(seekPointConversation.progress)} pt"
+        }
+        refreshPointLabels()
+
+        val pointSeekBarListener = object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                refreshPointLabels()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        }
+
+        seekPointLegacy.setOnSeekBarChangeListener(pointSeekBarListener)
+        seekPointConversation.setOnSeekBarChangeListener(pointSeekBarListener)
+
         // SeekBar / TextView 群
         val textInterval = findViewById<TextView>(R.id.text_interval)
         val seekInterval = findViewById<SeekBar>(R.id.seek_interval)
@@ -199,6 +233,10 @@ class AdminSettingsActivity : AppCompatActivity() {
         ).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnSave.setOnClickListener {
+            // --- ポイント設定の保存 ---
+            settings.setBasePointLegacy(progressToPoint(seekPointLegacy.progress))
+            settings.setBasePointConversation(progressToPoint(seekPointConversation.progress))
+
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)

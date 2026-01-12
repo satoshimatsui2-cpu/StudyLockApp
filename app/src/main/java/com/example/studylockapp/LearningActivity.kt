@@ -352,6 +352,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val cleanText = textScriptDisplay.text.toString()
                 textScriptDisplay.text = cleanText
 
+                // 修正箇所: 文字列を1行にし、改行コード \n を使用
                 val repeatScript = currentConversationScript + "\nWait: 2000\n" + currentConversationScript
                 conversationTts?.playScript(repeatScript)
             } else {
@@ -397,11 +398,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             viewModel.answerResult.collect { result ->
                 if (currentMode == MODE_TEST_LISTEN_Q2) {
                     // --- 会話モード用の回答後処理 ---
+                    if (result.isCorrect && result.points > 0) {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            PointManager(this@LearningActivity).add(result.points)
+                            withContext(Dispatchers.Main) {
+                                updatePointView()
+                            }
+                        }
+                    }
 
                     textQuestionBody.visibility = View.VISIBLE
                     textScriptDisplay.visibility = View.VISIBLE
 
-                    // 解説を表示 (\nを改行に変換)
+                    // 解説を表示 (\n を改行に変換)
+                    // 修正箇所: 文字列の途中の改行を修正
                     textFeedback.text = result.feedback.replace("\\n", "\n")
                     textFeedback.visibility = View.VISIBLE
 
@@ -447,11 +457,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun renderConversationUi(state: QuestionUiState.Conversation) {
         textQuestionTitle.text = "会話を聞いて質問に答えてください"
 
-        // \nを改行コードに変換してセット（最初は非表示）
+        // \n を改行コードに変換してセット（最初は非表示）
+        // 修正箇所: 文字列の途中の改行を修正
         textQuestionBody.text = state.question.replace("\\n", "\n")
         textQuestionBody.visibility = View.GONE
 
-        // \nを改行コードに変換してセット（最初は非表示）
+        // \n を改行コードに変換してセット（最初は非表示）
+        // 修正箇所: 文字列の途中の改行を修正
         textScriptDisplay.text = state.script.replace("\\n", "\n")
         textScriptDisplay.visibility = View.GONE
 
@@ -483,6 +495,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         applyTtsParams()
 
+        // 修正箇所: 文字列を1行にし、改行コード \n を使用
         val repeatScript = state.script + "\nWait: 2000\n" + state.script
         conversationTts?.playScript(repeatScript)
     }
@@ -623,7 +636,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val current = progressDao.getProgress(wordId, currentMode)
             val currentLevel = current?.level ?: 0
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
-            val points = ProgressCalculator.calcPoint(isCorrect, currentLevel)
+            
+            val basePoint = settings.getBasePointLegacy() // AppSettingsからベースポイントを取得
+            val points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint) // 引数にベースポイントを渡す
 
             pointManager.add(points)
             if (points > 0) {
