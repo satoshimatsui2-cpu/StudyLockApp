@@ -110,7 +110,11 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
 
             val params = Bundle()
             params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
-            engine.speak(nextLine.text, TextToSpeech.QUEUE_ADD, params, utteranceId)
+            val textToRead = nextLine.text
+                .replace("p.m.", "PM", ignoreCase = true)
+                .replace("a.m.", "AM", ignoreCase = true)
+                .replace("P.E.", "PE", ignoreCase = true)
+            engine.speak(textToRead, TextToSpeech.QUEUE_ADD, params, utteranceId)
         }
     }
 

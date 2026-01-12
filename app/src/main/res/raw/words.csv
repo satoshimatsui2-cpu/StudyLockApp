@@ -37,8 +37,8 @@ no,grade,word,japanese,description,small_topic,medium_category
 36,5,ten,10,Number of toes here.,numbers_and_counting,abstract_concepts
 37,5,first,1番目の,Initial place in line.,numbers_and_counting,abstract_concepts
 38,5,second,2番目の,Next after the first.,numbers_and_counting,abstract_concepts
-39,5,Sunday,日曜日,Day of rest usually.,calendar_and_dates,abstract_time_and_space
-40,5,Monday,月曜日,Start of work week.,calendar_and_dates,abstract_time_and_space
+39,5,Sunday,日曜日,Day of rest usually.,week,abstract_time_and_space
+40,5,Monday,月曜日,Start of work week.,week,abstract_time_and_space
 41,5,today,今日,This present day now.,time_units,abstract_time_and_space
 42,5,tomorrow,明日,Day after today is.,time_units,abstract_time_and_space
 43,5,yesterday,昨日,Day before today.,time_units,abstract_time_and_space
@@ -92,7 +92,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 91,5,drink,飲む,Swallow liquid down.,daily_routines,actions_physical
 92,5,study,勉強する,Learn new subject.,working_and_trying,actions_physical
 93,5,play,遊ぶ,Have fun with game.,daily_routines,actions_physical
-94,5,watch,見る,Look at for time.,looking_and_observing,actions_mental_and_social
+94,5,watch,見る（じっと見る・観察する）,Look at for time.,looking_and_observing,actions_mental_and_social
 95,5,listen,聞く,Hear sound with ears.,listening_and_hearing,actions_mental_and_social
 96,5,speak,話す,Say words to others.,speaking_and_talking,actions_mental_and_social
 97,5,read,読む,Look at words know.,looking_and_observing,actions_mental_and_social
@@ -129,11 +129,11 @@ no,grade,word,japanese,description,small_topic,medium_category
 128,5,why,なぜ,Asking for reason.,asking_and_answering,actions_mental_and_social
 129,5,my,私の,Belongs to me speaker.,self_introduction,daily_expressions
 130,5,your,あなたの,Belongs to you now.,self_introduction,daily_expressions
-131,5,Tuesday,火曜日,Day after Monday.,calendar_and_dates,abstract_time_and_space
-132,5,Wednesday,水曜日,Middle of work week.,calendar_and_dates,abstract_time_and_space
-133,5,Thursday,木曜日,Day before Friday.,calendar_and_dates,abstract_time_and_space
-134,5,Friday,金曜日,End of work week.,calendar_and_dates,abstract_time_and_space
-135,5,Saturday,土曜日,First weekend day.,calendar_and_dates,abstract_time_and_space
+131,5,Tuesday,火曜日,Day after Monday.,week,abstract_time_and_space
+132,5,Wednesday,水曜日,Middle of work week.,week,abstract_time_and_space
+133,5,Thursday,木曜日,Day before Friday.,week,abstract_time_and_space
+134,5,Friday,金曜日,End of work week.,week,abstract_time_and_space
+135,5,Saturday,土曜日,First weekend day.,week,abstract_time_and_space
 136,5,year,年,365 days period.,time_units,abstract_time_and_space
 137,5,month,月,About 30 days time.,time_units,abstract_time_and_space
 138,5,week,週,Seven days period.,time_units,abstract_time_and_space
@@ -141,7 +141,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 140,5,minute,分,Sixty seconds time.,time_units,abstract_time_and_space
 141,5,walk,歩く,Move on feet slow.,movement_walk_run,actions_physical
 142,5,run,走る,Move on feet fast.,movement_walk_run,actions_physical
-143,5,sit,座る,Rest on a chair seat.,movement_walk_run,actions_physical
+143,5,sit,座る、座っている,Rest on a chair seat.,movement_walk_run,actions_physical
 144,5,stand,立つ,Be on feet upright.,movement_walk_run,actions_physical
 145,5,sleep,眠る,Rest eyes closed bed.,sleep_and_insomnia,health_wellness
 146,5,get up,起きる,Rise from bed awake.,sleep_and_insomnia,health_wellness
@@ -150,14 +150,14 @@ no,grade,word,japanese,description,small_topic,medium_category
 149,5,make,作る,Create something new.,creation_and_destruction,actions_physical
 150,5,cook,料理する,Make food to eat.,cooking_methods_heat,cooking_and_taste
 151,5,wash,洗う,Clean with water.,hygiene_and_sanitation,health_wellness
-152,5,clean,掃除する,Remove dirt dust.,cleaning_supplies,home_housework
+152,5,clean,きれいにする,Remove dirt dust.,cleaning_supplies,home_housework
 153,5,use,使う,Put into action.,working_and_trying,actions_physical
 154,5,like,好き,Feel good about it.,love_and_affection,emotions_feelings
 155,5,want,欲しい,Desire to have it.,goals_and_purpose,abstract_concepts
 156,5,know,知っている,Have info in head.,knowing_and_understanding,actions_mental_and_social
 157,5,think,考える,Use brain to decide.,thinking_and_believing,actions_mental_and_social
-158,5,look,見る,See with eyes now.,looking_and_observing,actions_mental_and_social
-159,5,see,見える/会う,Perceive with eyes.,looking_and_observing,actions_mental_and_social
+158,5,look,見る（視線を向ける）,See with eyes now.,looking_and_observing,actions_mental_and_social
+159,5,see,見える（自然と目に入る）/会う,Perceive with eyes.,looking_and_observing,actions_mental_and_social
 160,5,say,言う,Speak words out.,speaking_and_talking,actions_mental_and_social
 161,5,rice,米/ご飯,White grain food.,rice_and_grains,food_ingredients_plant
 162,5,meat,肉,Flesh of animals.,beef_and_pork,food_ingredients_animal
@@ -182,9 +182,9 @@ no,grade,word,japanese,description,small_topic,medium_category
 181,5,shirt,シャツ,Top clothes to wear.,tops_tshirts_shirts,fashion_clothing
 182,5,T-shirt,Tシャツ,Casual top short.,tops_tshirts_shirts,fashion_clothing
 183,5,shoes,靴,Wear on your feet.,shoes_and_sneakers,fashion_clothing
-184,5,cap,帽子,Hat with a visor.,hats_and_headwear,fashion_accessories
-185,5,cup,カップ,Drink holder handle.,tableware_and_dishes,home_housework
-186,5,glass,コップ,Clear drink holder.,tableware_and_dishes,home_housework
+184,5,cap,帽子（前つば、または無）,Hat with a visor.,hats_and_headwear,fashion_accessories
+185,5,cup,陶器、プラスチック（取っ手付き）,Drink holder handle.,tableware_and_dishes,home_housework
+186,5,glass,ガラス製（冷たい用）,Clear drink holder.,tableware_and_dishes,home_housework
 187,5,dish,皿,Plate for food.,tableware_and_dishes,home_housework
 188,5,fork,フォーク,Tool to stick food.,cutlery_and_silverware,home_housework
 189,5,spoon,スプーン,Tool to scoop soup.,cutlery_and_silverware,home_housework
@@ -224,8 +224,8 @@ no,grade,word,japanese,description,small_topic,medium_category
 223,5,test,テスト,Check what you know.,tests_and_exams,education_academics
 224,5,spring,春,Season flowers bloom.,climate_and_seasons,nature_weather_and_space
 225,5,summer,夏,Hot season of year.,climate_and_seasons,nature_weather_and_space
-226,5,fall,秋,Season leaves drop.,climate_and_seasons,nature_weather_and_space
-227,5,autumn,秋,Another word fall.,climate_and_seasons,nature_weather_and_space
+226,5,fall,秋（アメリカ）、落ちる、降る,Season leaves drop.,climate_and_seasons,nature_weather_and_space
+227,5,autumn,秋（イギリス）,Another word fall.,climate_and_seasons,nature_weather_and_space
 228,5,winter,冬,Cold season snows.,climate_and_seasons,nature_weather_and_space
 229,5,sport,スポーツ,Physical game play.,sports_general,leisure_sports
 230,5,soccer,サッカー,Kick ball game goal.,soccer_and_baseball,leisure_sports
@@ -275,17 +275,17 @@ no,grade,word,japanese,description,small_topic,medium_category
 274,5,young,若い,Not old few years.,aging_process,life_stages_and_events
 275,5,many,たくさんの（数）,Large number of.,quantity_and_amount,abstract_concepts
 276,5,much,たくさんの（量）,Large amount of.,quantity_and_amount,abstract_concepts
-277,5,some,いくつかの,A few but not all.,quantity_and_amount,abstract_concepts
-278,5,any,いくつかの（否定・疑問）,One or some or none.,quantity_and_amount,abstract_concepts
+277,5,some,いくつかの（肯定：ある前提）,A few but not all.,quantity_and_amount,abstract_concepts
+278,5,any,いくつかの（否定：ない、疑問：あるか不明）,One or some or none.,quantity_and_amount,abstract_concepts
 279,5,all,すべての,Every one included.,quantity_and_amount,abstract_concepts
 280,5,every,毎～/すべての,Each one in group.,quantity_and_amount,abstract_concepts
 281,5,very,とても,To a high degree.,quantity_and_amount,abstract_concepts
-282,5,really,本当に,In fact truly so.,truth_and_facts,abstract_concepts
+282,5,really,本当に,In fact truely so.,truth_and_facts,abstract_concepts
 283,5,computer,コンピュータ,Machine for data.,hardware_pc_mobile,tech_digital
 284,5,phone,電話,Device to call talk.,phone_and_email,work_office
 285,5,camera,カメラ,Takes photos pics.,photography,arts_visual_and_media
 286,5,television,テレビ,Box shows movies.,hardware_pc_mobile,tech_digital
-287,5,TV,テレビ,Short for television.,hardware_pc_mobile,tech_digital
+287,5,TV,テレビ（略称）,Short for television.,hardware_pc_mobile,tech_digital
 288,5,radio,ラジオ,Box plays audio.,hardware_pc_mobile,tech_digital
 289,5,letter,手紙,Paper message sent.,post_and_logistics,city_shops_and_service
 290,5,card,カード,Stiff paper note.,post_and_logistics,city_shops_and_service
@@ -317,11 +317,11 @@ no,grade,word,japanese,description,small_topic,medium_category
 316,5,left,左,Side of heart is.,direction,abstract_time_and_space
 317,5,this,これ,Item here near me.,location_and_position,abstract_time_and_space
 318,5,that,あれ,Item there far off.,location_and_position,abstract_time_and_space
-319,5,Japan,日本,Country in east Asia.,location_and_position,abstract_time_and_space
-320,5,America,アメリカ,USA North America.,location_and_position,abstract_time_and_space
-321,5,Canada,カナダ,North of the USA.,location_and_position,abstract_time_and_space
-322,5,Australia,オーストラリア,Big island country.,location_and_position,abstract_time_and_space
-323,5,China,中国,Large Asian country.,location_and_position,abstract_time_and_space
+319,5,Japan,日本,Country in east Asia.,country,abstract_time_and_space
+320,5,America,アメリカ,USA North America.,country,abstract_time_and_space
+321,5,Canada,カナダ,North of the USA.,country,abstract_time_and_space
+322,5,Australia,オーストラリア,Big island country.,country,abstract_time_and_space
+323,5,China,中国,Large Asian country.,country,abstract_time_and_space
 324,5,country,国,Nation with borders.,politics_and_government,society_gov_and_law
 325,5,town,町,Small city place.,city_places,city_places
 326,5,city,市/都会,Big town with many.,city_places,city_places
@@ -359,8 +359,8 @@ no,grade,word,japanese,description,small_topic,medium_category
 358,5,angry,怒った,Mad upset feeling.,anger_and_rage,emotions_feelings
 359,5,surprised,驚いた,Shocked unexpected.,surprise_and_shock,emotions_feelings
 360,5,o'clock,～時,Exact hour of time.,time_units,abstract_time_and_space
-361,5,a.m.,午前,Morning time hours.,time_units,abstract_time_and_space
-362,5,p.m.,午後,Afternoon evening.,time_units,abstract_time_and_space
+361,5,a.m.,「〜時（午前）」と時間を示す,Morning time hours.,time_units,abstract_time_and_space
+362,5,p.m.,「〜時（午後）」と時間を示す,Afternoon evening.,time_units,abstract_time_and_space
 363,5,calendar,カレンダー,Chart of days dates.,calendar_and_dates,abstract_time_and_space
 364,5,birthday,誕生日,Day born celebrate.,festivals_and_events,society_culture
 365,5,Christmas,クリスマス,Dec 25 holiday event.,festivals_and_events,society_culture
@@ -438,7 +438,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 437,5,pocket,ポケット,Pouch in clothes.,clothing_parts_buttons_zippers,fashion_accessories
 438,5,socks,靴下,Wear on feet soft.,socks_and_hosiery,fashion_clothing
 439,5,glove,手袋,Hand cover winter.,accessories_and_jewelry,fashion_accessories
-440,5,hat,帽子,Head cover brim.,hats_and_headwear,fashion_accessories
+440,5,hat,帽子（つばが全周）,Head cover brim.,hats_and_headwear,fashion_accessories
 441,5,glasses,眼鏡,Eye lenses to see.,watches_and_glasses,fashion_accessories
 442,5,watch,腕時計,Timepiece on wrist.,watches_and_glasses,fashion_accessories
 443,5,ring,指輪,Circle band finger.,accessories_and_jewelry,fashion_accessories
@@ -458,7 +458,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 457,5,video,ビデオ,Moving picture film.,movies_and_genres,arts_visual_and_media
 458,5,movie,映画,Film shown cinema.,movies_and_genres,arts_visual_and_media
 459,5,piano lesson,ピアノのレッスン,Learning piano.,musical_instruments,arts_music
-460,5,swimming pool,プール,Place to swim.,swimming_and_water_sports,leisure_sports
+460,5,swimming pool,プール（泳ぐ施設）,Place to swim.,swimming_and_water_sports,leisure_sports
 461,5,go to school,学校へ行く,Attend class daily.,movement_transport,actions_physical
 462,5,go home,帰宅する,Return to house.,movement_transport,actions_physical
 463,5,get to,～に着く,Arrive at place.,movement_transport,actions_physical
@@ -467,10 +467,10 @@ no,grade,word,japanese,description,small_topic,medium_category
 466,5,listen to,～を聞く,Hear music or talk.,listening_and_hearing,actions_mental_and_social
 467,5,talk to,～と話す,Speak with person.,speaking_and_talking,actions_mental_and_social
 468,5,wait for,～を待つ,Stay for someone.,start_and_stop,actions_physical
-469,5,get on,（乗り物に）乗る,Enter bus or train.,movement_transport,actions_physical
+469,5,get on,乗り込む（乗る動作・開始）,Enter bus or train.,movement_transport,actions_physical
 470,5,get off,（乗り物を）降りる,Leave bus or train.,movement_transport,actions_physical
-471,5,stand up,立ち上がる,Rise to feet.,movement_walk_run,actions_physical
-472,5,sit down,座る,Lower to seat.,movement_walk_run,actions_physical
+471,5,stand up,立ち上がる（動作）,Rise to feet.,movement_walk_run,actions_physical
+472,5,sit down,（下へ移動して）座る,Lower to seat.,movement_walk_run,actions_physical
 473,5,turn on,（電源を）入れる,Start machine power.,electricity_and_gas,home_infrastructure
 474,5,turn off,（電源を）切る,Stop machine power.,electricity_and_gas,home_infrastructure
 475,5,clean my room,部屋を掃除する,Tidy up bedroom.,cleaning_supplies,home_housework
@@ -484,7 +484,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 483,5,have a cold,風邪をひいている,Sick with virus.,colds_and_flu,health_diseases
 484,5,have a good time,楽しむ,Enjoy the moment.,happiness_and_joy,emotions_feelings
 485,5,a lot of,たくさんの,Many or much.,quantity_and_amount,abstract_concepts
-486,5,lots of,たくさんの,Many informal.,quantity_and_amount,abstract_concepts
+486,5,lots of,たくさんの（くだけた表現）,Many informal.,quantity_and_amount,abstract_concepts
 487,5,a little,少し,Small amount of.,quantity_and_amount,abstract_concepts
 488,5,very much,とても,Greatly indeed.,quantity_and_amount,abstract_concepts
 489,5,of course,もちろん,Yes certainly.,agreement_and_refusal,daily_expressions
@@ -496,8 +496,8 @@ no,grade,word,japanese,description,small_topic,medium_category
 495,5,Good idea,いい考えだね,Nice plan thought.,invitations_and_suggestions,daily_expressions
 496,5,Just a moment,少々お待ちください,Wait short time.,time_units,abstract_time_and_space
 497,5,How about,～はどうですか,Suggesting idea.,invitations_and_suggestions,daily_expressions
-498,5,How much,いくら,Asking price.,buying_and_selling,actions_physical
-499,5,How many,いくつ,Asking number.,quantity_and_amount,abstract_concepts
+498,5,How much,いくら？,Asking price.,buying_and_selling,actions_physical
+499,5,How many,いくつ？,Asking number.,quantity_and_amount,abstract_concepts
 500,5,How old,何歳,Asking age.,aging_process,life_stages_and_events
 501,5,sunny,晴れた,Sun shines bright sky.,weather_sunny_cloudy,nature_weather_and_space
 502,5,cloudy,曇った,Many clouds in sky.,weather_sunny_cloudy,nature_weather_and_space
@@ -525,7 +525,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 524,5,tonight,今夜,Night of this day.,time_units,abstract_time_and_space
 525,5,weekend,週末,Sat and Sun usually.,calendar_and_dates,abstract_time_and_space
 526,5,New Year,正月/新年,Jan 1 start year.,festivals_and_events,society_culture
-527,5,enjoy,楽しむ,Have fun doing it.,happiness_and_joy,emotions_feelings
+527,5,enjoy,楽しむ（対象が具体的）,Have fun doing it.,happiness_and_joy,emotions_feelings
 528,5,visit,訪れる,Go to see person.,meeting_and_parting,actions_physical
 529,5,practice,練習する,Do repeatedly learn.,working_and_trying,actions_physical
 530,5,catch,捕まえる,Grab flying item.,hand_actions_hold_take,actions_physical
@@ -535,11 +535,11 @@ no,grade,word,japanese,description,small_topic,medium_category
 534,5,cut,切る,Divide with knife.,prep_actions_cut_mix,cooking_and_taste
 535,5,fly,飛ぶ,Move in air wings.,movement_transport,actions_physical
 536,5,swim,泳ぐ,Move body in water.,swimming_and_water_sports,leisure_sports
-537,5,ride,乗る,Sit on bike horse.,movement_transport,actions_physical
+537,5,ride,乗る（乗っている状態）,Sit on bike horse.,movement_transport,actions_physical
 538,5,drive,運転する,Operate a car bus.,driving_actions,transport_road
 539,5,put,置く,Place item down.,hand_actions_hold_take,actions_physical
 540,5,pick up,拾う,Lift item from floor.,hand_actions_hold_take,actions_physical
-541,5,clean up,片付ける,Tidy things away.,cleaning_supplies,home_housework
+541,5,clean up,片付ける（完全に、しっかり）,Tidy things away.,cleaning_supplies,home_housework
 542,5,bowl,ボウル/どんぶり,Deep dish for soup.,tableware_and_dishes,home_housework
 543,5,chopsticks,箸,Two sticks to eat.,cutlery_and_silverware,home_housework
 544,5,plate,皿（平皿）,Flat dish for food.,tableware_and_dishes,home_housework
@@ -568,11 +568,11 @@ no,grade,word,japanese,description,small_topic,medium_category
 567,5,snake,ヘビ,Long no leg reptile.,reptiles_and_amphibians,nature_animals
 568,5,can,～できる,Able to do action.,strength_and_weakness,abstract_concepts
 569,5,will,～だろう,Future plan intent.,past_present_future,abstract_time_and_space
-570,5,must,～しなければならない,Have to do duty.,commanding_and_requesting,actions_mental_and_social
+570,5,must,～しなければならない（決意、指示、命令）,Have to do duty.,commanding_and_requesting,actions_mental_and_social
 571,5,Let's,～しましょう,Suggest doing now.,invitations_and_suggestions,daily_expressions
 572,5,Shall we,～しましょうか,Ask to do together.,invitations_and_suggestions,daily_expressions
-573,5,Can I,～してもいいですか,Ask permission do.,asking_condition,daily_expressions
-574,5,May I,～してもいいですか,Polite permission.,asking_condition,daily_expressions
+573,5,Can I,～してもいい？,Ask permission do.,asking_condition,daily_expressions
+574,5,May I,～してもよろしいでしょうか,Polite permission.,asking_condition,daily_expressions
 575,5,I'd like to,～したい,Polite want to do.,goals_and_purpose,abstract_concepts
 576,5,Pardon?,何とおっしゃいましたか,Say again please.,asking_condition,daily_expressions
 577,5,See you,またね,Bye meet later.,parting_phrases,daily_expressions
@@ -594,7 +594,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 593,5,beach,浜辺,Sand by the sea.,oceans_and_beaches,nature_environment
 594,5,forest,森,Many trees place.,trees_and_forests,nature_environment
 595,5,lake,湖,Water in land.,rivers_and_lakes,nature_environment
-596,5,pool,プール,Water tank swim.,swimming_and_water_sports,leisure_sports
+596,5,pool,プール、ビリヤード、水たまり,Water tank.,swimming_and_water_sports,leisure_sports
 597,5,church,教会,Christian pray place.,churches_and_temples,society_culture
 598,5,temple,寺,Buddhist pray place.,churches_and_temples,society_culture
 599,5,shrine,神社,Shinto pray place.,churches_and_temples,society_culture
@@ -1199,27 +1199,27 @@ no,grade,word,japanese,description,small_topic,medium_category
 1198,4,crayon,クレヨン,Wax color stick.,stationery_and_tools,education_school_life
 1199,4,diary,日記,Daily log book.,literature_and_books,arts_visual_and_media
 1200,4,shelf,棚,Place for books.,closet_and_storage,home_living_spaces
-1201,5,January,1月,First month of year.,calendar_and_dates,abstract_time_and_space
-1202,5,February,2月,Second month cold.,calendar_and_dates,abstract_time_and_space
-1203,5,March,3月,Third month spring.,calendar_and_dates,abstract_time_and_space
-1204,5,April,4月,Fourth month rain.,calendar_and_dates,abstract_time_and_space
-1205,5,May,5月,Fifth month flowers.,calendar_and_dates,abstract_time_and_space
-1206,5,June,6月,Sixth month summer.,calendar_and_dates,abstract_time_and_space
-1207,5,July,7月,Seventh month hot.,calendar_and_dates,abstract_time_and_space
-1208,5,August,8月,Eighth month heat.,calendar_and_dates,abstract_time_and_space
-1209,5,September,9月,Ninth month fall.,calendar_and_dates,abstract_time_and_space
-1210,5,October,10月,Tenth month cool.,calendar_and_dates,abstract_time_and_space
-1211,5,November,11月,Eleventh month cold.,calendar_and_dates,abstract_time_and_space
-1212,5,December,12月,Last month winter.,calendar_and_dates,abstract_time_and_space
-1213,4,eleven,11,Ten plus one number.,numbers_and_counting,abstract_concepts
-1214,4,twelve,12,Ten plus two number.,numbers_and_counting,abstract_concepts
-1215,4,thirteen,13,Unlucky number often.,numbers_and_counting,abstract_concepts
-1216,4,fifteen,15,Ten plus five number.,numbers_and_counting,abstract_concepts
-1217,4,twenty,20,Two times ten is.,numbers_and_counting,abstract_concepts
-1218,4,thirty,30,Three times ten is.,numbers_and_counting,abstract_concepts
-1219,4,fifty,50,Half of a hundred.,numbers_and_counting,abstract_concepts
-1220,4,hundred,100,Ten times ten is.,numbers_and_counting,abstract_concepts
-1221,4,thousand,1000,Ten times hundred.,numbers_and_counting,abstract_concepts
+1201,5,January,1月,First month of year.,month,abstract_time_and_space
+1202,5,February,2月,Second month cold.,month,abstract_time_and_space
+1203,5,March,3月,Third month spring.,month,abstract_time_and_space
+1204,5,April,4月,Fourth month rain.,month,abstract_time_and_space
+1205,5,May,5月,Fifth month flowers.,month,abstract_time_and_space
+1206,5,June,6月,Sixth month summer.,month,abstract_time_and_space
+1207,5,July,7月,Seventh month hot.,month,abstract_time_and_space
+1208,5,August,8月,Eighth month heat.,month,abstract_time_and_space
+1209,5,September,9月,Ninth month fall.,month,abstract_time_and_space
+1210,5,October,10月,Tenth month cool.,month,abstract_time_and_space
+1211,5,November,11月,Eleventh month cold.,month,abstract_time_and_space
+1212,5,December,12月,Last month winter.,month,abstract_time_and_space
+1213,5,eleven,11,Ten plus one number.,numbers_and_counting,abstract_concepts
+1214,5,twelve,12,Ten plus two number.,numbers_and_counting,abstract_concepts
+1215,5,thirteen,13,Unlucky number often.,numbers_and_counting,abstract_concepts
+1216,5,fifteen,15,Ten plus five number.,numbers_and_counting,abstract_concepts
+1217,5,twenty,20,Two times ten is.,numbers_and_counting,abstract_concepts
+1218,5,thirty,30,Three times ten is.,numbers_and_counting,abstract_concepts
+1219,5,fifty,50,Half of a hundred.,numbers_and_counting,abstract_concepts
+1220,5,hundred,100,Ten times ten is.,numbers_and_counting,abstract_concepts
+1221,5,thousand,1000,Ten times hundred.,numbers_and_counting,abstract_concepts
 1222,4,picnic,ピクニック,Eat meal outside.,camping_and_outdoors,leisure_hobbies
 1223,4,hiking,ハイキング,Long walk in nature.,camping_and_outdoors,leisure_hobbies
 1224,4,surfing,サーフィン,Ride waves board.,swimming_and_water_sports,leisure_sports
@@ -1287,7 +1287,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 1286,4,also,～もまた,Too in addition.,categories_and_groups,abstract_concepts
 1287,4,else,他に,Other thing more.,choice_and_option,abstract_concepts
 1288,4,even,～でさえ,Surprisingly so.,comparison,abstract_concepts
-1289,4,have to,～しなければならない,Must do duty.,commanding_and_requesting,actions_mental_and_social
+1289,4,have to,～しなければならない（締め切り、ルール）,Must do duty.,commanding_and_requesting,actions_mental_and_social
 1290,4,go to bed,寝る,Enter bed sleep.,sleep_and_insomnia,health_wellness
 1291,4,come back,戻ってくる,Return here.,movement_transport,actions_physical
 1292,4,go back,戻る,Return there.,movement_transport,actions_physical
