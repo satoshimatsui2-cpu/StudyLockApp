@@ -637,7 +637,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val currentLevel = current?.level ?: 0
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
             
-            val basePoint = settings.getBasePointLegacy() // AppSettingsからベースポイントを取得
+            val basePoint = settings.getBasePoint(currentMode)
             val points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint) // 引数にベースポイントを渡す
 
             pointManager.add(points)

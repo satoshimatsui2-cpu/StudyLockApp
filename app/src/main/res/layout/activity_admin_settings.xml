@@ -67,35 +67,155 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
-                        android:text="モード別 ベースポイント設定"
+                        android:text="学習モード ベースポイント設定"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/text_point_legacy"
+                        android:id="@+id/text_point_meaning"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        tools:text="通常モード: 10 pt" />
+                        tools:text="意味: 10 pt" />
 
                     <SeekBar
-                        android:id="@+id/seek_point_legacy"
+                        android:id="@+id/seek_point_meaning"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
                     <TextView
-                        android:id="@+id/text_point_conversation"
+                        android:id="@+id/text_point_listening"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingTop="8dp"
-                        tools:text="会話モード: 10 pt" />
+                        tools:text="リスニング: 10 pt" />
 
                     <SeekBar
-                        android:id="@+id/seek_point_conversation"
+                        android:id="@+id/seek_point_listening"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/text_point_listening_jp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        tools:text="日本語リスニング: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_listening_jp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/text_point_ja_to_en"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        tools:text="日英: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_ja_to_en"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/text_point_en_en_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        tools:text="英英1: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_en_en_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/text_point_en_en_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        tools:text="英英2: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_en_en_2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp"
+                app:contentPadding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="テストモード ベースポイント設定"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/text_point_test_fill_blank"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        tools:text="穴埋め: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_test_fill_blank"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/text_point_test_sort"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        tools:text="並び替え: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_test_sort"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/text_point_test_listen_q1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        tools:text="リスニング質問: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_test_listen_q1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/text_point_test_listen_q2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        tools:text="会話文リスニング: 10 pt" />
+
+                    <SeekBar
+                        android:id="@+id/seek_point_test_listen_q2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
 
             <!-- 管理者セキュリティ設定 -->
             <com.google.android.material.card.MaterialCardView

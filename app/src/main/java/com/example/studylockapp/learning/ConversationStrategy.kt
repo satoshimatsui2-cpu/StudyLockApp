@@ -100,7 +100,7 @@ class ConversationStrategy(
         // 文字列テンプレートを使用して安全に改行を埋め込む
         val feedback = "$title\n$explanation"
 
-        val points = if (isCorrect) settings.getBasePointConversation() else 0
+        val points = if (isCorrect) settings.getBasePoint(modeKey) else 0
 
         return AnswerResult(isCorrect, feedback, points)
     }

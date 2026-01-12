@@ -111,36 +111,36 @@ class AdminSettingsActivity : AppCompatActivity() {
      */
     private fun setupExistingControls() {
         // --- ポイント設定用SeekBarのセットアップ ---
-        val textPointLegacy = findViewById<TextView>(R.id.text_point_legacy)
-        val seekPointLegacy = findViewById<SeekBar>(R.id.seek_point_legacy)
-        val textPointConversation = findViewById<TextView>(R.id.text_point_conversation)
-        val seekPointConversation = findViewById<SeekBar>(R.id.seek_point_conversation)
-
-        seekPointLegacy.max = 9
-        seekPointConversation.max = 9
+        val modes = mapOf(
+            "meaning" to (findViewById<TextView>(R.id.text_point_meaning) to findViewById<SeekBar>(R.id.seek_point_meaning)),
+            "listening" to (findViewById<TextView>(R.id.text_point_listening) to findViewById<SeekBar>(R.id.seek_point_listening)),
+            "listening_jp" to (findViewById<TextView>(R.id.text_point_listening_jp) to findViewById<SeekBar>(R.id.seek_point_listening_jp)),
+            "japanese_to_english" to (findViewById<TextView>(R.id.text_point_ja_to_en) to findViewById<SeekBar>(R.id.seek_point_ja_to_en)),
+            "english_english_1" to (findViewById<TextView>(R.id.text_point_en_en_1) to findViewById<SeekBar>(R.id.seek_point_en_en_1)),
+            "english_english_2" to (findViewById<TextView>(R.id.text_point_en_en_2) to findViewById<SeekBar>(R.id.seek_point_en_en_2)),
+            "test_fill_blank" to (findViewById<TextView>(R.id.text_point_test_fill_blank) to findViewById<SeekBar>(R.id.seek_point_test_fill_blank)),
+            "test_sort" to (findViewById<TextView>(R.id.text_point_test_sort) to findViewById<SeekBar>(R.id.seek_point_test_sort)),
+            "test_listen_q1" to (findViewById<TextView>(R.id.text_point_test_listen_q1) to findViewById<SeekBar>(R.id.seek_point_test_listen_q1)),
+            "test_listen_q2" to (findViewById<TextView>(R.id.text_point_test_listen_q2) to findViewById<SeekBar>(R.id.seek_point_test_listen_q2))
+        )
 
         fun progressToPoint(progress: Int): Int = progress + 1
         fun pointToProgress(point: Int): Int = point - 1
 
-        seekPointLegacy.progress = pointToProgress(settings.getBasePointLegacy())
-        seekPointConversation.progress = pointToProgress(settings.getBasePointConversation())
+        modes.forEach { (mode, views) ->
+            val (textView, seekBar) = views
+            seekBar.max = 9
+            seekBar.progress = pointToProgress(settings.getBasePoint(mode))
+            textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(seekBar.progress)} pt"
 
-        fun refreshPointLabels() {
-            textPointLegacy.text = "通常モード: ${progressToPoint(seekPointLegacy.progress)} pt"
-            textPointConversation.text = "会話モード: ${progressToPoint(seekPointConversation.progress)} pt"
+            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(progress)} pt"
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
         }
-        refreshPointLabels()
-
-        val pointSeekBarListener = object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                refreshPointLabels()
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        }
-
-        seekPointLegacy.setOnSeekBarChangeListener(pointSeekBarListener)
-        seekPointConversation.setOnSeekBarChangeListener(pointSeekBarListener)
 
         // SeekBar / TextView 群
         val textInterval = findViewById<TextView>(R.id.text_interval)
@@ -234,8 +234,10 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             // --- ポイント設定の保存 ---
-            settings.setBasePointLegacy(progressToPoint(seekPointLegacy.progress))
-            settings.setBasePointConversation(progressToPoint(seekPointConversation.progress))
+            modes.forEach { (mode, views) ->
+                val (_, seekBar) = views
+                settings.setBasePoint(mode, progressToPoint(seekBar.progress))
+            }
 
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)

@@ -44,8 +44,7 @@ class AppSettings(context: Context) {
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
 
         // ベースポイント設定
-        private const val KEY_BASE_POINT_LEGACY = "base_point_legacy"
-        private const val KEY_BASE_POINT_CONVERSATION = "base_point_conversation"
+        private const val KEY_BASE_POINT_PREFIX = "base_point_"
 
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
@@ -195,13 +194,11 @@ class AppSettings(context: Context) {
     }
 
     // --- Base Points ---
-    fun getBasePointLegacy(): Int = prefs.getInt(KEY_BASE_POINT_LEGACY, 10).coerceIn(1, 10)
-    fun setBasePointLegacy(value: Int) {
-        prefs.edit { putInt(KEY_BASE_POINT_LEGACY, value.coerceIn(1, 10)) }
+    fun getBasePoint(mode: String): Int {
+        return prefs.getInt(KEY_BASE_POINT_PREFIX + mode, 10).coerceIn(1, 10)
     }
 
-    fun getBasePointConversation(): Int = prefs.getInt(KEY_BASE_POINT_CONVERSATION, 10).coerceIn(1, 10)
-    fun setBasePointConversation(value: Int) {
-        prefs.edit { putInt(KEY_BASE_POINT_CONVERSATION, value.coerceIn(1, 10)) }
+    fun setBasePoint(mode: String, value: Int) {
+        prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(1, 10)) }
     }
 }
