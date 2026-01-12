@@ -11,13 +11,15 @@ import android.util.Log
 import java.util.LinkedList
 import java.util.Locale
 import java.util.Queue
+import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 
 /**
  * 1行ごとの読み上げデータを保持するクラス
  */
 data class TtsSpeechLine(
-    val text: String,
+    val displayText: String, // 画面表示検索用（改行などを含む）
+    val ttsText: String,     // 読み上げ用（記号などを除去）
     val pitch: Float,
     val preDelayMs: Long
 )
@@ -30,8 +32,14 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
     private val speechQueue: Queue<TtsSpeechLine> = LinkedList()
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    // 発話IDと表示テキストを紐付けるマップ
+    private val utteranceTextMap = ConcurrentHashMap<String, String>()
+
     private var speechRate: Float = 1.0f
     private var basePitch: Float = 1.0f
+
+    // 読み上げ開始時に呼ばれるリスナー
+    var onSpeakListener: ((String) -> Unit)? = null
 
     init {
         tts = TextToSpeech(context, this)
@@ -54,9 +62,21 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
 
     private fun setupListener() {
         tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {}
+            // ▼▼▼ 修正: 実際に音声が始まったタイミングでハイライト通知を送る ▼▼▼
+            override fun onStart(utteranceId: String?) {
+                utteranceId?.let { id ->
+                    val textToHighlight = utteranceTextMap[id]
+                    if (!textToHighlight.isNullOrEmpty()) {
+                        mainHandler.post {
+                            onSpeakListener?.invoke(textToHighlight)
+                        }
+                    }
+                }
+            }
+            // ▲▲▲ 修正ここまで ▲▲▲
 
             override fun onDone(utteranceId: String?) {
+                utteranceId?.let { utteranceTextMap.remove(it) }
                 mainHandler.post {
                     playNextLine()
                 }
@@ -80,6 +100,7 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
 
     fun stop() {
         speechQueue.clear()
+        utteranceTextMap.clear()
         tts?.stop()
     }
 
@@ -107,8 +128,8 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
 
             val utteranceId = "id_${System.currentTimeMillis()}_${nextLine.hashCode()}"
 
-            // Wait処理
-            if (nextLine.text.isEmpty()) {
+            // Wait処理 (テキストが空の場合は無音)
+            if (nextLine.ttsText.isEmpty()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     engine.playSilentUtterance(nextLine.preDelayMs, TextToSpeech.QUEUE_ADD, utteranceId)
                 } else {
@@ -120,7 +141,7 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
                 return
             }
 
-            // preDelay処理
+            // preDelay処理 (文頭の無音)
             if (nextLine.preDelayMs > 0) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     engine.playSilentUtterance(nextLine.preDelayMs, TextToSpeech.QUEUE_ADD, "${utteranceId}_silence")
@@ -130,32 +151,21 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
                 }
             }
 
-            // 読み上げ処理（最終防衛ラインとしてここでも不要文字を削除）
+            // マップに登録（onStartで取り出すため）
+            utteranceTextMap[utteranceId] = nextLine.displayText
+
+            // 読み上げ処理
             val params = Bundle()
             params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
 
-            val textToRead = nextLine.text
-                .replace("\\", " ")
-                .replace("¥", " ")
-                .replace("￥", " ")
-                .replace("\n", " ")
-                .replace("\r", " ")
-                .replace("p.m.", "PM", ignoreCase = true)
-                .replace("a.m.", "AM", ignoreCase = true)
-                .replace("P.E.", "PE", ignoreCase = true)
-
-            engine.speak(textToRead, TextToSpeech.QUEUE_ADD, params, utteranceId)
+            engine.speak(nextLine.ttsText, TextToSpeech.QUEUE_ADD, params, utteranceId)
         }
     }
 
-    // ▼▼▼ 修正: データ解析時に改行コード(\n)を確実に削除する ▼▼▼
     private fun parseScript(script: String): List<TtsSpeechLine> {
         val result = mutableListOf<TtsSpeechLine>()
 
-        // キーワード一覧
         val keywords = listOf("Wait:", "Question:", "Narrator:", "Man:", "Boy:", "Woman:", "Girl:")
-
-        // 正規表現: キーワード〜次のキーワード直前までを取得
         val patternString = "(${keywords.joinToString("|")})(.*?)(?=${keywords.joinToString("|")}|$)"
         val pattern = Pattern.compile(patternString, Pattern.DOTALL)
 
@@ -163,36 +173,50 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
 
         while (matcher.find()) {
             val label = matcher.group(1)?.trim() ?: ""
-            // ここで改行コードをスペースに置換してからトリムする
             val rawContent = matcher.group(2) ?: ""
-            val content = rawContent.replace("\n", " ").replace("\\n", " ").trim()
 
-            if (content.isEmpty() && label != "Wait:") continue
+            // ▼▼▼ 修正: 表示用(改行維持) と 読み上げ用(改行削除) を分ける ▼▼▼
+            // Activity側で replace("\\n", "\n") しているので、ここでも合わせる
+            val displayText = rawContent.replace("\\n", "\n").trim()
+
+            // TTS用は徹底的にクリーニング
+            val ttsText = rawContent
+                .replace("\\n", " ")
+                .replace("\n", " ")
+                .replace("\\", " ")
+                .replace("¥", " ")
+                .replace("￥", " ")
+                .replace("\r", " ")
+                .replace("p.m.", "PM", ignoreCase = true)
+                .replace("a.m.", "AM", ignoreCase = true)
+                .replace("P.E.", "PE", ignoreCase = true)
+                .trim()
+
+            if (ttsText.isEmpty() && label != "Wait:") continue
 
             when (label) {
                 "Wait:" -> {
-                    val ms = content.toLongOrNull() ?: 1000L
-                    result.add(TtsSpeechLine("", 1.0f, ms))
+                    val ms = displayText.toLongOrNull() ?: 1000L
+                    result.add(TtsSpeechLine("", "", 1.0f, ms))
                 }
                 "Question:" -> {
-                    // Questionの場合は少し間をあける
-                    result.add(TtsSpeechLine("Question", 1.0f, 1200L))
-                    result.add(TtsSpeechLine(content, 1.0f, 1000L))
+                    result.add(TtsSpeechLine("", "Question", 1.0f, 1200L))
+                    result.add(TtsSpeechLine(displayText, ttsText, 1.0f, 1000L))
                 }
-                "Narrator:" -> result.add(TtsSpeechLine(content, 1.0f, 1000L))
-                "Man:"      -> result.add(TtsSpeechLine(content, 0.6f, 600L))
-                "Boy:"      -> result.add(TtsSpeechLine(content, 0.90f, 600L))
-                "Woman:"    -> result.add(TtsSpeechLine(content, 1.15f, 600L))
-                "Girl:"     -> result.add(TtsSpeechLine(content, 1.35f, 600L))
-                else        -> result.add(TtsSpeechLine(content, 1.0f, 600L))
+                "Narrator:" -> result.add(TtsSpeechLine(displayText, ttsText, 1.0f, 1000L))
+                "Man:"      -> result.add(TtsSpeechLine(displayText, ttsText, 0.6f, 600L))
+                "Boy:"      -> result.add(TtsSpeechLine(displayText, ttsText, 0.90f, 600L))
+                "Woman:"    -> result.add(TtsSpeechLine(displayText, ttsText, 1.15f, 600L))
+                "Girl:"     -> result.add(TtsSpeechLine(displayText, ttsText, 1.35f, 600L))
+                else        -> result.add(TtsSpeechLine(displayText, ttsText, 1.0f, 600L))
             }
         }
 
-        // 正規表現にマッチしない（キーワードがない）データの場合の救済処置
         if (result.isEmpty() && script.isNotEmpty()) {
-            // ここでも改行は消す
-            val cleanScript = script.replace("\n", " ").replace("\\n", " ")
-            result.add(TtsSpeechLine(cleanScript, 1.0f, 0L))
+            // 救済処置
+            val disp = script.replace("\\n", "\n")
+            val tts = script.replace("\\n", " ").replace("\n", " ")
+            result.add(TtsSpeechLine(disp, tts, 1.0f, 0L))
         }
 
         return result

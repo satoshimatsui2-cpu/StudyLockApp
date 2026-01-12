@@ -5,12 +5,16 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.BackgroundColorSpan
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -34,9 +38,6 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.abs
 
-/**
- * 学習画面のアクティビティ。
- */
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // region Constants & Modes
@@ -68,8 +69,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
 
     private var currentLegacyContext: LegacyQuestionContext? = null
+
     // 再生ボタン用に現在の会話スクリプトを保持する変数
     private var currentConversationScript: String = ""
+    // ハイライト検索用の現在位置カーソル
+    private var currentHighlightSearchIndex: Int = 0
 
     private data class LegacyQuestionContext(
         val word: WordEntity,
@@ -208,6 +212,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textFeedback = findViewById(R.id.text_feedback)
 
         textScriptDisplay = findViewById(R.id.text_script_display)
+
+        // 会話文と質問文のテキストサイズを大きく設定
+        textQuestionBody.textSize = 24f
+        textScriptDisplay.textSize = 18f
+
         layoutActionButtons = findViewById(R.id.layout_action_buttons)
         buttonNextQuestion = findViewById(R.id.button_next_question)
         buttonReplayAudio = findViewById(R.id.button_replay_audio)
@@ -259,6 +268,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
         conversationTts = ConversationTtsManager(this)
 
+        // 再生中のテキストを受け取ってハイライトする処理
+        conversationTts?.onSpeakListener = { spokenText ->
+            highlightCurrentSpeakingText(spokenText)
+        }
+
         val attrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -269,6 +283,33 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .build()
         seCorrectId = loadSeIfExists("se_correct")
         seWrongId = loadSeIfExists("se_wrong")
+    }
+
+    // ハイライト処理の実装
+// ハイライト処理の実装
+    private fun highlightCurrentSpeakingText(spokenText: String) {
+        if (spokenText.isEmpty() || textScriptDisplay.visibility != View.VISIBLE) return
+
+        val fullText = textScriptDisplay.text.toString()
+
+        // 1. まず現在のカーソル位置から検索
+        var start = fullText.indexOf(spokenText, startIndex = currentHighlightSearchIndex)
+
+        // 2. 見つからない場合（リピート再生に入った場合など）、最初から検索し直す
+        if (start == -1) {
+            start = fullText.indexOf(spokenText, startIndex = 0)
+        }
+
+        if (start != -1) {
+            val end = start + spokenText.length
+
+            val spannable = SpannableString(fullText)
+            val highlightColor = Color.parseColor("#FFF59D") // 薄い黄色
+            spannable.setSpan(BackgroundColorSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            textScriptDisplay.text = spannable
+            currentHighlightSearchIndex = end
+        }
     }
 
     private suspend fun loadInitialData() {
@@ -305,11 +346,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         val audioClickListener = View.OnClickListener {
             if (currentMode == MODE_TEST_LISTEN_Q2) {
-                // 会話モード: 会話用TTS
+                // 会話モード
+                currentHighlightSearchIndex = 0
+                // ハイライトリセット
+                val cleanText = textScriptDisplay.text.toString()
+                textScriptDisplay.text = cleanText
+
                 val repeatScript = currentConversationScript + "\nWait: 2000\n" + currentConversationScript
                 conversationTts?.playScript(repeatScript)
             } else {
-                // 通常モード: 単語用TTS
+                // 通常モード
                 speakCurrentLegacyAudio()
             }
         }
@@ -352,16 +398,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (currentMode == MODE_TEST_LISTEN_Q2) {
                     // --- 会話モード用の回答後処理 ---
 
-                    // 1. 隠していた質問文とスクリプトを表示
                     textQuestionBody.visibility = View.VISIBLE
                     textScriptDisplay.visibility = View.VISIBLE
 
-                    // 2. 解説を画面上のテキストエリアに表示
-                    // ▼▼▼ 修正: \nを改行コードに変換して表示 ▼▼▼
+                    // 解説を表示 (\nを改行に変換)
                     textFeedback.text = result.feedback.replace("\\n", "\n")
                     textFeedback.visibility = View.VISIBLE
 
-                    // 3. スナックバーにはシンプルな正誤のみを表示
                     val vol = if (result.isCorrect) settings.seCorrectVolume else settings.seWrongVolume
                     val seId = if (result.isCorrect) seCorrectId else seWrongId
                     if (seId != 0) soundPool?.play(seId, vol, vol, 1, 0, 1f)
@@ -381,7 +424,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     layoutActionButtons.visibility = View.VISIBLE
 
                 } else {
-                    // --- 通常モード（または他のテストモード）は既存処理 ---
+                    // --- 通常モード ---
                     showFeedbackSnackbar(result)
                 }
 
@@ -404,18 +447,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun renderConversationUi(state: QuestionUiState.Conversation) {
         textQuestionTitle.text = "会話を聞いて質問に答えてください"
 
-        // ▼▼▼ 修正: \nを改行コードに変換してセット（最初は非表示） ▼▼▼
+        // \nを改行コードに変換してセット（最初は非表示）
         textQuestionBody.text = state.question.replace("\\n", "\n")
         textQuestionBody.visibility = View.GONE
 
-        // ▼▼▼ 修正: \nを改行コードに変換してセット（最初は非表示） ▼▼▼
+        // \nを改行コードに変換してセット（最初は非表示）
         textScriptDisplay.text = state.script.replace("\\n", "\n")
         textScriptDisplay.visibility = View.GONE
 
-        textFeedback.visibility = View.GONE // 解説エリアも非表示
+        textFeedback.visibility = View.GONE
 
-        // スクリプトを保存(再生ボタン用) - こちらはTTS用に元のまま(またはTTS側で処理)でOKだが、TTS側で対応済み
+        // スクリプトを保存
         currentConversationScript = state.script
+        currentHighlightSearchIndex = 0
 
         checkIncludeOtherGrades?.visibility = View.GONE
         checkboxAutoPlayAudio?.visibility = View.GONE
@@ -427,6 +471,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 btn.text = state.choices[index]
                 btn.visibility = View.VISIBLE
                 btn.isEnabled = true
+
+                // ボタンの有効化を確実に行う
+                btn.isClickable = true
+
                 ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[index])
             } else {
                 btn.visibility = View.GONE
@@ -546,10 +594,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun processAnswerResultLegacy(wordId: Int, isCorrect: Boolean) {
         lifecycleScope.launch {
-            // DB登録と同時に、新旧レベルを取得してアニメーション判定
             val (addPoint, levelUpInfo) = registerAnswerToDb(wordId, isCorrect)
 
-            // レベルアップ時のキラキラアニメーション (全ランク対応)
             if (isCorrect) {
                 checkAndAnimateTrophy(levelUpInfo.first, levelUpInfo.second)
             }
@@ -594,26 +640,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // トロフィーのアニメーション判定ロジック (全ランク対応)
     private fun checkAndAnimateTrophy(oldLevel: Int, newLevel: Int) {
-        // Bronze (Lv2以上: 1日以上定着)
         if (oldLevel < 2 && newLevel >= 2) animateTrophy(iconMasterBronze)
-
-        // Silver (Lv3以上: 3日以上定着)
         if (oldLevel < 3 && newLevel >= 3) animateTrophy(iconMasterSilver)
-
-        // Gold (Lv4以上: 1週間以上定着)
         if (oldLevel < 4 && newLevel >= 4) animateTrophy(iconMasterGold)
-
-        // Crystal (Lv5以上: 2週間以上定着)
         if (oldLevel < 5 && newLevel >= 5) animateTrophy(iconMasterCrystal)
-
-        // Purple (Lv6以上: 1ヶ月以上定着)
         if (oldLevel < 6 && newLevel >= 6) animateTrophy(iconMasterPurple)
     }
 
     private fun animateTrophy(targetView: ImageView) {
-        // 1.5倍に拡大しながら透明度を変えて光ったように見せる
         targetView.animate().cancel()
         targetView.scaleX = 1.0f
         targetView.scaleY = 1.0f
@@ -622,7 +657,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         targetView.animate()
             .scaleX(1.7f)
             .scaleY(1.7f)
-            .alpha(0.5f) // 光の残像っぽく
+            .alpha(0.5f)
             .setDuration(300)
             .setInterpolator(AccelerateDecelerateInterpolator())
             .withEndAction {
@@ -772,6 +807,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         choiceButtons.forEachIndexed { index, button ->
             ViewCompat.setBackgroundTintList(button, defaultChoiceTints[index])
             button.isEnabled = true
+            button.isClickable = true
         }
         layoutActionButtons.visibility = View.GONE
     }
