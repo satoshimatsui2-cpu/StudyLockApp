@@ -133,7 +133,7 @@
                                 android:orientation="vertical"
                                 android:layout_marginStart="14dp"
                                 app:layout_constraintStart_toEndOf="@id/selector_icon_mode"
-                                app:layout_constraintEnd_toStartOf="@+id/selector_icon_arrow"
+                                app:layout_constraintEnd_toStartOf="@id/selector_icon_arrow"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintBottom_toBottomOf="parent">
 
@@ -156,8 +156,8 @@
                                     android:gravity="center_vertical">
 
                                     <ImageView
-                                        android:layout_width="20dp"
-                                        android:layout_height="20dp"
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
                                         android:src="@drawable/ic_review_24"
                                         app:tint="@color/badge_review"/>
                                     <TextView
@@ -165,7 +165,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0"
-                                        android:textSize="16sp"
+                                        android:textSize="14sp"
                                         android:textColor="@color/badge_review"
                                         android:textStyle="bold"
                                         android:layout_marginStart="4dp"
@@ -175,7 +175,7 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="@string/label_new"
-                                        android:textSize="11sp"
+                                        android:textSize="10sp"
                                         android:textStyle="bold"
                                         android:textColor="@android:color/white"
                                         android:background="@drawable/bg_new_badge"
@@ -189,26 +189,103 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0"
-                                        android:textSize="16sp"
+                                        android:textSize="14sp"
                                         android:textColor="@color/badge_new"
                                         android:textStyle="bold"
-                                        android:layout_marginStart="4dp"
-                                        android:layout_marginEnd="12dp"/>
+                                        android:layout_marginStart="4dp"/>
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_marginTop="4dp"
+                                    android:gravity="center_vertical">
 
                                     <ImageView
-                                        android:layout_width="20dp"
-                                        android:layout_height="20dp"
+                                        android:id="@+id/icon_master_bronze"
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
                                         android:src="@drawable/ic_emoji_events_24"
-                                        app:tint="@color/badge_master"/>
+                                        app:tint="#8D6E63"/>
                                     <TextView
-                                        android:id="@+id/selector_text_master"
+                                        android:id="@+id/text_master_bronze"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="0%"
-                                        android:textSize="16sp"
-                                        android:textColor="@color/badge_master"
+                                        android:textSize="12sp"
+                                        android:textColor="#8D6E63"
                                         android:textStyle="bold"
-                                        android:layout_marginStart="4dp"/>
+                                        android:layout_marginStart="1dp"
+                                        android:layout_weight="1"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_master_silver"
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:src="@drawable/ic_emoji_events_24"
+                                        app:tint="#9E9E9E"/>
+                                    <TextView
+                                        android:id="@+id/text_master_silver"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0%"
+                                        android:textSize="12sp"
+                                        android:textColor="#9E9E9E"
+                                        android:textStyle="bold"
+                                        android:layout_marginStart="1dp"
+                                        android:layout_weight="1"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_master_gold"
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:src="@drawable/ic_emoji_events_24"
+                                        app:tint="#FFCA28"/>
+                                    <TextView
+                                        android:id="@+id/text_master_gold"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0%"
+                                        android:textSize="12sp"
+                                        android:textColor="#FFCA28"
+                                        android:textStyle="bold"
+                                        android:layout_marginStart="1dp"
+                                        android:layout_weight="1"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_master_crystal"
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:src="@drawable/ic_emoji_events_24"
+                                        app:tint="#4DD0E1"/>
+                                    <TextView
+                                        android:id="@+id/text_master_crystal"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0%"
+                                        android:textSize="12sp"
+                                        android:textColor="#4DD0E1"
+                                        android:textStyle="bold"
+                                        android:layout_marginStart="1dp"
+                                        android:layout_weight="1"/>
+
+                                    <ImageView
+                                        android:id="@+id/icon_master_purple"
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:src="@drawable/ic_emoji_events_24"
+                                        app:tint="#9C27B0"/>
+                                    <TextView
+                                        android:id="@+id/text_master_purple"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="0%"
+                                        android:textSize="12sp"
+                                        android:textColor="#9C27B0"
+                                        android:textStyle="bold"
+                                        android:layout_marginStart="1dp"
+                                        android:layout_weight="1"/>
                                 </LinearLayout>
                             </LinearLayout>
 

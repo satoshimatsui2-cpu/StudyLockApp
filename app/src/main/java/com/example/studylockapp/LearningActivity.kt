@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -67,6 +68,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
 
     private var currentLegacyContext: LegacyQuestionContext? = null
+    // 再生ボタン用に現在の会話スクリプトを保持する変数
+    private var currentConversationScript: String = ""
 
     private data class LegacyQuestionContext(
         val word: WordEntity,
@@ -109,7 +112,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var selectorTextTitle: TextView
     private lateinit var selectorTextReview: TextView
     private lateinit var selectorTextNew: TextView
-    private lateinit var selectorTextMaster: TextView
+
+    // トロフィー5種＋アイコン用変数
+    private lateinit var textMasterBronze: TextView
+    private lateinit var textMasterSilver: TextView
+    private lateinit var textMasterGold: TextView
+    private lateinit var textMasterCrystal: TextView
+    private lateinit var textMasterPurple: TextView
+
+    private lateinit var iconMasterBronze: ImageView
+    private lateinit var iconMasterSilver: ImageView
+    private lateinit var iconMasterGold: ImageView
+    private lateinit var iconMasterCrystal: ImageView
+    private lateinit var iconMasterPurple: ImageView
+
     private lateinit var buttonPlayAudio: ImageButton
     private lateinit var buttonSoundSettings: ImageButton
     private var checkIncludeOtherGrades: CheckBox? = null
@@ -120,11 +136,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val redTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_wrong)) }
     // endregion
 
+    // 集計データ
     private data class ModeStats(
         val review: Int,
         val newCount: Int,
         val total: Int,
-        val mastered: Int
+        val bronze: Int,
+        val silver: Int,
+        val gold: Int,
+        val crystal: Int,
+        val purple: Int
     )
 
     // region Lifecycle
@@ -196,7 +217,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         selectorTextTitle = findViewById(R.id.selector_text_title)
         selectorTextReview = findViewById(R.id.selector_text_review)
         selectorTextNew = findViewById(R.id.selector_text_new)
-        selectorTextMaster = findViewById(R.id.selector_text_master)
+
+        textMasterBronze = findViewById(R.id.text_master_bronze)
+        textMasterSilver = findViewById(R.id.text_master_silver)
+        textMasterGold = findViewById(R.id.text_master_gold)
+        textMasterCrystal = findViewById(R.id.text_master_crystal)
+        textMasterPurple = findViewById(R.id.text_master_purple)
+
+        iconMasterBronze = findViewById(R.id.icon_master_bronze)
+        iconMasterSilver = findViewById(R.id.icon_master_silver)
+        iconMasterGold = findViewById(R.id.icon_master_gold)
+        iconMasterCrystal = findViewById(R.id.icon_master_crystal)
+        iconMasterPurple = findViewById(R.id.icon_master_purple)
 
         buttonPlayAudio = findViewById(R.id.button_play_audio)
         buttonSoundSettings = findViewById(R.id.button_sound_settings)
@@ -240,7 +272,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private suspend fun loadInitialData() {
-        // ▼▼▼ 修正: CsvDataLoaderを使用 ▼▼▼
         val imported = withContext(Dispatchers.IO) {
             if (gradeFilter != "All") importMissingWordsForGrade(gradeFilter) else 0
         }
@@ -248,7 +279,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Snackbar.make(findViewById(android.R.id.content), getString(R.string.imported_count_message, imported), Snackbar.LENGTH_SHORT).show()
         }
 
-        // ▼▼▼ 修正: CsvDataLoaderを使用 ▼▼▼
         listeningQuestions = withContext(Dispatchers.IO) {
             CsvDataLoader(this@LearningActivity).loadListeningQuestions()
         }
@@ -273,8 +303,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.setOnClickListener { onChoiceSelected(index) }
         }
 
-        buttonPlayAudio.setOnClickListener { speakCurrentLegacyAudio() }
-        buttonReplayAudio.setOnClickListener { speakCurrentLegacyAudio() }
+        val audioClickListener = View.OnClickListener {
+            if (currentMode == MODE_TEST_LISTEN_Q2) {
+                // 会話モード: 会話用TTS
+                val repeatScript = currentConversationScript + "\nWait: 2000\n" + currentConversationScript
+                conversationTts?.playScript(repeatScript)
+            } else {
+                // 通常モード: 単語用TTS
+                speakCurrentLegacyAudio()
+            }
+        }
+
+        buttonPlayAudio.setOnClickListener(audioClickListener)
+        buttonReplayAudio.setOnClickListener(audioClickListener)
 
         buttonSoundSettings.setOnClickListener {
             runCatching {
@@ -308,7 +349,42 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         lifecycleScope.launch {
             viewModel.answerResult.collect { result ->
-                showFeedbackSnackbar(result)
+                if (currentMode == MODE_TEST_LISTEN_Q2) {
+                    // --- 会話モード用の回答後処理 ---
+
+                    // 1. 隠していた質問文とスクリプトを表示
+                    textQuestionBody.visibility = View.VISIBLE
+                    textScriptDisplay.visibility = View.VISIBLE
+
+                    // 2. 解説を画面上のテキストエリアに表示
+                    // ▼▼▼ 修正: \nを改行コードに変換して表示 ▼▼▼
+                    textFeedback.text = result.feedback.replace("\\n", "\n")
+                    textFeedback.visibility = View.VISIBLE
+
+                    // 3. スナックバーにはシンプルな正誤のみを表示
+                    val vol = if (result.isCorrect) settings.seCorrectVolume else settings.seWrongVolume
+                    val seId = if (result.isCorrect) seCorrectId else seWrongId
+                    if (seId != 0) soundPool?.play(seId, vol, vol, 1, 0, 1f)
+
+                    val bgColor = ContextCompat.getColor(this@LearningActivity,
+                        if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
+                    val msg = if (result.isCorrect) "正解！" else "不正解…"
+
+                    choiceButtons.forEach { it.isEnabled = false }
+                    currentSnackbar?.dismiss()
+                    currentSnackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_INDEFINITE).apply {
+                        setBackgroundTint(bgColor)
+                        setTextColor(android.graphics.Color.WHITE)
+                        setAction("次へ") { viewModel.loadNextQuestion() }
+                        show()
+                    }
+                    layoutActionButtons.visibility = View.VISIBLE
+
+                } else {
+                    // --- 通常モード（または他のテストモード）は既存処理 ---
+                    showFeedbackSnackbar(result)
+                }
+
                 updatePointView()
                 updateStudyStatsView()
             }
@@ -327,9 +403,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun renderConversationUi(state: QuestionUiState.Conversation) {
         textQuestionTitle.text = "会話を聞いて質問に答えてください"
-        textQuestionBody.text = state.question
-        textQuestionBody.visibility = View.VISIBLE
+
+        // ▼▼▼ 修正: \nを改行コードに変換してセット（最初は非表示） ▼▼▼
+        textQuestionBody.text = state.question.replace("\\n", "\n")
+        textQuestionBody.visibility = View.GONE
+
+        // ▼▼▼ 修正: \nを改行コードに変換してセット（最初は非表示） ▼▼▼
+        textScriptDisplay.text = state.script.replace("\\n", "\n")
         textScriptDisplay.visibility = View.GONE
+
+        textFeedback.visibility = View.GONE // 解説エリアも非表示
+
+        // スクリプトを保存(再生ボタン用) - こちらはTTS用に元のまま(またはTTS側で処理)でOKだが、TTS側で対応済み
+        currentConversationScript = state.script
 
         checkIncludeOtherGrades?.visibility = View.GONE
         checkboxAutoPlayAudio?.visibility = View.GONE
@@ -346,6 +432,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 btn.visibility = View.GONE
             }
         }
+
+        applyTtsParams()
 
         val repeatScript = state.script + "\nWait: 2000\n" + state.script
         conversationTts?.playScript(repeatScript)
@@ -458,7 +546,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun processAnswerResultLegacy(wordId: Int, isCorrect: Boolean) {
         lifecycleScope.launch {
-            val addPoint = registerAnswerToDb(wordId, isCorrect)
+            // DB登録と同時に、新旧レベルを取得してアニメーション判定
+            val (addPoint, levelUpInfo) = registerAnswerToDb(wordId, isCorrect)
+
+            // レベルアップ時のキラキラアニメーション (全ランク対応)
+            if (isCorrect) {
+                checkAndAnimateTrophy(levelUpInfo.first, levelUpInfo.second)
+            }
 
             updateStudyStatsView()
             showFeedbackSnackbarInternal(isCorrect, addPoint)
@@ -473,7 +567,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private suspend fun registerAnswerToDb(wordId: Int, isCorrect: Boolean): Int {
+    private suspend fun registerAnswerToDb(wordId: Int, isCorrect: Boolean): Pair<Int, Pair<Int, Int>> {
         return withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
@@ -496,8 +590,50 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ))
             db.studyLogDao().insert(WordStudyLogEntity(wordId = wordId, mode = currentMode, learnedAt = System.currentTimeMillis()))
 
-            points
+            points to (currentLevel to newLevel)
         }
+    }
+
+    // トロフィーのアニメーション判定ロジック (全ランク対応)
+    private fun checkAndAnimateTrophy(oldLevel: Int, newLevel: Int) {
+        // Bronze (Lv2以上: 1日以上定着)
+        if (oldLevel < 2 && newLevel >= 2) animateTrophy(iconMasterBronze)
+
+        // Silver (Lv3以上: 3日以上定着)
+        if (oldLevel < 3 && newLevel >= 3) animateTrophy(iconMasterSilver)
+
+        // Gold (Lv4以上: 1週間以上定着)
+        if (oldLevel < 4 && newLevel >= 4) animateTrophy(iconMasterGold)
+
+        // Crystal (Lv5以上: 2週間以上定着)
+        if (oldLevel < 5 && newLevel >= 5) animateTrophy(iconMasterCrystal)
+
+        // Purple (Lv6以上: 1ヶ月以上定着)
+        if (oldLevel < 6 && newLevel >= 6) animateTrophy(iconMasterPurple)
+    }
+
+    private fun animateTrophy(targetView: ImageView) {
+        // 1.5倍に拡大しながら透明度を変えて光ったように見せる
+        targetView.animate().cancel()
+        targetView.scaleX = 1.0f
+        targetView.scaleY = 1.0f
+        targetView.alpha = 1.0f
+
+        targetView.animate()
+            .scaleX(1.7f)
+            .scaleY(1.7f)
+            .alpha(0.5f) // 光の残像っぽく
+            .setDuration(300)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .withEndAction {
+                targetView.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .alpha(1.0f)
+                    .setDuration(200)
+                    .start()
+            }
+            .start()
     }
     // endregion
 
@@ -620,7 +756,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val wordDao = db.wordDao()
-        // ▼▼▼ 修正: CsvDataLoaderを使用 ▼▼▼
         val csvWords = CsvDataLoader(this@LearningActivity).loadWords().filter { it.grade == grade }
         if (csvWords.isEmpty()) return@withContext 0
         val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
@@ -628,8 +763,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (missing.isNotEmpty()) wordDao.insertAll(missing)
         missing.size
     }
-
-    // Deleted: readCsvWords, loadListeningQuestionsFromCsv, parseCsvLine are now in CsvDataLoader
     // endregion
 
     // region UI Utilities (Stats, Effects, Sound)
@@ -749,7 +882,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val textTitle = card.findViewById<TextView>(R.id.text_mode_title)
             val textReview = card.findViewById<TextView>(R.id.text_stat_review)
             val textNew = card.findViewById<TextView>(R.id.text_stat_new)
-            val textMaster = card.findViewById<TextView>(R.id.text_stat_master)
+
+            // 新しい4つのTextViewを取得 (Bronze～Crystal)
+            val textBronze = card.findViewById<TextView>(R.id.stat_bronze)
+            val textSilver = card.findViewById<TextView>(R.id.stat_silver)
+            val textGold   = card.findViewById<TextView>(R.id.stat_gold)
+            val textCrystal= card.findViewById<TextView>(R.id.stat_crystal)
 
             textTitle.text = title
             icon.setImageResource(iconRes)
@@ -760,7 +898,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val stats = currentStats[modeKey]
             textReview.text = stats?.review?.toString() ?: "-"
             textNew.text = stats?.newCount?.toString() ?: "-"
-            textMaster.text = if ((stats?.total ?: 0) > 0) "${stats!!.mastered * 100 / stats.total}%" else "-"
+
+            val total = stats?.total?.coerceAtLeast(1) ?: 1
+            textBronze?.text = "${(stats?.bronze ?: 0) * 100 / total}%"
+            textSilver?.text = "${(stats?.silver ?: 0) * 100 / total}%"
+            textGold?.text   = "${(stats?.gold ?: 0)   * 100 / total}%"
+            textCrystal?.text= "${(stats?.crystal ?: 0)* 100 / total}%"
 
             if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) card.alpha = 0.5f
 
@@ -794,6 +937,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updateStudyStatsView() {
         lifecycleScope.launch(Dispatchers.Default) {
+            if (allWords.isEmpty()) return@launch
+
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
             val nowSec = nowEpochSec()
 
@@ -836,7 +981,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val stat = currentStats[currentMode]
         selectorTextReview.text = stat?.review?.toString() ?: "-"
         selectorTextNew.text = stat?.newCount?.toString() ?: "-"
-        selectorTextMaster.text = if ((stat?.total ?: 0) > 0) "${stat!!.mastered * 100 / stat.total}%" else "-"
+
+        val total = stat?.total?.coerceAtLeast(1) ?: 1
+        textMasterBronze.text = "${(stat?.bronze ?: 0) * 100 / total}%"
+        textMasterSilver.text = "${(stat?.silver ?: 0) * 100 / total}%"
+        textMasterGold.text = "${(stat?.gold ?: 0) * 100 / total}%"
+        textMasterCrystal.text = "${(stat?.crystal ?: 0) * 100 / total}%"
+        textMasterPurple.text = "${(stat?.purple ?: 0) * 100 / total}%"
     }
 
     private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
@@ -847,16 +998,36 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val allQIds = listeningQuestions.map { it.id }.toSet()
             val progresses = progressDao.getAllProgressForMode(mode)
             val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in allQIds }
+
+            // Conversationモードの簡易集計
             val masteredCount = progresses.count { it.wordId in allQIds && it.level >= 6 }
             val startedCount = progresses.filter { it.wordId in allQIds }.size
-            return ModeStats(review = dueCount, newCount = allQIds.size - startedCount, total = allQIds.size, mastered = masteredCount)
+
+            return ModeStats(review = dueCount, newCount = allQIds.size - startedCount, total = allQIds.size,
+                bronze = masteredCount, silver = masteredCount, gold = masteredCount, crystal = masteredCount, purple = masteredCount)
         }
 
         val progresses = progressDao.getAllProgressForMode(mode)
         val targetProgresses = progresses.filter { it.wordId in wordIdSet }
         val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
-        val masteredCount = targetProgresses.count { it.level >= 6 }
-        return ModeStats(review = dueCount, newCount = wordIdSet.size - targetProgresses.size, total = wordIdSet.size, mastered = masteredCount)
+
+        // 新しい段階ロジックで集計
+        val bronze = targetProgresses.count { it.level >= 2 } // Lv2以上
+        val silver = targetProgresses.count { it.level >= 3 } // Lv3以上
+        val gold = targetProgresses.count { it.level >= 4 }   // Lv4以上
+        val crystal = targetProgresses.count { it.level >= 5 } // Lv5以上
+        val purple = targetProgresses.count { it.level >= 6 }  // Lv6以上
+
+        return ModeStats(
+            review = dueCount,
+            newCount = wordIdSet.size - targetProgresses.size,
+            total = wordIdSet.size,
+            bronze = bronze,
+            silver = silver,
+            gold = gold,
+            crystal = crystal,
+            purple = purple
+        )
     }
 
     override fun onInit(status: Int) {
@@ -868,8 +1039,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun applyTtsParams() {
-        tts?.setSpeechRate(settings.getTtsSpeed())
-        tts?.setPitch(settings.getTtsPitch())
+        val speed = settings.getTtsSpeed()
+        val pitch = settings.getTtsPitch()
+
+        // 既存の単語用TTSへの設定
+        tts?.setSpeechRate(speed)
+        tts?.setPitch(pitch)
+
+        // 追加: 会話用TTS (ConversationTtsManager) への設定反映
+        conversationTts?.setSpeechRate(speed)
+        conversationTts?.setPitch(pitch)
     }
 
     private fun loadSeIfExists(rawName: String): Int {

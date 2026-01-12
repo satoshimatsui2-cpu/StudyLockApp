@@ -118,21 +118,88 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginStart="8dp">
+
                 <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
                     android:src="@drawable/ic_emoji_events_24"
-                    app:tint="#F59E0B"/>
+                    app:tint="#8D6E63"/>
                 <TextView
-                    android:id="@+id/text_stat_master"
+                    android:id="@+id/stat_bronze"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    tools:text="85%"
-                    android:textSize="12sp"
+                    android:text="0%"
+                    android:textSize="10sp"
+                    android:textColor="#8D6E63"
                     android:textStyle="bold"
-                    android:textColor="#F59E0B"/>
+                    android:layout_marginStart="1dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_emoji_events_24"
+                    app:tint="#9E9E9E"/>
+                <TextView
+                    android:id="@+id/stat_silver"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textSize="10sp"
+                    android:textColor="#9E9E9E"
+                    android:textStyle="bold"
+                    android:layout_marginStart="1dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_emoji_events_24"
+                    app:tint="#FFCA28"/>
+                <TextView
+                    android:id="@+id/stat_gold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textSize="10sp"
+                    android:textColor="#FFCA28"
+                    android:textStyle="bold"
+                    android:layout_marginStart="1dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_emoji_events_24"
+                    app:tint="#4DD0E1"/>
+                <TextView
+                    android:id="@+id/stat_crystal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textSize="10sp"
+                    android:textColor="#4DD0E1"
+                    android:textStyle="bold"
+                    android:layout_marginStart="1dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_emoji_events_24"
+                    app:tint="#9C27B0"/>
+                <TextView
+                    android:id="@+id/stat_purple"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0%"
+                    android:textSize="10sp"
+                    android:textColor="#9C27B0"
+                    android:textStyle="bold"
+                    android:layout_marginStart="1dp"/>
             </LinearLayout>
         </LinearLayout>
 
