@@ -637,14 +637,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val currentLevel = current?.level ?: 0
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
 
-            // 修正: 新しいベースポイント取得ロジック（Conversation等の対応）
-            // ※getBasePointForCurrentMode()がない場合は settings.getBasePoint(currentMode) を使用
-            val basePoint = try {
-                // クラス内メソッドがあればそれを使う
-                javaClass.getDeclaredMethod("getBasePointForCurrentMode").invoke(this@LearningActivity) as Int
-            } catch (e: Exception) {
-                settings.getBasePoint(currentMode)
-            }
+            // 設定から現在のモードのベースポイントを取得
+            val basePoint = settings.getBasePoint(currentMode)
 
             var points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint)
 
