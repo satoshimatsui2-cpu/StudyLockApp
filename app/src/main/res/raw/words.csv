@@ -1837,8 +1837,8 @@ no,grade,word,japanese,description,small_topic,medium_category
 1835,3,countryside,田舎,Rural land nature.,city_places,city_places
 1836,3,capital,首都,Main gov city.,politics_and_government,society_gov_and_law
 1837,3,border,国境/境界,Line between lands.,politics_and_government,society_gov_and_law
-1838,3,term,学期/期間,School time part.,calendar_and_dates,abstract_time_and_space
-1839,3,semester,学期,Half school year.,calendar_and_dates,abstract_time_and_space
+1838,3,term,学期/期間（イギリス：秋、春、夏）,School time part.,calendar_and_dates,abstract_time_and_space
+1839,3,semester,学期（アメリカ：前期、後期）,Half school year.,calendar_and_dates,abstract_time_and_space
 1840,3,score,得点,Points in a game.,grades_and_results,education_academics
 1841,3,mark,点数/印,Grade or sign spot.,grades_and_results,education_academics
 1842,3,dictionary,辞書,Book of word means.,stationery_and_tools,education_school_life
@@ -2069,8 +2069,8 @@ no,grade,word,japanese,description,small_topic,medium_category
 2067,3,actually,実際は,Really in fact.,truth_and_facts,abstract_concepts
 2068,3,finally,ついに,At the end last.,time_units,abstract_time_and_space
 2069,3,eventually,結局は,In the end time.,time_units,abstract_time_and_space
-2070,3,recently,最近,Short time ago.,past_present_future,abstract_time_and_space
-2071,3,lately,最近,Near past days.,past_present_future,abstract_time_and_space
+2070,3,recently,最近（過去のある時点）,Short time ago.,past_present_future,abstract_time_and_space
+2071,3,lately,最近（過去から今まで継続している）,Near past days.,past_present_future,abstract_time_and_space
 2072,3,immediately,直ちに,Right now fast.,time_units,abstract_time_and_space
 2073,3,suddenly,突然に,Unexpected fast.,change_and_growth,abstract_concepts
 2074,3,gradually,徐々に,Little by little.,change_and_growth,abstract_concepts

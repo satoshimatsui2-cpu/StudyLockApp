@@ -374,7 +374,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             routeNextQuestionAction()
         }
 
-        checkIncludeOtherGrades?.setOnCheckedChangeListener { _, _ ->
+        checkIncludeOtherGrades?.setOnCheckedChangeListener { _, isChecked ->
+            // ★追加: チェック状態を内部変数に反映させる
+            includeOtherGradesReview = isChecked
+
             if (currentMode != MODE_TEST_LISTEN_Q2) loadNextQuestionLegacy()
         }
     }
@@ -643,19 +646,37 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             var points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint)
 
             // Grade-based point reduction
-            // ※ settings.currentLearningGrade が存在するか確認してください。なければ "All" 等のデフォルトを使用
-// lastSelectedGrade が null なら "All" とする
-            val userGradeStr = settings.lastSelectedGrade ?: "All"
+            // AdminSettingsActivityで設定した「currentLearningGrade」を参照
+            val userGradeStr = settings.currentLearningGrade
 
-            val gradeMap = mapOf("1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7)
+            // ★修正: CSVのデータ形式("1", "2.5"等)と設定画面の形式("1級"等)の両方に対応させる
+            val gradeMap = mapOf(
+                // 設定画面からの値（日本語）
+                "1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7,
+
+                // CSVデータからの値（数字文字列）
+                "1" to 1,
+                "1.5" to 2, // 準1級相当
+                "2" to 3,
+                "2.5" to 4, // 準2級相当
+                "3" to 5,
+                "4" to 6,
+                "5" to 7
+            )
+
             val userGrade = gradeMap[userGradeStr] ?: 0
-            val wordGrade = gradeMap[word.grade] ?: 0
+            // word.grade には "3" や "2.5" が入っているため、trimしてマップから引く
+            val wordGrade = gradeMap[word.grade.trim()] ?: 0
+
+            // デバッグログ: 計算が動いているか確認用（確認後削除可）
+            // Log.d("GRADE_CHECK", "User:$userGradeStr($userGrade) vs Word:${word.grade}($wordGrade)")
 
             if (userGrade > 0 && wordGrade > 0) {
                 val gradeDiff = wordGrade - userGrade
                 points = when {
+                    // 1グレード下（例: ユーザー2級(3) vs 問題準2級(4) -> 差1）
                     gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
-                    // ★修正箇所: 2段階以上下のグレードは一律 pointReductionTwoGradesDown を適用
+                    // 2グレード以上下（例: ユーザー2級(3) vs 問題3級(5) -> 差2）
                     gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
                     else -> points
                 }
