@@ -195,7 +195,20 @@ class AppSettings(context: Context) {
 
     // --- Base Points ---
     fun getBasePoint(mode: String): Int {
-        return prefs.getInt(KEY_BASE_POINT_PREFIX + mode, 10).coerceIn(1, 10)
+        val defaultPoint = when (mode) {
+            "meaning" -> 1
+            "listening" -> 1
+            "listening_jp" -> 2
+            "japanese_to_english" -> 1
+            "english_english_1" -> 3
+            "english_english_2" -> 3
+            "test_fill_blank" -> 5
+            "test_sort" -> 5
+            "test_listen_q1" -> 8
+            "test_listen_q2" -> 10
+            else -> 10
+        }
+        return prefs.getInt(KEY_BASE_POINT_PREFIX + mode, defaultPoint).coerceIn(1, 10)
     }
 
     fun setBasePoint(mode: String, value: Int) {
