@@ -15,7 +15,6 @@ import android.speech.tts.TextToSpeech
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.BackgroundColorSpan
-import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.*
@@ -151,6 +150,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val crystal: Int,
         val purple: Int
     )
+    // ★追加: UIの表記("4級")をDBの表記("4")に変換するマップ
+    private val gradeUiToDbMap = mapOf(
+        "1級" to "1", "準1級" to "1.5",
+        "2級" to "2", "準2級" to "2.5",
+        "3級" to "3", "4級" to "4", "5級" to "5"
+    )
+    private fun normalizeGrade(gradeUi: String): String {
+        return gradeUiToDbMap[gradeUi] ?: gradeUi
+    }
 
     // region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -253,8 +261,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
         checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
-            isChecked = true
-            includeOtherGradesReview = true
+            // ★修正: デフォルトをOFFに変更
+            isChecked = false
+            includeOtherGradesReview = false
         }
         checkboxAutoPlayAudio = findViewById<CheckBox?>(R.id.checkbox_auto_play_audio)?.apply {
             isChecked = true
@@ -286,7 +295,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     // ハイライト処理の実装
-// ハイライト処理の実装
     private fun highlightCurrentSpeakingText(spokenText: String) {
         if (spokenText.isEmpty() || textScriptDisplay.visibility != View.VISIBLE) return
 
@@ -313,8 +321,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private suspend fun loadInitialData() {
+        // ★修正: 変換したグレード文字を使ってインポート判定
+        val targetDbGrade = normalizeGrade(gradeFilter)
+
         val imported = withContext(Dispatchers.IO) {
-            if (gradeFilter != "All") importMissingWordsForGrade(gradeFilter) else 0
+            if (gradeFilter != "All") importMissingWordsForGrade(targetDbGrade) else 0
         }
         if (imported > 0) {
             Snackbar.make(findViewById(android.R.id.content), getString(R.string.imported_count_message, imported), Snackbar.LENGTH_SHORT).show()
@@ -323,11 +334,22 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         listeningQuestions = withContext(Dispatchers.IO) {
             CsvDataLoader(this@LearningActivity).loadListeningQuestions()
         }
-        viewModel.listeningQuestions = listeningQuestions
+
+        refreshConversationQueue()
 
         val db = AppDatabase.getInstance(this@LearningActivity)
         allWordsFull = withContext(Dispatchers.IO) { db.wordDao().getAll() }
-        allWords = if (gradeFilter == "All") allWordsFull else allWordsFull.filter { it.grade == gradeFilter }
+
+        // ★修正: フィルタリング時に正規化して比較する
+        allWords = if (gradeFilter == "All") {
+            allWordsFull
+        } else {
+            allWordsFull.filter {
+                // DB側が "4" でも "4級" でもヒットするように比較
+                it.grade == gradeFilter || it.grade == targetDbGrade
+            }
+        }
+
         viewModel.setGradeInfo(gradeFilter, allWords)
 
         updateStudyStatsView()
@@ -352,7 +374,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val cleanText = textScriptDisplay.text.toString()
                 textScriptDisplay.text = cleanText
 
-                // 修正箇所: 文字列を1行にし、改行コード \n を使用
                 val repeatScript = currentConversationScript + "\nWait: 2000\n" + currentConversationScript
                 conversationTts?.playScript(repeatScript)
             } else {
@@ -375,10 +396,22 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         checkIncludeOtherGrades?.setOnCheckedChangeListener { _, isChecked ->
-            // ★追加: チェック状態を内部変数に反映させる
+            // チェック状態を内部変数に反映
             includeOtherGradesReview = isChecked
 
-            if (currentMode != MODE_TEST_LISTEN_Q2) loadNextQuestionLegacy()
+            // モードに応じてリスト更新
+            if (currentMode == MODE_TEST_LISTEN_Q2) {
+                lifecycleScope.launch {
+                    // 1. リストをフィルタリングして作り直す
+                    refreshConversationQueue()
+
+                    // 2. ★追加: ViewModelに「モード再設定」を指示し、新しいリストでStrategyを作り直させる
+                    // これにより、即座に新しいフィルタ条件で次の問題が選ばれます
+                    viewModel.setMode(currentMode)
+                }
+            } else {
+                loadNextQuestionLegacy()
+            }
         }
     }
 
@@ -414,7 +447,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     textScriptDisplay.visibility = View.VISIBLE
 
                     // 解説を表示 (\n を改行に変換)
-                    // 修正箇所: 文字列の途中の改行を修正
                     textFeedback.text = result.feedback.replace("\\n", "\n")
                     textFeedback.visibility = View.VISIBLE
 
@@ -457,16 +489,46 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    // 追加: 会話モード用フィルタリングロジック
+    private suspend fun refreshConversationQueue() {
+        if (listeningQuestions.isEmpty()) return
+
+        val filteredList = withContext(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val progressDao = db.wordProgressDao()
+            val nowSec = System.currentTimeMillis() / 1000L
+
+            val dueIdsInOtherGrades = if (includeOtherGradesReview && gradeFilter != "All") {
+                progressDao.getDueWordIdsOrdered(MODE_TEST_LISTEN_Q2, nowSec).toSet()
+            } else {
+                emptySet()
+            }
+
+            // ★追加: 比較用グレード
+            val targetDbGrade = normalizeGrade(gradeFilter)
+
+            if (gradeFilter == "All") {
+                listeningQuestions
+            } else {
+                listeningQuestions.filter { q ->
+                    // ★修正: グレード比較を柔軟に
+                    val isMatch = (q.grade == gradeFilter || q.grade == targetDbGrade)
+                    isMatch || (q.id in dueIdsInOtherGrades)
+                }
+            }
+        }
+
+        viewModel.listeningQuestions = filteredList
+    }
+
     private fun renderConversationUi(state: QuestionUiState.Conversation) {
         textQuestionTitle.text = "会話を聞いて質問に答えてください"
 
         // \n を改行コードに変換してセット（最初は非表示）
-        // 修正箇所: 文字列の途中の改行を修正
         textQuestionBody.text = state.question.replace("\\n", "\n")
         textQuestionBody.visibility = View.GONE
 
         // \n を改行コードに変換してセット（最初は非表示）
-        // 修正箇所: 文字列の途中の改行を修正
         textScriptDisplay.text = state.script.replace("\\n", "\n")
         textScriptDisplay.visibility = View.GONE
 
@@ -476,7 +538,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         currentConversationScript = state.script
         currentHighlightSearchIndex = 0
 
-        checkIncludeOtherGrades?.visibility = View.GONE
+        checkIncludeOtherGrades?.visibility = View.GONE // ★修正: 会話テストなので常に非表示
         checkboxAutoPlayAudio?.visibility = View.GONE
         buttonPlayAudio.visibility = View.GONE
         layoutActionButtons.visibility = View.GONE
@@ -486,10 +548,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 btn.text = state.choices[index]
                 btn.visibility = View.VISIBLE
                 btn.isEnabled = true
-
-                // ボタンの有効化を確実に行う
                 btn.isClickable = true
-
                 ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[index])
             } else {
                 btn.visibility = View.GONE
@@ -668,9 +727,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // word.grade には "3" や "2.5" が入っているため、trimしてマップから引く
             val wordGrade = gradeMap[word.grade.trim()] ?: 0
 
-            // デバッグログ: 計算が動いているか確認用（確認後削除可）
-            // Log.d("GRADE_CHECK", "User:$userGradeStr($userGrade) vs Word:${word.grade}($wordGrade)")
-
             if (userGrade > 0 && wordGrade > 0) {
                 val gradeDiff = wordGrade - userGrade
                 points = when {
@@ -848,6 +904,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val wordDao = db.wordDao()
+        // ここは loadInitialData から変換後の grade ("4"など) が渡ってくる想定
         val csvWords = CsvDataLoader(this@LearningActivity).loadWords().filter { it.grade == grade }
         if (csvWords.isEmpty()) return@withContext 0
         val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
@@ -877,7 +934,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.visibility = View.VISIBLE
         }
         if (choiceButtons.size >= 6) { (choiceButtons[4].parent as? View)?.visibility = View.VISIBLE }
-        checkIncludeOtherGrades?.visibility = View.VISIBLE
+
+        // ★修正: テストモードなら非表示、それ以外なら表示
+        if (currentMode.startsWith("test_")) {
+            checkIncludeOtherGrades?.visibility = View.GONE
+        } else {
+            checkIncludeOtherGrades?.visibility = View.VISIBLE
+        }
+
         buttonPlayAudio.visibility = View.VISIBLE
     }
 
@@ -886,6 +950,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionBody.text = ""
         textQuestionBody.visibility = View.GONE
         choiceButtons.forEach { it.text = "----"; it.isEnabled = false }
+
+        // ★追加: テストモードなら、データが無い場合でもチェックボックスや音声ボタンを完全に隠す
+        if (currentMode.startsWith("test_")) {
+            checkIncludeOtherGrades?.visibility = View.GONE
+            checkboxAutoPlayAudio?.visibility = View.GONE
+            buttonPlayAudio.visibility = View.GONE
+        } else {
+            // 通常モードなら設定変更してリロードできるよう表示しておく
+            checkIncludeOtherGrades?.visibility = View.VISIBLE
+            // データがないので自動再生などは隠しても良いが、一貫性のため表示制御はお好みで
+        }
     }
 
     private fun showFeedbackSnackbar(result: AnswerResult) {
@@ -1008,6 +1083,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             card.setOnClickListener {
                 currentMode = modeKey
+
+                // ★追加: テストモードなら「他グレードを含む」を強制OFFにし、チェックボックスもOFFにする
+                if (currentMode.startsWith("test_")) {
+                    includeOtherGradesReview = false
+                    checkIncludeOtherGrades?.isChecked = false
+                }
+
                 updateStudyStatsView()
                 if (modeKey == MODE_TEST_LISTEN_Q2) viewModel.setMode(modeKey) else loadNextQuestionLegacy()
                 dialog.dismiss()
