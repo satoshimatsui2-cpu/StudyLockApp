@@ -1225,8 +1225,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun applyTtsParams() {
-        val speed = settings.getTtsSpeed()
+        var speed = settings.getTtsSpeed()
         val pitch = settings.getTtsPitch()
+
+        // ★修正: グレードごとの速度調整 (5/4級:0.7, 3級:0.8, その他:0.9)
+        if (currentMode == MODE_TEST_LISTEN_Q2) {
+            speed = when (gradeFilter) {
+                "5", "4" -> 0.65f
+                "3" -> 0.7f
+                else -> 0.8f
+            }
+        }
 
         // 既存の単語用TTSへの設定
         tts?.setSpeechRate(speed)
