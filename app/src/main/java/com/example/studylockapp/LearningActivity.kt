@@ -5,7 +5,10 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -15,6 +18,7 @@ import android.speech.tts.TextToSpeech
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.BackgroundColorSpan
+import android.text.style.ReplacementSpan
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.*
@@ -150,15 +154,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val crystal: Int,
         val purple: Int
     )
-    // ★追加: UIの表記("4級")をDBの表記("4")に変換するマップ
-    private val gradeUiToDbMap = mapOf(
-        "1級" to "1", "準1級" to "1.5",
-        "2級" to "2", "準2級" to "2.5",
-        "3級" to "3", "4級" to "4", "5級" to "5"
-    )
-    private fun normalizeGrade(gradeUi: String): String {
-        return gradeUiToDbMap[gradeUi] ?: gradeUi
-    }
 
     // region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -212,6 +207,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    // ★追加: UIの表記("4級")をDBの表記("4")に変換するマップ
+    private val gradeUiToDbMap = mapOf(
+        "1級" to "1", "準1級" to "1.5",
+        "2級" to "2", "準2級" to "2.5",
+        "3級" to "3", "4級" to "4", "5級" to "5"
+    )
+    private fun normalizeGrade(gradeUi: String): String {
+        return gradeUiToDbMap[gradeUi] ?: gradeUi
+    }
+
     private fun initViews() {
         textQuestionTitle = findViewById(R.id.text_question_title)
         textQuestionBody = findViewById(R.id.text_question_body)
@@ -260,8 +265,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
+        // 修正: デフォルトをOFFに変更
         checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
-            // ★修正: デフォルトをOFFに変更
             isChecked = false
             includeOtherGradesReview = false
         }
@@ -312,8 +317,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val end = start + spokenText.length
 
             val spannable = SpannableString(fullText)
-            val highlightColor = Color.parseColor("#FFF59D") // 薄い黄色
-            spannable.setSpan(BackgroundColorSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            // ★修正: 以前のBackgroundColorSpanを廃止し、カスタムMarkerSpanを使用
+            // 色: #80FFEB3B (少し透明度のある蛍光イエロー)
+            val highlightColor = Color.parseColor("#80FFEB3B")
+            spannable.setSpan(MarkerSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
 
             textScriptDisplay.text = spannable
             currentHighlightSearchIndex = end
@@ -335,6 +343,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             CsvDataLoader(this@LearningActivity).loadListeningQuestions()
         }
 
+        // 修正: 会話モード用フィルタリングを実行してからViewModelへセット
         refreshConversationQueue()
 
         val db = AppDatabase.getInstance(this@LearningActivity)
@@ -443,7 +452,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         }
                     }
 
-                    textQuestionBody.visibility = View.VISIBLE
+                    // ★修正: 質問文が重複するため、回答後の表示処理を削除しました
+                    // textQuestionBody.visibility = View.VISIBLE
+
                     textScriptDisplay.visibility = View.VISIBLE
 
                     // 解説を表示 (\n を改行に変換)
@@ -1253,4 +1264,37 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts?.stop()
     }
     // endregion
+
+    // ★追加: マーカー風のハイライトを描画するカスタムSpanクラス
+    private class MarkerSpan(private val color: Int) : ReplacementSpan() {
+        override fun getSize(paint: Paint, text: CharSequence?, start: Int, end: Int, fm: Paint.FontMetricsInt?): Int {
+            // テキストの幅を計算して返す
+            // textがnullなら0を返す（念のため）
+            if (text == null) return 0
+            return paint.measureText(text, start, end).toInt()
+        }
+
+        override fun draw(canvas: Canvas, text: CharSequence?, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint) {
+            // ★修正: textがnullでない場合のみ描画する
+            if (text != null) {
+                val originalColor = paint.color
+                val width = paint.measureText(text, start, end)
+
+                // マーカーの設定
+                paint.color = color
+
+                // マーカーの高さ調整（行の高さより少し小さくして、よりマーカーっぽくする）
+                // topとbottomの差から、少し内側に縮める
+                val paddingY = (bottom - top) * 0.15f
+                val rect = RectF(x, top + paddingY, x + width, bottom - paddingY)
+
+                // 角丸の四角形を描画 (半径12f)
+                canvas.drawRoundRect(rect, 12f, 12f, paint)
+
+                // その上にテキストを描画
+                paint.color = originalColor // 元の文字色に戻す
+                canvas.drawText(text, start, end, x, y.toFloat(), paint)
+            }
+        }
+    }
 }
