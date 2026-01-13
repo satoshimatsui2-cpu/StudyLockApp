@@ -9,6 +9,7 @@ import java.time.ZoneId
 import kotlin.math.max
 import com.example.studylockapp.data.AppSettings
 import android.content.Context
+import com.example.studylockapp.data.ProgressCalculator
 
 class ConversationStrategy(
     private val context: Context, // AppSettingsのためにContextを追加
@@ -100,7 +101,23 @@ class ConversationStrategy(
         // 文字列テンプレートを使用して安全に改行を埋め込む
         val feedback = "$title\n$explanation"
 
-        val points = if (isCorrect) settings.getBasePoint(modeKey) else 0
+        val basePoint = settings.getBasePoint(modeKey)
+        var points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint)
+
+        // Grade-based point reduction
+        val userGradeStr = settings.currentLearningGrade
+        val gradeMap = mapOf("1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7)
+        val userGrade = gradeMap[userGradeStr] ?: 0
+        val wordGrade = gradeMap[q.grade] ?: 0
+
+        if (userGrade > 0 && wordGrade > 0) {
+            val gradeDiff = wordGrade - userGrade
+            points = when {
+                gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
+                gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
+                else -> points
+            }
+        }
 
         return AnswerResult(isCorrect, feedback, points)
     }

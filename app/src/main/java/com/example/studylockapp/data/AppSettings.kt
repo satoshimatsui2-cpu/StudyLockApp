@@ -45,6 +45,11 @@ class AppSettings(context: Context) {
 
         // ベースポイント設定
         private const val KEY_BASE_POINT_PREFIX = "base_point_"
+        
+        // 現在の学習グレードとポイント減少率
+        private const val KEY_CURRENT_LEARNING_GRADE = "current_learning_grade"
+        private const val KEY_POINT_REDUCTION_ONE_GRADE_DOWN = "point_reduction_one_grade_down"
+        private const val KEY_POINT_REDUCTION_TWO_GRADES_DOWN = "point_reduction_two_grades_down"
 
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
@@ -196,22 +201,32 @@ class AppSettings(context: Context) {
     // --- Base Points ---
     fun getBasePoint(mode: String): Int {
         val defaultPoint = when (mode) {
-            "meaning" -> 1
-            "listening" -> 1
-            "listening_jp" -> 2
-            "japanese_to_english" -> 1
-            "english_english_1" -> 3
-            "english_english_2" -> 3
-            "test_fill_blank" -> 5
-            "test_sort" -> 5
-            "test_listen_q1" -> 8
-            "test_listen_q2" -> 10
-            else -> 10
+            "test_listen_q2" -> 24
+            "test_sort", "test_listen_q1" -> 20
+            "test_fill_blank" -> 16
+            "english_english_1", "english_english_2" -> 12
+            "listening_jp" -> 8
+            "meaning", "japanese_to_english", "listening" -> 4
+            else -> 4 // fallback for any other modes
         }
-        return prefs.getInt(KEY_BASE_POINT_PREFIX + mode, defaultPoint).coerceIn(1, 10)
+        return prefs.getInt(KEY_BASE_POINT_PREFIX + mode, defaultPoint).coerceIn(4, 32)
     }
 
     fun setBasePoint(mode: String, value: Int) {
-        prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(1, 10)) }
+        prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(4, 32)) }
     }
+    
+    // --- Grade-based Point Reduction ---
+    var currentLearningGrade: String
+        get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "All") ?: "All"
+        set(value) = prefs.edit { putString(KEY_CURRENT_LEARNING_GRADE, value) }
+
+    var pointReductionOneGradeDown: Int
+        get() = prefs.getInt(KEY_POINT_REDUCTION_ONE_GRADE_DOWN, 50)
+        set(value) = prefs.edit { putInt(KEY_POINT_REDUCTION_ONE_GRADE_DOWN, value.coerceIn(0, 100)) }
+
+    var pointReductionTwoGradesDown: Int
+        get() = prefs.getInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, 25)
+        set(value) = prefs.edit { putInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, value.coerceIn(0, 100)) }
+
 }

@@ -10,6 +10,7 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -110,6 +111,45 @@ class AdminSettingsActivity : AppCompatActivity() {
      * 既存のシークバー等の設定UI（音量関連は削除済み）
      */
     private fun setupExistingControls() {
+        // --- Grade and Point Reduction Setup ---
+        val spinnerCurrentGrade = findViewById<Spinner>(R.id.spinner_current_learning_grade)
+        val textReductionOne = findViewById<TextView>(R.id.text_point_reduction_one_grade_down)
+        val seekReductionOne = findViewById<SeekBar>(R.id.seek_point_reduction_one_grade_down)
+        val textReductionTwo = findViewById<TextView>(R.id.text_point_reduction_two_grades_down)
+        val seekReductionTwo = findViewById<SeekBar>(R.id.seek_point_reduction_two_grades_down)
+
+        // Spinner for current grade
+        val grades = arrayOf("1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
+        val gradeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, grades)
+        gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerCurrentGrade.adapter = gradeAdapter
+        val currentGradePosition = grades.indexOf(settings.currentLearningGrade)
+        spinnerCurrentGrade.setSelection(if (currentGradePosition != -1) currentGradePosition else 0)
+
+        // SeekBars for point reduction
+        seekReductionOne.max = 100
+        seekReductionTwo.max = 100
+
+        seekReductionOne.progress = settings.pointReductionOneGradeDown
+        seekReductionTwo.progress = settings.pointReductionTwoGradesDown
+
+        fun refreshReductionLabels() {
+            textReductionOne.text = "1学年下: ${seekReductionOne.progress}%"
+            textReductionTwo.text = "2学年下: ${seekReductionTwo.progress}%"
+        }
+        refreshReductionLabels()
+
+        val reductionSeekBarListener = object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                refreshReductionLabels()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        }
+
+        seekReductionOne.setOnSeekBarChangeListener(reductionSeekBarListener)
+        seekReductionTwo.setOnSeekBarChangeListener(reductionSeekBarListener)
+
         // --- ポイント設定用SeekBarのセットアップ ---
         val modes = mapOf(
             "meaning" to (findViewById<TextView>(R.id.text_point_meaning) to findViewById<SeekBar>(R.id.seek_point_meaning)),
@@ -124,12 +164,12 @@ class AdminSettingsActivity : AppCompatActivity() {
             "test_listen_q2" to (findViewById<TextView>(R.id.text_point_test_listen_q2) to findViewById<SeekBar>(R.id.seek_point_test_listen_q2))
         )
 
-        fun progressToPoint(progress: Int): Int = progress + 1
-        fun pointToProgress(point: Int): Int = point - 1
+        fun progressToPoint(progress: Int): Int = 4 + progress * 4
+        fun pointToProgress(point: Int): Int = (point - 4) / 4
 
         modes.forEach { (mode, views) ->
             val (textView, seekBar) = views
-            seekBar.max = 9
+            seekBar.max = 7 // 0-7, which corresponds to 4, 8, ..., 32
             seekBar.progress = pointToProgress(settings.getBasePoint(mode))
             textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(seekBar.progress)} pt"
 
@@ -233,6 +273,11 @@ class AdminSettingsActivity : AppCompatActivity() {
         ).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnSave.setOnClickListener {
+            // --- Grade and Point Reduction Save ---
+            settings.currentLearningGrade = spinnerCurrentGrade.selectedItem.toString()
+            settings.pointReductionOneGradeDown = seekReductionOne.progress
+            settings.pointReductionTwoGradesDown = seekReductionTwo.progress
+
             // --- ポイント設定の保存 ---
             modes.forEach { (mode, views) ->
                 val (_, seekBar) = views

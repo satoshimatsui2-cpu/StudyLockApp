@@ -602,12 +602,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         if (isCorrect) playCorrectEffect() else playWrongEffect()
 
-        processAnswerResultLegacy(ctx.word.no, isCorrect)
+        processAnswerResultLegacy(ctx.word, isCorrect)
     }
 
-    private fun processAnswerResultLegacy(wordId: Int, isCorrect: Boolean) {
+    private fun processAnswerResultLegacy(word: WordEntity, isCorrect: Boolean) {
         lifecycleScope.launch {
-            val (addPoint, levelUpInfo) = registerAnswerToDb(wordId, isCorrect)
+            val (addPoint, levelUpInfo) = registerAnswerToDb(word, isCorrect)
 
             if (isCorrect) {
                 checkAndAnimateTrophy(levelUpInfo.first, levelUpInfo.second)
@@ -626,19 +626,46 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private suspend fun registerAnswerToDb(wordId: Int, isCorrect: Boolean): Pair<Int, Pair<Int, Int>> {
+    private suspend fun registerAnswerToDb(word: WordEntity, isCorrect: Boolean): Pair<Int, Pair<Int, Int>> {
         return withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
             val pointManager = PointManager(this@LearningActivity)
             val nowSec = nowEpochSec()
 
-            val current = progressDao.getProgress(wordId, currentMode)
+            val current = progressDao.getProgress(word.no, currentMode)
             val currentLevel = current?.level ?: 0
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
-            
-            val basePoint = settings.getBasePoint(currentMode)
-            val points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint) // 引数にベースポイントを渡す
+
+            // 修正: 新しいベースポイント取得ロジック（Conversation等の対応）
+            // ※getBasePointForCurrentMode()がない場合は settings.getBasePoint(currentMode) を使用
+            val basePoint = try {
+                // クラス内メソッドがあればそれを使う
+                javaClass.getDeclaredMethod("getBasePointForCurrentMode").invoke(this@LearningActivity) as Int
+            } catch (e: Exception) {
+                settings.getBasePoint(currentMode)
+            }
+
+            var points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint)
+
+            // Grade-based point reduction
+            // ※ settings.currentLearningGrade が存在するか確認してください。なければ "All" 等のデフォルトを使用
+// lastSelectedGrade が null なら "All" とする
+            val userGradeStr = settings.lastSelectedGrade ?: "All"
+
+            val gradeMap = mapOf("1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7)
+            val userGrade = gradeMap[userGradeStr] ?: 0
+            val wordGrade = gradeMap[word.grade] ?: 0
+
+            if (userGrade > 0 && wordGrade > 0) {
+                val gradeDiff = wordGrade - userGrade
+                points = when {
+                    gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
+                    // ★修正箇所: 2段階以上下のグレードは一律 pointReductionTwoGradesDown を適用
+                    gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
+                    else -> points
+                }
+            }
 
             pointManager.add(points)
             if (points > 0) {
@@ -646,10 +673,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             progressDao.upsert(WordProgressEntity(
-                wordId = wordId, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec,
+                wordId = word.no, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec,
                 lastAnsweredAt = System.currentTimeMillis(), studyCount = (current?.studyCount ?: 0) + 1
             ))
-            db.studyLogDao().insert(WordStudyLogEntity(wordId = wordId, mode = currentMode, learnedAt = System.currentTimeMillis()))
+            db.studyLogDao().insert(WordStudyLogEntity(wordId = word.no, mode = currentMode, learnedAt = System.currentTimeMillis()))
 
             points to (currentLevel to newLevel)
         }
