@@ -77,6 +77,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentConversationScript: String = ""
     // ハイライト検索用の現在位置カーソル
     private var currentHighlightSearchIndex: Int = 0
+    // 現在の質問文（本文）を保持して、ボタン有効化の判定に使う
+    private var currentQuestionText: String = ""
 
     private data class LegacyQuestionContext(
         val word: WordEntity,
@@ -207,7 +209,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // ★追加: UIの表記("4級")をDBの表記("4")に変換するマップ
     private val gradeUiToDbMap = mapOf(
         "1級" to "1", "準1級" to "1.5",
         "2級" to "2", "準2級" to "2.5",
@@ -265,7 +266,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
-        // 修正: デフォルトをOFFに変更
         checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
             isChecked = false
             includeOtherGradesReview = false
@@ -282,8 +282,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
         conversationTts = ConversationTtsManager(this)
 
-        // 再生中のテキストを受け取ってハイライトする処理
         conversationTts?.onSpeakListener = { spokenText ->
+            val sText = spokenText.trim()
+            if (sText.startsWith("Question", ignoreCase = true) ||
+                (currentQuestionText.isNotEmpty() && sText.contains(currentQuestionText, ignoreCase = true))) {
+                runOnUiThread {
+                    enableConversationButtons()
+                }
+            }
             highlightCurrentSpeakingText(spokenText)
         }
 
@@ -299,37 +305,36 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         seWrongId = loadSeIfExists("se_wrong")
     }
 
-    // ハイライト処理の実装
+    private fun enableConversationButtons() {
+        choiceButtons.forEach { btn ->
+            if (btn.visibility == View.VISIBLE) {
+                btn.isEnabled = true
+                btn.alpha = 1.0f
+            }
+        }
+    }
+
     private fun highlightCurrentSpeakingText(spokenText: String) {
         if (spokenText.isEmpty() || textScriptDisplay.visibility != View.VISIBLE) return
 
         val fullText = textScriptDisplay.text.toString()
-
-        // 1. まず現在のカーソル位置から検索
         var start = fullText.indexOf(spokenText, startIndex = currentHighlightSearchIndex)
 
-        // 2. 見つからない場合（リピート再生に入った場合など）、最初から検索し直す
         if (start == -1) {
             start = fullText.indexOf(spokenText, startIndex = 0)
         }
 
         if (start != -1) {
             val end = start + spokenText.length
-
             val spannable = SpannableString(fullText)
-
-            // ★修正: 以前のBackgroundColorSpanを廃止し、カスタムMarkerSpanを使用
-            // 色: #80FFEB3B (少し透明度のある蛍光イエロー)
             val highlightColor = Color.parseColor("#80FFEB3B")
             spannable.setSpan(MarkerSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-
             textScriptDisplay.text = spannable
             currentHighlightSearchIndex = end
         }
     }
 
     private suspend fun loadInitialData() {
-        // ★修正: 変換したグレード文字を使ってインポート判定
         val targetDbGrade = normalizeGrade(gradeFilter)
 
         val imported = withContext(Dispatchers.IO) {
@@ -343,18 +348,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             CsvDataLoader(this@LearningActivity).loadListeningQuestions()
         }
 
-        // 修正: 会話モード用フィルタリングを実行してからViewModelへセット
         refreshConversationQueue()
 
         val db = AppDatabase.getInstance(this@LearningActivity)
         allWordsFull = withContext(Dispatchers.IO) { db.wordDao().getAll() }
 
-        // ★修正: フィルタリング時に正規化して比較する
         allWords = if (gradeFilter == "All") {
             allWordsFull
         } else {
             allWordsFull.filter {
-                // DB側が "4" でも "4級" でもヒットするように比較
                 it.grade == gradeFilter || it.grade == targetDbGrade
             }
         }
@@ -377,16 +379,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         val audioClickListener = View.OnClickListener {
             if (currentMode == MODE_TEST_LISTEN_Q2) {
-                // 会話モード
                 currentHighlightSearchIndex = 0
-                // ハイライトリセット
                 val cleanText = textScriptDisplay.text.toString()
                 textScriptDisplay.text = cleanText
+
+                disableConversationButtons()
 
                 val repeatScript = currentConversationScript + "\nWait: 2000\n" + currentConversationScript
                 conversationTts?.playScript(repeatScript)
             } else {
-                // 通常モード
                 speakCurrentLegacyAudio()
             }
         }
@@ -405,17 +406,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         checkIncludeOtherGrades?.setOnCheckedChangeListener { _, isChecked ->
-            // チェック状態を内部変数に反映
             includeOtherGradesReview = isChecked
-
-            // モードに応じてリスト更新
             if (currentMode == MODE_TEST_LISTEN_Q2) {
                 lifecycleScope.launch {
-                    // 1. リストをフィルタリングして作り直す
                     refreshConversationQueue()
-
-                    // 2. ★追加: ViewModelに「モード再設定」を指示し、新しいリストでStrategyを作り直させる
-                    // これにより、即座に新しいフィルタ条件で次の問題が選ばれます
                     viewModel.setMode(currentMode)
                 }
             } else {
@@ -443,7 +437,28 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             viewModel.answerResult.collect { result ->
                 if (currentMode == MODE_TEST_LISTEN_Q2) {
                     // --- 会話モード用の回答後処理 ---
-                    if (result.isCorrect && result.points > 0) {
+                    var earnedPoints = result.points
+
+                    // ペナルティ対象モードを定義
+                    val penaltyModes = setOf(MODE_TEST_FILL_BLANK, MODE_TEST_SORT, MODE_TEST_LISTEN_Q1, MODE_TEST_LISTEN_Q2)
+
+                    // 不正解かつ、指定されたテストモードの場合のみ減点
+                    if (currentMode in penaltyModes && !result.isCorrect) {
+                        val db = AppDatabase.getInstance(this@LearningActivity)
+                        val basePoint = settings.getBasePoint(currentMode)
+
+                        // 25%のペナルティ計算
+                        val penalty = (basePoint * 0.25).toInt()
+
+                        if (penalty > 0) {
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                val pointManager = PointManager(this@LearningActivity)
+                                pointManager.add(-penalty)
+                                db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = -penalty))
+                            }
+                            earnedPoints = -penalty
+                        }
+                    } else if (result.isCorrect && result.points > 0) {
                         lifecycleScope.launch(Dispatchers.IO) {
                             PointManager(this@LearningActivity).add(result.points)
                             withContext(Dispatchers.Main) {
@@ -452,12 +467,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         }
                     }
 
-                    // ★修正: 質問文が重複するため、回答後の表示処理を削除しました
-                    // textQuestionBody.visibility = View.VISIBLE
-
                     textScriptDisplay.visibility = View.VISIBLE
 
-                    // 解説を表示 (\n を改行に変換)
                     textFeedback.text = result.feedback.replace("\\n", "\n")
                     textFeedback.visibility = View.VISIBLE
 
@@ -467,7 +478,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     val bgColor = ContextCompat.getColor(this@LearningActivity,
                         if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
-                    val msg = if (result.isCorrect) "正解！" else "不正解…"
+
+                    // ★修正: 正解時にもポイントを表示するように変更
+                    val msg = if (result.isCorrect) "正解！ +${earnedPoints}pt" else {
+                        if (earnedPoints < 0) "不正解… ${earnedPoints}pt" else "不正解…"
+                    }
 
                     choiceButtons.forEach { it.isEnabled = false }
                     currentSnackbar?.dismiss()
@@ -500,7 +515,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    // 追加: 会話モード用フィルタリングロジック
     private suspend fun refreshConversationQueue() {
         if (listeningQuestions.isEmpty()) return
 
@@ -515,14 +529,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 emptySet()
             }
 
-            // ★追加: 比較用グレード
             val targetDbGrade = normalizeGrade(gradeFilter)
 
             if (gradeFilter == "All") {
                 listeningQuestions
             } else {
                 listeningQuestions.filter { q ->
-                    // ★修正: グレード比較を柔軟に
                     val isMatch = (q.grade == gradeFilter || q.grade == targetDbGrade)
                     isMatch || (q.id in dueIdsInOtherGrades)
                 }
@@ -532,24 +544,29 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         viewModel.listeningQuestions = filteredList
     }
 
+    private fun disableConversationButtons() {
+        choiceButtons.forEach {
+            it.isEnabled = false
+            it.alpha = 0.6f
+        }
+    }
+
     private fun renderConversationUi(state: QuestionUiState.Conversation) {
         textQuestionTitle.text = "会話を聞いて質問に答えてください"
 
-        // \n を改行コードに変換してセット（最初は非表示）
         textQuestionBody.text = state.question.replace("\\n", "\n")
         textQuestionBody.visibility = View.GONE
 
-        // \n を改行コードに変換してセット（最初は非表示）
         textScriptDisplay.text = state.script.replace("\\n", "\n")
         textScriptDisplay.visibility = View.GONE
 
         textFeedback.visibility = View.GONE
 
-        // スクリプトを保存
         currentConversationScript = state.script
         currentHighlightSearchIndex = 0
+        currentQuestionText = state.question
 
-        checkIncludeOtherGrades?.visibility = View.GONE // ★修正: 会話テストなので常に非表示
+        checkIncludeOtherGrades?.visibility = View.GONE
         checkboxAutoPlayAudio?.visibility = View.GONE
         buttonPlayAudio.visibility = View.GONE
         layoutActionButtons.visibility = View.GONE
@@ -558,8 +575,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (index < state.choices.size) {
                 btn.text = state.choices[index]
                 btn.visibility = View.VISIBLE
-                btn.isEnabled = true
+                btn.isEnabled = false
                 btn.isClickable = true
+                btn.alpha = 0.6f
+
                 ViewCompat.setBackgroundTintList(btn, defaultChoiceTints[index])
             } else {
                 btn.visibility = View.GONE
@@ -568,7 +587,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         applyTtsParams()
 
-        // 修正箇所: 文字列を1行にし、改行コード \n を使用
         val repeatScript = state.script + "\nWait: 2000\n" + state.script
         conversationTts?.playScript(repeatScript)
     }
@@ -710,48 +728,57 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val currentLevel = current?.level ?: 0
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
 
-            // 設定から現在のモードのベースポイントを取得
             val basePoint = settings.getBasePoint(currentMode)
 
             var points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint)
 
-            // Grade-based point reduction
-            // AdminSettingsActivityで設定した「currentLearningGrade」を参照
             val userGradeStr = settings.currentLearningGrade
-
-            // ★修正: CSVのデータ形式("1", "2.5"等)と設定画面の形式("1級"等)の両方に対応させる
             val gradeMap = mapOf(
-                // 設定画面からの値（日本語）
                 "1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7,
-
-                // CSVデータからの値（数字文字列）
-                "1" to 1,
-                "1.5" to 2, // 準1級相当
-                "2" to 3,
-                "2.5" to 4, // 準2級相当
-                "3" to 5,
-                "4" to 6,
-                "5" to 7
+                "1" to 1, "1.5" to 2, "2" to 3, "2.5" to 4, "3" to 5, "4" to 6, "5" to 7
             )
 
             val userGrade = gradeMap[userGradeStr] ?: 0
-            // word.grade には "3" や "2.5" が入っているため、trimしてマップから引く
             val wordGrade = gradeMap[word.grade.trim()] ?: 0
 
             if (userGrade > 0 && wordGrade > 0) {
                 val gradeDiff = wordGrade - userGrade
                 points = when {
-                    // 1グレード下（例: ユーザー2級(3) vs 問題準2級(4) -> 差1）
                     gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
-                    // 2グレード以上下（例: ユーザー2級(3) vs 問題3級(5) -> 差2）
                     gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
                     else -> points
                 }
             }
 
-            pointManager.add(points)
-            if (points > 0) {
-                db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = points))
+            // ★修正: 指定されたテストモードの場合のみ減点処理を行う
+            val penaltyModes = setOf(MODE_TEST_FILL_BLANK, MODE_TEST_SORT, MODE_TEST_LISTEN_Q1, MODE_TEST_LISTEN_Q2)
+
+            if (currentMode in penaltyModes && !isCorrect) {
+                // 正解だった場合のポイントを仮計算
+                var potentialPoints = ProgressCalculator.calcPoint(true, currentLevel, basePoint)
+                if (userGrade > 0 && wordGrade > 0) {
+                    val gradeDiff = wordGrade - userGrade
+                    potentialPoints = when {
+                        gradeDiff == 1 -> potentialPoints * settings.pointReductionOneGradeDown / 100
+                        gradeDiff >= 2 -> potentialPoints * settings.pointReductionTwoGradesDown / 100
+                        else -> potentialPoints
+                    }
+                }
+
+                // 25%のペナルティ
+                val penalty = (potentialPoints * 0.25).toInt()
+                if (penalty > 0) {
+                    pointManager.add(-penalty)
+                    db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = -penalty))
+                }
+                // 表示用にマイナス値を返す
+                points = -penalty
+            } else {
+                // 通常の加算（テスト以外、または正解時）
+                pointManager.add(points)
+                if (points > 0) {
+                    db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = points))
+                }
             }
 
             progressDao.upsert(WordProgressEntity(
@@ -905,8 +932,38 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
         val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
         val zone = settings.getAppZoneId()
-        if (!isCorrect) return newLevel to (nowSec + settings.wrongRetrySec)
-        if (newLevel == 1) return newLevel to (nowSec + settings.level1RetrySec)
+
+        // ★追加: テストモードかどうかを判定
+        val isTestMode = currentMode in setOf(MODE_TEST_FILL_BLANK, MODE_TEST_SORT, MODE_TEST_LISTEN_Q1, MODE_TEST_LISTEN_Q2)
+
+        // 翌日の開始時刻（00:00:00）を計算
+        val nextDaySec = Instant.ofEpochSecond(nowSec).atZone(zone)
+            .toLocalDate().plusDays(1).atStartOfDay(zone).toEpochSecond()
+
+        if (!isCorrect) {
+            // --- 不正解の場合 ---
+            return if (isTestMode) {
+                // テストモードなら、間違えてもすぐには出さず「翌日」に回す
+                newLevel to nextDaySec
+            } else {
+                // 通常モードなら、設定された短い時間（数分後など）で再出題
+                newLevel to (nowSec + settings.wrongRetrySec)
+            }
+        }
+
+        if (newLevel == 1) {
+            // --- 正解したがレベルが低い(Lv1)場合 ---
+            return if (isTestMode) {
+                // テストモードなら、ここでも「翌日」まで空ける
+                newLevel to nextDaySec
+            } else {
+                // 通常モードなら、短時間で復習
+                newLevel to (nowSec + settings.level1RetrySec)
+            }
+        }
+
+        // --- レベル2以上（間隔反復） ---
+        // 元々「1日後、3日後...」という設定なので、そのまま適用（最低でも翌日になる）
         val days = when (newLevel) { 2 -> 1; 3 -> 3; 4 -> 7; 5 -> 14; 6 -> 30; 7 -> 60; else -> 90 }
         val dueDate = Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate().plusDays(days.toLong())
         return newLevel to dueDate.atStartOfDay(zone).toEpochSecond()
@@ -915,7 +972,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val wordDao = db.wordDao()
-        // ここは loadInitialData から変換後の grade ("4"など) が渡ってくる想定
         val csvWords = CsvDataLoader(this@LearningActivity).loadWords().filter { it.grade == grade }
         if (csvWords.isEmpty()) return@withContext 0
         val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
@@ -946,7 +1002,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         if (choiceButtons.size >= 6) { (choiceButtons[4].parent as? View)?.visibility = View.VISIBLE }
 
-        // ★修正: テストモードなら非表示、それ以外なら表示
         if (currentMode.startsWith("test_")) {
             checkIncludeOtherGrades?.visibility = View.GONE
         } else {
@@ -962,15 +1017,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionBody.visibility = View.GONE
         choiceButtons.forEach { it.text = "----"; it.isEnabled = false }
 
-        // ★追加: テストモードなら、データが無い場合でもチェックボックスや音声ボタンを完全に隠す
         if (currentMode.startsWith("test_")) {
             checkIncludeOtherGrades?.visibility = View.GONE
             checkboxAutoPlayAudio?.visibility = View.GONE
             buttonPlayAudio.visibility = View.GONE
         } else {
-            // 通常モードなら設定変更してリロードできるよう表示しておく
             checkIncludeOtherGrades?.visibility = View.VISIBLE
-            // データがないので自動再生などは隠しても良いが、一貫性のため表示制御はお好みで
         }
     }
 
@@ -997,7 +1049,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val msg = if (isCorrect) {
             val praise = listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
             "$praise +${addPoint}pt"
-        } else "不正解…"
+        } else {
+            if (addPoint < 0) "不正解… ${addPoint}pt" else "不正解…"
+        }
 
         currentSnackbar?.dismiss()
         currentSnackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).apply {
@@ -1062,7 +1116,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val textReview = card.findViewById<TextView>(R.id.text_stat_review)
             val textNew = card.findViewById<TextView>(R.id.text_stat_new)
 
-            // 新しい4つのTextViewを取得 (Bronze～Crystal)
             val textBronze = card.findViewById<TextView>(R.id.stat_bronze)
             val textSilver = card.findViewById<TextView>(R.id.stat_silver)
             val textGold   = card.findViewById<TextView>(R.id.stat_gold)
@@ -1095,7 +1148,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             card.setOnClickListener {
                 currentMode = modeKey
 
-                // ★追加: テストモードなら「他グレードを含む」を強制OFFにし、チェックボックスもOFFにする
                 if (currentMode.startsWith("test_")) {
                     includeOtherGradesReview = false
                     checkIncludeOtherGrades?.isChecked = false
@@ -1185,7 +1237,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val progresses = progressDao.getAllProgressForMode(mode)
             val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in allQIds }
 
-            // Conversationモードの簡易集計
             val masteredCount = progresses.count { it.wordId in allQIds && it.level >= 6 }
             val startedCount = progresses.filter { it.wordId in allQIds }.size
 
@@ -1197,12 +1248,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val targetProgresses = progresses.filter { it.wordId in wordIdSet }
         val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
 
-        // 新しい段階ロジックで集計
-        val bronze = targetProgresses.count { it.level >= 2 } // Lv2以上
-        val silver = targetProgresses.count { it.level >= 3 } // Lv3以上
-        val gold = targetProgresses.count { it.level >= 4 }   // Lv4以上
-        val crystal = targetProgresses.count { it.level >= 5 } // Lv5以上
-        val purple = targetProgresses.count { it.level >= 6 }  // Lv6以上
+        val bronze = targetProgresses.count { it.level >= 2 }
+        val silver = targetProgresses.count { it.level >= 3 }
+        val gold = targetProgresses.count { it.level >= 4 }
+        val crystal = targetProgresses.count { it.level >= 5 }
+        val purple = targetProgresses.count { it.level >= 6 }
 
         return ModeStats(
             review = dueCount,
@@ -1228,20 +1278,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         var speed = settings.getTtsSpeed()
         val pitch = settings.getTtsPitch()
 
-        // ★修正: グレードごとの速度調整 (5/4級:0.7, 3級:0.8, その他:0.9)
         if (currentMode == MODE_TEST_LISTEN_Q2) {
             speed = when (gradeFilter) {
-                "5", "4" -> 0.65f
-                "3" -> 0.7f
-                else -> 0.8f
+                "5級", "4級" -> 0.7f
+                "3級" -> 0.8f
+                else -> 0.9f
             }
         }
 
-        // 既存の単語用TTSへの設定
         tts?.setSpeechRate(speed)
         tts?.setPitch(pitch)
 
-        // 追加: 会話用TTS (ConversationTtsManager) への設定反映
         conversationTts?.setSpeechRate(speed)
         conversationTts?.setPitch(pitch)
     }
@@ -1274,34 +1321,25 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
     // endregion
 
-    // ★追加: マーカー風のハイライトを描画するカスタムSpanクラス
     private class MarkerSpan(private val color: Int) : ReplacementSpan() {
         override fun getSize(paint: Paint, text: CharSequence?, start: Int, end: Int, fm: Paint.FontMetricsInt?): Int {
-            // テキストの幅を計算して返す
-            // textがnullなら0を返す（念のため）
             if (text == null) return 0
             return paint.measureText(text, start, end).toInt()
         }
 
         override fun draw(canvas: Canvas, text: CharSequence?, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint) {
-            // ★修正: textがnullでない場合のみ描画する
             if (text != null) {
                 val originalColor = paint.color
                 val width = paint.measureText(text, start, end)
 
-                // マーカーの設定
                 paint.color = color
 
-                // マーカーの高さ調整（行の高さより少し小さくして、よりマーカーっぽくする）
-                // topとbottomの差から、少し内側に縮める
                 val paddingY = (bottom - top) * 0.15f
                 val rect = RectF(x, top + paddingY, x + width, bottom - paddingY)
 
-                // 角丸の四角形を描画 (半径12f)
                 canvas.drawRoundRect(rect, 12f, 12f, paint)
 
-                // その上にテキストを描画
-                paint.color = originalColor // 元の文字色に戻す
+                paint.color = originalColor
                 canvas.drawText(text, start, end, x, y.toFloat(), paint)
             }
         }

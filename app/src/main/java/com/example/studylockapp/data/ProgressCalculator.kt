@@ -17,7 +17,7 @@ object ProgressCalculator {
 
     fun calcPoint(isCorrect: Boolean, levelBefore: Int, basePoint: Int): Int {
         if (!isCorrect) return 0
-        return if (levelBefore == 0) basePoint * 2 else basePoint
+        return basePoint
     }
 
     fun todayEpochDay(): Long = LocalDate.now().toEpochDay()

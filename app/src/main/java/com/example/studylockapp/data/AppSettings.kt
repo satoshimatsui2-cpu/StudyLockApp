@@ -201,9 +201,8 @@ class AppSettings(context: Context) {
     // --- Base Points ---
     fun getBasePoint(mode: String): Int {
         val defaultPoint = when (mode) {
-            "test_listen_q2" -> 24
-            "test_sort", "test_listen_q1" -> 20
-            "test_fill_blank" -> 16
+            "test_sort","test_listen_q2" -> 16
+             "test_listen_q1","test_fill_blank" -> 12
             "english_english_1", "english_english_2" -> 12
             "listening_jp" -> 8
             "meaning", "japanese_to_english", "listening" -> 4
