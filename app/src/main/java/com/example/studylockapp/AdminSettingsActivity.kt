@@ -10,6 +10,7 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ScrollView
@@ -71,8 +72,8 @@ class AdminSettingsActivity : AppCompatActivity() {
 
     private fun setupAccordions() {
         // ヘッダーID、コンテンツID、矢印ID のセットを定義
+        // 最初の「学習グレード」は削除したのでリストからも外す
         val groups = listOf(
-            Triple(R.id.header_learning_settings, R.id.content_learning_settings, R.id.arrow_learning_settings),
             Triple(R.id.header_study_points, R.id.content_study_points, R.id.arrow_study_points),
             Triple(R.id.header_test_points, R.id.content_test_points, R.id.arrow_test_points),
             Triple(R.id.header_time_settings, R.id.content_time_settings, R.id.arrow_time_settings),
@@ -151,13 +152,27 @@ class AdminSettingsActivity : AppCompatActivity() {
      * 既存のシークバー等の設定UI
      */
     private fun setupExistingControls() {
-        // --- Grade Setup (減点設定は削除) ---
-        // ★ここを修正しました：削除されたIDを参照しないように変更済み
+        // --- Grade Setup ---
         val spinnerCurrentGrade = findViewById<Spinner>(R.id.spinner_current_learning_grade)
 
-        // Spinner for current grade
         val grades = arrayOf("1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
-        val gradeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, grades)
+
+        // ★修正: アダプター内で文字色を「黒」に強制する
+        val gradeAdapter = object : ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, grades) {
+            // 選択された項目の表示（閉じている時）
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getView(position, convertView, parent) as TextView
+                view.setTextColor(Color.BLACK)
+                return view
+            }
+            // ドロップダウンリストの表示（開いている時）
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent) as TextView
+                view.setTextColor(Color.BLACK)
+                view.setBackgroundColor(Color.WHITE) // 背景も白に強制
+                return view
+            }
+        }
         gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         spinnerCurrentGrade.adapter = gradeAdapter

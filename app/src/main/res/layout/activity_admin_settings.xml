@@ -51,13 +51,45 @@
             android:orientation="vertical"
             android:paddingBottom="80dp">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="現在の学習グレード"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"/>
+
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
+
+                <Spinner
+                    android:id="@+id/spinner_current_learning_grade"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:padding="4dp"/>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_app_lock_settings"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/admin_select_lock_apps"
+                android:layout_marginBottom="8dp"/>
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:strokeColor="?attr/colorOutline"
+                app:strokeColor="?attr/colorError"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -66,10 +98,10 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/header_learning_settings"
+                        android:id="@+id/header_security"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="?attr/colorSurfaceVariant"
+                        android:background="@android:color/holo_red_dark"
                         android:gravity="center_vertical"
                         android:padding="16dp"
                         android:clickable="true"
@@ -79,13 +111,13 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="現在の学習グレード"
+                            android:text="セキュリティ設定 (親御様用)"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="@android:color/white"
                             android:textStyle="bold" />
 
                         <ImageView
-                            android:id="@+id/arrow_learning_settings"
+                            android:id="@+id/arrow_security"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/arrow_down_float"
@@ -93,29 +125,95 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/content_learning_settings"
+                        android:id="@+id/content_security"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp"
-                        android:visibility="visible">
+                        android:visibility="gone">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_admin_lock"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:text="学習グレードを選択してください"
-                            android:textSize="14sp"
+                            android:text="@string/admin_lock_title"
                             android:textStyle="bold"
                             android:textColor="@android:color/black"/>
 
-                        <Spinner
-                            android:id="@+id/spinner_current_learning_grade"
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:minHeight="48dp"
-                            android:layout_marginBottom="8dp" />
+                            android:orientation="horizontal">
 
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/button_change_pin"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:text="@string/admin_change_pin" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/button_setup_authenticator"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:text="2段階認証" />
+                        </LinearLayout>
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_app_lock_required"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_app_lock_required_title"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_app_lock_required_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_accessibility_lock"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_accessibility_lock_title"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_accessibility_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_tethering_lock"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_tethering_lock_title"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_tethering_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_uninstall_lock"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="アプリ削除ロック"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ONにすると、このアプリをアンインストールできなくなります。" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginVertical="8dp"/>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_enable_long_press"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="タイトル長押しで管理画面"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ONにすると、TOP画面のタイトルを長押しでPIN入力なしでこの画面を開けます。" android:textSize="12sp" android:paddingBottom="16dp" android:textColor="@android:color/black"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -329,151 +427,6 @@
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:strokeColor="?attr/colorError"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <LinearLayout
-                        android:id="@+id/header_security"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/holo_red_dark"
-                        android:gravity="center_vertical"
-                        android:padding="16dp"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="セキュリティ設定 (親御様用)"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textColor="@android:color/white"
-                            android:textStyle="bold" />
-
-                        <ImageView
-                            android:id="@+id/arrow_security"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@android:drawable/arrow_down_float"
-                            app:tint="@android:color/white" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/content_security"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:visibility="gone">
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_admin_lock"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_lock_title"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_change_pin"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="4dp"
-                                android:text="@string/admin_change_pin" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_setup_authenticator"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:text="2段階認証" />
-                        </LinearLayout>
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_app_lock_required"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_app_lock_required_title"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_app_lock_required_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_accessibility_lock"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_accessibility_lock_title"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_accessibility_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_tethering_lock"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_tethering_lock_title"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_tethering_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_uninstall_lock"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="アプリ削除ロック"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ONにすると、このアプリをアンインストールできなくなります。" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
-
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginVertical="8dp"/>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_enable_long_press"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="タイトル長押しで管理画面"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ONにすると、TOP画面のタイトルを長押しでPIN入力なしでこの画面を開けます。" android:textSize="12sp" android:paddingBottom="16dp" android:textColor="@android:color/black"/>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_app_lock_settings"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_select_lock_apps"
-                            android:layout_marginBottom="8dp"/>
-
-
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
