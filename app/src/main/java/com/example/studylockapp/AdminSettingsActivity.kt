@@ -64,6 +64,46 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         setupAdminSecurityViews()
         setupExistingControls()
+
+        // アコーディオンのセットアップを呼び出す
+        setupAccordions()
+    }
+
+    private fun setupAccordions() {
+        // ヘッダーID、コンテンツID、矢印ID のセットを定義
+        val groups = listOf(
+            Triple(R.id.header_learning_settings, R.id.content_learning_settings, R.id.arrow_learning_settings),
+            Triple(R.id.header_study_points, R.id.content_study_points, R.id.arrow_study_points),
+            Triple(R.id.header_test_points, R.id.content_test_points, R.id.arrow_test_points),
+            Triple(R.id.header_time_settings, R.id.content_time_settings, R.id.arrow_time_settings),
+            Triple(R.id.header_security, R.id.content_security, R.id.arrow_security)
+        )
+
+        groups.forEach { (headerId, contentId, arrowId) ->
+            val header = findViewById<View>(headerId)
+            val content = findViewById<View>(contentId)
+            val arrow = findViewById<View>(arrowId)
+
+            // 初期状態に合わせて矢印をセット
+            if (content.visibility == View.VISIBLE) {
+                arrow.rotation = 180f // 開いているときは上向き
+            } else {
+                arrow.rotation = 0f   // 閉じているときは下向き
+            }
+
+            header.setOnClickListener {
+                val isVisible = content.visibility == View.VISIBLE
+                if (isVisible) {
+                    // 閉じる
+                    content.visibility = View.GONE
+                    arrow.animate().rotation(0f).setDuration(200).start()
+                } else {
+                    // 開く
+                    content.visibility = View.VISIBLE
+                    arrow.animate().rotation(180f).setDuration(200).start()
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -111,47 +151,20 @@ class AdminSettingsActivity : AppCompatActivity() {
      * 既存のシークバー等の設定UI
      */
     private fun setupExistingControls() {
-        // --- Grade and Point Reduction Setup ---
+        // --- Grade Setup (減点設定は削除) ---
+        // ★ここを修正しました：削除されたIDを参照しないように変更済み
         val spinnerCurrentGrade = findViewById<Spinner>(R.id.spinner_current_learning_grade)
-        val textReductionOne = findViewById<TextView>(R.id.text_point_reduction_one_grade_down)
-        val seekReductionOne = findViewById<SeekBar>(R.id.seek_point_reduction_one_grade_down)
-        val textReductionTwo = findViewById<TextView>(R.id.text_point_reduction_two_grades_down)
-        val seekReductionTwo = findViewById<SeekBar>(R.id.seek_point_reduction_two_grades_down)
 
         // Spinner for current grade
         val grades = arrayOf("1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
         val gradeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, grades)
         gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-        // ★修正: アダプターをセット（これがないと保存時にクラッシュします）
         spinnerCurrentGrade.adapter = gradeAdapter
 
         val currentGradePosition = grades.indexOf(settings.currentLearningGrade)
         spinnerCurrentGrade.setSelection(if (currentGradePosition != -1) currentGradePosition else 0)
 
-        // SeekBars for point reduction
-        seekReductionOne.max = 100
-        seekReductionTwo.max = 100
-
-        seekReductionOne.progress = settings.pointReductionOneGradeDown
-        seekReductionTwo.progress = settings.pointReductionTwoGradesDown
-
-        fun refreshReductionLabels() {
-            textReductionOne.text = "1学年下: ${seekReductionOne.progress}%"
-            textReductionTwo.text = "2学年下: ${seekReductionTwo.progress}%"
-        }
-        refreshReductionLabels()
-
-        val reductionSeekBarListener = object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                refreshReductionLabels()
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        }
-
-        seekReductionOne.setOnSeekBarChangeListener(reductionSeekBarListener)
-        seekReductionTwo.setOnSeekBarChangeListener(reductionSeekBarListener)
 
         // --- ポイント設定用SeekBarのセットアップ ---
         val modes = mapOf(
@@ -276,13 +289,13 @@ class AdminSettingsActivity : AppCompatActivity() {
         ).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnSave.setOnClickListener {
-            // --- Grade and Point Reduction Save ---
-            // ★安全対策: Spinnerが空の場合のクラッシュ防止
+            // --- Grade Save ---
             val selectedGrade = spinnerCurrentGrade.selectedItem?.toString() ?: "1級"
             settings.currentLearningGrade = selectedGrade
 
-            settings.pointReductionOneGradeDown = seekReductionOne.progress
-            settings.pointReductionTwoGradesDown = seekReductionTwo.progress
+            // ★修正: 減点設定は固定値とする（UI削除のため）
+            settings.pointReductionOneGradeDown = 50
+            settings.pointReductionTwoGradesDown = 25
 
             // --- ポイント設定の保存 ---
             modes.forEach { (mode, views) ->
