@@ -48,25 +48,32 @@ class AppLockBlockActivity : AppCompatActivity() {
             pointManager = PointManager(this)
             imageGeorge = findViewById(R.id.image_george_reaction)
 
-            lockedPkg = intent.getStringExtra("lockedPackage") ?: ""
-            lockedLabel = intent.getStringExtra("lockedLabel")?.takeIf { it.isNotBlank() } ?: run {
+            // ★修正: Service側のキー名 (package_name, app_label) と一致させる
+            lockedPkg = intent.getStringExtra("package_name") ?: ""
+            lockedLabel = intent.getStringExtra("app_label")?.takeIf { it.isNotBlank() } ?: run {
                 try {
-                    val pm = packageManager
-                    pm.getApplicationLabel(pm.getApplicationInfo(lockedPkg, 0)).toString()
+                    // フォールバック: パッケージ名からラベル取得を試みる
+                    if (lockedPkg.isNotEmpty()) {
+                        val pm = packageManager
+                        pm.getApplicationLabel(pm.getApplicationInfo(lockedPkg, 0)).toString()
+                    } else {
+                        ""
+                    }
                 } catch (_: Exception) {
                     lockedPkg
                 }
             }
             findViewById<TextView>(R.id.text_block_app).text = lockedLabel
 
-            // アプリアイコンを表示する処理を追加
+            // アプリアイコンを表示する処理
             val iconView = findViewById<ImageView>(R.id.icon_blocked_app)
-            try {
-                val icon = packageManager.getApplicationIcon(lockedPkg)
-                iconView.setImageDrawable(icon)
-            } catch (e: Exception) {
-                // アイコン取得失敗時はデフォルト画像を表示するなどのフォールバック（XMLのtools:srcで代用）
-                Log.w(TAG, "Failed to load app icon for $lockedPkg", e)
+            if (lockedPkg.isNotEmpty()) {
+                try {
+                    val icon = packageManager.getApplicationIcon(lockedPkg)
+                    iconView.setImageDrawable(icon)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to load app icon for $lockedPkg", e)
+                }
             }
 
             val textPointsInfo = findViewById<TextView>(R.id.text_points_info)
@@ -87,7 +94,7 @@ class AppLockBlockActivity : AppCompatActivity() {
 
             fun updateGeorgeImage(points: Int) {
                 val imageResId = when {
-                    points >= 500 -> R.drawable.george_7 // george_8 がなかったので 7 に
+                    points >= 500 -> R.drawable.george_7
                     points >= 400 -> R.drawable.george_6
                     points >= 300 -> R.drawable.george_5
                     points >= 200 -> R.drawable.george_4
@@ -102,20 +109,22 @@ class AppLockBlockActivity : AppCompatActivity() {
                 val raw = editPoints.text?.toString()?.toIntOrNull() ?: 0
                 val usePt = if (currentPt > 0) raw.coerceIn(0, currentPt) else 0
                 val durationMin = if (usePt > 0) (usePt * minPer10Pt) / 10f else 0f
-                val durationSec = ceil(durationMin * 60f).toLong() // 0.1分=6秒刻み
+                val durationSec = ceil(durationMin * 60f).toLong()
 
                 textPointsInfo.text = getString(
                     R.string.block_points_info,
                     currentPt,
                     usePt,
-                    durationMin.toDouble(), // 小数1桁表示
+                    durationMin.toDouble(),
                     minPer10Pt
                 )
                 textUnlockTime.text = getString(
-                    R.string.block_unlocked_message,  // 表示用に流用（%1$.1f分）
+                    R.string.block_unlocked_message,
                     durationMin.toDouble()
                 )
-                buttonUnlock.isEnabled = usePt in 1..currentPt && durationSec > 0
+
+                // パッケージ名が空だと解除できないのでボタンを無効化
+                buttonUnlock.isEnabled = lockedPkg.isNotEmpty() && usePt in 1..currentPt && durationSec > 0
 
                 // Georgeの画像更新
                 updateGeorgeImage(usePt)
@@ -166,7 +175,6 @@ class AppLockBlockActivity : AppCompatActivity() {
 
         } catch (t: Throwable) {
             Log.e(TAG, "Failed to init AppLockBlockActivity", t)
-            // クラッシュループを防ぐ
             finishAndRemoveTask()
         }
     }
@@ -178,6 +186,9 @@ class AppLockBlockActivity : AppCompatActivity() {
     }
 
     private suspend fun doUnlock(usePoints: Int, durationSec: Long, durationMin: Float) {
+        // パッケージ名チェック（空なら何もしない）
+        if (lockedPkg.isBlank()) return
+
         val nowSec = Instant.now().epochSecond
         // ポイント減算 & 履歴追加
         pointManager.add(-usePoints)

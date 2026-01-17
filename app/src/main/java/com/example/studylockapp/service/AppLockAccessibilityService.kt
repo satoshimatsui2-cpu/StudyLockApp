@@ -450,11 +450,18 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
     }
 
+    // 学習アプリ用のロック画面（こちらは表示する）
     private fun showBlockScreen(pkg: String, label: String) {
         if (System.currentTimeMillis() < skipLockUntilMs) return
+
         val intent = Intent(applicationContext, AppLockBlockActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+
+            // ★重要修正: これがないとアイコンが出ず、解除もできません
+            putExtra("package_name", pkg) // キー名は AppLockBlockActivity 側の受け取りキーと合わせてください
+            putExtra("app_label", label)
         }
+
         Handler(Looper.getMainLooper()).post {
             val nowMs = System.currentTimeMillis()
             if (pkg == lastBlockPkg && (nowMs - lastBlockAtMs) < blockCooldownMs) return@post
