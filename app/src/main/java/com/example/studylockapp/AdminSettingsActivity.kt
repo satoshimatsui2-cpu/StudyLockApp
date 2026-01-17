@@ -305,15 +305,22 @@ class AdminSettingsActivity : AppCompatActivity() {
         val buttonChangePin = findViewById<MaterialButton>(R.id.button_change_pin) ?: return
         val switchEnableLongPress = findViewById<SwitchMaterial>(R.id.switch_enable_long_press) ?: return
         val buttonSetupAuthenticator = findViewById<MaterialButton>(R.id.button_setup_authenticator)
+        val switchAccessibilityLock = findViewById<SwitchMaterial>(R.id.switch_accessibility_lock)
+        val switchTetheringLock = findViewById<SwitchMaterial>(R.id.switch_tethering_lock)
+
 
         // スイッチ文字色を濃く
         switchAdminLock.setTextColor(switchTextColor)
         switchAppLockRequired?.setTextColor(switchTextColor)
         switchEnableLongPress.setTextColor(switchTextColor)
+        switchAccessibilityLock?.setTextColor(switchTextColor)
+        switchTetheringLock?.setTextColor(switchTextColor)
 
         switchAdminLock.isChecked = AdminAuthManager.isAdminLockEnabled(this)
         switchAppLockRequired?.isChecked = AdminAuthManager.isAppLockRequired(this)
         switchEnableLongPress.isChecked = settings.isEnableAdminLongPress()
+        switchAccessibilityLock.isChecked = PrefsManager.isAccessibilityLockEnabled(this)
+        switchTetheringLock.isChecked = PrefsManager.isTetheringLockEnabled(this)
 
         // 管理者画面ロック ON/OFF
         switchAdminLock.setOnCheckedChangeListener { _, isChecked ->
@@ -363,6 +370,16 @@ class AdminSettingsActivity : AppCompatActivity() {
         // タイトル長押しで管理画面を開く
         switchEnableLongPress.setOnCheckedChangeListener { _, isChecked ->
             settings.setEnableAdminLongPress(isChecked)
+        }
+
+        // アクセシビリティ設定画面ロック
+        switchAccessibilityLock?.setOnCheckedChangeListener { _, isChecked ->
+            PrefsManager.setAccessibilityLockEnabled(this, isChecked)
+        }
+
+        // テザリング設定画面ロック
+        switchTetheringLock?.setOnCheckedChangeListener { _, isChecked ->
+            PrefsManager.setTetheringLockEnabled(this, isChecked)
         }
 
         // PIN変更

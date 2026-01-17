@@ -128,6 +128,10 @@
     <string name="mode_japanese_to_english">日本語→英単語</string>
     <string name="mode_english_english_1">英単語→英語意味</string>
     <string name="mode_english_english_2">英語意味→英単語</string>
+    <string name="admin_accessibility_lock_title">アクセシビリティ設定をロック</string>
+    <string name="admin_accessibility_lock_desc">ONにすると、子供がアクセシビリティ設定画面を開くことをブロックします。</string>
+    <string name="admin_tethering_lock_title">テザリング設定をロック</string>
+    <string name="admin_tethering_lock_desc">ONにすると、子供がテザリングとアクセスポイントの設定画面を開くことをブロックします。</string>
 
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->

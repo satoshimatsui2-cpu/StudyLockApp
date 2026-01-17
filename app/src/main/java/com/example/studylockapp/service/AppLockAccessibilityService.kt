@@ -2,17 +2,20 @@ package com.example.studylockapp.service
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import com.example.studylockapp.PrefsManager
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.ui.applock.AppLockBlockActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.Instant
 
 class AppLockAccessibilityService : AccessibilityService() {
@@ -23,26 +26,24 @@ class AppLockAccessibilityService : AccessibilityService() {
     private lateinit var settings: AppSettings
     private lateinit var db: AppDatabase
 
-    // 連続起動を少し抑制（同一pkgでイベント連打される端末対策）
+    // 連続起動抑制
     private var lastBlockPkg: String? = null
     private var lastBlockAtMs: Long = 0L
     private val blockCooldownMs: Long = 800L
 
-    // 解放期限のポーリング監視
+    // 設定画面スキャンの負荷軽減用
+    private var lastScanTimeMs: Long = 0L
+    private val scanIntervalMs: Long = 500L
+
     private val expiryHandler = Handler(Looper.getMainLooper())
     private var expiryRunnable: Runnable? = null
 
-    // 直近で前面にあったパッケージ（rootInActiveWindow が null の端末対策）
     private var lastForegroundPkg: String? = null
-    // IME などを除外した前面パッケージの記憶
     private var lastNonImeForegroundPkg: String? = null
 
-    // --- デバッグ用 ---
     private val APP_LOCK_DEBUG = true
     private val APP_LOCK_TAG = "AppLockDebug"
-    private var lastDebugFrontPkg: String? = null
 
-    // IME（キーボード）など前面判定から除外するパッケージ
     private val IGNORE_FOREGROUND_PKGS = setOf(
         "com.google.android.inputmethod.latin",
         "com.android.inputmethod.latin"
@@ -57,73 +58,166 @@ class AppLockAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        val pkg = event.packageName?.toString() ?: return
+        val eventType = event?.eventType ?: return
+        val pkgName = event.packageName?.toString() ?: return
 
-        // 先にフォアグラウンド記録（自アプリの場合でも上書きする）
-        lastForegroundPkg = pkg
-        // IME 以外かつ自アプリ以外なら最後の非 IME として記憶
-        if (pkg !in IGNORE_FOREGROUND_PKGS && pkg != packageName) {
-            lastNonImeForegroundPkg = pkg
+        // ---------------------------------------------------------
+        // 1. Settings Specific Logic
+        // ---------------------------------------------------------
+        if (pkgName == "com.android.settings") {
+            val isWindowStateChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
+            val isContentChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
+
+            if (isWindowStateChanged || isContentChanged) {
+                val now = System.currentTimeMillis()
+                // コンテンツ変化は頻繁なので間引く
+                if (isContentChanged && (now - lastScanTimeMs < scanIntervalMs)) {
+                    return
+                }
+                lastScanTimeMs = now
+
+                val rootNode = rootInActiveWindow
+                if (rootNode != null) {
+                    try {
+                        // ★デバッグ用: 念のため現在の画面タイトル候補をログに出す
+                        // Log.d("AppLockDebug", "Scanning settings screen...")
+
+                        // Accessibility Lock
+                        if (PrefsManager.isAccessibilityLockEnabled(this)) {
+                            val keywords = listOf("Accessibility", "ユーザー補助")
+                            if (keywords.any { isScreenTitle(rootNode, it) }) {
+                                showBlockScreen(pkgName, "ユーザー補助設定")
+                                return
+                            }
+                        }
+
+                        // Tethering Lock
+                        if (PrefsManager.isTetheringLockEnabled(this)) {
+                            val keywords = listOf(
+                                "Tethering",
+                                "テザリング",
+                                "Hotspot",
+                                "アクセスポイント",
+                                "アクセス ポイント",      // スペースあり
+                                "アクセス ポイントとテザリング" // 完全一致
+                            )
+                            if (keywords.any { isScreenTitle(rootNode, it) }) {
+                                Log.d("AppLockSvc", "Blocking Tethering: Found target title in $pkgName")
+                                showBlockScreen(pkgName, "テザリング設定")
+                                return
+                            }
+                        }
+                    } finally {
+                        rootNode.recycle()
+                    }
+                }
+            }
         }
 
-        if (APP_LOCK_DEBUG) {
-            Log.d(APP_LOCK_TAG, "event: pkg=$pkg")
+        // ---------------------------------------------------------
+        // 2. Regular App Lock Logic
+        // ---------------------------------------------------------
+        if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+
+        lastForegroundPkg = pkgName
+        if (pkgName !in IGNORE_FOREGROUND_PKGS && pkgName != packageName) {
+            lastNonImeForegroundPkg = pkgName
         }
 
-        // settings 未初期化 or マスターOFFなら何もしない
         if (!::settings.isInitialized || !settings.isAppLockEnabled()) return
-
-        // 自アプリはスキップ
-        if (pkg == packageName) return
-
-        Log.d("AppLockSvc", "Event pkg=$pkg")
+        if (pkgName == packageName) return
 
         serviceScope.launch(Dispatchers.IO) {
-            val locked = db.lockedAppDao().get(pkg)
+            val locked = db.lockedAppDao().get(pkgName)
+            if (locked?.isLocked != true) return@launch
+
             val nowSec = Instant.now().epochSecond
-            val unlockEntry = db.appUnlockDao().get(pkg)
-            val unlockUntil = unlockEntry?.unlockedUntilSec ?: 0L
-
-            if (APP_LOCK_DEBUG) {
-                Log.d(
-                    APP_LOCK_TAG,
-                    "eventCheck: pkg=$pkg locked=${locked?.isLocked} unlockUntil=$unlockUntil now=$nowSec"
-                )
-            }
-
-            if (locked?.isLocked != true) {
-                Log.d("AppLockSvc", "pkg=$pkg not locked or null")
-                return@launch
-            }
-
-            // 期限切れを即クリア
             db.appUnlockDao().clearExpired(nowSec)
 
-            // 再取得して判定
-            val unlockedUntil2 = db.appUnlockDao().get(pkg)?.unlockedUntilSec ?: 0L
-            if (unlockedUntil2 > nowSec) {
-                Log.d("AppLockSvc", "pkg=$pkg is temporarily unlocked")
-                return@launch
-            }
+            val unlockEntry = db.appUnlockDao().get(pkgName)
+            val unlockUntil = unlockEntry?.unlockedUntilSec ?: 0L
 
-            val label = locked.label.ifBlank { pkg }
-            Log.d("AppLockSvc", "Blocking pkg=$pkg label=$label")
-            showBlockScreen(pkg, label)
+            if (unlockUntil > nowSec) return@launch
+
+            val label = locked.label.ifBlank { pkgName }
+            showBlockScreen(pkgName, label)
         }
     }
 
-    private suspend fun isTemporarilyUnlocked(pkg: String): Boolean {
-        val nowSec = Instant.now().epochSecond
-        // 期限切れを即クリア
-        withContext(Dispatchers.IO) {
-            db.appUnlockDao().clearExpired(nowSec)
+    /**
+     * 【修正版】画面タイトル判定
+     * クリック判定(isClickable)を廃止し、「隣にSummary(説明文)があるかどうか」で
+     * メニュー項目と画面タイトルを区別します。
+     */
+    private fun isScreenTitle(rootNode: AccessibilityNodeInfo, keyword: String): Boolean {
+        val nodes = rootNode.findAccessibilityNodeInfosByText(keyword)
+        if (nodes.isNullOrEmpty()) return false
+
+        var isTitle = false
+        try {
+            for (node in nodes) {
+                if (node == null) continue
+
+                // 1. Heading属性があれば問答無用でタイトル(API 28+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && node.isHeading) {
+                    isTitle = true
+                    break
+                }
+
+                // 2. 文字自体が summary ID を持っていたら除外
+                if (node.viewIdResourceName?.contains("summary", ignoreCase = true) == true) {
+                    continue
+                }
+
+                // 3. 【新ロジック】兄弟要素（同じ行にある要素）に "summary" があるかチェック
+                // メニュー項目の場合: [Title] [Summary(OFF)] という構成になっていることが多い
+                // 画面タイトルの場合: [Title] だけ、あるいは [Title] [SearchButton] などで Summary はない
+                if (hasSiblingSummary(node)) {
+                    // 隣に説明文がある -> これはメニュー項目だ -> 無視
+                    Log.d("AppLockSvc", "Ignored '$keyword' because it has a summary sibling (Menu Item).")
+                    continue
+                }
+
+                // 4. ここまで来たらタイトルとみなす（クリック判定は削除）
+                // Summaryを持たない単独のテキストなので、タイトルの可能性が高い
+                Log.d("AppLockSvc", "Found '$keyword' with NO summary. Locking.")
+                isTitle = true
+                break
+            }
+        } finally {
+            nodes.forEach { it?.recycle() }
         }
-        // 期限内かどうか確認
-        val unlockedUntil = withContext(Dispatchers.IO) {
-            db.appUnlockDao().get(pkg)?.unlockedUntilSec ?: 0L
+        return isTitle
+    }
+
+    /**
+     * ノードの親を調べて、兄弟（同じ親を持つ他のビュー）の中に
+     * "android:id/summary" を持つものがいるかチェックする
+     */
+    private fun hasSiblingSummary(node: AccessibilityNodeInfo): Boolean {
+        val parent = node.parent ?: return false
+        try {
+            val childCount = parent.childCount
+            for (i in 0 until childCount) {
+                val child = parent.getChild(i)
+                if (child != null) {
+                    try {
+                        // 自分自身はチェックしない
+                        if (child != node) {
+                            val resId = child.viewIdResourceName
+                            if (resId != null && resId.contains("android:id/summary", ignoreCase = true)) {
+                                return true // Summaryが見つかった
+                            }
+                        }
+                    } finally {
+                        child.recycle()
+                    }
+                }
+            }
+        } finally {
+            parent.recycle()
         }
-        return unlockedUntil > nowSec
+        return false
     }
 
     private fun showBlockScreen(pkg: String, label: String) {
@@ -136,35 +230,24 @@ class AppLockAccessibilityService : AccessibilityService() {
             putExtra("lockedLabel", label)
         }
 
-        // Activity 起動はメインスレッドで確実に
         Handler(Looper.getMainLooper()).post {
-            // 連続起動抑制
             val nowMs = System.currentTimeMillis()
             if (pkg == lastBlockPkg && (nowMs - lastBlockAtMs) < blockCooldownMs) {
-                Log.d("AppLockSvc", "Skip block (cooldown) pkg=$pkg")
                 return@post
             }
             lastBlockPkg = pkg
             lastBlockAtMs = nowMs
-
             startActivity(intent)
         }
     }
 
-    /**
-     * 2秒ごとに解放期限切れを掃除し、前面アプリがロック対象なら即ブロックに戻す
-     * rootInActiveWindow が null の端末では lastForegroundPkg / lastNonImeForegroundPkg をフォールバックに利用
-     */
     private fun startExpiryWatcher() {
         val runnable = object : Runnable {
             override fun run() {
-                // settings 未初期化 or マスターOFFなら何もしない
                 if (!::settings.isInitialized || !settings.isAppLockEnabled()) {
                     expiryHandler.postDelayed(this, 2000L)
                     return
                 }
-
-                // 現在前面にあるパッケージ名を取得（IME なら無視してフォールバック）
                 val rootPkg = rootInActiveWindow?.packageName?.toString()
                 val candidate = when {
                     rootPkg != null && rootPkg !in IGNORE_FOREGROUND_PKGS -> rootPkg
@@ -175,49 +258,18 @@ class AppLockAccessibilityService : AccessibilityService() {
 
                 serviceScope.launch(Dispatchers.IO) {
                     val nowSec = Instant.now().epochSecond
-
-                    // 期限切れの解放を全削除
                     db.appUnlockDao().clearExpired(nowSec)
-
-                    // デバッグログ: 取得元やロック件数を可視化
-                    if (APP_LOCK_DEBUG) {
-                        val debugNowSec = System.currentTimeMillis() / 1000L
-                        val countLocked = db.lockedAppDao().countLocked()
-                        if (topPkg != lastDebugFrontPkg) {
-                            Log.d(
-                                APP_LOCK_TAG,
-                                "poll: nowSec=$debugNowSec rootPkg=$rootPkg lastFg=$lastForegroundPkg lastNonIme=$lastNonImeForegroundPkg front=$topPkg lockedCount=$countLocked (clearExpired executed)"
-                            )
-                            lastDebugFrontPkg = topPkg
-                        }
-                    }
-
-                    // 前面パッケージがロック対象で、解放なし/期限切れなら即ブロック
                     if (topPkg != null && topPkg != packageName) {
                         val locked = db.lockedAppDao().get(topPkg)
                         val unlock = db.appUnlockDao().get(topPkg)
-                        if (APP_LOCK_DEBUG) {
-                            val unlockUntil = unlock?.unlockedUntilSec ?: 0L
-                            Log.d(
-                                APP_LOCK_TAG,
-                                "pollCheck: pkg=$topPkg locked=${locked?.isLocked} unlockUntil=$unlockUntil now=$nowSec"
-                            )
-                        }
                         if (locked?.isLocked == true) {
                             if (unlock == null || unlock.unlockedUntilSec <= nowSec) {
                                 val label = locked.label.ifBlank { topPkg }
-                                if (APP_LOCK_DEBUG) {
-                                    Log.d(APP_LOCK_TAG, "pollAction: blocking pkg=$topPkg")
-                                }
                                 showBlockScreen(topPkg, label)
                             }
                         }
-                    } else if (APP_LOCK_DEBUG) {
-                        val reason = if (topPkg == null) "null/ignored" else "self"
-                        Log.d(APP_LOCK_TAG, "pollSkip: topPkg=$reason")
                     }
                 }
-
                 expiryHandler.postDelayed(this, 2000L)
             }
         }
@@ -225,10 +277,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         expiryHandler.postDelayed(runnable, 2000L)
     }
 
-    override fun onInterrupt() {
-        // no-op
-    }
-
+    override fun onInterrupt() {}
     override fun onDestroy() {
         super.onDestroy()
         expiryRunnable?.let { expiryHandler.removeCallbacks(it) }
