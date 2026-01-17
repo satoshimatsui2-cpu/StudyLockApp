@@ -45,8 +45,32 @@ class AppLockAccessibilityService : AccessibilityService() {
         "com.android.inputmethod.latin"
     )
 
+    // クールダウン用
+    private var skipLockUntilMs: Long = 0L
+
+    // 自分のアプリ名
+    private val myAppName by lazy {
+        try {
+            val appInfo = packageManager.getApplicationInfo(packageName, 0)
+            packageManager.getApplicationLabel(appInfo).toString()
+        } catch (e: Exception) {
+            "StudyLockApp"
+        }
+    }
+
+    // ランチャー判定用
+    private var lastTouchedIconName: String? = null
+    private var lastTouchedTime: Long = 0
+
+    // 設定TOP画面
     private val settingsHomeKeywords = listOf("Settings", "設定")
 
+    // ★追加: 設定＞アプリ一覧画面をブロックするためのキーワード
+    private val appsListKeywords = listOf(
+        "Apps", "アプリ", "Applications", "App list", "アプリリスト"
+    )
+
+    // ロック対象キーワード（テザリング等）
     private val tetheringKeywords = listOf(
         "Tethering", "テザリング", "Hotspot",
         "アクセスポイント", "アクセス ポイント"
@@ -56,6 +80,29 @@ class AppLockAccessibilityService : AccessibilityService() {
     )
     private val accessibilityKeywords = listOf(
         "Accessibility", "ユーザー補助"
+    )
+
+    // ランチャーメニュー
+    private val launcherMenuKeywords = listOf(
+        "Pause app", "アプリを一時停止",
+        "App info", "アプリ情報"
+    )
+
+    // 詳細画面（アンインストール等）
+    private val appInfoKeywords = listOf(
+        "Uninstall", "アンインストール",
+        "Force stop", "強制停止"
+    )
+
+    // Launcher Packages
+    private val launcherPackages = listOf(
+        "com.google.android.apps.nexuslauncher",
+        "com.android.launcher3",
+        "com.sec.android.app.launcher",
+        "com.miui.home",
+        "com.huawei.android.launcher",
+        "com.oppo.launcher",
+        "com.teslacoilsw.launcher"
     )
 
     override fun onServiceConnected() {
@@ -71,8 +118,6 @@ class AppLockAccessibilityService : AccessibilityService() {
                 AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
         info.notificationTimeout = 100
         this.serviceInfo = info
-
-        Log.d("AppLockSvc", "Service connected: Deep Scan Mode")
         startExpiryWatcher()
     }
 
@@ -83,22 +128,83 @@ class AppLockAccessibilityService : AccessibilityService() {
         if (pkgName == packageName) return
 
         // ---------------------------------------------------------
-        // 1. Settings App Logic (設定アプリ)
+        // 1. Launcher Logic (ホーム画面)
+        // ---------------------------------------------------------
+        if (launcherPackages.any { pkgName.contains(it, ignoreCase = true) }) {
+
+            // ★チェック: 「アプリ削除ロック」がONの時だけランチャー監視を行う
+            if (settings.isUninstallLockEnabled()) {
+
+                // タッチ記録
+                if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED ||
+                    eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED ||
+                    eventType == AccessibilityEvent.TYPE_VIEW_SELECTED ||
+                    eventType == AccessibilityEvent.TYPE_VIEW_FOCUSED ||
+                    eventType == AccessibilityEvent.TYPE_VIEW_HOVER_ENTER) {
+
+                    val text = event.text?.joinToString("") ?: event.contentDescription?.toString()
+                    if (!text.isNullOrBlank()) {
+                        lastTouchedIconName = text
+                        lastTouchedTime = System.currentTimeMillis()
+                    }
+                }
+
+                // メニュー出現検知
+                if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+                    eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+
+                    val rootNode = rootInActiveWindow
+                    if (rootNode != null) {
+                        try {
+                            if (recursiveCheckForTile(rootNode, launcherMenuKeywords)) {
+                                val isRecent = (System.currentTimeMillis() - lastTouchedTime) < 3000
+                                val isTarget = lastTouchedIconName?.contains(myAppName, ignoreCase = true) == true
+
+                                if (isRecent && isTarget) {
+                                    Log.d("AppLockSvc", "Launcher: Blocked menu for $lastTouchedIconName")
+                                    skipLockUntilMs = System.currentTimeMillis() + 1500L
+                                    performGlobalAction(GLOBAL_ACTION_BACK)
+                                    return
+                                }
+                            }
+                        } finally {
+                            rootNode.recycle()
+                        }
+                    }
+                }
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 2. Settings App Logic (設定アプリ)
         // ---------------------------------------------------------
         if (pkgName == "com.android.settings") {
+
+            if (System.currentTimeMillis() < skipLockUntilMs) return
 
             // A. Click Detection
             if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 val clickedText = event.text?.joinToString("") ?: ""
 
-                if (checkKeywords(clickedText, tetheringKeywords) ||
-                    checkKeywords(clickedText, networkMenuKeywords)) {
-                    showRestrictedScreen(pkgName)
-                    return
+                // テザリング等の既存ロック
+                if (PrefsManager.isTetheringLockEnabled(this)) {
+                    if (checkKeywords(clickedText, tetheringKeywords) ||
+                        checkKeywords(clickedText, networkMenuKeywords)) {
+                        showRestrictedScreen(pkgName)
+                        return
+                    }
+                }
+
+                // ★追加: 「アプリ削除ロック」がONなら、設定一覧の「アプリ」クリックもブロック
+                if (settings.isUninstallLockEnabled()) {
+                    if (checkKeywords(clickedText, appsListKeywords)) {
+                        showRestrictedScreen(pkgName)
+                        return
+                    }
                 }
             }
 
-            // B. Window & Content
+            // B. Window & Content Scanning
             val isWindowStateChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
             val isContentChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
 
@@ -112,6 +218,26 @@ class AppLockAccessibilityService : AccessibilityService() {
                     try {
                         if (isSettingsTopScreen(rootNode)) return
 
+                        // ★チェック: 「アプリ削除ロック」がONの場合の処理
+                        if (settings.isUninstallLockEnabled()) {
+
+                            // 1. 設定＞アプリ一覧画面自体のブロック
+                            if (findAndValidateTitle(rootNode, appsListKeywords)) {
+                                showRestrictedScreen(pkgName)
+                                return
+                            }
+
+                            // 2. 詳細画面でのアンインストールボタン検知
+                            if (findAndValidateTitle(rootNode, listOf(myAppName))) {
+                                if (recursiveCheckForTile(rootNode, appInfoKeywords)) {
+                                    Log.d("AppLockSvc", "Protected Self Settings detected. Locking.")
+                                    showRestrictedScreen(pkgName)
+                                    return
+                                }
+                            }
+                        }
+
+                        // ユーザー補助
                         if (PrefsManager.isAccessibilityLockEnabled(this)) {
                             if (findAndValidateTitle(rootNode, accessibilityKeywords)) {
                                 showRestrictedScreen(pkgName)
@@ -119,6 +245,7 @@ class AppLockAccessibilityService : AccessibilityService() {
                             }
                         }
 
+                        // テザリング
                         if (PrefsManager.isTetheringLockEnabled(this)) {
                             if (findAndValidateTitle(rootNode, networkMenuKeywords) ||
                                 findAndValidateTitle(rootNode, tetheringKeywords)) {
@@ -134,22 +261,17 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
 
         // ---------------------------------------------------------
-        // 2. SystemUI Logic (通知パネル・クイック設定) - ★強化版
+        // 3. SystemUI Logic (通知パネル)
         // ---------------------------------------------------------
         if (pkgName == "com.android.systemui") {
+            if (System.currentTimeMillis() < skipLockUntilMs) return
+
             if (PrefsManager.isTetheringLockEnabled(this)) {
                 val rootNode = rootInActiveWindow
                 if (rootNode != null) {
                     try {
-                        // 設定画面での誤爆を防ぐチェック
-                        if (rootNode.packageName?.toString() != "com.android.systemui") {
-                            return
-                        }
-
-                        // ★修正: 再帰的スキャンでOFF状態のタイルも逃さない
+                        if (rootNode.packageName?.toString() != "com.android.systemui") return
                         if (recursiveCheckForTile(rootNode, tetheringKeywords)) {
-                            Log.d("AppLockSvc", "SystemUI: Tethering Tile Detected (Deep Scan)")
-
                             if (Build.VERSION.SDK_INT >= 31) {
                                 performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)
                             } else {
@@ -166,12 +288,12 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
 
         // ---------------------------------------------------------
-        // 3. Regular App Lock Logic
+        // 4. Regular App Lock Logic (ここは通常通り)
         // ---------------------------------------------------------
+        if (System.currentTimeMillis() < skipLockUntilMs) return
         if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
         lastForegroundPkg = pkgName
-
         if (!::settings.isInitialized || !settings.isAppLockEnabled()) return
 
         serviceScope.launch(Dispatchers.IO) {
@@ -192,44 +314,14 @@ class AppLockAccessibilityService : AccessibilityService() {
     }
 
     // --- Helper Methods ---
-
-    /**
-     * ★新メソッド: 木構造を再帰的に巡回し、テキストまたは説明文にキーワードが含まれるか執拗にチェックする
-     * これにより、OFF状態のタイルなど、標準検索で引っかかりにくい要素も検知します。
-     */
-    private fun recursiveCheckForTile(node: AccessibilityNodeInfo, keywords: List<String>): Boolean {
-        // 1. 自分自身のチェック
-        val text = node.text?.toString()
-        val desc = node.contentDescription?.toString()
-
-        if (text != null && keywords.any { text.contains(it, ignoreCase = true) }) return true
-        if (desc != null && keywords.any { desc.contains(it, ignoreCase = true) }) return true
-
-        // 2. 子要素の再帰チェック
-        val count = node.childCount
-        for (i in 0 until count) {
-            val child = node.getChild(i)
-            if (child != null) {
-                if (recursiveCheckForTile(child, keywords)) {
-                    child.recycle()
-                    return true
-                }
-                child.recycle()
-            }
-        }
-        return false
-    }
-
-    // --- 以下、既存メソッド ---
+    // (変更なし、そのまま記述してください)
 
     private fun isSettingsTopScreen(rootNode: AccessibilityNodeInfo): Boolean {
         val windows = this.windows
         for (window in windows) {
             if (window.isActive) {
                 val title = window.title?.toString() ?: ""
-                if (settingsHomeKeywords.any { title.equals(it, ignoreCase = true) }) {
-                    return true
-                }
+                if (settingsHomeKeywords.any { title.equals(it, ignoreCase = true) }) return true
             }
         }
         for (keyword in settingsHomeKeywords) {
@@ -238,9 +330,7 @@ class AppLockAccessibilityService : AccessibilityService() {
                 try {
                     for (node in nodes) {
                         if (node == null) continue
-                        if (Build.VERSION.SDK_INT >= 28 && node.isHeading) {
-                            return true
-                        }
+                        if (Build.VERSION.SDK_INT >= 28 && node.isHeading) return true
                     }
                 } finally {
                     nodes.forEach { it?.recycle() }
@@ -280,9 +370,7 @@ class AppLockAccessibilityService : AccessibilityService() {
                     try {
                         if (child != node) {
                             val resId = child.viewIdResourceName
-                            if (resId != null && resId.contains("summary", ignoreCase = true)) {
-                                return true
-                            }
+                            if (resId != null && resId.contains("summary", ignoreCase = true)) return true
                         }
                     } finally {
                         child.recycle()
@@ -311,6 +399,25 @@ class AppLockAccessibilityService : AccessibilityService() {
         return false
     }
 
+    private fun recursiveCheckForTile(node: AccessibilityNodeInfo, keywords: List<String>): Boolean {
+        val text = node.text?.toString()
+        val desc = node.contentDescription?.toString()
+        if (text != null && keywords.any { text.contains(it, ignoreCase = true) }) return true
+        if (desc != null && keywords.any { desc.contains(it, ignoreCase = true) }) return true
+        val count = node.childCount
+        for (i in 0 until count) {
+            val child = node.getChild(i)
+            if (child != null) {
+                if (recursiveCheckForTile(child, keywords)) {
+                    child.recycle()
+                    return true
+                }
+                child.recycle()
+            }
+        }
+        return false
+    }
+
     private fun checkKeywords(text: String, keywords: List<String>): Boolean {
         if (text.isBlank()) return false
         val hasTarget = keywords.any { text.contains(it, ignoreCase = true) }
@@ -320,20 +427,8 @@ class AppLockAccessibilityService : AccessibilityService() {
         return true
     }
 
-    private fun checkWindowTitleForTarget(keywords: List<String>): Boolean {
-        val windows = this.windows
-        for (window in windows) {
-            if (window.isActive) {
-                val title = window.title?.toString() ?: ""
-                if (keywords.any { title.equals(it, ignoreCase = true) }) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     private fun showRestrictedScreen(pkg: String) {
+        if (System.currentTimeMillis() < skipLockUntilMs) return
         val intent = Intent(applicationContext, RestrictedAccessActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -347,10 +442,9 @@ class AppLockAccessibilityService : AccessibilityService() {
     }
 
     private fun showBlockScreen(pkg: String, label: String) {
+        if (System.currentTimeMillis() < skipLockUntilMs) return
         val intent = Intent(applicationContext, AppLockBlockActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("lockedPackage", pkg)
-            putExtra("lockedLabel", label)
         }
         Handler(Looper.getMainLooper()).post {
             val nowMs = System.currentTimeMillis()
@@ -373,6 +467,10 @@ class AppLockAccessibilityService : AccessibilityService() {
     private fun startExpiryWatcher() {
         val runnable = object : Runnable {
             override fun run() {
+                if (System.currentTimeMillis() < skipLockUntilMs) {
+                    expiryHandler.postDelayed(this, 1000L)
+                    return
+                }
                 if (!::settings.isInitialized || !settings.isAppLockEnabled()) {
                     expiryHandler.postDelayed(this, 2000L)
                     return
@@ -383,7 +481,6 @@ class AppLockAccessibilityService : AccessibilityService() {
                     lastForegroundPkg != null && lastForegroundPkg !in IGNORE_FOREGROUND_PKGS -> lastForegroundPkg
                     else -> null
                 }
-
                 if (candidate != null && candidate != packageName) {
                     serviceScope.launch(Dispatchers.IO) {
                         val nowSec = Instant.now().epochSecond

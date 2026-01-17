@@ -377,6 +377,23 @@
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:paddingBottom="12dp" />
 
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switch_uninstall_lock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="アプリ削除ロック"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ONにすると、このアプリをアンインストールできなくなります。"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:paddingBottom="12dp" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_change_pin"
                         style="@style/Widget.Material3.Button.OutlinedButton"

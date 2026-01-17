@@ -39,13 +39,16 @@ class AppSettings(context: Context) {
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
         private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt" // 10pt あたりの分数（1〜10）
 
+        // ★追加: アンインストール防止機能用キー
+        private const val KEY_UNINSTALL_LOCK = "key_uninstall_lock"
+
         // アクセシビリティ誘導を表示済みかどうか
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
 
         // ベースポイント設定
         private const val KEY_BASE_POINT_PREFIX = "base_point_"
-        
+
         // 現在の学習グレードとポイント減少率
         private const val KEY_CURRENT_LEARNING_GRADE = "current_learning_grade"
         private const val KEY_POINT_REDUCTION_ONE_GRADE_DOWN = "point_reduction_one_grade_down"
@@ -55,6 +58,7 @@ class AppSettings(context: Context) {
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
+
     fun isEnableAdminLongPress(): Boolean = prefs.getBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, true)
     fun setEnableAdminLongPress(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, enabled) }
@@ -177,6 +181,16 @@ class AppSettings(context: Context) {
         prefs.edit { putBoolean(KEY_APP_LOCK_ENABLED, enabled) }
     }
 
+    // ★追加: アンインストール防止機能が有効かどうか
+    fun isUninstallLockEnabled(): Boolean {
+        return prefs.getBoolean(KEY_UNINSTALL_LOCK, false)
+    }
+
+    // ★追加: アンインストール防止機能の設定を変更
+    fun setUninstallLockEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_UNINSTALL_LOCK, enabled) }
+    }
+
     fun getUnlockCostPoints10Min(): Int =
         prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
 
@@ -202,7 +216,7 @@ class AppSettings(context: Context) {
     fun getBasePoint(mode: String): Int {
         val defaultPoint = when (mode) {
             "test_sort","test_listen_q2" -> 16
-             "test_listen_q1","test_fill_blank" -> 12
+            "test_listen_q1","test_fill_blank" -> 12
             "english_english_1", "english_english_2" -> 12
             "listening_jp" -> 8
             "meaning", "japanese_to_english", "listening" -> 4
@@ -214,7 +228,7 @@ class AppSettings(context: Context) {
     fun setBasePoint(mode: String, value: Int) {
         prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(4, 32)) }
     }
-    
+
     // --- Grade-based Point Reduction ---
     var currentLearningGrade: String
         get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "All") ?: "All"

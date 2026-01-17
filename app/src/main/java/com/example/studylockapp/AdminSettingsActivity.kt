@@ -108,7 +108,7 @@ class AdminSettingsActivity : AppCompatActivity() {
     }
 
     /**
-     * 既存のシークバー等の設定UI（音量関連は削除済み）
+     * 既存のシークバー等の設定UI
      */
     private fun setupExistingControls() {
         // --- Grade and Point Reduction Setup ---
@@ -122,7 +122,10 @@ class AdminSettingsActivity : AppCompatActivity() {
         val grades = arrayOf("1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
         val gradeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, grades)
         gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        // ★修正: アダプターをセット（これがないと保存時にクラッシュします）
         spinnerCurrentGrade.adapter = gradeAdapter
+
         val currentGradePosition = grades.indexOf(settings.currentLearningGrade)
         spinnerCurrentGrade.setSelection(if (currentGradePosition != -1) currentGradePosition else 0)
 
@@ -169,17 +172,19 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         modes.forEach { (mode, views) ->
             val (textView, seekBar) = views
-            seekBar.max = 7 // 0-7, which corresponds to 4, 8, ..., 32
-            seekBar.progress = pointToProgress(settings.getBasePoint(mode))
-            textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(seekBar.progress)} pt"
+            if (textView != null && seekBar != null) {
+                seekBar.max = 7 // 0-7, which corresponds to 4, 8, ..., 32
+                seekBar.progress = pointToProgress(settings.getBasePoint(mode))
+                textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(seekBar.progress)} pt"
 
-            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(progress)} pt"
-                }
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-            })
+                seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(progress)} pt"
+                    }
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                })
+            }
         }
 
         // SeekBar / TextView 群
@@ -214,11 +219,9 @@ class AdminSettingsActivity : AppCompatActivity() {
         seekLevel1Retry.max = 118
 
         // 回答間隔: 0.5秒単位 (500ms)
-        // Range: 500ms .. 10000ms
-        // Step: 500ms
         fun intervalMsToProgress(ms: Long): Int {
             val clamped = ms.coerceIn(500L, 10_000L)
-            return ((clamped - 500L) / 500L).toInt() // 0..19
+            return ((clamped - 500L) / 500L).toInt()
         }
         fun progressToIntervalMs(progress: Int): Long =
             500L + (progress.coerceIn(0, 19) * 500L)
@@ -226,10 +229,10 @@ class AdminSettingsActivity : AppCompatActivity() {
         // リトライ秒（10..600）: 5秒単位
         fun secToProgress(sec: Long): Int {
             val clamped = sec.coerceIn(10L, 600L)
-            return ((clamped - 10L) / 5L).toInt() // 0..118
+            return ((clamped - 10L) / 5L).toInt()
         }
         fun progressToSec(progress: Int): Long =
-            10L + (progress.coerceIn(0, 118) * 5L) // 10..600
+            10L + (progress.coerceIn(0, 118) * 5L)
 
         // 10ptあたり分数（1..10）: progress 0..9 → 値 1..10
         fun minPer10PtToProgress(value: Int): Int = value.coerceIn(1, 10) - 1
@@ -274,14 +277,19 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             // --- Grade and Point Reduction Save ---
-            settings.currentLearningGrade = spinnerCurrentGrade.selectedItem.toString()
+            // ★安全対策: Spinnerが空の場合のクラッシュ防止
+            val selectedGrade = spinnerCurrentGrade.selectedItem?.toString() ?: "1級"
+            settings.currentLearningGrade = selectedGrade
+
             settings.pointReductionOneGradeDown = seekReductionOne.progress
             settings.pointReductionTwoGradesDown = seekReductionTwo.progress
 
             // --- ポイント設定の保存 ---
             modes.forEach { (mode, views) ->
                 val (_, seekBar) = views
-                settings.setBasePoint(mode, progressToPoint(seekBar.progress))
+                if (seekBar != null) {
+                    settings.setBasePoint(mode, progressToPoint(seekBar.progress))
+                }
             }
 
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
@@ -307,7 +315,8 @@ class AdminSettingsActivity : AppCompatActivity() {
         val buttonSetupAuthenticator = findViewById<MaterialButton>(R.id.button_setup_authenticator)
         val switchAccessibilityLock = findViewById<SwitchMaterial>(R.id.switch_accessibility_lock)
         val switchTetheringLock = findViewById<SwitchMaterial>(R.id.switch_tethering_lock)
-
+        // アプリ削除ロック（nullableで取得）
+        val switchUninstallLock = findViewById<SwitchMaterial>(R.id.switch_uninstall_lock)
 
         // スイッチ文字色を濃く
         switchAdminLock.setTextColor(switchTextColor)
@@ -315,12 +324,16 @@ class AdminSettingsActivity : AppCompatActivity() {
         switchEnableLongPress.setTextColor(switchTextColor)
         switchAccessibilityLock?.setTextColor(switchTextColor)
         switchTetheringLock?.setTextColor(switchTextColor)
+        switchUninstallLock?.setTextColor(switchTextColor)
 
         switchAdminLock.isChecked = AdminAuthManager.isAdminLockEnabled(this)
         switchAppLockRequired?.isChecked = AdminAuthManager.isAppLockRequired(this)
         switchEnableLongPress.isChecked = settings.isEnableAdminLongPress()
-        switchAccessibilityLock.isChecked = PrefsManager.isAccessibilityLockEnabled(this)
-        switchTetheringLock.isChecked = PrefsManager.isTetheringLockEnabled(this)
+        switchAccessibilityLock?.isChecked = PrefsManager.isAccessibilityLockEnabled(this)
+        switchTetheringLock?.isChecked = PrefsManager.isTetheringLockEnabled(this)
+
+        // 設定読み込み（Switchがnullでない場合のみ）
+        switchUninstallLock?.isChecked = settings.isUninstallLockEnabled()
 
         // 管理者画面ロック ON/OFF
         switchAdminLock.setOnCheckedChangeListener { _, isChecked ->
@@ -380,6 +393,11 @@ class AdminSettingsActivity : AppCompatActivity() {
         // テザリング設定画面ロック
         switchTetheringLock?.setOnCheckedChangeListener { _, isChecked ->
             PrefsManager.setTetheringLockEnabled(this, isChecked)
+        }
+
+        // アプリ削除ロック
+        switchUninstallLock?.setOnCheckedChangeListener { _, isChecked ->
+            settings.setUninstallLockEnabled(isChecked)
         }
 
         // PIN変更
@@ -456,15 +474,10 @@ class AdminSettingsActivity : AppCompatActivity() {
             .setPositiveButton(R.string.ok) { _, _ ->
                 val code = edit.text?.toString().orEmpty()
                 if (AdminAuthManager.verifyTotp(this, code)) {
-                    // 認証成功時、とりあえずPINをリセット（新規設定）させるか、
-                    // または一時的に認証済み状態にして、設定画面に入れるようにする
-                    // 今回は「認証済み状態にして設定画面へ」→そこでPIN変更できる
                     showToast(getString(R.string.totp_reset_pin_success))
-                    // 自動的に新しいPINを設定させるフローに誘導
                     promptSetNewPin(onSuccess)
                 } else {
                     showToast(getString(R.string.totp_incorrect))
-                    // 再試行
                     promptTotpAndResetPin(onSuccess)
                 }
             }
@@ -503,7 +516,6 @@ class AdminSettingsActivity : AppCompatActivity() {
                     return@setPositiveButton
                 }
                 AdminAuthManager.setPin(this, p1)
-                // 復旧コード関連は削除
                 onSuccess?.invoke()
             }
             .setNegativeButton(R.string.cancel) { _, _ -> onCancel?.invoke() }

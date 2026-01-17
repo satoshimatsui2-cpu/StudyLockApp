@@ -1,43 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="?attr/colorSurface">
+    android:background="#000000">
 
     <ImageView
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:id="@+id/icon_lock"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:layout_marginBottom="24dp"
-        android:contentDescription="@string/restricted_access_icon_desc"
-        android:src="@drawable/ic_lock_24dp"
-        app:tint="?attr/colorPrimary" />
+        android:src="@android:drawable/ic_lock_lock"
+        app:tint="#FF5252"
+        android:contentDescription="Lock Icon" />
 
     <TextView
+        android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="Access Restricted"
-        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
-        android:textColor="?attr/colorOnSurface" />
+        android:text="Restricted Access"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center" />
 
     <TextView
+        android:id="@+id/message_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:gravity="center"
-        android:text="You do not have permission to access this screen."
-        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-        android:textColor="?attr/colorOnSurfaceVariant" />
+        android:layout_marginTop="16dp"
+        android:text="This setting is protected.\nPlease use the app to change settings."
+        android:textColor="#DDDDDD"
+        android:textSize="16sp"
+        android:gravity="center" />
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/button_go_back"
-        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Go Back" />
+        android:layout_marginTop="32dp"
+        android:text="Close"
+        android:backgroundTint="#FF5252"
+        android:textColor="#FFFFFF" />
 
 </LinearLayout>
