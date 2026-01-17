@@ -427,16 +427,25 @@ class AppLockAccessibilityService : AccessibilityService() {
         return true
     }
 
+// AppLockAccessibilityService.kt 内
+
     private fun showRestrictedScreen(pkg: String) {
+        // クールダウン中なら何もしない
         if (System.currentTimeMillis() < skipLockUntilMs) return
+
+        // ★修正: やはり警告画面を出す（無言バックはやめる）
         val intent = Intent(applicationContext, RestrictedAccessActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
+
         Handler(Looper.getMainLooper()).post {
             val nowMs = System.currentTimeMillis()
+            // 連続起動防止
             if (pkg == lastBlockPkg && (nowMs - lastBlockAtMs) < blockCooldownMs) return@post
             lastBlockPkg = pkg
             lastBlockAtMs = nowMs
+
+            // 警告画面を起動
             startActivity(intent)
         }
     }
