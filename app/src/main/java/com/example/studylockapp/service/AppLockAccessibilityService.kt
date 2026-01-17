@@ -45,10 +45,8 @@ class AppLockAccessibilityService : AccessibilityService() {
         "com.android.inputmethod.latin"
     )
 
-    // 設定TOP画面のキーワード
     private val settingsHomeKeywords = listOf("Settings", "設定")
 
-    // ロック対象のキーワード
     private val tetheringKeywords = listOf(
         "Tethering", "テザリング", "Hotspot",
         "アクセスポイント", "アクセス ポイント"
@@ -74,7 +72,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         info.notificationTimeout = 100
         this.serviceInfo = info
 
-        Log.d("AppLockSvc", "Service connected: Popup Fix Added")
+        Log.d("AppLockSvc", "Service connected: Deep Scan Mode")
         startExpiryWatcher()
     }
 
@@ -89,7 +87,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         // ---------------------------------------------------------
         if (pkgName == "com.android.settings") {
 
-            // A. Click Detection (クリック検知)
+            // A. Click Detection
             if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 val clickedText = event.text?.joinToString("") ?: ""
 
@@ -100,7 +98,7 @@ class AppLockAccessibilityService : AccessibilityService() {
                 }
             }
 
-            // B. Window Title & Content Scanning
+            // B. Window & Content
             val isWindowStateChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
             val isContentChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
 
@@ -112,12 +110,8 @@ class AppLockAccessibilityService : AccessibilityService() {
                 val rootNode = rootInActiveWindow
                 if (rootNode != null) {
                     try {
-                        // 設定TOP画面なら何もしない
-                        if (isSettingsTopScreen(rootNode)) {
-                            return
-                        }
+                        if (isSettingsTopScreen(rootNode)) return
 
-                        // ユーザー補助
                         if (PrefsManager.isAccessibilityLockEnabled(this)) {
                             if (findAndValidateTitle(rootNode, accessibilityKeywords)) {
                                 showRestrictedScreen(pkgName)
@@ -125,7 +119,6 @@ class AppLockAccessibilityService : AccessibilityService() {
                             }
                         }
 
-                        // テザリング・ネットワーク
                         if (PrefsManager.isTetheringLockEnabled(this)) {
                             if (findAndValidateTitle(rootNode, networkMenuKeywords) ||
                                 findAndValidateTitle(rootNode, tetheringKeywords)) {
@@ -141,35 +134,27 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
 
         // ---------------------------------------------------------
-        // 2. SystemUI Logic (通知パネル・クイック設定)
+        // 2. SystemUI Logic (通知パネル・クイック設定) - ★強化版
         // ---------------------------------------------------------
         if (pkgName == "com.android.systemui") {
-            // テザリングロック有効時のみ
             if (PrefsManager.isTetheringLockEnabled(this)) {
                 val rootNode = rootInActiveWindow
                 if (rootNode != null) {
                     try {
-                        // ★★★ ここが重要修正ポイント ★★★
-                        // イベントがSystemUIから来ても、実際に開いている画面(rootNode)が
-                        // SystemUI(通知領域)であることを確認する。
-                        // 設定アプリを開いている時にこのチェックがないと、設定画面の中身を読んで誤爆する。
+                        // 設定画面での誤爆を防ぐチェック
                         if (rootNode.packageName?.toString() != "com.android.systemui") {
-                            // 今見ているのは通知パネルではない（設定アプリなど）ので無視
                             return
                         }
 
-                        // パネル内に「テザリング」の文字があるか？
-                        if (containsAnyKeyword(rootNode, tetheringKeywords)) {
-                            Log.d("AppLockSvc", "SystemUI: Tethering Tile Detected")
+                        // ★修正: 再帰的スキャンでOFF状態のタイルも逃さない
+                        if (recursiveCheckForTile(rootNode, tetheringKeywords)) {
+                            Log.d("AppLockSvc", "SystemUI: Tethering Tile Detected (Deep Scan)")
 
-                            // 1. パネルを閉じる
                             if (Build.VERSION.SDK_INT >= 31) {
                                 performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)
                             } else {
                                 performGlobalAction(GLOBAL_ACTION_BACK)
                             }
-
-                            // 2. アラートを表示
                             showAlertActivity()
                             return
                         }
@@ -181,7 +166,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
 
         // ---------------------------------------------------------
-        // 3. Regular App Lock Logic (一般アプリ)
+        // 3. Regular App Lock Logic
         // ---------------------------------------------------------
         if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
@@ -209,8 +194,34 @@ class AppLockAccessibilityService : AccessibilityService() {
     // --- Helper Methods ---
 
     /**
-     * 現在の画面が「設定のTOP」かどうかを判定する
+     * ★新メソッド: 木構造を再帰的に巡回し、テキストまたは説明文にキーワードが含まれるか執拗にチェックする
+     * これにより、OFF状態のタイルなど、標準検索で引っかかりにくい要素も検知します。
      */
+    private fun recursiveCheckForTile(node: AccessibilityNodeInfo, keywords: List<String>): Boolean {
+        // 1. 自分自身のチェック
+        val text = node.text?.toString()
+        val desc = node.contentDescription?.toString()
+
+        if (text != null && keywords.any { text.contains(it, ignoreCase = true) }) return true
+        if (desc != null && keywords.any { desc.contains(it, ignoreCase = true) }) return true
+
+        // 2. 子要素の再帰チェック
+        val count = node.childCount
+        for (i in 0 until count) {
+            val child = node.getChild(i)
+            if (child != null) {
+                if (recursiveCheckForTile(child, keywords)) {
+                    child.recycle()
+                    return true
+                }
+                child.recycle()
+            }
+        }
+        return false
+    }
+
+    // --- 以下、既存メソッド ---
+
     private fun isSettingsTopScreen(rootNode: AccessibilityNodeInfo): Boolean {
         val windows = this.windows
         for (window in windows) {
@@ -221,7 +232,6 @@ class AppLockAccessibilityService : AccessibilityService() {
                 }
             }
         }
-
         for (keyword in settingsHomeKeywords) {
             val nodes = rootNode.findAccessibilityNodeInfosByText(keyword)
             if (!nodes.isNullOrEmpty()) {
@@ -240,9 +250,6 @@ class AppLockAccessibilityService : AccessibilityService() {
         return false
     }
 
-    /**
-     * タイトル判定ロジック
-     */
     private fun findAndValidateTitle(rootNode: AccessibilityNodeInfo, keywords: List<String>): Boolean {
         for (keyword in keywords) {
             val nodes = rootNode.findAccessibilityNodeInfosByText(keyword)
@@ -250,22 +257,9 @@ class AppLockAccessibilityService : AccessibilityService() {
                 try {
                     for (node in nodes) {
                         if (node == null) continue
-
-                        // Headingなら確定
-                        if (Build.VERSION.SDK_INT >= 28 && node.isHeading) {
-                            return true
-                        }
-
-                        // Summaryがあるならメニュー項目なので除外
-                        if (hasSiblingSummary(node)) {
-                            continue
-                        }
-                        // クリック可能ならメニュー項目なので除外
-                        if (node.isClickable || isAnyParentClickable(node)) {
-                            continue
-                        }
-
-                        // 条件をクリアしたテキストのみタイトルとみなす
+                        if (Build.VERSION.SDK_INT >= 28 && node.isHeading) return true
+                        if (hasSiblingSummary(node)) continue
+                        if (node.isClickable || isAnyParentClickable(node)) continue
                         return true
                     }
                 } finally {
@@ -313,17 +307,6 @@ class AppLockAccessibilityService : AccessibilityService() {
             current.recycle()
             current = parent
             depth++
-        }
-        return false
-    }
-
-    private fun containsAnyKeyword(node: AccessibilityNodeInfo, keywords: List<String>): Boolean {
-        for (keyword in keywords) {
-            val list = node.findAccessibilityNodeInfosByText(keyword)
-            if (!list.isNullOrEmpty()) {
-                list.forEach { it.recycle() }
-                return true
-            }
         }
         return false
     }
