@@ -132,6 +132,7 @@
     <string name="admin_accessibility_lock_desc">ONにすると、子供がアクセシビリティ設定画面を開くことをブロックします。</string>
     <string name="admin_tethering_lock_title">テザリング設定をロック</string>
     <string name="admin_tethering_lock_desc">ONにすると、子供がテザリングとアクセスポイントの設定画面を開くことをブロックします。</string>
+    <string name="restricted_access_icon_desc">Restricted Access Icon</string>
 
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->

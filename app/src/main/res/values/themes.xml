@@ -16,6 +16,15 @@
         <item name="android:windowBackground">@color/md_surface</item>
     </style>
 
+    <style name="Theme.App.Transparent" parent="Theme.StudyLockApp">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
     <style name="Widget.App.Spinner" parent="Widget.AppCompat.Spinner.Underlined">
         <item name="android:tint">#111827</item>
         <item name="android:backgroundTint">#111827</item>
