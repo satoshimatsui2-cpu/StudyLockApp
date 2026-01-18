@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.studylockapp" />
+                  <option name="mobileSdkAppId" value="1:99687699166:android:541019647c98c3f6aca84f" />
+                  <option name="projectId" value="eigo-for-slacker" />
+                  <option name="projectNumber" value="99687699166" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -1,6 +1,5 @@
 package com.example.studylockapp
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -11,7 +10,6 @@ import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -34,6 +32,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+// ▼▼▼ 追加: 必要なインポート ▼▼▼
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 
 class AdminSettingsActivity : AppCompatActivity() {
 
@@ -51,6 +56,17 @@ class AdminSettingsActivity : AppCompatActivity() {
     private val dialogTextColor: Int = Color.WHITE
     private val dialogHintColor: Int = Color.LTGRAY
 
+    // ▼▼▼ 追加: QRコードスキャナーの登録 ▼▼▼
+    private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
+        if (result.contents == null) {
+            Toast.makeText(this, "スキャンをキャンセルしました", Toast.LENGTH_SHORT).show()
+        } else {
+            // 読み取り成功！サーバーへの登録処理を開始
+            val childUid = result.contents
+            registerAsParent(childUid)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_settings)
@@ -62,6 +78,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         // Check if launched via long press
         if (intent.getBooleanExtra("isLongPressRoute", false)) {
             isAuthenticated = true
+
         }
 
         setupAdminSecurityViews()
@@ -69,11 +86,21 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         // アコーディオンのセットアップを呼び出す
         setupAccordions()
+
+        // ▼▼▼ 追加: 親用読み取りボタンの設定 ▼▼▼
+        findViewById<MaterialButton>(R.id.button_scan_parent_qr)?.setOnClickListener {
+            // スキャナーの設定と起動
+            val options = ScanOptions()
+            options.setPrompt("枠内にお子様のQRコードを写してください")
+            options.setBeepEnabled(false)
+            options.setOrientationLocked(true)
+            options.setCaptureActivity(CaptureActivityPortrait::class.java) // 縦画面固定
+            barcodeLauncher.launch(options)
+        }
     }
 
     private fun setupAccordions() {
         // ヘッダーID、コンテンツID、矢印ID のセットを定義
-        // 最初の「学習グレード」は削除したのでリストからも外す
         val groups = listOf(
             Triple(R.id.header_study_points, R.id.content_study_points, R.id.arrow_study_points),
             Triple(R.id.header_test_points, R.id.content_test_points, R.id.arrow_test_points),
@@ -565,4 +592,56 @@ class AdminSettingsActivity : AppCompatActivity() {
     private fun showToast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
+
+    // ▼▼▼ 追加: 子供の親として自分を登録する処理 ▼▼▼
+    private fun registerAsParent(childUid: String) {
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+
+        if (user == null) {
+            // 未ログインなら匿名ログインしてから登録
+            auth.signInAnonymously().addOnSuccessListener {
+                registerTokenToFirestore(childUid, it.user!!.uid)
+            }.addOnFailureListener {
+                Toast.makeText(this, "認証エラー: ${it.message}", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            // ログイン済みならそのまま登録
+            registerTokenToFirestore(childUid, user.uid)
+        }
+    }
+
+    private fun registerTokenToFirestore(childUid: String, myUid: String) {
+        // 通知用トークンを取得
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Toast.makeText(this, "トークン取得失敗", Toast.LENGTH_SHORT).show()
+                return@addOnCompleteListener
+            }
+
+            val token = task.result
+            val db = FirebaseFirestore.getInstance()
+
+            // 書き込むデータ
+            val parentData = hashMapOf(
+                "fcmToken" to token,
+                "role" to "parent",
+                "registeredAt" to FieldValue.serverTimestamp()
+            )
+
+            // users/{childUid}/parents/{myUid} に書き込む
+            db.collection("users").document(childUid)
+                .collection("parents").document(myUid)
+                .set(parentData)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "ペアリング完了！\n通知が届くようになりました。", Toast.LENGTH_LONG).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "登録失敗: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+        }
+    }
 }
+
+// ▼▼▼ 追加: 縦画面固定用のクラス ▼▼▼
+class CaptureActivityPortrait : com.journeyapps.barcodescanner.CaptureActivity()

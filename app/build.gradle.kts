@@ -83,14 +83,20 @@ dependencies {
     // ZXing for QR Code
     implementation("com.google.zxing:core:3.5.2")
 
-    // ▼▼▼ 追加: WorkManager (定期実行用) ▼▼▼
+    //WorkManager (定期実行用) ▼▼▼
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    // ▼▼▼ 追加: Firebase (Functions, Auth, Firestore) ▼▼▼
+    //Firebase (Functions, Auth, Firestore) ▼▼▼
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-functions")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+
+    //QRコード読み取り画面 (ZXing Embedded)
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    //通知受け取り (Firebase Messaging)
+    implementation("com.google.firebase:firebase-messaging")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

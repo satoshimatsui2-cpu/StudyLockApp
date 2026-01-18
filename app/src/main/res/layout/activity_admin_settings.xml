@@ -93,6 +93,14 @@
                 android:text="ペアリング用QR表示"
                 android:layout_marginBottom="8dp"/>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_scan_parent_qr"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="【保護者用】子供のQRを読み取る"
+                android:layout_marginBottom="24dp"/>
+
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
