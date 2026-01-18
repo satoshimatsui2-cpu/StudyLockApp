@@ -75,6 +75,10 @@
             android:name=".WordListActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.QrCodeActivity"
+            android:exported="false" />
+
         <!-- ブロック画面（ロック対象アプリを前面にした時に出す） -->
         <activity
             android:name=".ui.applock.AppLockBlockActivity"

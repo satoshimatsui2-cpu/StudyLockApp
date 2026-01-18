@@ -84,6 +84,15 @@
                 android:layout_height="wrap_content"
                 android:text="@string/admin_select_lock_apps"
                 android:layout_marginBottom="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_show_qr"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ペアリング用QR表示"
+                android:layout_marginBottom="8dp"/>
+
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -325,8 +334,7 @@
                         <ImageView
                             android:id="@+id/arrow_test_points"
                             android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@android:drawable/arrow_down_float"
+                            android:layout_height="24dp"                            android:src="@android:drawable/arrow_down_float"
                             app:tint="@android:color/white" />
                     </LinearLayout>
 

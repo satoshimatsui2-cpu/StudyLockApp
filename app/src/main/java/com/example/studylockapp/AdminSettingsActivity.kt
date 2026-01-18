@@ -24,6 +24,7 @@ import com.example.studylockapp.data.AdminAuthManager
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.service.AccessibilityUtils
 import com.example.studylockapp.service.AppLockAccessibilityService
+import com.example.studylockapp.ui.QrCodeActivity
 import com.example.studylockapp.ui.applock.AppLockSettingsActivity
 import com.example.studylockapp.ui.setup.AuthenticatorSetupActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
@@ -239,6 +240,9 @@ class AdminSettingsActivity : AppCompatActivity() {
         // アプリロック設定へ
         findViewById<MaterialButton>(R.id.button_app_lock_settings)?.setOnClickListener {
             startActivity(Intent(this, AppLockSettingsActivity::class.java))
+        }
+        findViewById<MaterialButton>(R.id.button_show_qr)?.setOnClickListener {
+            startActivity(Intent(this, QrCodeActivity::class.java))
         }
 
         // SeekBar Max設定
