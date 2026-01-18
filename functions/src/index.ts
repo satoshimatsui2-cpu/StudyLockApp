@@ -110,3 +110,63 @@ export const sendDailyReport = onCall(async (request) => {
     cleanupCount: cleanupPromises.length,
   };
 });
+// ▼▼▼ 追記: セキュリティ警告機能 ▼▼▼
+
+interface AlertData {
+  alertType: string;
+  timestamp: string;
+}
+
+export const sendSecurityAlert = onCall(async (request) => {
+  // 1. 認証チェック
+  if (!request.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "The function must be called while authenticated."
+    );
+  }
+
+  const uid = request.auth.uid;
+  const alert = request.data as AlertData;
+
+  // 2. 親ユーザーのトークンを取得
+  const parentsRef = db.collection("users").doc(uid).collection("parents");
+  const parentsSnapshot = await parentsRef.get();
+
+  if (parentsSnapshot.empty) {
+    logger.info(`No parents found for user ${uid}.`);
+    return { success: true, message: "No parents to notify." };
+  }
+
+  const messages: admin.messaging.Message[] = [];
+
+  parentsSnapshot.forEach((doc) => {
+    const parentData = doc.data();
+    if (parentData.fcmToken) {
+      messages.push({
+        token: parentData.fcmToken,
+        notification: {
+          title: "⚠️ 緊急セキュリティ警告",
+          body: "お子様の端末でアクセシビリティ設定（ロック権限）が無効化されました。設定を確認してください。",
+        },
+        data: {
+          type: "security_alert",
+          alertType: alert.alertType,
+          childUid: uid,
+          timestamp: alert.timestamp || new Date().toISOString(),
+        },
+        android: {
+          priority: "high", // 即時通知
+        },
+      });
+    }
+  });
+
+  if (messages.length === 0) return { success: true };
+
+  // 3. 送信
+  await Promise.all(messages.map((msg) => admin.messaging().send(msg)));
+
+  return { success: true, count: messages.length };
+});
+

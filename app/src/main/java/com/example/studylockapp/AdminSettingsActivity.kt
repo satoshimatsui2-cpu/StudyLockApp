@@ -32,7 +32,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-// ▼▼▼ 追加: 必要なインポート ▼▼▼
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -46,17 +45,20 @@ class AdminSettingsActivity : AppCompatActivity() {
     private var isAuthenticated: Boolean = false
     private lateinit var scrollView: ScrollView
 
+    // ▼▼▼ 追加: 接続状態表示用 ▼▼▼
+    private lateinit var textManager: TextView
+    private lateinit var textTarget: TextView
+
     // スイッチ用（濃い目）
     private val switchTextColor by lazy {
         MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
     }
 
-    // ダイアログ入力用：タイトルも入力文字も白固定、ヒントは薄いグレー
     private val dialogTitleColor: Int = Color.WHITE
     private val dialogTextColor: Int = Color.WHITE
     private val dialogHintColor: Int = Color.LTGRAY
 
-    // ▼▼▼ 追加: QRコードスキャナーの登録 ▼▼▼
+    // QRコードスキャナーの登録
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result.contents == null) {
             Toast.makeText(this, "スキャンをキャンセルしました", Toast.LENGTH_SHORT).show()
@@ -73,21 +75,22 @@ class AdminSettingsActivity : AppCompatActivity() {
         settings = AppSettings(this)
         scrollView = findViewById(R.id.scroll_admin)
 
+        // ▼▼▼ 追加: 表示用TextViewの取得 ▼▼▼
+        textManager = findViewById(R.id.text_connected_manager)
+        textTarget = findViewById(R.id.text_managed_target)
+
         isAuthenticated = savedInstanceState?.getBoolean("authenticated", false) ?: false
 
         // Check if launched via long press
         if (intent.getBooleanExtra("isLongPressRoute", false)) {
             isAuthenticated = true
-
         }
 
         setupAdminSecurityViews()
         setupExistingControls()
-
-        // アコーディオンのセットアップを呼び出す
         setupAccordions()
 
-        // ▼▼▼ 追加: 親用読み取りボタンの設定 ▼▼▼
+        // 親用読み取りボタンの設定
         findViewById<MaterialButton>(R.id.button_scan_parent_qr)?.setOnClickListener {
             // スキャナーの設定と起動
             val options = ScanOptions()
@@ -100,7 +103,6 @@ class AdminSettingsActivity : AppCompatActivity() {
     }
 
     private fun setupAccordions() {
-        // ヘッダーID、コンテンツID、矢印ID のセットを定義
         val groups = listOf(
             Triple(R.id.header_study_points, R.id.content_study_points, R.id.arrow_study_points),
             Triple(R.id.header_test_points, R.id.content_test_points, R.id.arrow_test_points),
@@ -113,21 +115,18 @@ class AdminSettingsActivity : AppCompatActivity() {
             val content = findViewById<View>(contentId)
             val arrow = findViewById<View>(arrowId)
 
-            // 初期状態に合わせて矢印をセット
             if (content.visibility == View.VISIBLE) {
-                arrow.rotation = 180f // 開いているときは上向き
+                arrow.rotation = 180f
             } else {
-                arrow.rotation = 0f   // 閉じているときは下向き
+                arrow.rotation = 0f
             }
 
             header.setOnClickListener {
                 val isVisible = content.visibility == View.VISIBLE
                 if (isVisible) {
-                    // 閉じる
                     content.visibility = View.GONE
                     arrow.animate().rotation(0f).setDuration(200).start()
                 } else {
-                    // 開く
                     content.visibility = View.VISIBLE
                     arrow.animate().rotation(180f).setDuration(200).start()
                 }
@@ -138,6 +137,54 @@ class AdminSettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ensureAuthenticatedOrFinish()
+        // ▼▼▼ 追加: 画面に戻るたびに接続状態を更新 ▼▼▼
+        updateConnectionStatus()
+    }
+
+    // ▼▼▼ 追加: 接続状態の表示更新ロジック ▼▼▼
+    private fun updateConnectionStatus() {
+        // TextViewが見つからない場合（XML修正漏れなど）のエラー回避
+        if (!::textManager.isInitialized || !::textTarget.isInitialized) return
+
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            textManager.text = "管理者: 未ログイン"
+            textTarget.text = "管理対象: 未ログイン"
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val myUid = user.uid
+
+        // 1. 私は誰に管理されている？ (users/{me}/parents)
+        db.collection("users").document(myUid).collection("parents").get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot == null || snapshot.isEmpty) {
+                    textManager.text = "管理者: なし"
+                } else {
+                    val count = snapshot.size()
+                    val parentIds = snapshot.documents.joinToString(", ") { it.id.take(4) + "..." }
+                    textManager.text = "管理者: 接続済み ($count)\nID: $parentIds"
+                }
+            }
+            .addOnFailureListener {
+                textManager.text = "管理者: 取得エラー"
+            }
+
+        // 2. 私は誰を管理している？ (users/{me}/children)
+        db.collection("users").document(myUid).collection("children").get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot == null || snapshot.isEmpty) {
+                    textTarget.text = "管理対象: なし"
+                } else {
+                    val count = snapshot.size()
+                    val childIds = snapshot.documents.joinToString(", ") { it.id.take(4) + "..." }
+                    textTarget.text = "管理対象: 接続済み ($count)\nID: $childIds"
+                }
+            }
+            .addOnFailureListener {
+                textTarget.text = "管理対象: 取得エラー"
+            }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -145,22 +192,16 @@ class AdminSettingsActivity : AppCompatActivity() {
         outState.putBoolean("authenticated", isAuthenticated)
     }
 
-    /**
-     * 管理者画面ロックがONなら毎回PINを要求。失敗/キャンセルでActivity終了。
-     */
     private fun ensureAuthenticatedOrFinish() {
         if (!AdminAuthManager.isAdminLockEnabled(this)) {
-            // ロックされていない場合はコンテンツを表示
             scrollView.visibility = View.VISIBLE
             return
         }
         if (isAuthenticated) {
-            // 認証済みの場合も表示
             scrollView.visibility = View.VISIBLE
             return
         }
 
-        // ロック有効かつ未認証の場合、コンテンツを隠す
         scrollView.visibility = View.INVISIBLE
 
         promptPinAndDo(
@@ -168,7 +209,6 @@ class AdminSettingsActivity : AppCompatActivity() {
             onSuccess = {
                 isAuthenticated = true
                 showToast(getString(R.string.admin_pin_ok))
-                // 認証成功で表示
                 scrollView.visibility = View.VISIBLE
             },
             onFailure = { finish() },
@@ -176,40 +216,30 @@ class AdminSettingsActivity : AppCompatActivity() {
         )
     }
 
-    /**
-     * 既存のシークバー等の設定UI
-     */
     private fun setupExistingControls() {
         // --- Grade Setup ---
         val spinnerCurrentGrade = findViewById<Spinner>(R.id.spinner_current_learning_grade)
-
         val grades = arrayOf("1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
-
-        // ★修正: アダプター内で文字色を「黒」に強制する
         val gradeAdapter = object : ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, grades) {
-            // 選択された項目の表示（閉じている時）
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getView(position, convertView, parent) as TextView
                 view.setTextColor(Color.BLACK)
                 return view
             }
-            // ドロップダウンリストの表示（開いている時）
             override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getDropDownView(position, convertView, parent) as TextView
                 view.setTextColor(Color.BLACK)
-                view.setBackgroundColor(Color.WHITE) // 背景も白に強制
+                view.setBackgroundColor(Color.WHITE)
                 return view
             }
         }
         gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
         spinnerCurrentGrade.adapter = gradeAdapter
 
         val currentGradePosition = grades.indexOf(settings.currentLearningGrade)
         spinnerCurrentGrade.setSelection(if (currentGradePosition != -1) currentGradePosition else 0)
 
-
-        // --- ポイント設定用SeekBarのセットアップ ---
+        // --- Point SeekBars ---
         val modes = mapOf(
             "meaning" to (findViewById<TextView>(R.id.text_point_meaning) to findViewById<SeekBar>(R.id.seek_point_meaning)),
             "listening" to (findViewById<TextView>(R.id.text_point_listening) to findViewById<SeekBar>(R.id.seek_point_listening)),
@@ -229,10 +259,9 @@ class AdminSettingsActivity : AppCompatActivity() {
         modes.forEach { (mode, views) ->
             val (textView, seekBar) = views
             if (textView != null && seekBar != null) {
-                seekBar.max = 7 // 0-7, which corresponds to 4, 8, ..., 32
+                seekBar.max = 7
                 seekBar.progress = pointToProgress(settings.getBasePoint(mode))
                 textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(seekBar.progress)} pt"
-
                 seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                         textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(progress)} pt"
@@ -243,28 +272,19 @@ class AdminSettingsActivity : AppCompatActivity() {
             }
         }
 
-        // SeekBar / TextView 群
         val textInterval = findViewById<TextView>(R.id.text_interval)
         val seekInterval = findViewById<SeekBar>(R.id.seek_interval)
-
         val textWrongRetry = findViewById<TextView>(R.id.text_wrong_retry)
         val seekWrongRetry = findViewById<SeekBar>(R.id.seek_wrong_retry)
-
         val textLevel1Retry = findViewById<TextView>(R.id.text_level1_retry)
         val seekLevel1Retry = findViewById<SeekBar>(R.id.seek_level1_retry)
-
-        // 10pt あたり分数（SeekBar）
         val textUnlockMinPer10Pt = findViewById<TextView>(R.id.text_unlock_min_per_10pt_value)
         val seekUnlockMinPer10Pt = findViewById<SeekBar>(R.id.seek_unlock_min_per_10pt)
-
         val btnSave = findViewById<MaterialButton>(R.id.btn_save)
 
-        // タイムゾーン設定へ
         findViewById<MaterialButton>(R.id.button_open_timezone_setup)?.setOnClickListener {
             startActivity(Intent(this, TimeZoneSetupActivity::class.java))
         }
-
-        // アプリロック設定へ
         findViewById<MaterialButton>(R.id.button_app_lock_settings)?.setOnClickListener {
             startActivity(Intent(this, AppLockSettingsActivity::class.java))
         }
@@ -272,32 +292,17 @@ class AdminSettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, QrCodeActivity::class.java))
         }
 
-        // SeekBar Max設定
         seekInterval.max = 19
         seekWrongRetry.max = 118
         seekLevel1Retry.max = 118
 
-        // 回答間隔: 0.5秒単位 (500ms)
-        fun intervalMsToProgress(ms: Long): Int {
-            val clamped = ms.coerceIn(500L, 10_000L)
-            return ((clamped - 500L) / 500L).toInt()
-        }
-        fun progressToIntervalMs(progress: Int): Long =
-            500L + (progress.coerceIn(0, 19) * 500L)
-
-        // リトライ秒（10..600）: 5秒単位
-        fun secToProgress(sec: Long): Int {
-            val clamped = sec.coerceIn(10L, 600L)
-            return ((clamped - 10L) / 5L).toInt()
-        }
-        fun progressToSec(progress: Int): Long =
-            10L + (progress.coerceIn(0, 118) * 5L)
-
-        // 10ptあたり分数（1..10）: progress 0..9 → 値 1..10
+        fun intervalMsToProgress(ms: Long): Int = ((ms.coerceIn(500L, 10_000L) - 500L) / 500L).toInt()
+        fun progressToIntervalMs(progress: Int): Long = 500L + (progress.coerceIn(0, 19) * 500L)
+        fun secToProgress(sec: Long): Int = ((sec.coerceIn(10L, 600L) - 10L) / 5L).toInt()
+        fun progressToSec(progress: Int): Long = 10L + (progress.coerceIn(0, 118) * 5L)
         fun minPer10PtToProgress(value: Int): Int = value.coerceIn(1, 10) - 1
         fun progressToMinPer10Pt(progress: Int): Int = progress.coerceIn(0, 9) + 1
 
-        // 初期値反映
         seekInterval.progress = intervalMsToProgress(settings.answerIntervalMs)
         seekWrongRetry.progress = secToProgress(settings.wrongRetrySec)
         seekLevel1Retry.progress = secToProgress(settings.level1RetrySec)
@@ -306,66 +311,40 @@ class AdminSettingsActivity : AppCompatActivity() {
         fun refreshLabels() {
             val sec = progressToIntervalMs(seekInterval.progress) / 1000f
             textInterval.text = getString(R.string.admin_label_interval_sec, sec)
-
-            textWrongRetry.text =
-                getString(R.string.admin_label_wrong_retry_sec, progressToSec(seekWrongRetry.progress))
-            textLevel1Retry.text =
-                getString(R.string.admin_label_level1_retry_sec, progressToSec(seekLevel1Retry.progress))
-
-            textUnlockMinPer10Pt.text = getString(
-                R.string.admin_label_unlock_min_per_10pt_value,
-                progressToMinPer10Pt(seekUnlockMinPer10Pt.progress)
-            )
+            textWrongRetry.text = getString(R.string.admin_label_wrong_retry_sec, progressToSec(seekWrongRetry.progress))
+            textLevel1Retry.text = getString(R.string.admin_label_level1_retry_sec, progressToSec(seekLevel1Retry.progress))
+            textUnlockMinPer10Pt.text = getString(R.string.admin_label_unlock_min_per_10pt_value, progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
         }
         refreshLabels()
 
         val commonListener = object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                refreshLabels()
-            }
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) { refreshLabels() }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         }
 
-        listOf(
-            seekInterval,
-            seekWrongRetry,
-            seekLevel1Retry,
-            seekUnlockMinPer10Pt
-        ).forEach { it.setOnSeekBarChangeListener(commonListener) }
+        listOf(seekInterval, seekWrongRetry, seekLevel1Retry, seekUnlockMinPer10Pt).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnSave.setOnClickListener {
-            // --- Grade Save ---
             val selectedGrade = spinnerCurrentGrade.selectedItem?.toString() ?: "1級"
             settings.currentLearningGrade = selectedGrade
-
-            // ★修正: 減点設定は固定値とする（UI削除のため）
             settings.pointReductionOneGradeDown = 50
             settings.pointReductionTwoGradesDown = 25
 
-            // --- ポイント設定の保存 ---
             modes.forEach { (mode, views) ->
                 val (_, seekBar) = views
-                if (seekBar != null) {
-                    settings.setBasePoint(mode, progressToPoint(seekBar.progress))
-                }
+                if (seekBar != null) settings.setBasePoint(mode, progressToPoint(seekBar.progress))
             }
 
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
-
-            val minPer10Pt = progressToMinPer10Pt(seekUnlockMinPer10Pt.progress)
-            settings.setUnlockMinutesPer10Pt(minPer10Pt)
-
+            settings.setUnlockMinutesPer10Pt(progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
             AdAudioManager.apply(settings)
             finish()
         }
     }
 
-    /**
-     * 管理者ロック／アプリロック必須／PIN変更 のUI初期化
-     */
     private fun setupAdminSecurityViews() {
         val switchAdminLock = findViewById<SwitchMaterial>(R.id.switch_admin_lock) ?: return
         val switchAppLockRequired = findViewById<SwitchMaterial>(R.id.switch_app_lock_required)
@@ -374,10 +353,8 @@ class AdminSettingsActivity : AppCompatActivity() {
         val buttonSetupAuthenticator = findViewById<MaterialButton>(R.id.button_setup_authenticator)
         val switchAccessibilityLock = findViewById<SwitchMaterial>(R.id.switch_accessibility_lock)
         val switchTetheringLock = findViewById<SwitchMaterial>(R.id.switch_tethering_lock)
-        // アプリ削除ロック（nullableで取得）
         val switchUninstallLock = findViewById<SwitchMaterial>(R.id.switch_uninstall_lock)
 
-        // スイッチ文字色を濃く
         switchAdminLock.setTextColor(switchTextColor)
         switchAppLockRequired?.setTextColor(switchTextColor)
         switchEnableLongPress.setTextColor(switchTextColor)
@@ -390,20 +367,15 @@ class AdminSettingsActivity : AppCompatActivity() {
         switchEnableLongPress.isChecked = settings.isEnableAdminLongPress()
         switchAccessibilityLock?.isChecked = PrefsManager.isAccessibilityLockEnabled(this)
         switchTetheringLock?.isChecked = PrefsManager.isTetheringLockEnabled(this)
-
-        // 設定読み込み（Switchがnullでない場合のみ）
         switchUninstallLock?.isChecked = settings.isUninstallLockEnabled()
 
-        // 管理者画面ロック ON/OFF
         switchAdminLock.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 if (!AdminAuthManager.isPinSet(this)) {
                     promptSetNewPin(onSuccess = {
                         AdminAuthManager.setAdminLockEnabled(this, true)
                         showToast(getString(R.string.admin_lock_enabled))
-                    }, onCancel = {
-                        switchAdminLock.isChecked = false
-                    })
+                    }, onCancel = { switchAdminLock.isChecked = false })
                 } else {
                     AdminAuthManager.setAdminLockEnabled(this, true)
                     showToast(getString(R.string.admin_lock_enabled))
@@ -424,13 +396,9 @@ class AdminSettingsActivity : AppCompatActivity() {
             }
         }
 
-        // アプリロック必須
         switchAppLockRequired?.setOnCheckedChangeListener { _, isChecked ->
             AdminAuthManager.setAppLockRequired(this, isChecked)
-            if (isChecked) {
-                // 必須ONと同時にアプリロック自体も有効化
-                settings.setAppLockEnabled(true)
-            }
+            if (isChecked) settings.setAppLockEnabled(true)
             if (isChecked && !AccessibilityUtils.isServiceEnabled(this, AppLockAccessibilityService::class.java)) {
                 startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                 showToast(getString(R.string.admin_app_lock_required_on))
@@ -439,27 +407,11 @@ class AdminSettingsActivity : AppCompatActivity() {
             }
         }
 
-        // タイトル長押しで管理画面を開く
-        switchEnableLongPress.setOnCheckedChangeListener { _, isChecked ->
-            settings.setEnableAdminLongPress(isChecked)
-        }
+        switchEnableLongPress.setOnCheckedChangeListener { _, isChecked -> settings.setEnableAdminLongPress(isChecked) }
+        switchAccessibilityLock?.setOnCheckedChangeListener { _, isChecked -> PrefsManager.setAccessibilityLockEnabled(this, isChecked) }
+        switchTetheringLock?.setOnCheckedChangeListener { _, isChecked -> PrefsManager.setTetheringLockEnabled(this, isChecked) }
+        switchUninstallLock?.setOnCheckedChangeListener { _, isChecked -> settings.setUninstallLockEnabled(isChecked) }
 
-        // アクセシビリティ設定画面ロック
-        switchAccessibilityLock?.setOnCheckedChangeListener { _, isChecked ->
-            PrefsManager.setAccessibilityLockEnabled(this, isChecked)
-        }
-
-        // テザリング設定画面ロック
-        switchTetheringLock?.setOnCheckedChangeListener { _, isChecked ->
-            PrefsManager.setTetheringLockEnabled(this, isChecked)
-        }
-
-        // アプリ削除ロック
-        switchUninstallLock?.setOnCheckedChangeListener { _, isChecked ->
-            settings.setUninstallLockEnabled(isChecked)
-        }
-
-        // PIN変更
         buttonChangePin.setOnClickListener {
             promptPinAndDo(
                 title = getString(R.string.admin_enter_pin_title),
@@ -467,20 +419,10 @@ class AdminSettingsActivity : AppCompatActivity() {
                 onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }
             )
         }
-
-        // Authenticator設定
-        buttonSetupAuthenticator?.setOnClickListener {
-            startActivity(Intent(this, AuthenticatorSetupActivity::class.java))
-        }
+        buttonSetupAuthenticator?.setOnClickListener { startActivity(Intent(this, AuthenticatorSetupActivity::class.java)) }
     }
 
-    /** PIN入力ダイアログ */
-    private fun promptPinAndDo(
-        title: String,
-        onSuccess: () -> Unit,
-        onFailure: (() -> Unit)? = null,
-        onCancel: (() -> Unit)? = null
-    ) {
+    private fun promptPinAndDo(title: String, onSuccess: () -> Unit, onFailure: (() -> Unit)? = null, onCancel: (() -> Unit)? = null) {
         val inputLayout = TextInputLayout(this).apply {
             hint = getString(R.string.admin_enter_pin_hint)
             endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
@@ -497,42 +439,30 @@ class AdminSettingsActivity : AppCompatActivity() {
             .setView(inputLayout)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val pin = edit.text?.toString().orEmpty()
-                if (AdminAuthManager.verifyPin(this, pin)) {
-                    onSuccess()
-                } else {
-                    onFailure?.invoke()
-                }
+                if (AdminAuthManager.verifyPin(this, pin)) onSuccess() else onFailure?.invoke()
             }
             .setNegativeButton(R.string.cancel) { _, _ -> onCancel?.invoke() }
             .setOnCancelListener { onCancel?.invoke() }
 
-        // PINを忘れた場合（Authenticator設定済みの場合のみ表示）
         if (AdminAuthManager.isTotpSet(this)) {
-            dialog.setNeutralButton(R.string.admin_forgot_pin) { _, _ ->
-                promptTotpAndResetPin(onSuccess)
-            }
+            dialog.setNeutralButton(R.string.admin_forgot_pin) { _, _ -> promptTotpAndResetPin(onSuccess) }
         }
-
         dialog.show()
     }
 
     private fun promptTotpAndResetPin(onSuccess: () -> Unit) {
-        val inputLayout = TextInputLayout(this).apply {
-            hint = getString(R.string.totp_verify_hint)
-        }
+        val inputLayout = TextInputLayout(this).apply { hint = getString(R.string.totp_verify_hint) }
         val edit = TextInputEditText(inputLayout.context).apply {
             inputType = InputType.TYPE_CLASS_NUMBER
             setTextColor(dialogTextColor)
             setHintTextColor(dialogHintColor)
         }
         inputLayout.addView(edit)
-
         MaterialAlertDialogBuilder(this)
             .setTitle(coloredTitle(getString(R.string.totp_enter_code_title)))
             .setView(inputLayout)
             .setPositiveButton(R.string.ok) { _, _ ->
-                val code = edit.text?.toString().orEmpty()
-                if (AdminAuthManager.verifyTotp(this, code)) {
+                if (AdminAuthManager.verifyTotp(this, edit.text?.toString().orEmpty())) {
                     showToast(getString(R.string.totp_reset_pin_success))
                     promptSetNewPin(onSuccess)
                 } else {
@@ -544,19 +474,11 @@ class AdminSettingsActivity : AppCompatActivity() {
             .show()
     }
 
-    /** 新しいPIN設定（確認入力あり） */
-    private fun promptSetNewPin(
-        onSuccess: (() -> Unit)? = null,
-        onCancel: (() -> Unit)? = null
-    ) {
+    private fun promptSetNewPin(onSuccess: (() -> Unit)? = null, onCancel: (() -> Unit)? = null) {
         val inflater = LayoutInflater.from(this)
         val view = inflater.inflate(R.layout.dialog_set_new_pin, null)
-        val input1 = view.findViewById<TextInputEditText>(R.id.edit_new_pin).apply {
-            setTextColor(dialogTextColor); setHintTextColor(dialogHintColor)
-        }
-        val input2 = view.findViewById<TextInputEditText>(R.id.edit_new_pin_confirm).apply {
-            setTextColor(dialogTextColor); setHintTextColor(dialogHintColor)
-        }
+        val input1 = view.findViewById<TextInputEditText>(R.id.edit_new_pin).apply { setTextColor(dialogTextColor); setHintTextColor(dialogHintColor) }
+        val input2 = view.findViewById<TextInputEditText>(R.id.edit_new_pin_confirm).apply { setTextColor(dialogTextColor); setHintTextColor(dialogHintColor) }
 
         MaterialAlertDialogBuilder(this)
             .setTitle(coloredTitle(getString(R.string.admin_set_new_pin_title)))
@@ -564,16 +486,8 @@ class AdminSettingsActivity : AppCompatActivity() {
             .setPositiveButton(R.string.ok) { _, _ ->
                 val p1 = input1.text?.toString().orEmpty()
                 val p2 = input2.text?.toString().orEmpty()
-                if (p1.length < 4) {
-                    showToast(getString(R.string.admin_pin_length_error))
-                    onCancel?.invoke()
-                    return@setPositiveButton
-                }
-                if (p1 != p2) {
-                    showToast(getString(R.string.admin_pin_mismatch))
-                    onCancel?.invoke()
-                    return@setPositiveButton
-                }
+                if (p1.length < 4) { showToast(getString(R.string.admin_pin_length_error)); onCancel?.invoke(); return@setPositiveButton }
+                if (p1 != p2) { showToast(getString(R.string.admin_pin_mismatch)); onCancel?.invoke(); return@setPositiveButton }
                 AdminAuthManager.setPin(this, p1)
                 onSuccess?.invoke()
             }
@@ -582,59 +496,62 @@ class AdminSettingsActivity : AppCompatActivity() {
             .show()
     }
 
-    /** タイトルを明るい色で表示 */
     private fun coloredTitle(text: String): CharSequence {
         val s = SpannableString(text)
         s.setSpan(ForegroundColorSpan(dialogTitleColor), 0, s.length, 0)
         return s
     }
 
-    private fun showToast(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-    }
+    private fun showToast(msg: String) { Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
 
-    // ▼▼▼ 追加: 子供の親として自分を登録する処理 ▼▼▼
     private fun registerAsParent(childUid: String) {
         val auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
 
         if (user == null) {
-            // 未ログインなら匿名ログインしてから登録
             auth.signInAnonymously().addOnSuccessListener {
                 registerTokenToFirestore(childUid, it.user!!.uid)
             }.addOnFailureListener {
                 Toast.makeText(this, "認証エラー: ${it.message}", Toast.LENGTH_LONG).show()
             }
         } else {
-            // ログイン済みならそのまま登録
             registerTokenToFirestore(childUid, user.uid)
         }
     }
 
+    // ▼▼▼ 修正: 親子双方にデータを書き込む ▼▼▼
     private fun registerTokenToFirestore(childUid: String, myUid: String) {
-        // 通知用トークンを取得
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Toast.makeText(this, "トークン取得失敗", Toast.LENGTH_SHORT).show()
-                return@addOnCompleteListener
-            }
+            if (!task.isSuccessful) return@addOnCompleteListener
 
             val token = task.result
             val db = FirebaseFirestore.getInstance()
+            val timestamp = FieldValue.serverTimestamp()
 
-            // 書き込むデータ
+            // 1. 子供のデータに「私のトークン」を登録 (通知用)
             val parentData = hashMapOf(
                 "fcmToken" to token,
                 "role" to "parent",
-                "registeredAt" to FieldValue.serverTimestamp()
+                "registeredAt" to timestamp
             )
-
-            // users/{childUid}/parents/{myUid} に書き込む
-            db.collection("users").document(childUid)
+            val task1 = db.collection("users").document(childUid)
                 .collection("parents").document(myUid)
                 .set(parentData)
+
+            // 2. 自分のデータに「管理している子供」を登録 (表示用)
+            val childData = hashMapOf(
+                "role" to "child",
+                "registeredAt" to timestamp
+            )
+            val task2 = db.collection("users").document(myUid)
+                .collection("children").document(childUid)
+                .set(childData)
+
+            // 両方完了したら成功
+            com.google.android.gms.tasks.Tasks.whenAll(task1, task2)
                 .addOnSuccessListener {
                     Toast.makeText(this, "ペアリング完了！\n通知が届くようになりました。", Toast.LENGTH_LONG).show()
+                    updateConnectionStatus() // 画面を即座に更新
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "登録失敗: ${e.message}", Toast.LENGTH_LONG).show()
@@ -643,5 +560,4 @@ class AdminSettingsActivity : AppCompatActivity() {
     }
 }
 
-// ▼▼▼ 追加: 縦画面固定用のクラス ▼▼▼
 class CaptureActivityPortrait : com.journeyapps.barcodescanner.CaptureActivity()

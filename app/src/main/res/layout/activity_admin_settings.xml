@@ -100,6 +100,23 @@
                 android:layout_height="wrap_content"
                 android:text="【保護者用】子供のQRを読み取る"
                 android:layout_marginBottom="24dp"/>
+            <TextView
+                android:id="@+id/text_connected_manager"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="管理者: 未接続"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+            <TextView
+                android:id="@+id/text_managed_target"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="32dp"
+                android:text="管理対象: なし"
+                android:textColor="#000000"
+                android:textSize="14sp" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

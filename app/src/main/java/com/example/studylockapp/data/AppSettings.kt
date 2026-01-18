@@ -54,6 +54,9 @@ class AppSettings(context: Context) {
         private const val KEY_POINT_REDUCTION_ONE_GRADE_DOWN = "point_reduction_one_grade_down"
         private const val KEY_POINT_REDUCTION_TWO_GRADES_DOWN = "point_reduction_two_grades_down"
 
+        // ▼▼▼ 追加: 親連携用ID ▼▼▼
+        private const val KEY_PARENT_UID = "parent_uid"
+
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -242,4 +245,24 @@ class AppSettings(context: Context) {
         get() = prefs.getInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, 25)
         set(value) = prefs.edit { putInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, value.coerceIn(0, 100)) }
 
+    // ▼▼▼ 追加: 親IDの読み書き（通知チェック用） ▼▼▼
+
+    // 親IDを保存する
+    fun setParentUid(uid: String?) {
+        if (uid == null) {
+            prefs.edit { remove(KEY_PARENT_UID) }
+        } else {
+            prefs.edit { putString(KEY_PARENT_UID, uid) }
+        }
+    }
+
+    // 親IDを持っているか判定 (これが true なら監視対象)
+    fun hasParent(): Boolean {
+        return prefs.contains(KEY_PARENT_UID)
+    }
+
+    // 必要ならIDを取り出す
+    fun getParentUid(): String? {
+        return prefs.getString(KEY_PARENT_UID, null)
+    }
 }
