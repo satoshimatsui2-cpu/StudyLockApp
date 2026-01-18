@@ -27,6 +27,7 @@ import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
+import com.example.studylockapp.worker.DailyReportWorker // ▼ 追加
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,6 +61,10 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContentView(R.layout.activity_main)
+
+        // ▼▼▼ 追加: 日次レポートWorkerのスケジュール登録 ▼▼▼
+        DailyReportWorker.schedule(this)
+        // ▲▲▲ 追加ここまで ▲▲▲
 
         gradeButton = findViewById(R.id.spinner_grade_top)
         buttonToLearning = findViewById(R.id.button_to_learning)

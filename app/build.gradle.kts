@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.compose")
+    // ▼ 追加: Firebaseの設定読み込みプラグイン
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -77,9 +79,18 @@ dependencies {
 
     // MPAndroidChart
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    
+
     // ZXing for QR Code
     implementation("com.google.zxing:core:3.5.2")
+
+    // ▼▼▼ 追加: WorkManager (定期実行用) ▼▼▼
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // ▼▼▼ 追加: Firebase (Functions, Auth, Firestore) ▼▼▼
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-functions")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
