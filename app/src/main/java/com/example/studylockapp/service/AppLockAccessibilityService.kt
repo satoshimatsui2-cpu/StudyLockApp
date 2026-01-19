@@ -20,6 +20,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.time.Instant
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.functions.FirebaseFunctions
+import java.util.Date
 
 class AppLockAccessibilityService : AccessibilityService() {
 
@@ -524,5 +527,31 @@ class AppLockAccessibilityService : AccessibilityService() {
         expiryRunnable?.let { expiryHandler.removeCallbacks(it) }
         serviceJob.cancel()
     }
+    // ▼▼▼ 追加 1: サービスが無効化された時（OFFにされた時）に呼ばれる ▼▼▼
+    override fun onUnbind(intent: Intent?): Boolean {
+        // 「無効化されました！」という警告を送る
+        sendSecurityAlertToFunctions("accessibility_disabled")
+        return super.onUnbind(intent)
+    }
 
+    // ▼▼▼ 追加 2: 通知を送信する実処理（東京サーバー指定） ▼▼▼
+    private fun sendSecurityAlertToFunctions(alertType: String) {
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser ?: return // ログインしてなければ送らない
+
+        // ★ここで東京リージョンを指定！
+        val functions = FirebaseFunctions.getInstance("asia-northeast1")
+
+        val data = hashMapOf(
+            "alertType" to alertType,
+            "uid" to user.uid, // ID手渡し
+            "timestamp" to java.util.Date().toString()
+        )
+
+        // 失敗しても画面には出さず、ログにだけ残す（バックグラウンド処理なので）
+        functions.getHttpsCallable("sendSecurityAlert").call(data)
+            .addOnFailureListener { e ->
+                android.util.Log.e("AppLock", "Security Alert Failed", e)
+            }
+    }
 }
