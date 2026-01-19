@@ -524,4 +524,5 @@ class AppLockAccessibilityService : AccessibilityService() {
         expiryRunnable?.let { expiryHandler.removeCallbacks(it) }
         serviceJob.cancel()
     }
+
 }

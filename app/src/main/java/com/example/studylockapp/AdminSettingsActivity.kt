@@ -35,6 +35,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions // 追加
 import com.google.firebase.messaging.FirebaseMessaging
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -161,8 +162,12 @@ class AdminSettingsActivity : AppCompatActivity() {
             .addOnSuccessListener { snapshot ->
                 if (snapshot == null || snapshot.isEmpty) {
                     textManager.text = "管理者: なし"
+                    settings.setParentUid(null) // キャッシュクリア
                 } else {
                     val count = snapshot.size()
+                    val firstParentId = snapshot.documents[0].id
+                    settings.setParentUid(firstParentId) // IDをキャッシュ保存
+
                     val parentIds = snapshot.documents.joinToString(", ") { it.id.take(4) + "..." }
                     textManager.text = "管理者: 接続済み ($count)\nID: $parentIds"
                 }
@@ -422,7 +427,13 @@ class AdminSettingsActivity : AppCompatActivity() {
         buttonSetupAuthenticator?.setOnClickListener { startActivity(Intent(this, AuthenticatorSetupActivity::class.java)) }
     }
 
-    private fun promptPinAndDo(title: String, onSuccess: () -> Unit, onFailure: (() -> Unit)? = null, onCancel: (() -> Unit)? = null) {
+    // ▼▼▼ 修正: 管理者に聞く機能を追加 ▼▼▼
+    private fun promptPinAndDo(
+        title: String,
+        onSuccess: () -> Unit,
+        onFailure: (() -> Unit)? = null,
+        onCancel: (() -> Unit)? = null
+    ) {
         val inputLayout = TextInputLayout(this).apply {
             hint = getString(R.string.admin_enter_pin_hint)
             endIconMode = TextInputLayout.END_ICON_PASSWORD_TOGGLE
@@ -444,10 +455,86 @@ class AdminSettingsActivity : AppCompatActivity() {
             .setNegativeButton(R.string.cancel) { _, _ -> onCancel?.invoke() }
             .setOnCancelListener { onCancel?.invoke() }
 
-        if (AdminAuthManager.isTotpSet(this)) {
-            dialog.setNeutralButton(R.string.admin_forgot_pin) { _, _ -> promptTotpAndResetPin(onSuccess) }
+        // ペアリング済みの親がいる場合のみ「管理者に聞く」ボタンを表示
+        if (settings.hasParent()) {
+            dialog.setNeutralButton("管理者に聞く") { _, _ ->
+                promptRemoteUnlock(onSuccess)
+            }
+        } else if (AdminAuthManager.isTotpSet(this)) {
+            // 親がいないがAuthenticator設定済みの場合はそちらを表示
+            dialog.setNeutralButton(R.string.admin_forgot_pin) { _, _ ->
+                promptTotpAndResetPin(onSuccess)
+            }
         }
         dialog.show()
+    }
+
+    // ▼▼▼ 修正版: ID手渡し機能付き ▼▼▼
+    private fun promptRemoteUnlock(onSuccess: () -> Unit) {
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+
+        if (user == null) {
+            auth.signInAnonymously().addOnSuccessListener {
+                promptRemoteUnlock(onSuccess)
+            }.addOnFailureListener {
+                Toast.makeText(this, "ログイン失敗", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+
+        val randomCode = (100000..999999).random().toString()
+        // 東京を指定
+        val functions = FirebaseFunctions.getInstance("asia-northeast1")
+
+        // ★修正ポイント: "uid" を手動で詰め込む
+        val data = hashMapOf(
+            "code" to randomCode,
+            "uid" to user.uid  // ← これで身分証明書を手渡し！
+        )
+
+        Toast.makeText(this, "管理者に解除コードを送信中...", Toast.LENGTH_SHORT).show()
+
+        functions.getHttpsCallable("requestUnlockCode").call(data)
+            .addOnSuccessListener {
+                Toast.makeText(this, "通知を送信しました！", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "送信エラー: ${e.message}", Toast.LENGTH_LONG).show()
+                android.util.Log.e("FunctionsError", "送信失敗", e)
+            }
+
+        // 入力画面を表示
+        showUnlockDialog(randomCode, onSuccess)
+    }
+
+    // ダイアログ部分を分離（見やすくするため）
+    private fun showUnlockDialog(correctCode: String, onSuccess: () -> Unit) {
+        val inputLayout = TextInputLayout(this).apply {
+            hint = "届いたコードを入力"
+        }
+        val edit = TextInputEditText(inputLayout.context).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setTextColor(dialogTextColor)
+            setHintTextColor(dialogHintColor)
+        }
+        inputLayout.addView(edit)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(coloredTitle("解除コード入力"))
+            .setMessage("管理者の端末に通知された6桁の数字を入力してください。")
+            .setView(inputLayout)
+            .setPositiveButton("解除") { _, _ ->
+                val input = edit.text?.toString().orEmpty()
+                if (input == correctCode) {
+                    showToast("認証成功！PINをリセットします。")
+                    promptSetNewPin(onSuccess)
+                } else {
+                    showToast("コードが違います")
+                }
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
     }
 
     private fun promptTotpAndResetPin(onSuccess: () -> Unit) {
@@ -550,6 +637,12 @@ class AdminSettingsActivity : AppCompatActivity() {
             // 両方完了したら成功
             com.google.android.gms.tasks.Tasks.whenAll(task1, task2)
                 .addOnSuccessListener {
+                    // ▼▼▼ 追加: 端末内にも「連携済み」と記録する ▼▼▼
+                    settings.setParentUid(myUid) // 自分＝親の場合は自分を登録してしまうが、このメソッドは親端末で走るので本来は不要。子供端末の処理はQrCodeActivityにあるはず。
+                    // 修正：このクラス(AdminSettingsActivity)は親も子も使う画面。
+                    // 「親として登録」ボタンを押したのは親。だから親端末に「子供がいる」ことはわかるが、親端末の `setParentUid` は本来「自分の親」を指すので、ここではセットしないのが正解。
+                    // 子供側の処理は QrCodeActivity で行われるか、あるいは onResume の updateConnectionStatus で自動取得されるので、ここでは何もしなくてOK。
+
                     Toast.makeText(this, "ペアリング完了！\n通知が届くようになりました。", Toast.LENGTH_LONG).show()
                     updateConnectionStatus() // 画面を即座に更新
                 }

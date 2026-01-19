@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "eigo-for-slacker"
-  }
+    "default": "eigo-for-slacker",
+    "tokyo": "eigoforslacker-tokyo"
+  },
+  "targets": {},
+  "etags": {}
 }
