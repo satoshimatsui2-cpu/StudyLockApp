@@ -527,31 +527,39 @@ class AppLockAccessibilityService : AccessibilityService() {
         expiryRunnable?.let { expiryHandler.removeCallbacks(it) }
         serviceJob.cancel()
     }
-    // ▼▼▼ 追加 1: サービスが無効化された時（OFFにされた時）に呼ばれる ▼▼▼
+    // ▼▼▼ デバッグログ付きに変更 ▼▼▼
     override fun onUnbind(intent: Intent?): Boolean {
-        // 「無効化されました！」という警告を送る
+        android.util.Log.d("AppLockDebug", "★onUnbind 呼ばれました！(OFF操作を検知)")
         sendSecurityAlertToFunctions("accessibility_disabled")
         return super.onUnbind(intent)
     }
 
-    // ▼▼▼ 追加 2: 通知を送信する実処理（東京サーバー指定） ▼▼▼
     private fun sendSecurityAlertToFunctions(alertType: String) {
         val auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser ?: return // ログインしてなければ送らない
+        val user = auth.currentUser
 
-        // ★ここで東京リージョンを指定！
+        // 原因1: ユーザーがいない？
+        if (user == null) {
+            android.util.Log.e("AppLockDebug", "★エラー: User is null。ログイン情報が取れませんでした。")
+            return
+        }
+
+        android.util.Log.d("AppLockDebug", "★送信開始: UID=${user.uid} へ警告を送ります...")
+
         val functions = FirebaseFunctions.getInstance("asia-northeast1")
-
         val data = hashMapOf(
             "alertType" to alertType,
-            "uid" to user.uid, // ID手渡し
+            "uid" to user.uid,
             "timestamp" to java.util.Date().toString()
         )
 
-        // 失敗しても画面には出さず、ログにだけ残す（バックグラウンド処理なので）
         functions.getHttpsCallable("sendSecurityAlert").call(data)
+            .addOnSuccessListener {
+                android.util.Log.d("AppLockDebug", "★送信成功！親に通知が届いたはずです")
+            }
             .addOnFailureListener { e ->
-                android.util.Log.e("AppLock", "Security Alert Failed", e)
+                // 原因2: 送信エラー？
+                android.util.Log.e("AppLockDebug", "★送信失敗...", e)
             }
     }
 }
