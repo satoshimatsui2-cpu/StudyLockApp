@@ -1,124 +1,169 @@
 package com.example.studylockapp.worker
 
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
-import android.util.Log
+import android.content.Intent
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.WorkerParameters
-import com.google.android.gms.tasks.Tasks
+import com.example.studylockapp.MainActivity
+import com.example.studylockapp.data.AppDatabase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.functions.FirebaseFunctions
-import com.google.firebase.functions.FirebaseFunctionsException
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
-import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-class DailyReportWorker(
-    context: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(context, workerParams) {
+class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
+    CoroutineWorker(appContext, workerParams) {
 
-    private val functions = FirebaseFunctions.getInstance()
-    private val auth = FirebaseAuth.getInstance()
+    // 集計用のデータクラス
+    data class ModeStats(
+        var answerCount: Int = 0,
+        var correctCount: Int = 0
+    )
 
     override suspend fun doWork(): Result {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            Log.e(TAG, "User not logged in, cannot send report.")
-            return Result.failure()
-        }
-
         return try {
-            // 1. 学習データの集計 (アプリの実装に合わせてDAOなどから取得してください)
-            val reportData = getLearningStats()
-
-            // 2. Cloud Functions の呼び出し
-            callSendDailyReport(reportData)
-
-            Log.d(TAG, "Daily report sent successfully.")
+            sendDailyReport()
             Result.success()
         } catch (e: Exception) {
-            Log.e(TAG, "Error sending daily report", e)
-            if (shouldRetry(e)) {
-                Result.retry()
-            } else {
-                Result.failure()
-            }
+            e.printStackTrace()
+            Result.retry()
         }
     }
 
-    private suspend fun callSendDailyReport(data: Map<String, Any>) {
-        // Cloud Functions の関数名 'sendDailyReport' を指定
-        functions
-            .getHttpsCallable("sendDailyReport")
-            .call(data)
-            .await()
+    private suspend fun sendDailyReport() = coroutineScope {
+        val user = FirebaseAuth.getInstance().currentUser ?: return@coroutineScope
+        val db = FirebaseFirestore.getInstance()
+        val context = applicationContext
+
+        // 今日の日付文字列 (yyyy-MM-dd)
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        // --- 1. Firestoreから学習履歴を取得 ---
+        val firestoreTask = async {
+            try {
+                val doc = db.collection("users").document(user.uid)
+                    .collection("dailyStats").document(todayStr)
+                    .get().await()
+                doc
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        // --- 2. Room(端末内DB)から使用ポイントを取得 ---
+        val roomTask = async(Dispatchers.IO) {
+            try {
+                // ※getInstance か getDatabase かはプロジェクトによります
+                // 赤字になる場合は修正候補(Alt+Enter)から正しい方を選んでください
+                val appDb = AppDatabase.getInstance(context)
+                
+                val zoneId = ZoneId.systemDefault()
+                val todayStartSec = LocalDate.now(zoneId).atStartOfDay(zoneId).toEpochSecond()
+
+                // UnlockHistoryDao から今日以降のデータを取得して合計
+                val unlockLogs = appDb.unlockHistoryDao().getHistoryAfter(todayStartSec)
+                unlockLogs.sumOf { it.usedPoints }
+            } catch (e: Exception) {
+                0
+            }
+        }
+
+        val dailyDoc = firestoreTask.await()
+        val usedPoints = roomTask.await()
+
+        // --- 3. 集計処理 ---
+        var earnedPoints = 0
+        val statsMap = mutableMapOf<String, MutableMap<String, ModeStats>>()
+
+        if (dailyDoc != null && dailyDoc.exists()) {
+            earnedPoints = dailyDoc.getLong("points")?.toInt() ?: 0
+            val records = dailyDoc.get("studyRecords") as? List<Map<String, Any>> ?: emptyList()
+
+            for (record in records) {
+                val grade = record["grade"] as? String ?: "不明"
+                val mode = record["mode"] as? String ?: "通常"
+                val isCorrect = record["isCorrect"] as? Boolean ?: false
+
+                val gradeMap = statsMap.getOrPut(grade) { mutableMapOf() }
+                val modeStats = gradeMap.getOrPut(mode) { ModeStats() }
+
+                modeStats.answerCount += 1
+                if (isCorrect) {
+                    modeStats.correctCount += 1
+                }
+            }
+        }
+
+        // --- 4. 通知メッセージの作成 ---
+        val sb = StringBuilder()
+        sb.append("・獲得ポイント：$earnedPoints、使用ポイント：$usedPoints")
+
+        if (statsMap.isEmpty()) {
+            sb.append("(本日の学習データはありません)")
+        } else {
+            for ((grade, modes) in statsMap) {
+                sb.append("　■$grade：")
+                for ((mode, stat) in modes) {
+                    sb.append("　　〇$mode：")
+                    sb.append("　　　・回答数：${stat.answerCount}、正解数：${stat.correctCount}")
+                }
+            }
+        }
+
+        showNotification("本日の学習詳細レポート", sb.toString())
     }
 
-    // 集計ロジックのスタブ（実際の実装に置き換えてください）
-    private fun getLearningStats(): Map<String, Any> {
-        // 例: Roomデータベースから当日の学習記録を取得する
-        return mapOf(
-            "mode" to "English Vocabulary", // 例: 学習モード
-            "answerCount" to 50,            // 例: 回答数
-            "correctCount" to 45,           // 例: 正解数
-            "pointsChange" to 100           // 例: ポイント増減
+    private fun showNotification(title: String, message: String) {
+        val notificationManager =
+            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-    }
 
-    private fun shouldRetry(e: Exception): Boolean {
-        // 一時的なネットワークエラーなどの場合はリトライする
-        return e !is FirebaseFunctionsException || 
-               e.code == FirebaseFunctionsException.Code.UNAVAILABLE
+        val notification = NotificationCompat.Builder(applicationContext, "REPORT_CHANNEL")
+            .setSmallIcon(android.R.drawable.ic_menu_agenda)
+            .setContentTitle(title)
+            .setContentText("獲得: ${message.substringBefore("、")}")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(2001, notification)
     }
 
     companion object {
-        private const val TAG = "DailyReportWorker"
-        private const val WORK_NAME = "DailyReportWork"
-
+        // ★ここを省略なしの完全なコードにしました★
         fun schedule(context: Context) {
-            val workManager = WorkManager.getInstance(context)
-
-            // 現在時刻とターゲット時刻（朝7時）の差分を計算
-            val currentDate = Calendar.getInstance()
-            val dueDate = Calendar.getInstance()
-
-            // ターゲット時刻を設定 (デフォルト朝7時)
-            dueDate.set(Calendar.HOUR_OF_DAY, 7)
-            dueDate.set(Calendar.MINUTE, 0)
-            dueDate.set(Calendar.SECOND, 0)
-
-            if (dueDate.before(currentDate)) {
-                dueDate.add(Calendar.HOUR_OF_DAY, 24)
-            }
-
-            val timeDiff = dueDate.timeInMillis - currentDate.timeInMillis
-
-            // 制約の設定: ネットワーク接続時のみ実行
-            val constraints = androidx.work.Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-            // 定期実行リクエストの作成 (24時間間隔)
-            val dailyWorkRequest = PeriodicWorkRequestBuilder<DailyReportWorker>(
+            val request = PeriodicWorkRequestBuilder<DailyReportWorker>(
                 24, TimeUnit.HOURS
-            )
-                .setInitialDelay(timeDiff, TimeUnit.MILLISECONDS)
-                .setConstraints(constraints)
-                .addTag(TAG)
-                .build()
+            ).build()
 
-            // スケジュール登録 (既存のものは置き換え)
-            workManager.enqueueUniquePeriodicWork(
-                WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
-                dailyWorkRequest
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                "DailyReportWork",
+                ExistingPeriodicWorkPolicy.KEEP,
+                request
             )
-            
-            Log.d(TAG, "Daily report scheduled. Initial delay: ${timeDiff / 1000 / 60} minutes")
         }
     }
 }

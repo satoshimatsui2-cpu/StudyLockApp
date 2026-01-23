@@ -18,4 +18,7 @@ interface UnlockHistoryDao {
 
     @Query("SELECT * FROM unlock_history ORDER BY unlockedAt DESC LIMIT 100")
     suspend fun getLatest100(): List<UnlockHistoryEntity>
+    
+    @Query("SELECT * FROM unlock_history WHERE unlockedAt >= :startSec")
+    suspend fun getHistoryAfter(startSec: Long): List<UnlockHistoryEntity>
 }
