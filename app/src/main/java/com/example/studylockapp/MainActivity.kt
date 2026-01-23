@@ -62,9 +62,16 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        // ▼▼▼ ＋追加: 通知の通り道を作る（これを忘れると通知が来ません！） ▼▼▼
+        createNotificationChannel()
+        // ▲▲▲ 追加ここまで ▲▲▲
+
         // ▼▼▼ 追加: 日次レポートWorkerのスケジュール登録 ▼▼▼
         DailyReportWorker.schedule(this)
         // ▲▲▲ 追加ここまで ▲▲▲
+
+        // ▼▼▼ ★追加: 起動時に必ず「自分は子供だ」とサーバーに教える ▼▼▼
+        ensureUserRole()
 
         gradeButton = findViewById(R.id.spinner_grade_top)
         buttonToLearning = findViewById(R.id.button_to_learning)
@@ -121,7 +128,8 @@ class MainActivity : AppCompatActivity() {
         updateGradeDropdownLabels()
     }
 
-    private fun setupLongPressForAdmin() {
+
+     private fun setupLongPressForAdmin() {
         val settings = AppSettings(this)
         if (!settings.isEnableAdminLongPress()) return
 
@@ -321,4 +329,51 @@ class MainActivity : AppCompatActivity() {
                         it.resolveInfo?.serviceInfo?.name == expected.className
             }
     }
+    // ▼▼▼ 1. 通知チャンネル作成（重複しないように1つだけ！） ▼▼▼
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val name = "学習レポート"
+            val descriptionText = "日々の学習状況やポイントをお知らせします"
+            val importance = android.app.NotificationManager.IMPORTANCE_DEFAULT
+            val channel = android.app.NotificationChannel("REPORT_CHANNEL", name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager = getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    // ▼▼▼ 2. 起動時の自動設定（重複しないように1つだけ！） ▼▼▼
+    private fun ensureUserRole() {
+        val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+
+        if (currentUser != null) {
+            checkAndSetRole(currentUser)
+        } else {
+            // 未ログインなら、匿名ログインしてから設定する
+            auth.signInAnonymously()
+                .addOnSuccessListener { result ->
+                    result.user?.let { checkAndSetRole(it) }
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("Setup", "ログイン失敗", e)
+                }
+        }
+    }
+
+    // ▼▼▼ 3. 設定の実行部分（重複しないように1つだけ！） ▼▼▼
+    private fun checkAndSetRole(user: com.google.firebase.auth.FirebaseUser) {
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        val docRef = db.collection("users").document(user.uid)
+        docRef.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists() && snapshot.contains("role")) {
+                return@addOnSuccessListener // 設定済みなら何もしない
+            }
+            // roleがない時だけ child を書き込む
+            val data = hashMapOf("role" to "child")
+            docRef.set(data, com.google.firebase.firestore.SetOptions.merge())
+        }
+    }
+// ↑ ここが MainActivity の最後の閉じカッコ "}" です
 }

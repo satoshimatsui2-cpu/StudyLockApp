@@ -592,18 +592,57 @@ class AdminSettingsActivity : AppCompatActivity() {
     private fun showToast(msg: String) { Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
 
     private fun registerAsParent(childUid: String) {
-        val auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
+        val user = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser ?: return
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        val myUid = user.uid
 
-        if (user == null) {
-            auth.signInAnonymously().addOnSuccessListener {
-                registerTokenToFirestore(childUid, it.user!!.uid)
-            }.addOnFailureListener {
-                Toast.makeText(this, "認証エラー: ${it.message}", Toast.LENGTH_LONG).show()
+        // ▼▼▼ 追加: まず通知用のトークンを取得する ▼▼▼
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    android.widget.Toast.makeText(this, "トークン取得失敗", android.widget.Toast.LENGTH_SHORT).show()
+                    return@addOnCompleteListener
+                }
+
+                // トークンGET！
+                val token = task.result
+
+                // 1. 親（自分）の情報を、子供の「parents」フォルダに登録
+                val parentData = hashMapOf(
+                    "uid" to myUid,
+                    "role" to "parent",
+                    "fcmToken" to token, // ★これが必要です！通知の宛先
+                    "timestamp" to com.google.firebase.Timestamp.now()
+                )
+                val task1 = db.collection("users").document(childUid)
+                    .collection("parents").document(myUid)
+                    .set(parentData)
+
+                // 2. 子供の情報を、親（自分）の「children」フォルダに登録
+                val childData = hashMapOf(
+                    "uid" to childUid,
+                    "role" to "child",
+                    "timestamp" to com.google.firebase.Timestamp.now()
+                )
+                val task2 = db.collection("users").document(myUid)
+                    .collection("children").document(childUid)
+                    .set(childData)
+
+                // 3. 自分自身を「親」に昇格させる
+                val meUpdate = hashMapOf("role" to "parent")
+                val task3 = db.collection("users").document(myUid)
+                    .set(meUpdate, com.google.firebase.firestore.SetOptions.merge())
+
+                // 3つ全ての処理が終わったら完了
+                com.google.android.gms.tasks.Tasks.whenAll(task1, task2, task3)
+                    .addOnSuccessListener {
+                        android.widget.Toast.makeText(this, "ペアリング完了！\n通知設定も更新しました", android.widget.Toast.LENGTH_LONG).show()
+                        updateConnectionStatus()
+                    }
+                    .addOnFailureListener { e ->
+                        android.widget.Toast.makeText(this, "登録失敗: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    }
             }
-        } else {
-            registerTokenToFirestore(childUid, user.uid)
-        }
     }
 
     // ▼▼▼ 修正: 親子双方にデータを書き込む ▼▼▼
@@ -637,12 +676,6 @@ class AdminSettingsActivity : AppCompatActivity() {
             // 両方完了したら成功
             com.google.android.gms.tasks.Tasks.whenAll(task1, task2)
                 .addOnSuccessListener {
-                    // ▼▼▼ 追加: 端末内にも「連携済み」と記録する ▼▼▼
-                    settings.setParentUid(myUid) // 自分＝親の場合は自分を登録してしまうが、このメソッドは親端末で走るので本来は不要。子供端末の処理はQrCodeActivityにあるはず。
-                    // 修正：このクラス(AdminSettingsActivity)は親も子も使う画面。
-                    // 「親として登録」ボタンを押したのは親。だから親端末に「子供がいる」ことはわかるが、親端末の `setParentUid` は本来「自分の親」を指すので、ここではセットしないのが正解。
-                    // 子供側の処理は QrCodeActivity で行われるか、あるいは onResume の updateConnectionStatus で自動取得されるので、ここでは何もしなくてOK。
-
                     Toast.makeText(this, "ペアリング完了！\n通知が届くようになりました。", Toast.LENGTH_LONG).show()
                     updateConnectionStatus() // 画面を即座に更新
                 }

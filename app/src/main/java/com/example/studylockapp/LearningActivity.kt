@@ -436,6 +436,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         lifecycleScope.launch {
             viewModel.answerResult.collect { result ->
                 if (currentMode == MODE_TEST_LISTEN_Q2) {
+
+                    // ▼▼▼ 新しい共通リポジトリを使って保存 ▼▼▼
+                    // 会話モードはグレード一律なので gradeFilter を使います
+                    StudyHistoryRepository.save(gradeFilter, currentMode, result.isCorrect)
+
+
                     // --- 会話モード用の回答後処理 ---
                     var earnedPoints = result.points
 
@@ -692,6 +698,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         if (isCorrect) playCorrectEffect() else playWrongEffect()
+
+        // ▼▼▼ 変更: 新しい共通リポジトリを使って保存 ▼▼▼
+        StudyHistoryRepository.save(ctx.word.grade, currentMode, isCorrect)
 
         processAnswerResultLegacy(ctx.word, isCorrect)
     }

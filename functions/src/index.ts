@@ -42,8 +42,8 @@ export const sendSecurityAlert = functions.region('asia-northeast1').https.onCal
     if (!uid) return { success: false, message: "ID missing" };
 
     const alertType = data.alertType || "unknown";
-    // ここで定義した変数を使っていなかったのがエラー原因でした
-    const timestamp = data.timestamp || new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+   // ★スマホの時間は信用せず、サーバー側で強制的に現在時刻（日本時間）を取得する
+       const timestamp = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 
     // 親を探す
     const parentsRef = db.collection("users").doc(uid).collection("parents");
