@@ -43,19 +43,15 @@ import kotlin.math.abs
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-
     // region ViewModel & Data
     private val viewModel: LearningViewModel by viewModels()
-
     private var currentMode = LearningModes.MEANING
     private var gradeFilter: String = "All"
     private var includeOtherGradesReview: Boolean = false
     private var loadingJob: Job? = null
-
     private var allWords: List<WordEntity> = emptyList()
     private var allWordsFull: List<WordEntity> = emptyList()
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
-
     private var currentLegacyContext: LegacyQuestionContext? = null
 
     // 再生ボタン用に現在の会話スクリプトを保持する変数
@@ -64,7 +60,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentHighlightSearchIndex: Int = 0
     // 現在の質問文（本文）を保持して、ボタン有効化の判定に使う
     private var currentQuestionText: String = ""
-
     private var currentStats: Map<String, ModeStats> = emptyMap()
     // endregion
 
@@ -807,9 +802,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-
-    private fun nowEpochSec(): Long = System.currentTimeMillis() / 1000L
-
     private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
         val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
         val zone = settings.getAppZoneId()
@@ -1050,21 +1042,23 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updateStudyStatsView() {
         lifecycleScope.launch(Dispatchers.Default) {
-            if (allWords.isEmpty()) return@launch
+            // ※リスニングQ2のみの場合はallWordsが空でも動くように調整
+            if (allWords.isEmpty() && currentMode != LearningModes.TEST_LISTEN_Q2) return@launch
 
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
-            val nowSec = nowEpochSec()
+            val nowSec = System.currentTimeMillis() / 1000L // nowEpochSec()の中身を展開または既存関数を利用
+            val db = AppDatabase.getInstance(this@LearningActivity)
 
+            // まとめて計算（マップ生成）
             currentStats = mapOf(
-                LearningModes.MEANING to computeModeStats(wordIdSet, LearningModes.MEANING, nowSec),
-                LearningModes.LISTENING to computeModeStats(wordIdSet, LearningModes.LISTENING, nowSec),
-                LearningModes.LISTENING_JP to computeModeStats(wordIdSet, LearningModes.LISTENING_JP, nowSec),
-                LearningModes.JA_TO_EN to computeModeStats(wordIdSet, LearningModes.JA_TO_EN, nowSec),
-                LearningModes.EN_EN_1 to computeModeStats(wordIdSet, LearningModes.EN_EN_1, nowSec),
-                LearningModes.EN_EN_2 to computeModeStats(wordIdSet, LearningModes.EN_EN_2, nowSec),
-                LearningModes.TEST_LISTEN_Q2 to computeModeStats(emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec)
+                LearningModes.MEANING to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.MEANING, nowSec, listeningQuestions),
+                LearningModes.LISTENING to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.LISTENING, nowSec, listeningQuestions),
+                LearningModes.LISTENING_JP to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.LISTENING_JP, nowSec, listeningQuestions),
+                LearningModes.JA_TO_EN to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.JA_TO_EN, nowSec, listeningQuestions),
+                LearningModes.EN_EN_1 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_1, nowSec, listeningQuestions),
+                LearningModes.EN_EN_2 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_2, nowSec, listeningQuestions),
+                LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(db, emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions)
             )
-
             withContext(Dispatchers.Main) { updateModeUi() }
         }
     }
@@ -1101,44 +1095,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textMasterGold.text = "${(stat?.gold ?: 0) * 100 / total}%"
         textMasterCrystal.text = "${(stat?.crystal ?: 0) * 100 / total}%"
         textMasterPurple.text = "${(stat?.purple ?: 0) * 100 / total}%"
-    }
-
-    private suspend fun computeModeStats(wordIdSet: Set<Int>, mode: String, nowSec: Long): ModeStats {
-        val db = AppDatabase.getInstance(this@LearningActivity)
-        val progressDao = db.wordProgressDao()
-
-        if (mode == LearningModes.TEST_LISTEN_Q2) {
-            val allQIds = listeningQuestions.map { it.id }.toSet()
-            val progresses = progressDao.getAllProgressForMode(mode)
-            val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in allQIds }
-
-            val masteredCount = progresses.count { it.wordId in allQIds && it.level >= 6 }
-            val startedCount = progresses.filter { it.wordId in allQIds }.size
-
-            return ModeStats(review = dueCount, newCount = allQIds.size - startedCount, total = allQIds.size,
-                bronze = masteredCount, silver = masteredCount, gold = masteredCount, crystal = masteredCount, purple = masteredCount)
-        }
-
-        val progresses = progressDao.getAllProgressForMode(mode)
-        val targetProgresses = progresses.filter { it.wordId in wordIdSet }
-        val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in wordIdSet }
-
-        val bronze = targetProgresses.count { it.level >= 2 }
-        val silver = targetProgresses.count { it.level >= 3 }
-        val gold = targetProgresses.count { it.level >= 4 }
-        val crystal = targetProgresses.count { it.level >= 5 }
-        val purple = targetProgresses.count { it.level >= 6 }
-
-        return ModeStats(
-            review = dueCount,
-            newCount = wordIdSet.size - targetProgresses.size,
-            total = wordIdSet.size,
-            bronze = bronze,
-            silver = silver,
-            gold = gold,
-            crystal = crystal,
-            purple = purple
-        )
     }
 
     override fun onInit(status: Int) {

@@ -22,6 +22,13 @@ fun normalizeGrade(gradeUi: String): String {
 }
 
 /**
+ * 現在のUNIX時間（秒）を取得する便利関数
+ */
+fun nowEpochSec(): Long {
+    return System.currentTimeMillis() / 1000L
+}
+
+/**
  * テキストにマーカー（ハイライト）を引くためのSpanクラス
  */
 class MarkerSpan(private val color: Int) : ReplacementSpan() {
@@ -46,4 +53,5 @@ class MarkerSpan(private val color: Int) : ReplacementSpan() {
             canvas.drawText(text, start, end, x, y.toFloat(), paint)
         }
     }
+
 }
