@@ -43,26 +43,11 @@ import kotlin.math.abs
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    // region Constants & Modes
-    companion object {
-        const val MODE_MEANING = "meaning"
-        const val MODE_LISTENING = "listening"
-        const val MODE_LISTENING_JP = "listening_jp"
-        const val MODE_JA_TO_EN = "japanese_to_english"
-        const val MODE_EN_EN_1 = "english_english_1"
-        const val MODE_EN_EN_2 = "english_english_2"
-
-        const val MODE_TEST_FILL_BLANK = "test_fill_blank"
-        const val MODE_TEST_SORT = "test_sort"
-        const val MODE_TEST_LISTEN_Q1 = "test_listen_q1"
-        const val MODE_TEST_LISTEN_Q2 = "test_listen_q2" // Conversation Listening
-    }
-    // endregion
 
     // region ViewModel & Data
     private val viewModel: LearningViewModel by viewModels()
 
-    private var currentMode = MODE_MEANING
+    private var currentMode = LearningModes.MEANING
     private var gradeFilter: String = "All"
     private var includeOtherGradesReview: Boolean = false
     private var loadingJob: Job? = null
@@ -79,16 +64,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentHighlightSearchIndex: Int = 0
     // 現在の質問文（本文）を保持して、ボタン有効化の判定に使う
     private var currentQuestionText: String = ""
-
-    private data class LegacyQuestionContext(
-        val word: WordEntity,
-        val title: String,
-        val body: String,
-        val options: List<String>,
-        val correctIndex: Int,
-        val shouldAutoPlay: Boolean,
-        val audioText: String
-    )
 
     private var currentStats: Map<String, ModeStats> = emptyMap()
     // endregion
@@ -144,18 +119,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val greenTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_correct)) }
     private val redTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_wrong)) }
     // endregion
-
-    // 集計データ
-    private data class ModeStats(
-        val review: Int,
-        val newCount: Int,
-        val total: Int,
-        val bronze: Int,
-        val silver: Int,
-        val gold: Int,
-        val crystal: Int,
-        val purple: Int
-    )
 
     // region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -378,7 +341,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         val audioClickListener = View.OnClickListener {
-            if (currentMode == MODE_TEST_LISTEN_Q2) {
+            if (currentMode == LearningModes.TEST_LISTEN_Q2) {
                 currentHighlightSearchIndex = 0
                 val cleanText = textScriptDisplay.text.toString()
                 textScriptDisplay.text = cleanText
@@ -407,7 +370,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         checkIncludeOtherGrades?.setOnCheckedChangeListener { _, isChecked ->
             includeOtherGradesReview = isChecked
-            if (currentMode == MODE_TEST_LISTEN_Q2) {
+            if (currentMode == LearningModes.TEST_LISTEN_Q2) {
                 lifecycleScope.launch {
                     refreshConversationQueue()
                     viewModel.setMode(currentMode)
@@ -435,7 +398,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         lifecycleScope.launch {
             viewModel.answerResult.collect { result ->
-                if (currentMode == MODE_TEST_LISTEN_Q2) {
+                if (currentMode == LearningModes.TEST_LISTEN_Q2) {
 
                     // ▼▼▼ 新しい共通リポジトリを使って保存 ▼▼▼
                     // 会話モードはグレード一律なので gradeFilter を使います
@@ -446,7 +409,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     var earnedPoints = result.points
 
                     // ペナルティ対象モードを定義
-                    val penaltyModes = setOf(MODE_TEST_FILL_BLANK, MODE_TEST_SORT, MODE_TEST_LISTEN_Q1, MODE_TEST_LISTEN_Q2)
+                    val penaltyModes = setOf(LearningModes.TEST_FILL_BLANK, LearningModes.TEST_SORT, LearningModes.TEST_LISTEN_Q1, LearningModes.TEST_LISTEN_Q2)
 
                     // 不正解かつ、指定されたテストモードの場合のみ減点
                     if (currentMode in penaltyModes && !result.isCorrect) {
@@ -514,7 +477,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // region Logic: Routing & Display
     private fun routeNextQuestionAction() {
-        if (currentMode == MODE_TEST_LISTEN_Q2) {
+        if (currentMode == LearningModes.TEST_LISTEN_Q2) {
             viewModel.loadNextQuestion()
         } else {
             loadNextQuestionLegacy()
@@ -530,7 +493,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val nowSec = System.currentTimeMillis() / 1000L
 
             val dueIdsInOtherGrades = if (includeOtherGradesReview && gradeFilter != "All") {
-                progressDao.getDueWordIdsOrdered(MODE_TEST_LISTEN_Q2, nowSec).toSet()
+                progressDao.getDueWordIdsOrdered(LearningModes.TEST_LISTEN_Q2, nowSec).toSet()
             } else {
                 emptySet()
             }
@@ -638,12 +601,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val correctIndex = options.indexOf(correctStr)
 
         val shouldAuto = when (currentMode) {
-            MODE_JA_TO_EN -> false
-            MODE_LISTENING, MODE_LISTENING_JP -> true
+            LearningModes.JA_TO_EN -> false
+            LearningModes.LISTENING, LearningModes.LISTENING_JP -> true
             else -> checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE
         }
 
-        val audioText = if (currentMode == MODE_EN_EN_2) nextWord.description ?: "" else nextWord.word
+        val audioText = if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
 
         return LegacyQuestionContext(
             word = nextWord,
@@ -661,15 +624,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionBody.text = ctx.body
         textQuestionBody.visibility = if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
 
-        choiceButtons.forEach { it.textSize = if (currentMode == MODE_EN_EN_1) 12f else 14f }
+        choiceButtons.forEach { it.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f }
         choiceButtons.zip(ctx.options).forEach { (btn, txt) -> btn.text = txt }
 
         when (currentMode) {
-            MODE_JA_TO_EN -> {
+            LearningModes.JA_TO_EN -> {
                 checkboxAutoPlayAudio?.visibility = View.GONE
                 buttonPlayAudio.visibility = View.GONE
             }
-            MODE_MEANING, MODE_EN_EN_1, MODE_EN_EN_2 -> {
+            LearningModes.MEANING, LearningModes.EN_EN_1, LearningModes.EN_EN_2 -> {
                 checkboxAutoPlayAudio?.visibility = View.VISIBLE
                 buttonPlayAudio.visibility = View.VISIBLE
             }
@@ -681,7 +644,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun onChoiceSelected(selectedIndex: Int) {
-        if (currentMode == MODE_TEST_LISTEN_Q2) {
+        if (currentMode == LearningModes.TEST_LISTEN_Q2) {
             viewModel.submitAnswer(selectedIndex)
             return
         }
@@ -760,7 +723,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             // ★修正: 指定されたテストモードの場合のみ減点処理を行う
-            val penaltyModes = setOf(MODE_TEST_FILL_BLANK, MODE_TEST_SORT, MODE_TEST_LISTEN_Q1, MODE_TEST_LISTEN_Q2)
+            val penaltyModes = setOf(LearningModes.TEST_FILL_BLANK, LearningModes.TEST_SORT, LearningModes.TEST_LISTEN_Q1, LearningModes.TEST_LISTEN_Q2)
 
             if (currentMode in penaltyModes && !isCorrect) {
                 // 正解だった場合のポイントを仮計算
@@ -869,7 +832,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (candidates.isEmpty()) return listOf(correct)
 
         val distractors = when (currentMode) {
-            MODE_LISTENING, MODE_LISTENING_JP -> getListeningChoices(correct, candidates, count - 1)
+            LearningModes.LISTENING, LearningModes.LISTENING_JP -> getListeningChoices(correct, candidates, count - 1)
             else -> getStandardChoices(correct, candidates, count - 1)
         }
         return (distractors + correct).shuffled()
@@ -917,21 +880,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun formatQuestionAndOptions(correct: WordEntity, choices: List<WordEntity>, mode: String): Triple<String, String, List<String>> {
         return when (mode) {
-            MODE_MEANING -> Triple(getString(R.string.question_title_meaning), correct.word, choices.map { it.japanese ?: "" })
-            MODE_LISTENING -> Triple(getString(R.string.question_title_listening), "", choices.map { it.word })
-            MODE_LISTENING_JP -> Triple(getString(R.string.question_title_listening_jp), "", choices.map { it.japanese ?: "" })
-            MODE_JA_TO_EN -> Triple(getString(R.string.question_title_ja_to_en), correct.japanese ?: "", choices.map { it.word })
-            MODE_EN_EN_1 -> Triple(getString(R.string.question_title_en_en_1), correct.word, choices.map { it.description ?: "" })
-            MODE_EN_EN_2 -> Triple(getString(R.string.question_title_en_en_2), correct.description ?: "", choices.map { it.word })
+            LearningModes.MEANING -> Triple(getString(R.string.question_title_meaning), correct.word, choices.map { it.japanese ?: "" })
+            LearningModes.LISTENING -> Triple(getString(R.string.question_title_listening), "", choices.map { it.word })
+            LearningModes.LISTENING_JP -> Triple(getString(R.string.question_title_listening_jp), "", choices.map { it.japanese ?: "" })
+            LearningModes.JA_TO_EN -> Triple(getString(R.string.question_title_ja_to_en), correct.japanese ?: "", choices.map { it.word })
+            LearningModes.EN_EN_1 -> Triple(getString(R.string.question_title_en_en_1), correct.word, choices.map { it.description ?: "" })
+            LearningModes.EN_EN_2 -> Triple(getString(R.string.question_title_en_en_2), correct.description ?: "", choices.map { it.word })
             else -> Triple("", "", emptyList())
         }
     }
 
     private fun getCorrectStringForMode(word: WordEntity, mode: String): String {
         return when (mode) {
-            MODE_MEANING, MODE_LISTENING_JP -> word.japanese ?: ""
-            MODE_LISTENING, MODE_JA_TO_EN, MODE_EN_EN_2 -> word.word
-            MODE_EN_EN_1 -> word.description ?: ""
+            LearningModes.MEANING, LearningModes.LISTENING_JP -> word.japanese ?: ""
+            LearningModes.LISTENING, LearningModes.JA_TO_EN, LearningModes.EN_EN_2 -> word.word
+            LearningModes.EN_EN_1 -> word.description ?: ""
             else -> word.japanese ?: ""
         }
     }
@@ -943,7 +906,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val zone = settings.getAppZoneId()
 
         // ★追加: テストモードかどうかを判定
-        val isTestMode = currentMode in setOf(MODE_TEST_FILL_BLANK, MODE_TEST_SORT, MODE_TEST_LISTEN_Q1, MODE_TEST_LISTEN_Q2)
+        val isTestMode = currentMode in setOf(LearningModes.TEST_FILL_BLANK, LearningModes.TEST_SORT, LearningModes.TEST_LISTEN_Q1, LearningModes.TEST_LISTEN_Q2)
 
         // 翌日の開始時刻（00:00:00）を計算
         val nextDaySec = Instant.ofEpochSecond(nowSec).atZone(zone)
@@ -1146,7 +1109,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textGold?.text   = "${(stats?.gold ?: 0)   * 100 / total}%"
             textCrystal?.text= "${(stats?.crystal ?: 0)* 100 / total}%"
 
-            if (isTestMode && modeKey != MODE_TEST_LISTEN_Q2) card.alpha = 0.5f
+            if (isTestMode && modeKey != LearningModes.TEST_LISTEN_Q2) card.alpha = 0.5f
 
             if (currentMode == modeKey) {
                 card.strokeColor = color
@@ -1163,21 +1126,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
 
                 updateStudyStatsView()
-                if (modeKey == MODE_TEST_LISTEN_Q2) viewModel.setMode(modeKey) else loadNextQuestionLegacy()
+                if (modeKey == LearningModes.TEST_LISTEN_Q2) viewModel.setMode(modeKey) else loadNextQuestionLegacy()
                 dialog.dismiss()
             }
         }
 
-        setupRow(R.id.row_meaning, MODE_MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
-        setupRow(R.id.row_listening, MODE_LISTENING, getString(R.string.mode_listening), R.drawable.ic_headphones_24, R.color.mode_teal)
-        setupRow(R.id.row_listening_jp, MODE_LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_headphones_24, R.color.mode_teal)
-        setupRow(R.id.row_ja_to_en, MODE_JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
-        setupRow(R.id.row_en_en_1, MODE_EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
-        setupRow(R.id.row_en_en_2, MODE_EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
-        setupRow(R.id.row_test_fill, MODE_TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
-        setupRow(R.id.row_test_sort, MODE_TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
-        setupRow(R.id.row_test_listen_q1, MODE_TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_headphones_24, R.color.mode_teal, true)
-        setupRow(R.id.row_test_listen_q2, MODE_TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_outline_conversation_24, R.color.mode_teal, true)
+        setupRow(R.id.row_meaning, LearningModes.MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
+        setupRow(R.id.row_listening, LearningModes.LISTENING, getString(R.string.mode_listening), R.drawable.ic_headphones_24, R.color.mode_teal)
+        setupRow(R.id.row_listening_jp, LearningModes.LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_headphones_24, R.color.mode_teal)
+        setupRow(R.id.row_ja_to_en, LearningModes.JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
+        setupRow(R.id.row_en_en_1, LearningModes.EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
+        setupRow(R.id.row_en_en_2, LearningModes.EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
+        setupRow(R.id.row_test_fill, LearningModes.TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
+        setupRow(R.id.row_test_sort, LearningModes.TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
+        setupRow(R.id.row_test_listen_q1, LearningModes.TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_headphones_24, R.color.mode_teal, true)
+        setupRow(R.id.row_test_listen_q2, LearningModes.TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_outline_conversation_24, R.color.mode_teal, true)
 
         dialog.show()
     }
@@ -1190,13 +1153,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val nowSec = nowEpochSec()
 
             currentStats = mapOf(
-                MODE_MEANING to computeModeStats(wordIdSet, MODE_MEANING, nowSec),
-                MODE_LISTENING to computeModeStats(wordIdSet, MODE_LISTENING, nowSec),
-                MODE_LISTENING_JP to computeModeStats(wordIdSet, MODE_LISTENING_JP, nowSec),
-                MODE_JA_TO_EN to computeModeStats(wordIdSet, MODE_JA_TO_EN, nowSec),
-                MODE_EN_EN_1 to computeModeStats(wordIdSet, MODE_EN_EN_1, nowSec),
-                MODE_EN_EN_2 to computeModeStats(wordIdSet, MODE_EN_EN_2, nowSec),
-                MODE_TEST_LISTEN_Q2 to computeModeStats(emptySet(), MODE_TEST_LISTEN_Q2, nowSec)
+                LearningModes.MEANING to computeModeStats(wordIdSet, LearningModes.MEANING, nowSec),
+                LearningModes.LISTENING to computeModeStats(wordIdSet, LearningModes.LISTENING, nowSec),
+                LearningModes.LISTENING_JP to computeModeStats(wordIdSet, LearningModes.LISTENING_JP, nowSec),
+                LearningModes.JA_TO_EN to computeModeStats(wordIdSet, LearningModes.JA_TO_EN, nowSec),
+                LearningModes.EN_EN_1 to computeModeStats(wordIdSet, LearningModes.EN_EN_1, nowSec),
+                LearningModes.EN_EN_2 to computeModeStats(wordIdSet, LearningModes.EN_EN_2, nowSec),
+                LearningModes.TEST_LISTEN_Q2 to computeModeStats(emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec)
             )
 
             withContext(Dispatchers.Main) { updateModeUi() }
@@ -1205,20 +1168,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updateModeUi() {
         val modeName = when(currentMode) {
-            MODE_MEANING -> getString(R.string.mode_meaning)
-            MODE_LISTENING -> getString(R.string.mode_listening)
-            MODE_LISTENING_JP -> getString(R.string.mode_listening_jp)
-            MODE_JA_TO_EN -> getString(R.string.mode_japanese_to_english)
-            MODE_EN_EN_1 -> getString(R.string.mode_english_english_1)
-            MODE_EN_EN_2 -> getString(R.string.mode_english_english_2)
-            MODE_TEST_LISTEN_Q2 -> "会話文リスニング"
+            LearningModes.MEANING -> getString(R.string.mode_meaning)
+            LearningModes.LISTENING -> getString(R.string.mode_listening)
+            LearningModes.LISTENING_JP -> getString(R.string.mode_listening_jp)
+            LearningModes.JA_TO_EN -> getString(R.string.mode_japanese_to_english)
+            LearningModes.EN_EN_1 -> getString(R.string.mode_english_english_1)
+            LearningModes.EN_EN_2 -> getString(R.string.mode_english_english_2)
+            LearningModes.TEST_LISTEN_Q2 -> "会話文リスニング"
             else -> "選択中"
         }
         val iconRes = when(currentMode) {
-            MODE_LISTENING, MODE_LISTENING_JP -> R.drawable.ic_headphones_24
-            MODE_TEST_LISTEN_Q2 -> R.drawable.ic_outline_conversation_24
-            MODE_TEST_FILL_BLANK -> R.drawable.ic_edit_24
-            MODE_TEST_SORT -> R.drawable.ic_sort_24
+            LearningModes.LISTENING, LearningModes.LISTENING_JP -> R.drawable.ic_headphones_24
+            LearningModes.TEST_LISTEN_Q2 -> R.drawable.ic_outline_conversation_24
+            LearningModes.TEST_FILL_BLANK -> R.drawable.ic_edit_24
+            LearningModes.TEST_SORT -> R.drawable.ic_sort_24
             else -> R.drawable.ic_outline_cards_stack_24
         }
 
@@ -1241,7 +1204,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val db = AppDatabase.getInstance(this@LearningActivity)
         val progressDao = db.wordProgressDao()
 
-        if (mode == MODE_TEST_LISTEN_Q2) {
+        if (mode == LearningModes.TEST_LISTEN_Q2) {
             val allQIds = listeningQuestions.map { it.id }.toSet()
             val progresses = progressDao.getAllProgressForMode(mode)
             val dueCount = progressDao.getDueWordIdsOrdered(mode, nowSec).count { it in allQIds }
@@ -1287,7 +1250,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         var speed = settings.getTtsSpeed()
         val pitch = settings.getTtsPitch()
 
-        if (currentMode == MODE_TEST_LISTEN_Q2) {
+        if (currentMode == LearningModes.TEST_LISTEN_Q2) {
             speed = when (gradeFilter) {
                 "5級", "4級" -> 0.7f
                 "3級" -> 0.8f

@@ -76,7 +76,8 @@ class LearningViewModel(application: Application) : AndroidViewModel(application
 
     private fun createStrategy(modeKey: String): LearningModeStrategy? {
         return when (modeKey) {
-            LearningActivity.MODE_TEST_LISTEN_Q2 -> ConversationStrategy(getApplication(), listeningQuestions, dao, modeKey)
+            // 修正点: LearningActivity ではなく LearningModes を使い、定数名も合わせる
+            LearningModes.TEST_LISTEN_Q2 -> ConversationStrategy(getApplication(), listeningQuestions, dao, modeKey)
             else -> null
         }
     }
