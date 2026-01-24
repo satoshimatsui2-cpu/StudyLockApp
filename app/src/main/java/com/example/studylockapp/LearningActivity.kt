@@ -360,6 +360,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    // 正解・不正解を受け取って、適切な音量設定で再生する共通関数
+    private fun playAnswerSound(isCorrect: Boolean) {
+        if (isCorrect) {
+            soundEffectManager.playCorrect(settings.seCorrectVolume)
+        } else {
+            soundEffectManager.playWrong(settings.seWrongVolume)
+        }
+    }
+
     private fun setupObservers() {
         viewModel.gradeName.observe(this) { textCurrentGrade?.text = it }
 
@@ -418,12 +427,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     textFeedback.text = result.feedback.replace("\\n", "\n")
                     textFeedback.visibility = View.VISIBLE
 
-                    // ★修正: SoundEffectManagerを使用
-                    if (result.isCorrect) {
-                        soundEffectManager.playCorrect(settings.seCorrectVolume)
-                    } else {
-                        soundEffectManager.playWrong(settings.seWrongVolume)
-                    }
+                    playAnswerSound(result.isCorrect)
 
                     val bgColor = ContextCompat.getColor(this@LearningActivity,
                         if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
@@ -979,12 +983,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showFeedbackSnackbar(result: AnswerResult) {
-        if (result.isCorrect) {
-            soundEffectManager.playCorrect(settings.seCorrectVolume)
-        } else {
-            soundEffectManager.playWrong(settings.seWrongVolume)
-        }
-
+        playAnswerSound(result.isCorrect)
         val bgColor = ContextCompat.getColor(this, if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
         choiceButtons.forEach { it.isEnabled = false }
 
@@ -1034,9 +1033,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 start()
             }
         }
-
-        // ★ここをチェック！ playCorrect になっている必要があります
-        soundEffectManager.playCorrect(settings.seCorrectVolume)
+        playAnswerSound(true)
 
         val ctx = currentLegacyContext ?: return
         val v = choiceButtons.getOrNull(ctx.correctIndex) ?: return
@@ -1048,8 +1045,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun playWrongEffect() {
-        val vol = settings.seWrongVolume
-        soundEffectManager.playWrong(settings.seWrongVolume)
+        playAnswerSound(false)
     }
 
     private fun updatePointView() {
