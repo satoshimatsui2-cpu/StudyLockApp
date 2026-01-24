@@ -71,9 +71,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // region System Services
     private var tts: TextToSpeech? = null
     private var conversationTts: ConversationTtsManager? = null
-    private var soundPool: SoundPool? = null
-    private var seCorrectId: Int = 0
-    private var seWrongId: Int = 0
+    private lateinit var soundEffectManager: SoundEffectManager
     private lateinit var settings: AppSettings
     // endregion
 
@@ -157,7 +155,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts?.stop()
         tts?.shutdown()
         conversationTts?.shutdown()
-        soundPool?.release()
+        soundEffectManager.release()
         currentSnackbar?.dismiss()
         super.onDestroy()
     }
@@ -246,17 +244,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
             highlightCurrentSpeakingText(spokenText)
         }
-
-        val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(2)
-            .setAudioAttributes(attrs)
-            .build()
-        seCorrectId = loadSeIfExists("se_correct")
-        seWrongId = loadSeIfExists("se_wrong")
+        soundEffectManager = SoundEffectManager(this)
     }
 
     private fun enableConversationButtons() {
@@ -392,9 +380,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (currentMode == LearningModes.TEST_LISTEN_Q2) {
 
                     // ▼▼▼ 新しい共通リポジトリを使って保存 ▼▼▼
-                    // 会話モードはグレード一律なので gradeFilter を使います
                     StudyHistoryRepository.save(gradeFilter, currentMode, result.isCorrect)
-
 
                     // --- 会話モード用の回答後処理 ---
                     var earnedPoints = result.points
@@ -432,9 +418,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     textFeedback.text = result.feedback.replace("\\n", "\n")
                     textFeedback.visibility = View.VISIBLE
 
-                    val vol = if (result.isCorrect) settings.seCorrectVolume else settings.seWrongVolume
-                    val seId = if (result.isCorrect) seCorrectId else seWrongId
-                    if (seId != 0) soundPool?.play(seId, vol, vol, 1, 0, 1f)
+                    // ★修正: SoundEffectManagerを使用
+                    if (result.isCorrect) {
+                        soundEffectManager.playCorrect(settings.seCorrectVolume)
+                    } else {
+                        soundEffectManager.playWrong(settings.seWrongVolume)
+                    }
 
                     val bgColor = ContextCompat.getColor(this@LearningActivity,
                         if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
@@ -990,9 +979,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showFeedbackSnackbar(result: AnswerResult) {
-        val vol = if (result.isCorrect) settings.seCorrectVolume else settings.seWrongVolume
-        val seId = if (result.isCorrect) seCorrectId else seWrongId
-        if (seId != 0) soundPool?.play(seId, vol, vol, 1, 0, 1f)
+        if (result.isCorrect) {
+            soundEffectManager.playCorrect(settings.seCorrectVolume)
+        } else {
+            soundEffectManager.playWrong(settings.seWrongVolume)
+        }
 
         val bgColor = ContextCompat.getColor(this, if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
         choiceButtons.forEach { it.isEnabled = false }
@@ -1044,8 +1035,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        val vol = settings.seCorrectVolume
-        if (seCorrectId != 0) soundPool?.play(seCorrectId, vol, vol, 1, 0, 1f)
+        // ★ここをチェック！ playCorrect になっている必要があります
+        soundEffectManager.playCorrect(settings.seCorrectVolume)
 
         val ctx = currentLegacyContext ?: return
         val v = choiceButtons.getOrNull(ctx.correctIndex) ?: return
@@ -1058,7 +1049,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun playWrongEffect() {
         val vol = settings.seWrongVolume
-        if (seWrongId != 0) soundPool?.play(seWrongId, vol, vol, 1, 0, 1f)
+        soundEffectManager.playWrong(settings.seWrongVolume)
     }
 
     private fun updatePointView() {
@@ -1254,11 +1245,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         conversationTts?.setSpeechRate(speed)
         conversationTts?.setPitch(pitch)
-    }
-
-    private fun loadSeIfExists(rawName: String): Int {
-        val resId = resources.getIdentifier(rawName, "raw", packageName)
-        return if (resId != 0) soundPool?.load(this, resId, 1) ?: 0 else 0
     }
 
     private fun speakCurrentLegacyAudio() {
