@@ -576,20 +576,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private suspend fun prepareQuestionData(): LegacyQuestionContext? {
         val nextWord = selectNextWord() ?: return null
-
         val choicePool = getChoicePool()
-        val choices = buildChoices(nextWord, choicePool, 6)
-
-        val (title, body, options) = formatQuestionAndOptions(nextWord, choices, currentMode)
-        val correctStr = getCorrectStringForMode(nextWord, currentMode)
+        val choices = QuestionLogic.buildChoices(nextWord, choicePool, 6, currentMode)
+        val (title, body, options) = QuestionLogic.formatQuestionAndOptions(this, nextWord, choices, currentMode)
+        val correctStr = QuestionLogic.getCorrectStringForMode(nextWord, currentMode)
         val correctIndex = options.indexOf(correctStr)
-
         val shouldAuto = when (currentMode) {
             LearningModes.JA_TO_EN -> false
             LearningModes.LISTENING, LearningModes.LISTENING_JP -> true
             else -> checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE
         }
-
         val audioText = if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
 
         return LegacyQuestionContext(
@@ -811,77 +807,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun buildChoices(correct: WordEntity, pool: List<WordEntity>, count: Int): List<WordEntity> {
-        val candidates = pool.filter { it.no != correct.no }
-        if (candidates.isEmpty()) return listOf(correct)
-
-        val distractors = when (currentMode) {
-            LearningModes.LISTENING, LearningModes.LISTENING_JP -> getListeningChoices(correct, candidates, count - 1)
-            else -> getStandardChoices(correct, candidates, count - 1)
-        }
-        return (distractors + correct).shuffled()
-    }
-
-    private fun getStandardChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
-        val sameGradePool = candidates.filter { it.grade == correct.grade }
-        if (sameGradePool.isEmpty()) return candidates.shuffled().take(count)
-
-        val correctSmallTopic = correct.smallTopicId
-        val sameSmallTopic = if (!correctSmallTopic.isNullOrEmpty()) {
-            sameGradePool.filter { !it.smallTopicId.isNullOrEmpty() && it.smallTopicId == correctSmallTopic }.shuffled()
-        } else emptyList()
-        val pickedIds = sameSmallTopic.map { it.no }.toSet()
-        val correctMediumCategory = correct.mediumCategoryId
-        val sameMediumCategory = if (!correctMediumCategory.isNullOrEmpty()) {
-            sameGradePool.filter { it.no !in pickedIds && !it.mediumCategoryId.isNullOrEmpty() && it.mediumCategoryId == correctMediumCategory }.shuffled()
-        } else emptyList()
-        val others = sameGradePool.filter { it.no !in pickedIds && (it.mediumCategoryId != correctMediumCategory || correctMediumCategory.isNullOrEmpty()) }.shuffled()
-        return (sameSmallTopic + sameMediumCategory + others).take(count)
-    }
-
-    private fun getListeningChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
-        val correctGradeVal = correct.grade?.toIntOrNull() ?: 0
-        val correctLen = correct.word.length
-        val validPool = candidates.filter {
-            val gVal = it.grade?.toIntOrNull() ?: 0
-            gVal >= correctGradeVal && abs(it.word.length - correctLen) <= 3
-        }
-        val poolToUse = if (validPool.size < count) candidates else validPool
-
-        val p2 = correct.word.take(2).lowercase()
-        val p1 = correct.word.take(1).lowercase()
-
-        val priority1 = poolToUse.filter { it.word.lowercase().startsWith(p2) }.shuffled()
-        val p1Ids = priority1.map { it.no }.toSet()
-        val priority2 = poolToUse.filter { it.no !in p1Ids && it.word.lowercase().startsWith(p1) }.shuffled()
-        val p1p2Ids = p1Ids + priority2.map { it.no }
-        val priority3 = poolToUse.filter { it.no !in p1p2Ids && abs(it.word.length - correctLen) <= 1 }.shuffled()
-        val others = poolToUse.filter { it.no !in p1p2Ids && it.no !in priority3.map { w -> w.no } }.shuffled()
-
-        val result = (priority1 + priority2 + priority3 + others).take(count)
-        return if (result.size < count) result + candidates.filter { it.no !in result.map { w -> w.no } && it.no != correct.no }.shuffled().take(count - result.size) else result
-    }
-
-    private fun formatQuestionAndOptions(correct: WordEntity, choices: List<WordEntity>, mode: String): Triple<String, String, List<String>> {
-        return when (mode) {
-            LearningModes.MEANING -> Triple(getString(R.string.question_title_meaning), correct.word, choices.map { it.japanese ?: "" })
-            LearningModes.LISTENING -> Triple(getString(R.string.question_title_listening), "", choices.map { it.word })
-            LearningModes.LISTENING_JP -> Triple(getString(R.string.question_title_listening_jp), "", choices.map { it.japanese ?: "" })
-            LearningModes.JA_TO_EN -> Triple(getString(R.string.question_title_ja_to_en), correct.japanese ?: "", choices.map { it.word })
-            LearningModes.EN_EN_1 -> Triple(getString(R.string.question_title_en_en_1), correct.word, choices.map { it.description ?: "" })
-            LearningModes.EN_EN_2 -> Triple(getString(R.string.question_title_en_en_2), correct.description ?: "", choices.map { it.word })
-            else -> Triple("", "", emptyList())
-        }
-    }
-
-    private fun getCorrectStringForMode(word: WordEntity, mode: String): String {
-        return when (mode) {
-            LearningModes.MEANING, LearningModes.LISTENING_JP -> word.japanese ?: ""
-            LearningModes.LISTENING, LearningModes.JA_TO_EN, LearningModes.EN_EN_2 -> word.word
-            LearningModes.EN_EN_1 -> word.description ?: ""
-            else -> word.japanese ?: ""
-        }
-    }
 
     private fun nowEpochSec(): Long = System.currentTimeMillis() / 1000L
 
