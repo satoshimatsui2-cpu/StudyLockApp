@@ -1,6 +1,7 @@
 package com.example.studylockapp
 
 import android.content.Context
+import com.example.studylockapp.data.FillBlankQuestion
 import com.example.studylockapp.data.WordEntity
 import kotlin.math.abs
 
@@ -9,6 +10,43 @@ import kotlin.math.abs
  * 画面操作（View）は行わず、計算結果だけを返す
  */
 object QuestionLogic {
+
+    /**
+     * 穴埋め問題のデータをUIで使いやすい形式に変換する。
+     * 選択肢をシャッフルし、正解のインデックスを再計算する。
+     */
+    fun prepareFillBlankQuestion(question: FillBlankQuestion): LegacyQuestionContext {
+        val originalCorrectChoice = question.choices[question.correctIndex]
+        val shuffledChoices = question.choices.shuffled()
+        val newCorrectIndex = shuffledChoices.indexOf(originalCorrectChoice)
+
+        // 正しいWordEntityのコンストラクタに合わせて修正
+        val dummyWord = WordEntity(
+            no = question.id,
+            grade = question.grade,
+            word = "fill_blank_${question.id}", // PrimaryKeyなので一意な値を設定
+            japanese = question.explanation, // explanationを格納
+            description = null,
+            smallTopicId = null,
+            mediumCategoryId = null
+        )
+
+        val title = if (question.unit == 1) {
+            "（　）に入る語を選んでください"
+        } else {
+            "会話の続きを選んでください"
+        }
+
+        return LegacyQuestionContext(
+            word = dummyWord,
+            title = title,
+            body = question.question.replace("\\n", "\n"), // \nを改行に変換
+            options = shuffledChoices,
+            correctIndex = newCorrectIndex,
+            shouldAutoPlay = false,
+            audioText = ""
+        )
+    }
 
     /**
      * 正解とプールから選択肢リスト（正解含む）を生成する

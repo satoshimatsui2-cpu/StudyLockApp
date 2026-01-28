@@ -67,6 +67,63 @@ class CsvDataLoader(private val context: Context) {
         return result
     }
 
+// CsvDataLoader.kt
+
+    fun loadFillBlankQuestions(): List<FillBlankQuestion> {
+        val questions = mutableListOf<FillBlankQuestion>()
+        val TAG = "CsvDataLoader"
+        Log.d(TAG, "loadFillBlankQuestions: Starting to load questions from res/raw.")
+
+        try {
+            // ▼▼▼ 修正: assets.open ではなく resources.openRawResource を使用 ▼▼▼
+            // ファイル名: fill_in_the_blank_questions.csv -> R.raw.fill_in_the_blank_questions
+            context.resources.openRawResource(R.raw.fill_in_the_blank_questions).bufferedReader().useLines { lines ->
+
+                Log.d(TAG, "loadFillBlankQuestions: Raw resource opened successfully.")
+                var parsedCount = 0
+                val lineList = lines.toList()
+                Log.d(TAG, "loadFillBlankQuestions: Total lines: ${lineList.size}")
+
+                lineList.drop(1) // ヘッダーをスキップ
+                    .forEach { line ->
+                        val tokens = line.split(",")
+                        if (tokens.size >= 10) {
+                            try {
+                                val id = tokens[0].toInt()
+                                val grade = tokens[1]
+                                val unit = tokens[2].toInt()
+                                val questionText = tokens[3]
+                                val choices = listOf(tokens[4], tokens[5], tokens[6], tokens[7])
+                                val correctOption = tokens[8].toIntOrNull()
+                                val explanation = tokens[9]
+
+                                if (correctOption != null && correctOption in 1..4) {
+                                    questions.add(
+                                        FillBlankQuestion(
+                                            id = id,
+                                            grade = grade,
+                                            unit = unit,
+                                            question = questionText,
+                                            choices = choices,
+                                            correctIndex = correctOption - 1,
+                                            explanation = explanation
+                                        )
+                                    )
+                                    parsedCount++
+                                }
+                            } catch (e: NumberFormatException) {
+                                Log.e(TAG, "loadFillBlankQuestions: Parse error on line: $line")
+                            }
+                        }
+                    }
+                Log.d(TAG, "loadFillBlankQuestions: Parsing complete. Count: $parsedCount")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "loadFillBlankQuestions: Failed to read raw resource.", e)
+        }
+        return questions
+    }
+
     private fun parseCsvLine(line: String): List<String> {
         val result = mutableListOf<String>()
         var current = StringBuilder()

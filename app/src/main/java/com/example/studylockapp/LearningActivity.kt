@@ -52,6 +52,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var allWords: List<WordEntity> = emptyList()
     private var allWordsFull: List<WordEntity> = emptyList()
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
+    private var fillBlankQuestions: List<FillBlankQuestion> = emptyList()
     private var currentLegacyContext: LegacyQuestionContext? = null
 
     // 再生ボタン用に現在の会話スクリプトを保持する変数
@@ -285,6 +286,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             CsvDataLoader(this@LearningActivity).loadListeningQuestions()
         }
 
+        fillBlankQuestions = withContext(Dispatchers.IO) {
+            CsvDataLoader(this@LearningActivity).loadFillBlankQuestions()
+        }
         refreshConversationQueue()
 
         val db = AppDatabase.getInstance(this@LearningActivity)
@@ -570,6 +574,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private suspend fun prepareQuestionData(): LegacyQuestionContext? {
+        // ▼ 追加: 穴埋めモードなら専用ロジックで即リターン
+        if (currentMode == LearningModes.TEST_FILL_BLANK) {
+            if (fillBlankQuestions.isEmpty()) return null
+            val q = fillBlankQuestions.random() // ランダム出題（必要ならUnitフィルタなど追加）
+            return QuestionLogic.prepareFillBlankQuestion(q)
+        }
         val nextWord = selectNextWord() ?: return null
         val choicePool = getChoicePool()
         val choices = QuestionLogic.buildChoices(nextWord, choicePool, 6, currentMode)
@@ -637,9 +647,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         if (isCorrect) playCorrectEffect() else playWrongEffect()
 
-        // ▼▼▼ 変更: 新しい共通リポジトリを使って保存 ▼▼▼
+        // ▼▼▼ 修正 ▼▼▼
+        // どのモードであっても共通のStudyHistoryRepositoryとprocessAnswerResultLegacyを呼ぶようにする
         StudyHistoryRepository.save(ctx.word.grade, currentMode, isCorrect)
-
         processAnswerResultLegacy(ctx.word, isCorrect)
     }
 
@@ -916,18 +926,28 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun showFeedbackSnackbarInternal(isCorrect: Boolean, addPoint: Int) {
         val bgColor = ContextCompat.getColor(this, if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
-        val msg = if (isCorrect) {
-            val praise = listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
-            "$praise +${addPoint}pt"
+
+        val msg = if (currentMode == LearningModes.TEST_FILL_BLANK) {
+            // 穴埋めモードなら、正解/不正解に関わらず解説を表示
+            // (prepareFillBlankQuestion で word.japanese に explanation を入れたため)
+            val explanation = currentLegacyContext?.word?.japanese ?: ""
+            if (isCorrect) "正解！ $explanation" else "不正解… $explanation"
         } else {
-            if (addPoint < 0) "不正解… ${addPoint}pt" else "不正解…"
+            // 既存のロジック
+            if (isCorrect) {
+                val praise = listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
+                "$praise +${addPoint}pt"
+            } else {
+                if (addPoint < 0) "不正解… ${addPoint}pt" else "不正解…"
+            }
         }
+        // ▲ 変更ここまで
 
         currentSnackbar?.dismiss()
         currentSnackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).apply {
             setBackgroundTint(bgColor)
             setTextColor(android.graphics.Color.WHITE)
-            duration = settings.answerIntervalMs.toInt().coerceIn(600, 4000)
+            duration = if (currentMode == LearningModes.TEST_FILL_BLANK) 5000 else settings.answerIntervalMs.toInt().coerceIn(600, 4000)
             show()
         }
     }
@@ -1042,14 +1062,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updateStudyStatsView() {
         lifecycleScope.launch(Dispatchers.Default) {
-            // ※リスニングQ2のみの場合はallWordsが空でも動くように調整
             if (allWords.isEmpty() && currentMode != LearningModes.TEST_LISTEN_Q2) return@launch
 
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
-            val nowSec = System.currentTimeMillis() / 1000L // nowEpochSec()の中身を展開または既存関数を利用
+            val nowSec = System.currentTimeMillis() / 1000L
             val db = AppDatabase.getInstance(this@LearningActivity)
 
-            // まとめて計算（マップ生成）
             currentStats = mapOf(
                 LearningModes.MEANING to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.MEANING, nowSec, listeningQuestions),
                 LearningModes.LISTENING to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.LISTENING, nowSec, listeningQuestions),
@@ -1057,6 +1075,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 LearningModes.JA_TO_EN to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.JA_TO_EN, nowSec, listeningQuestions),
                 LearningModes.EN_EN_1 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_1, nowSec, listeningQuestions),
                 LearningModes.EN_EN_2 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_2, nowSec, listeningQuestions),
+                LearningModes.TEST_FILL_BLANK to LearningStatsLogic.computeModeStats(db, fillBlankQuestions.map { it.id }.toSet(), LearningModes.TEST_FILL_BLANK, nowSec, listeningQuestions),
                 LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(db, emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions)
             )
             withContext(Dispatchers.Main) { updateModeUi() }
