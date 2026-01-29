@@ -52,6 +52,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.flexbox)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation(platform("androidx.compose:compose-bom:2024.09.00"))
     implementation("androidx.compose.ui:ui")

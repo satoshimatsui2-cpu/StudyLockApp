@@ -574,11 +574,41 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private suspend fun prepareQuestionData(): LegacyQuestionContext? {
-        // ▼ 追加: 穴埋めモードなら専用ロジックで即リターン
         if (currentMode == LearningModes.TEST_FILL_BLANK) {
-            if (fillBlankQuestions.isEmpty()) return null
-            val q = fillBlankQuestions.random() // ランダム出題（必要ならUnitフィルタなど追加）
-            return QuestionLogic.prepareFillBlankQuestion(q)
+            val progressDao = AppDatabase.getInstance(this).wordProgressDao()
+            val nowSec = System.currentTimeMillis() / 1000L
+
+            // 1. まず、現在の級に対応する問題のリストとIDセットを作成
+            val questionsForGrade = fillBlankQuestions.filter { it.grade == gradeFilter }
+            val idsForGrade = questionsForGrade.map { it.id }.toSet()
+            if (idsForGrade.isEmpty()) {
+                return null // この級には問題がない
+            }
+
+            // 2.【優先度1】復習(due)対象の問題を探す
+            //    - DBから復習時期が来たIDリストを取得
+            //    - その中から現在の級に含まれるIDを最初に見つける
+            val dueIds = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
+            val nextDueId = dueIds.find { it in idsForGrade }
+            if (nextDueId != null) {
+                // 見つかったら、その問題を返す
+                val question = questionsForGrade.find { it.id == nextDueId }
+                return question?.let { QuestionLogic.prepareFillBlankQuestion(it) }
+            }
+
+            // 3.【優先度2】新規(new)の問題を探す
+            //    - このモードで一度でも学習した問題のIDリストを取得
+            //    - 今の級の問題リストから、学習済みIDを除外して「新規リスト」を作成
+            val progressedIds = progressDao.getAllProgressForMode(currentMode).map { it.wordId }.toSet()
+            val newQuestions = questionsForGrade.filter { it.id !in progressedIds }
+            if (newQuestions.isNotEmpty()) {
+                // 新規問題があれば、そこからランダムで1問選んで返す
+                val question = newQuestions.random()
+                return QuestionLogic.prepareFillBlankQuestion(question)
+            }
+
+            // 4. 復習対象も新規問題もなければ、出題する問題はない
+            return null
         }
         val nextWord = selectNextWord() ?: return null
         val choicePool = getChoicePool()
@@ -1067,6 +1097,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
             val nowSec = System.currentTimeMillis() / 1000L
             val db = AppDatabase.getInstance(this@LearningActivity)
+            // 穴埋め問題のIDセットも現在のグレードでフィルタリングする
+            val fillBlankIdSet = fillBlankQuestions
+                .filter { it.grade == gradeFilter }
+                .map { it.id }
+                .toSet()
 
             currentStats = mapOf(
                 LearningModes.MEANING to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.MEANING, nowSec, listeningQuestions),
@@ -1075,7 +1110,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 LearningModes.JA_TO_EN to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.JA_TO_EN, nowSec, listeningQuestions),
                 LearningModes.EN_EN_1 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_1, nowSec, listeningQuestions),
                 LearningModes.EN_EN_2 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_2, nowSec, listeningQuestions),
-                LearningModes.TEST_FILL_BLANK to LearningStatsLogic.computeModeStats(db, fillBlankQuestions.map { it.id }.toSet(), LearningModes.TEST_FILL_BLANK, nowSec, listeningQuestions),
+                // 修正: フィルタリングしたIDセット(fillBlankIdSet)を渡す
+                LearningModes.TEST_FILL_BLANK to LearningStatsLogic.computeModeStats(db, fillBlankIdSet, LearningModes.TEST_FILL_BLANK, nowSec, listeningQuestions),
                 LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(db, emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions)
             )
             withContext(Dispatchers.Main) { updateModeUi() }

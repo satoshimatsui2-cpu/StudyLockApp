@@ -1,26 +1,26 @@
 no,grade,unit,question,choice1,choice2,choice3,choice4,correct_option,explanation
-1,5,1,My brother plays soccer ( ) school.,on,at,to,of,2,"「放課後に」は ""after school"" ですが、場所としての「学校で」は ""at school"" を使います。"
-2,5,1,I want a new ( ) for my bike.,house,notebook,helmet,piano,3,"自転車に乗る際に関連するアイテムは「helmet（ヘルメット）」です。"
-3,5,1,Let's ( ) lunch together.,eat,read,sing,wash,1,"昼食（lunch）を「食べる」ので ""eat"" が適切です。"
-4,5,1,This book is very ( ). I like it.,sad,interesting,hungry,rainy,2,"「それが好き」という肯定的な感想に続く形容詞は ""interesting（おもしろい）"" が自然です。"
-5,5,1,Ken is studying English in his ( ).,kitchen,bathroom,room,garden,3,"勉強をする場所として最も一般的なのは ""room（部屋）"" です。"
-6,5,1,Please ( ) the door. It's cold.,open,close,look,go,2,"「寒い」と言っているので、ドアを ""close（閉める）"" 動作が適切です。"
-7,5,1,My father is a ( ). He cooks very well.,doctor,cook,pilot,singer,2,"料理が上手だと言っているので、職業は ""cook（コック/料理人）"" です。"
-8,5,1,I usually go to bed ( ) ten.,in,on,at,for,3,"時刻の前には前置詞 ""at"" を使います。"
-9,5,1,Look at that bird. It's ( ).,cute,long,easy,late,1,"鳥を見た感想として ""cute（かわいい）"" が文脈に合います。"
-10,5,1,Can you ( ) me with my homework?,teach,help,speak,know,2,"宿題を「手伝って」と頼む ""help me with..."" の表現です。"
-11,5,1,I have two ( ) in my bag.,pencil,pencils,book,notebook,2,"""two""（2つ）なので、続く名詞は複数形の ""pencils"" が正解です。"
-12,5,1,We play baseball in the ( ).,sea,sky,park,river,3,"野球をする場所は ""park（公園）"" が適切です。"
-13,5,1,( ) is your birthday?,Who,What,Where,When,4,"誕生日（時）を尋ねる疑問詞は ""When"" です。"
-14,5,1,This is not my bag. It's ( ).,me,you,my,yours,4,"「あなたのです（あなたのもの）」を表す所有代名詞 ""yours"" が入ります。"
-15,5,1,Does Tom ( ) any brothers?,has,have,is,are,2,"疑問文 ""Does..."" の後は動詞の原形 ""have"" を使います。"
-16,5,2,"Boy: Mom, where is my notebook?\nMother: ( )",It's five o'clock.,Yes I do.,It's on the desk.,You're welcome.,3,"「ノートはどこ？」と場所を聞いている母親の返答として、「机の上よ」が適切です。"
-17,5,2,"Teacher: Don't run in the classroom, Tom.\nBoy: ( )",I'm sorry.,That's right.,Good idea.,I'm fine.,1,"先生に注意された生徒の返答として、「ごめんなさい」と謝るのが適切です。"
-18,5,2,"Father: Let's go to the zoo this weekend.\nGirl: ( )",No thank you.,That's a good idea.,Here you are.,It's sunny.,2,"父親からの提案（動物園に行こう）に対する肯定的な返答です。"
-19,5,2,"Girl: Do you like music?\nBoy: ( ) I play the guitar.",Yes I am.,No I don't.,Yes I do.,Thank you.,3,"""Do you...?"" で聞かれたことに対し、「はい、好きです（ギターを弾きます）」と答える文脈です。"
-20,5,2,"Mother: Here is your lunch, Mike.\nBoy: ( )",Thanks Mom.,Good morning.,I'm home.,Nice to meet you.,1,"お弁当を渡してくれた母親に対するお礼の言葉です。"
-21,Pre-2,1,I have to _____ my homework before dinner.,do,make,take,get,1,「宿題をする」は do one's homework です。make は使いません。
-22,Pre-2,1,The train was delayed _____ of the heavy snow.,because,due,owing,account,1,because of で「〜のために（理由）」を表します。due to も使えますが、空所は of の前なので because が適切です。
+1,5,1,My brother plays soccer _____ school.,on,at,to,of,2,"「放課後に」は ""after school"" ですが、場所としての「学校で」は ""at school"" を使います。"
+2,5,1,I want a new _____ for my bike.,house,notebook,helmet,piano,3,"自転車に乗る際に関連するアイテムは「helmet（ヘルメット）」です。"
+3,5,1,Let's _____ lunch together.,eat,read,sing,wash,1,"昼食（lunch）を「食べる」ので ""eat"" が適切です。"
+4,5,1,This book is very _____ . I like it.,sad,interesting,hungry,rainy,2,"「それが好き」という肯定的な感想に続く形容詞は ""interesting（おもしろい）"" が自然です。"
+5,5,1,Ken is studying English in his _____ .,kitchen,bathroom,room,garden,3,"勉強をする場所として最も一般的なのは ""room（部屋）"" です。"
+6,5,1,Please _____ the door. It's cold.,open,close,look,go,2,"「寒い」と言っているので、ドアを ""close（閉める）"" 動作が適切です。"
+7,5,1,My father is a _____. He cooks very well.,doctor,cook,pilot,singer,2,"料理が上手だと言っているので、職業は ""cook（コック/料理人）"" です。"
+8,5,1,I usually go to bed _____ ten.,in,on,at,for,3,"時刻の前には前置詞 ""at"" を使います。"
+9,5,1,Look at that bird. It's _____.,cute,long,easy,late,1,"鳥を見た感想として ""cute（かわいい）"" が文脈に合います。"
+10,5,1,Can you _____ me with my homework?,teach,help,speak,know,2,"宿題を「手伝って」と頼む ""help me with..."" の表現です。"
+11,5,1,I have two _____ in my bag.,pencil,pencils,book,notebook,2,"""two""（2つ）なので、続く名詞は複数形の ""pencils"" が正解です。"
+12,5,1,We play baseball in the _____.,sea,sky,park,river,3,"野球をする場所は ""park（公園）"" が適切です。"
+13,5,1,_____ is your birthday?,Who,What,Where,When,4,"誕生日（時）を尋ねる疑問詞は ""When"" です。"
+14,5,1,This is not my bag. It's _____.,me,you,my,yours,4,"「あなたのです（あなたのもの）」を表す所有代名詞 ""yours"" が入ります。"
+15,5,1,Does Tom _____ any brothers?,has,have,is,are,2,"疑問文 ""Does..."" の後は動詞の原形 ""have"" を使います。"
+16,5,2,"Boy: Mom, where is my notebook?\nMother: _____",It's five o'clock.,Yes I do.,It's on the desk.,You're welcome.,3,"「ノートはどこ？」と場所を聞いている母親の返答として、「机の上よ」が適切です。"
+17,5,2,"Teacher: Don't run in the classroom, Tom.\nBoy: _____",I'm sorry.,That's right.,Good idea.,I'm fine.,1,"先生に注意された生徒の返答として、「ごめんなさい」と謝るのが適切です。"
+18,5,2,"Father: Let's go to the zoo this weekend.\nGirl: _____",No thank you.,That's a good idea.,Here you are.,It's sunny.,2,"父親からの提案（動物園に行こう）に対する肯定的な返答です。"
+19,5,2,"Girl: Do you like music?\nBoy: _____ I play the guitar.",Yes I am.,No I don't.,Yes I do.,Thank you.,3,"""Do you...?"" で聞かれたことに対し、「はい、好きです（ギターを弾きます）」と答える文脈です。"
+20,5,2,"Mother: Here is your lunch, Mike.\nBoy: _____",Thanks Mom.,Good morning.,I'm home.,Nice to meet you.,1,"お弁当を渡してくれた母親に対するお礼の言葉です。"
+21,2.5,1,I have to _____ my homework before dinner.,do,make,take,get,1,「宿題をする」は do one's homework です。make は使いません。
+22,2.5,1,The train was delayed _____ of the heavy snow.,because,due,owing,account,1,because of で「〜のために（理由）」を表します。due to も使えますが、空所は of の前なので because が適切です。
 23,2,2,A: I heard you passed the exam!\nB: Yes, I worked really hard _____.,in the end,at first,for it,by the way,3,「そのために（合格するために）一生懸命勉強したんだ」という意味になる for it が正解です。
 24,2,2,A: Do you mind if I open the window?\nB: _____. It's getting hot in here.,Not at all,Yes please,No I don't,I suppose so,1,Do you mind...?（気にしますか？）に対する「いいえ（気にしません＝どうぞ）」という返答は Not at all が定番です。
-25,Pre-2,1,Please _____ off your shoes at the entrance.,put,take,get,turn,2,「靴を脱ぐ」は take off です。put off は「延期する」という意味になります。
+25,2.1,1,Please _____ off your shoes at the entrance.,put,take,get,turn,2,「靴を脱ぐ」は take off です。put off は「延期する」という意味になります。
