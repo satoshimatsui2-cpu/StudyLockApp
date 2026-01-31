@@ -9,6 +9,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -19,7 +20,9 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.BackgroundColorSpan
 import android.text.style.ReplacementSpan
+import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
@@ -61,8 +64,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // 再生ボタン用に現在の会話スクリプトを保持する変数
     private var currentConversationScript: String = ""
+
     // ハイライト検索用の現在位置カーソル
     private var currentHighlightSearchIndex: Int = 0
+
     // 現在の質問文（本文）を保持して、ボタン有効化の判定に使う
     private var currentQuestionText: String = ""
     private var currentStats: Map<String, ModeStats> = emptyMap()
@@ -115,9 +120,25 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var checkIncludeOtherGrades: CheckBox? = null
     private var checkboxAutoPlayAudio: CheckBox? = null
     private var currentSnackbar: Snackbar? = null
+    private var sortJapaneseBaseTextSizePx: Float? = null
 
-    private val greenTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_correct)) }
-    private val redTint by lazy { ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_wrong)) }
+
+    private val greenTint by lazy {
+        ColorStateList.valueOf(
+            ContextCompat.getColor(
+                this,
+                R.color.choice_correct
+            )
+        )
+    }
+    private val redTint by lazy {
+        ColorStateList.valueOf(
+            ContextCompat.getColor(
+                this,
+                R.color.choice_wrong
+            )
+        )
+    }
     // endregion
 
     // region Lifecycle
@@ -225,10 +246,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         defaultChoiceTints = choiceButtons.map { ViewCompat.getBackgroundTintList(it) }
 
-        checkIncludeOtherGrades = findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
-            isChecked = false
-            includeOtherGradesReview = false
-        }
+        checkIncludeOtherGrades =
+            findViewById<CheckBox?>(R.id.checkbox_include_other_grades)?.apply {
+                isChecked = false
+                includeOtherGradesReview = false
+            }
         checkboxAutoPlayAudio = findViewById<CheckBox?>(R.id.checkbox_auto_play_audio)?.apply {
             isChecked = true
         }
@@ -244,7 +266,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         conversationTts?.onSpeakListener = { spokenText ->
             val sText = spokenText.trim()
             if (sText.startsWith("Question", ignoreCase = true) ||
-                (currentQuestionText.isNotEmpty() && sText.contains(currentQuestionText, ignoreCase = true))) {
+                (currentQuestionText.isNotEmpty() && sText.contains(
+                    currentQuestionText,
+                    ignoreCase = true
+                ))
+            ) {
                 runOnUiThread {
                     enableConversationButtons()
                 }
@@ -277,7 +303,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val end = start + spokenText.length
             val spannable = SpannableString(fullText)
             val highlightColor = Color.parseColor("#80FFEB3B")
-            spannable.setSpan(MarkerSpan(highlightColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            spannable.setSpan(
+                MarkerSpan(highlightColor),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
             textScriptDisplay.text = spannable
             currentHighlightSearchIndex = end
         }
@@ -290,7 +321,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (gradeFilter != "All") importMissingWordsForGrade(targetDbGrade) else 0
         }
         if (imported > 0) {
-            Snackbar.make(findViewById(android.R.id.content), getString(R.string.imported_count_message, imported), Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(
+                findViewById(android.R.id.content),
+                getString(R.string.imported_count_message, imported),
+                Snackbar.LENGTH_SHORT
+            ).show()
         }
 
         listeningQuestions = withContext(Dispatchers.IO) {
@@ -340,7 +375,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 disableConversationButtons()
 
-                val repeatScript = currentConversationScript + "\nWait: 2000\n" + currentConversationScript
+                val repeatScript =
+                    currentConversationScript + "\nWait: 2000\n" + currentConversationScript
                 conversationTts?.playScript(repeatScript)
             } else {
                 speakCurrentLegacyAudio()
@@ -352,7 +388,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         buttonSoundSettings.setOnClickListener {
             runCatching {
-                startActivity(Intent().apply { setClassName(this@LearningActivity, "com.example.studylockapp.SoundSettingsActivity") })
+                startActivity(Intent().apply {
+                    setClassName(
+                        this@LearningActivity,
+                        "com.example.studylockapp.SoundSettingsActivity"
+                    )
+                })
             }.onFailure { Toast.makeText(this, "起動に失敗", Toast.LENGTH_SHORT).show() }
         }
 
@@ -431,7 +472,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             db.pointHistoryDao().insert(
                                 PointHistoryEntity(
                                     mode = LearningModes.TEST_SORT,
-                                    dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
+                                    dateEpochDay = LocalDate.now(settings.getAppZoneId())
+                                        .toEpochDay(),
                                     delta = deltaPoint
                                 )
                             )
@@ -445,7 +487,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         val currentLevel = current?.level ?: 0
 
                         // 既存の共通ロジックを流用（テストモードは翌日扱いになる）
-                        val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
+                        val (newLevel, nextDueAtSec) = calcNextDueAtSec(
+                            isCorrect,
+                            currentLevel,
+                            nowSec
+                        )
 
                         progressDao.upsert(
                             WordProgressEntity(
@@ -475,7 +521,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             } else {
                                 "不正解… ${deltaPoint}pt"
                             }
-                            Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).show()
+                            Snackbar.make(
+                                findViewById(android.R.id.content),
+                                msg,
+                                Snackbar.LENGTH_SHORT
+                            ).show()
                         }
                     }
 
@@ -496,7 +546,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     var earnedPoints = result.points
 
                     // ペナルティ対象モードを定義
-                    val penaltyModes = setOf(LearningModes.TEST_FILL_BLANK, LearningModes.TEST_SORT, LearningModes.TEST_LISTEN_Q1, LearningModes.TEST_LISTEN_Q2)
+                    val penaltyModes = setOf(
+                        LearningModes.TEST_FILL_BLANK,
+                        LearningModes.TEST_SORT,
+                        LearningModes.TEST_LISTEN_Q1,
+                        LearningModes.TEST_LISTEN_Q2
+                    )
 
                     // 不正解かつ、指定されたテストモードの場合のみ減点
                     if (currentMode in penaltyModes && !result.isCorrect) {
@@ -510,7 +565,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             lifecycleScope.launch(Dispatchers.IO) {
                                 val pointManager = PointManager(this@LearningActivity)
                                 pointManager.add(-penalty)
-                                db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = -penalty))
+                                db.pointHistoryDao().insert(
+                                    PointHistoryEntity(
+                                        mode = currentMode,
+                                        dateEpochDay = LocalDate.now(settings.getAppZoneId())
+                                            .toEpochDay(),
+                                        delta = -penalty
+                                    )
+                                )
                             }
                             earnedPoints = -penalty
                         }
@@ -530,8 +592,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     playAnswerSound(result.isCorrect)
 
-                    val bgColor = ContextCompat.getColor(this@LearningActivity,
-                        if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
+                    val bgColor = ContextCompat.getColor(
+                        this@LearningActivity,
+                        if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
+                    )
 
                     // ★修正: 正解時にもポイントを表示するように変更
                     val msg = if (result.isCorrect) "正解！ +${earnedPoints}pt" else {
@@ -540,7 +604,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     choiceButtons.forEach { it.isEnabled = false }
                     currentSnackbar?.dismiss()
-                    currentSnackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_INDEFINITE).apply {
+                    currentSnackbar = Snackbar.make(
+                        findViewById(android.R.id.content),
+                        msg,
+                        Snackbar.LENGTH_INDEFINITE
+                    ).apply {
                         setBackgroundTint(bgColor)
                         setTextColor(android.graphics.Color.WHITE)
                         setAction("次へ") { viewModel.loadNextQuestion() }
@@ -702,7 +770,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // 3.【優先度2】新規(new)の問題を探す
             //    - このモードで一度でも学習した問題のIDリストを取得
             //    - 今の級の問題リストから、学習済みIDを除外して「新規リスト」を作成
-            val progressedIds = progressDao.getAllProgressForMode(currentMode).map { it.wordId }.toSet()
+            val progressedIds =
+                progressDao.getAllProgressForMode(currentMode).map { it.wordId }.toSet()
             val newQuestions = questionsForGrade.filter { it.id !in progressedIds }
             if (newQuestions.isNotEmpty()) {
                 // 新規問題があれば、そこからランダムで1問選んで返す
@@ -716,7 +785,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val nextWord = selectNextWord() ?: return null
         val choicePool = getChoicePool()
         val choices = QuestionLogic.buildChoices(nextWord, choicePool, 6, currentMode)
-        val (title, body, options) = QuestionLogic.formatQuestionAndOptions(this, nextWord, choices, currentMode)
+        val (title, body, options) = QuestionLogic.formatQuestionAndOptions(
+            this,
+            nextWord,
+            choices,
+            currentMode
+        )
         val correctStr = QuestionLogic.getCorrectStringForMode(nextWord, currentMode)
         val correctIndex = options.indexOf(correctStr)
         val shouldAuto = when (currentMode) {
@@ -724,7 +798,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             LearningModes.LISTENING, LearningModes.LISTENING_JP -> true
             else -> checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE
         }
-        val audioText = if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
+        val audioText =
+            if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
 
         return LegacyQuestionContext(
             word = nextWord,
@@ -742,7 +817,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionBody.text = ctx.body
         textQuestionBody.visibility = if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
 
-        choiceButtons.forEach { it.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f }
+        choiceButtons.forEach {
+            it.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f
+        }
         choiceButtons.zip(ctx.options).forEach { (btn, txt) -> btn.text = txt }
 
         when (currentMode) {
@@ -750,10 +827,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 checkboxAutoPlayAudio?.visibility = View.GONE
                 buttonPlayAudio.visibility = View.GONE
             }
+
             LearningModes.MEANING, LearningModes.EN_EN_1, LearningModes.EN_EN_2 -> {
                 checkboxAutoPlayAudio?.visibility = View.VISIBLE
                 buttonPlayAudio.visibility = View.VISIBLE
             }
+
             else -> {
                 checkboxAutoPlayAudio?.visibility = View.GONE
                 buttonPlayAudio.visibility = View.VISIBLE
@@ -807,7 +886,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private suspend fun registerAnswerToDb(word: WordEntity, isCorrect: Boolean): Pair<Int, Pair<Int, Int>> {
+    private suspend fun registerAnswerToDb(
+        word: WordEntity,
+        isCorrect: Boolean
+    ): Pair<Int, Pair<Int, Int>> {
         return withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@LearningActivity)
             val progressDao = db.wordProgressDao()
@@ -824,8 +906,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val userGradeStr = settings.currentLearningGrade
             val gradeMap = mapOf(
-                "1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7,
-                "1" to 1, "1.5" to 2, "2" to 3, "2.5" to 4, "3" to 5, "4" to 6, "5" to 7
+                "1級" to 1,
+                "準1級" to 2,
+                "2級" to 3,
+                "準2級" to 4,
+                "3級" to 5,
+                "4級" to 6,
+                "5級" to 7,
+                "1" to 1,
+                "1.5" to 2,
+                "2" to 3,
+                "2.5" to 4,
+                "3" to 5,
+                "4" to 6,
+                "5" to 7
             )
 
             val userGrade = gradeMap[userGradeStr] ?: 0
@@ -841,7 +935,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             // ★修正: 指定されたテストモードの場合のみ減点処理を行う
-            val penaltyModes = setOf(LearningModes.TEST_FILL_BLANK, LearningModes.TEST_SORT, LearningModes.TEST_LISTEN_Q1, LearningModes.TEST_LISTEN_Q2)
+            val penaltyModes = setOf(
+                LearningModes.TEST_FILL_BLANK,
+                LearningModes.TEST_SORT,
+                LearningModes.TEST_LISTEN_Q1,
+                LearningModes.TEST_LISTEN_Q2
+            )
 
             if (currentMode in penaltyModes && !isCorrect) {
                 // 正解だった場合のポイントを仮計算
@@ -859,7 +958,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val penalty = (potentialPoints * 0.25).toInt()
                 if (penalty > 0) {
                     pointManager.add(-penalty)
-                    db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = -penalty))
+                    db.pointHistoryDao().insert(
+                        PointHistoryEntity(
+                            mode = currentMode,
+                            dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
+                            delta = -penalty
+                        )
+                    )
                 }
                 // 表示用にマイナス値を返す
                 points = -penalty
@@ -867,15 +972,33 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // 通常の加算（テスト以外、または正解時）
                 pointManager.add(points)
                 if (points > 0) {
-                    db.pointHistoryDao().insert(PointHistoryEntity(mode = currentMode, dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(), delta = points))
+                    db.pointHistoryDao().insert(
+                        PointHistoryEntity(
+                            mode = currentMode,
+                            dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
+                            delta = points
+                        )
+                    )
                 }
             }
 
-            progressDao.upsert(WordProgressEntity(
-                wordId = word.no, mode = currentMode, level = newLevel, nextDueAtSec = nextDueAtSec,
-                lastAnsweredAt = System.currentTimeMillis(), studyCount = (current?.studyCount ?: 0) + 1
-            ))
-            db.studyLogDao().insert(WordStudyLogEntity(wordId = word.no, mode = currentMode, learnedAt = System.currentTimeMillis()))
+            progressDao.upsert(
+                WordProgressEntity(
+                    wordId = word.no,
+                    mode = currentMode,
+                    level = newLevel,
+                    nextDueAtSec = nextDueAtSec,
+                    lastAnsweredAt = System.currentTimeMillis(),
+                    studyCount = (current?.studyCount ?: 0) + 1
+                )
+            )
+            db.studyLogDao().insert(
+                WordStudyLogEntity(
+                    wordId = word.no,
+                    mode = currentMode,
+                    learnedAt = System.currentTimeMillis()
+                )
+            )
 
             points to (currentLevel to newLevel)
         }
@@ -945,12 +1068,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun calcNextDueAtSec(isCorrect: Boolean, currentLevel: Int, nowSec: Long): Pair<Int, Long> {
+    private fun calcNextDueAtSec(
+        isCorrect: Boolean,
+        currentLevel: Int,
+        nowSec: Long
+    ): Pair<Int, Long> {
         val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
         val zone = settings.getAppZoneId()
 
         // ★追加: テストモードかどうかを判定
-        val isTestMode = currentMode in setOf(LearningModes.TEST_FILL_BLANK, LearningModes.TEST_SORT, LearningModes.TEST_LISTEN_Q1, LearningModes.TEST_LISTEN_Q2)
+        val isTestMode = currentMode in setOf(
+            LearningModes.TEST_FILL_BLANK,
+            LearningModes.TEST_SORT,
+            LearningModes.TEST_LISTEN_Q1,
+            LearningModes.TEST_LISTEN_Q2
+        )
 
         // 翌日の開始時刻（00:00:00）を計算
         val nextDaySec = Instant.ofEpochSecond(nowSec).atZone(zone)
@@ -980,21 +1112,26 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // --- レベル2以上（間隔反復） ---
         // 元々「1日後、3日後...」という設定なので、そのまま適用（最低でも翌日になる）
-        val days = when (newLevel) { 2 -> 1; 3 -> 3; 4 -> 7; 5 -> 14; 6 -> 30; 7 -> 60; else -> 90 }
-        val dueDate = Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate().plusDays(days.toLong())
+        val days = when (newLevel) {
+            2 -> 1; 3 -> 3; 4 -> 7; 5 -> 14; 6 -> 30; 7 -> 60; else -> 90
+        }
+        val dueDate =
+            Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate().plusDays(days.toLong())
         return newLevel to dueDate.atStartOfDay(zone).toEpochSecond()
     }
 
-    private suspend fun importMissingWordsForGrade(grade: String): Int = withContext(Dispatchers.IO) {
-        val db = AppDatabase.getInstance(this@LearningActivity)
-        val wordDao = db.wordDao()
-        val csvWords = CsvDataLoader(this@LearningActivity).loadWords().filter { it.grade == grade }
-        if (csvWords.isEmpty()) return@withContext 0
-        val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
-        val missing = csvWords.filter { existing[it.word] == null }
-        if (missing.isNotEmpty()) wordDao.insertAll(missing)
-        missing.size
-    }
+    private suspend fun importMissingWordsForGrade(grade: String): Int =
+        withContext(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(this@LearningActivity)
+            val wordDao = db.wordDao()
+            val csvWords =
+                CsvDataLoader(this@LearningActivity).loadWords().filter { it.grade == grade }
+            if (csvWords.isEmpty()) return@withContext 0
+            val existing = wordDao.getAll().filter { it.grade == grade }.associateBy { it.word }
+            val missing = csvWords.filter { existing[it.word] == null }
+            if (missing.isNotEmpty()) wordDao.insertAll(missing)
+            missing.size
+        }
     // endregion
 
     // region UI Utilities (Stats, Effects, Sound)
@@ -1016,7 +1153,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.alpha = 1f
             btn.visibility = View.VISIBLE
         }
-        if (choiceButtons.size >= 6) { (choiceButtons[4].parent as? View)?.visibility = View.VISIBLE }
+        if (choiceButtons.size >= 6) {
+            (choiceButtons[4].parent as? View)?.visibility = View.VISIBLE
+        }
 
         if (currentMode.startsWith("test_")) {
             checkIncludeOtherGrades?.visibility = View.GONE
@@ -1044,11 +1183,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun showFeedbackSnackbar(result: AnswerResult) {
         playAnswerSound(result.isCorrect)
-        val bgColor = ContextCompat.getColor(this, if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
+        val bgColor = ContextCompat.getColor(
+            this,
+            if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
+        )
         choiceButtons.forEach { it.isEnabled = false }
 
         currentSnackbar?.dismiss()
-        currentSnackbar = Snackbar.make(findViewById(android.R.id.content), result.feedback, Snackbar.LENGTH_INDEFINITE).apply {
+        currentSnackbar = Snackbar.make(
+            findViewById(android.R.id.content),
+            result.feedback,
+            Snackbar.LENGTH_INDEFINITE
+        ).apply {
             setBackgroundTint(bgColor)
             setTextColor(android.graphics.Color.WHITE)
             setAction("次へ") { viewModel.loadNextQuestion() }
@@ -1058,7 +1204,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showFeedbackSnackbarInternal(isCorrect: Boolean, addPoint: Int) {
-        val bgColor = ContextCompat.getColor(this, if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg)
+        val bgColor = ContextCompat.getColor(
+            this,
+            if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
+        )
 
         val msg = if (currentMode == LearningModes.TEST_FILL_BLANK) {
             // 穴埋めモードなら、正解/不正解に関わらず解説を表示
@@ -1068,7 +1217,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } else {
             // 既存のロジック
             if (isCorrect) {
-                val praise = listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
+                val praise =
+                    listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
                 "$praise +${addPoint}pt"
             } else {
                 if (addPoint < 0) "不正解… ${addPoint}pt" else "不正解…"
@@ -1077,12 +1227,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // ▲ 変更ここまで
 
         currentSnackbar?.dismiss()
-        currentSnackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).apply {
-            setBackgroundTint(bgColor)
-            setTextColor(android.graphics.Color.WHITE)
-            duration = if (currentMode == LearningModes.TEST_FILL_BLANK) 5000 else settings.answerIntervalMs.toInt().coerceIn(600, 4000)
-            show()
-        }
+        currentSnackbar =
+            Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).apply {
+                setBackgroundTint(bgColor)
+                setTextColor(android.graphics.Color.WHITE)
+                duration =
+                    if (currentMode == LearningModes.TEST_FILL_BLANK) 5000 else settings.answerIntervalMs.toInt()
+                        .coerceIn(600, 4000)
+                show()
+            }
     }
 
     private fun playCorrectEffect() {
@@ -1098,7 +1251,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 duration = 160L
                 addUpdateListener { drawable.alpha = it.animatedValue as Int }
                 addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) { root.overlay.remove(drawable) }
+                    override fun onAnimationEnd(animation: Animator) {
+                        root.overlay.remove(drawable)
+                    }
                 })
                 start()
             }
@@ -1129,7 +1284,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val view = layoutInflater.inflate(R.layout.layout_mode_selection_sheet, null)
         dialog.setContentView(view)
 
-        fun setupRow(rowId: Int, modeKey: String, title: String, iconRes: Int, colorRes: Int, isTestMode: Boolean = false) {
+        fun setupRow(
+            rowId: Int,
+            modeKey: String,
+            title: String,
+            iconRes: Int,
+            colorRes: Int,
+            isTestMode: Boolean = false
+        ) {
             val card = view.findViewById<MaterialCardView>(rowId) ?: return
             val icon = card.findViewById<ImageView>(R.id.icon_mode)
             val textTitle = card.findViewById<TextView>(R.id.text_mode_title)
@@ -1138,14 +1300,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val textBronze = card.findViewById<TextView>(R.id.stat_bronze)
             val textSilver = card.findViewById<TextView>(R.id.stat_silver)
-            val textGold   = card.findViewById<TextView>(R.id.stat_gold)
-            val textCrystal= card.findViewById<TextView>(R.id.stat_crystal)
+            val textGold = card.findViewById<TextView>(R.id.stat_gold)
+            val textCrystal = card.findViewById<TextView>(R.id.stat_crystal)
 
             textTitle.text = title
             icon.setImageResource(iconRes)
             val color = ContextCompat.getColor(this, colorRes)
             icon.setColorFilter(color)
-            ViewCompat.setBackgroundTintList(card.findViewById(R.id.icon_container), ColorStateList.valueOf((color and 0x00FFFFFF) or (38 shl 24))) // alpha ~0.15
+            ViewCompat.setBackgroundTintList(
+                card.findViewById(R.id.icon_container),
+                ColorStateList.valueOf((color and 0x00FFFFFF) or (38 shl 24))
+            ) // alpha ~0.15
 
             val stats = currentStats[modeKey]
             textReview.text = stats?.review?.toString() ?: "-"
@@ -1154,8 +1319,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val total = stats?.total?.coerceAtLeast(1) ?: 1
             textBronze?.text = "${(stats?.bronze ?: 0) * 100 / total}%"
             textSilver?.text = "${(stats?.silver ?: 0) * 100 / total}%"
-            textGold?.text   = "${(stats?.gold ?: 0)   * 100 / total}%"
-            textCrystal?.text= "${(stats?.crystal ?: 0)* 100 / total}%"
+            textGold?.text = "${(stats?.gold ?: 0) * 100 / total}%"
+            textCrystal?.text = "${(stats?.crystal ?: 0) * 100 / total}%"
 
             if (isTestMode && modeKey != LearningModes.TEST_LISTEN_Q2) card.alpha = 0.5f
 
@@ -1183,9 +1348,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         // 並び替えはあなたの実装している開始処理へ
                         showFirstSortQuestion()
                     }
+
                     LearningModes.TEST_LISTEN_Q2 -> {
                         viewModel.setMode(modeKey)
                     }
+
                     else -> {
                         loadNextQuestionLegacy()
                     }
@@ -1195,19 +1362,82 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
 
-
         }
 
-        setupRow(R.id.row_meaning, LearningModes.MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
-        setupRow(R.id.row_listening, LearningModes.LISTENING, getString(R.string.mode_listening), R.drawable.ic_headphones_24, R.color.mode_teal)
-        setupRow(R.id.row_listening_jp, LearningModes.LISTENING_JP, getString(R.string.mode_listening_jp), R.drawable.ic_headphones_24, R.color.mode_teal)
-        setupRow(R.id.row_ja_to_en, LearningModes.JA_TO_EN, getString(R.string.mode_japanese_to_english), R.drawable.ic_outline_cards_stack_24, R.color.mode_indigo)
-        setupRow(R.id.row_en_en_1, LearningModes.EN_EN_1, getString(R.string.mode_english_english_1), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
-        setupRow(R.id.row_en_en_2, LearningModes.EN_EN_2, getString(R.string.mode_english_english_2), R.drawable.ic_outline_cards_stack_24, R.color.mode_orange)
-        setupRow(R.id.row_test_fill, LearningModes.TEST_FILL_BLANK, "穴埋め", R.drawable.ic_edit_24, R.color.mode_pink, true)
-        setupRow(R.id.row_test_sort, LearningModes.TEST_SORT, "並び替え", R.drawable.ic_sort_24, R.color.mode_pink, true)
-        setupRow(R.id.row_test_listen_q1, LearningModes.TEST_LISTEN_Q1, "リスニング質問", R.drawable.ic_headphones_24, R.color.mode_teal, true)
-        setupRow(R.id.row_test_listen_q2, LearningModes.TEST_LISTEN_Q2, "会話文リスニング", R.drawable.ic_outline_conversation_24, R.color.mode_teal, true)
+        setupRow(
+            R.id.row_meaning,
+            LearningModes.MEANING,
+            getString(R.string.mode_meaning),
+            R.drawable.ic_flash_cards_24,
+            R.color.mode_indigo
+        )
+        setupRow(
+            R.id.row_listening,
+            LearningModes.LISTENING,
+            getString(R.string.mode_listening),
+            R.drawable.ic_headphones_24,
+            R.color.mode_teal
+        )
+        setupRow(
+            R.id.row_listening_jp,
+            LearningModes.LISTENING_JP,
+            getString(R.string.mode_listening_jp),
+            R.drawable.ic_headphones_24,
+            R.color.mode_teal
+        )
+        setupRow(
+            R.id.row_ja_to_en,
+            LearningModes.JA_TO_EN,
+            getString(R.string.mode_japanese_to_english),
+            R.drawable.ic_outline_cards_stack_24,
+            R.color.mode_indigo
+        )
+        setupRow(
+            R.id.row_en_en_1,
+            LearningModes.EN_EN_1,
+            getString(R.string.mode_english_english_1),
+            R.drawable.ic_outline_cards_stack_24,
+            R.color.mode_orange
+        )
+        setupRow(
+            R.id.row_en_en_2,
+            LearningModes.EN_EN_2,
+            getString(R.string.mode_english_english_2),
+            R.drawable.ic_outline_cards_stack_24,
+            R.color.mode_orange
+        )
+        setupRow(
+            R.id.row_test_fill,
+            LearningModes.TEST_FILL_BLANK,
+            "穴埋め",
+            R.drawable.ic_edit_24,
+            R.color.mode_pink,
+            true
+        )
+        setupRow(
+            R.id.row_test_sort,
+            LearningModes.TEST_SORT,
+            "並び替え",
+            R.drawable.ic_sort_24,
+            R.color.mode_pink,
+            true
+        )
+        setupRow(
+            R.id.row_test_listen_q1,
+            LearningModes.TEST_LISTEN_Q1,
+            "リスニング質問",
+            R.drawable.ic_headphones_24,
+            R.color.mode_teal,
+            true
+        )
+        setupRow(
+            R.id.row_test_listen_q2,
+            LearningModes.TEST_LISTEN_Q2,
+            "会話文リスニング",
+            R.drawable.ic_outline_conversation_24,
+            R.color.mode_teal,
+            true
+        )
 
         dialog.show()
     }
@@ -1226,22 +1456,70 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 .toSet()
 
             currentStats = mapOf(
-                LearningModes.MEANING to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.MEANING, nowSec, listeningQuestions),
-                LearningModes.LISTENING to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.LISTENING, nowSec, listeningQuestions),
-                LearningModes.LISTENING_JP to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.LISTENING_JP, nowSec, listeningQuestions),
-                LearningModes.JA_TO_EN to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.JA_TO_EN, nowSec, listeningQuestions),
-                LearningModes.EN_EN_1 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_1, nowSec, listeningQuestions),
-                LearningModes.EN_EN_2 to LearningStatsLogic.computeModeStats(db, wordIdSet, LearningModes.EN_EN_2, nowSec, listeningQuestions),
+                LearningModes.MEANING to LearningStatsLogic.computeModeStats(
+                    db,
+                    wordIdSet,
+                    LearningModes.MEANING,
+                    nowSec,
+                    listeningQuestions
+                ),
+                LearningModes.LISTENING to LearningStatsLogic.computeModeStats(
+                    db,
+                    wordIdSet,
+                    LearningModes.LISTENING,
+                    nowSec,
+                    listeningQuestions
+                ),
+                LearningModes.LISTENING_JP to LearningStatsLogic.computeModeStats(
+                    db,
+                    wordIdSet,
+                    LearningModes.LISTENING_JP,
+                    nowSec,
+                    listeningQuestions
+                ),
+                LearningModes.JA_TO_EN to LearningStatsLogic.computeModeStats(
+                    db,
+                    wordIdSet,
+                    LearningModes.JA_TO_EN,
+                    nowSec,
+                    listeningQuestions
+                ),
+                LearningModes.EN_EN_1 to LearningStatsLogic.computeModeStats(
+                    db,
+                    wordIdSet,
+                    LearningModes.EN_EN_1,
+                    nowSec,
+                    listeningQuestions
+                ),
+                LearningModes.EN_EN_2 to LearningStatsLogic.computeModeStats(
+                    db,
+                    wordIdSet,
+                    LearningModes.EN_EN_2,
+                    nowSec,
+                    listeningQuestions
+                ),
                 // 修正: フィルタリングしたIDセット(fillBlankIdSet)を渡す
-                LearningModes.TEST_FILL_BLANK to LearningStatsLogic.computeModeStats(db, fillBlankIdSet, LearningModes.TEST_FILL_BLANK, nowSec, listeningQuestions),
-                LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(db, emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions)
+                LearningModes.TEST_FILL_BLANK to LearningStatsLogic.computeModeStats(
+                    db,
+                    fillBlankIdSet,
+                    LearningModes.TEST_FILL_BLANK,
+                    nowSec,
+                    listeningQuestions
+                ),
+                LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(
+                    db,
+                    emptySet(),
+                    LearningModes.TEST_LISTEN_Q2,
+                    nowSec,
+                    listeningQuestions
+                )
             )
             withContext(Dispatchers.Main) { updateModeUi() }
         }
     }
 
     private fun updateModeUi() {
-        val modeName = when(currentMode) {
+        val modeName = when (currentMode) {
             LearningModes.MEANING -> getString(R.string.mode_meaning)
             LearningModes.LISTENING -> getString(R.string.mode_listening)
             LearningModes.LISTENING_JP -> getString(R.string.mode_listening_jp)
@@ -1251,7 +1529,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             LearningModes.TEST_LISTEN_Q2 -> "会話文リスニング"
             else -> "選択中"
         }
-        val iconRes = when(currentMode) {
+        val iconRes = when (currentMode) {
             LearningModes.LISTENING, LearningModes.LISTENING_JP -> R.drawable.ic_headphones_24
             LearningModes.TEST_LISTEN_Q2 -> R.drawable.ic_outline_conversation_24
             LearningModes.TEST_FILL_BLANK -> R.drawable.ic_edit_24
@@ -1277,7 +1555,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts?.language = Locale.US
-            tts?.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+            tts?.setAudioAttributes(
+                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+            )
             applyTtsParams()
         }
     }
@@ -1322,11 +1603,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         conversationTts?.stop()
         tts?.stop()
     }
+
     // endregion
     private fun sortProgressId(q: SortQuestion): Int {
         // grade + id を混ぜて衝突しにくくする（例: 5級のso1 と 4級のso1 が別扱いになる）
         return kotlin.math.abs("${q.grade}:${q.id}".hashCode())
     }
+
     private suspend fun selectNextSortQuestion(): SortQuestion? = withContext(Dispatchers.IO) {
         if (sortQuestions.isEmpty()) return@withContext null
 
@@ -1391,25 +1674,26 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // --- 既存（レガシー）UIを並び替え中は隠す ---
         // 既存の問題テキスト類
         textQuestionTitle.visibility = if (isSortMode) View.GONE else View.VISIBLE
-        textQuestionBody.visibility  = if (isSortMode) View.GONE else View.VISIBLE
-        textScriptDisplay.visibility = if (isSortMode) View.GONE else View.GONE // 通常も状況で出るので一旦GONEに寄せる
-        textFeedback.visibility      = if (isSortMode) View.GONE else View.GONE // 同上
+        textQuestionBody.visibility = if (isSortMode) View.GONE else View.VISIBLE
+        textScriptDisplay.visibility =
+            if (isSortMode) View.GONE else View.GONE // 通常も状況で出るので一旦GONEに寄せる
+        textFeedback.visibility = if (isSortMode) View.GONE else View.GONE // 同上
 
         // 6択ボタンは全て隠す
         choiceButtons.forEach { it.visibility = if (isSortMode) View.GONE else View.VISIBLE }
 
         // アクションボタン群
         layoutActionButtons.visibility = if (isSortMode) View.GONE else View.VISIBLE
-        buttonNextQuestion.visibility  = if (isSortMode) View.GONE else View.VISIBLE
+        buttonNextQuestion.visibility = if (isSortMode) View.GONE else View.VISIBLE
 
         // 音声系
-        buttonPlayAudio.visibility   = if (isSortMode) View.GONE else View.VISIBLE
+        buttonPlayAudio.visibility = if (isSortMode) View.GONE else View.VISIBLE
         buttonReplayAudio.visibility = if (isSortMode) View.GONE else View.VISIBLE
         buttonSoundSettings.visibility = if (isSortMode) View.GONE else View.VISIBLE
 
         // チェックボックス類
         checkIncludeOtherGrades?.visibility = if (isSortMode) View.GONE else View.VISIBLE
-        checkboxAutoPlayAudio?.visibility  = if (isSortMode) View.GONE else View.VISIBLE
+        checkboxAutoPlayAudio?.visibility = if (isSortMode) View.GONE else View.VISIBLE
     }
 
     private fun showFirstSortQuestion() {
@@ -1443,15 +1727,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
 
-
-
-
-
     private fun sortRoot(): View? = findViewById(R.id.sort_question_layout)
 
     private fun setSortLayoutVisible(visible: Boolean) {
         sortRoot()?.visibility = if (visible) View.VISIBLE else View.GONE
     }
+
     private fun renderSortUi(state: com.example.studylockapp.learning.SortQuestionUiState) {
         val root = sortRoot() ?: return
 
@@ -1469,33 +1750,37 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             return
         }
         root.visibility = View.VISIBLE
+
+        fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+
+        // ---------------------------
+        // 問題文（日本語）: 紺 + 1.5倍（増殖しない）
+        // ---------------------------
         japaneseText.text = q.japaneseText
 
-        // 全単語を選び終わったら判定ボタンを押せる
-        val isComplete = state.answerWords.size == q.words.size
+        if (sortJapaneseBaseTextSizePx == null) {
+            sortJapaneseBaseTextSizePx = japaneseText.textSize
+        }
+        japaneseText.setTextSize(
+            TypedValue.COMPLEX_UNIT_PX,
+            (sortJapaneseBaseTextSizePx ?: japaneseText.textSize) * 1.2f
+        )
+        japaneseText.setTextColor(Color.parseColor("#0D1B3D"))
 
-        // 判定済みかどうか（isCorrectがnull以外なら判定後）
+        // ---------------------------
+        // 判定ボタン
+        // ---------------------------
+        val isComplete = state.answerWords.size == q.words.size
         val isJudged = (state.isCorrect != null)
 
-        // ボタンの有効/無効
-        // - 判定前：全部選んだ + 未採点 のときだけ有効
-        // - 判定後：常に「次へ」押せる
-        checkButton.isEnabled = if (isJudged) {
-            true
-        } else {
-            isComplete && !state.hasScored
-        }
+        checkButton.isEnabled = if (isJudged) true else (isComplete && !state.hasScored)
 
-        // ボタン文言
         checkButton.text = when {
             isJudged && state.isCorrect == true -> "次へ（正解！）"
             isJudged && state.isCorrect == false -> "次へ（不正解…）"
             else -> "判定"
         }
 
-        // クリック動作
-        // - 判定前：checkAnswer()
-        // - 判定後：次の問題へ
         checkButton.setOnClickListener {
             if (!isJudged) {
                 if (!isComplete) {
@@ -1508,33 +1793,109 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        // いったん全消しして描画し直す（最小で確実）
+        // ---------------------------
+        // コンテナ見た目（ここが重要）
+        // ---------------------------
+
+        // choices（下）端の余白
+        val choicesEdge = dp(16)
+
+        // answers（上）端の余白：左右は半分（16→8）
+        val answersEdgeH = dp(8)
+
+        // answers（上）上下は 16dp をベースに「1.25倍」＋ 下だけ追加（2行でも潰れない）
+        val answersBaseV = dp(16)
+        val answersEdgeV = (answersBaseV * 1.25f).toInt() // 1.25倍
+        val answersExtraBottom = dp(12)                   // ここが“2行で下が潰れる”対策
+
+        // チップ間隔（今の半分）
+        val gap = dp(4)
+
+        choicesContainer.setPadding(choicesEdge, choicesEdge, choicesEdge, choicesEdge)
+        answersContainer.setPadding(answersEdgeH, answersEdgeV, answersEdgeH, answersEdgeV + answersExtraBottom)
+        choicesContainer.clipChildren = false
+        answersContainer.clipChildren = false
+        (root as? ViewGroup)?.clipChildren = false
+        (root as? ViewGroup)?.clipToPadding = false
+
+
+        choicesContainer.clipToPadding = false
+        answersContainer.clipToPadding = false
+
+        // minHeightは「最低保証」なので保険として設定
+        // ※見た目を変える主役は padding（上でやってる）
+        //answersContainer.minimumHeight = dp(60)
+
+        // ---------------------------
+        // チップ描画
+        // ---------------------------
         choicesContainer.removeAllViews()
         answersContainer.removeAllViews()
+
+        // Chip: テキスト少し小さく、padding 80%
+        val textScale = 1.35f // “少しだけ小さく”
+        val padScale = 0.8f   // padding 80%
 
         fun makeChip(word: String, onClick: () -> Unit): com.google.android.material.chip.Chip {
             return com.google.android.material.chip.Chip(this).apply {
                 text = word
                 isClickable = true
                 isCheckable = false
+
+                setTypeface(Typeface.DEFAULT, Typeface.NORMAL)
+                setTextColor(Color.parseColor("#0D1B3D"))
+
+                // 文字サイズ
+                val currentPx = textSize
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, currentPx * textScale)
+
+                // カード感
+                chipCornerRadius = dp(14).toFloat()
+                chipStrokeWidth = dp(1).toFloat()
+                chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#D6DAE3"))
+                chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#F7F8FB"))
+                rippleColor = ColorStateList.valueOf(Color.parseColor("#1A000000"))
+
+                // padding 80%
+                chipMinHeight = (dp(56) * padScale).toFloat().coerceAtLeast(dp(44).toFloat())
+                chipStartPadding = (dp(16) * padScale).toFloat()
+                chipEndPadding = (dp(16) * padScale).toFloat()
+                textStartPadding = (dp(8) * padScale).toFloat()
+                textEndPadding = (dp(8) * padScale).toFloat()
+
+                elevation = dp(2).toFloat()
+
                 setOnClickListener { onClick() }
             }
         }
 
-        val m = (8 * resources.displayMetrics.density).toInt()
-
         state.choiceWords.forEach { word ->
             val chip = makeChip(word) { sortViewModel.selectWord(word) }
+
+            val lp = com.google.android.flexbox.FlexboxLayout.LayoutParams(
+                com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT
+            )
+            lp.setMargins(gap, gap, gap, gap)
+            chip.layoutParams = lp
+
             choicesContainer.addView(chip)
-            (chip.layoutParams as? com.google.android.flexbox.FlexboxLayout.LayoutParams)
-                ?.setMargins(m, m, m, m)
         }
 
         state.answerWords.forEach { word ->
             val chip = makeChip(word) { sortViewModel.deselectWord(word) }
+
+            val lp = com.google.android.flexbox.FlexboxLayout.LayoutParams(
+                com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT
+            )
+            lp.setMargins(gap, gap, gap, gap)
+            chip.layoutParams = lp
+
             answersContainer.addView(chip)
-            (chip.layoutParams as? com.google.android.flexbox.FlexboxLayout.LayoutParams)
-                ?.setMargins(m, m, m, m)
         }
     }
+
+
+
 }

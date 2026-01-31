@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <solid android:color="#E0E0E0" /> <!-- 薄いグレー -->
-    <corners android:radius="12dp" />
+    <!-- 背景：白 -->
+    <solid android:color="@android:color/white"/>
+
+    <!-- 角丸 -->
+    <corners android:radius="16dp"/>
+
+    <!-- 枠：紺 -->
+    <stroke
+        android:width="2dp"
+        android:color="@color/sort_question_navy"/>
 </shape>

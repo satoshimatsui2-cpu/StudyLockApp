@@ -15,27 +15,47 @@
         android:layout_marginBottom="16dp"
         android:gravity="center"
         android:textAppearance="?attr/textAppearanceListItem"
+        android:textColor="@color/sort_question_navy"
         tools:text="これはペンです。" />
 
-    <!-- Answer Area -->
-    <com.google.android.flexbox.FlexboxLayout
-        android:id="@+id/flexbox_answers"
+    <!-- Answer Area (固定高さ + 中だけスクロール) -->
+    <FrameLayout
+        android:id="@+id/answers_box"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="160dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/shape_rounded_corners_gray"
-        app:alignContent="flex_start"
-        app:flexWrap="wrap">
+        android:padding="8dp"
+        android:clipToPadding="false"
+        android:clipChildren="false">
 
-        <!-- Selected chips will be added here dynamically -->
-        <com.google.android.material.chip.Chip
-            style="@style/Widget.MaterialComponents.Chip.Entry"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="This"
-            tools:ignore="MissingConstraints" />
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:clipToPadding="false">
 
-    </com.google.android.flexbox.FlexboxLayout>
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/flexbox_answers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:alignContent="flex_start"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start">
+
+                <!-- tools用：プレビュー確認のダミーチップ（実行時は removeAllViews() で消える想定） -->
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.MaterialComponents.Chip.Entry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="This"
+                    tools:ignore="MissingConstraints" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+        </ScrollView>
+    </FrameLayout>
 
     <!-- Divider -->
     <View
@@ -44,7 +64,7 @@
         android:layout_marginVertical="8dp"
         android:background="?android:attr/listDivider" />
 
-    <!-- Choices Area -->
+    <!-- Choices Area（ここは元のまま：weightで残す） -->
     <com.google.android.flexbox.FlexboxLayout
         android:id="@+id/flexbox_choices"
         android:layout_width="match_parent"
@@ -53,7 +73,7 @@
         app:alignContent="flex_start"
         app:flexWrap="wrap">
 
-        <!-- Shuffled word chips will be added here dynamically -->
+        <!-- tools用：プレビュー確認のダミーチップ -->
         <com.google.android.material.chip.Chip
             style="@style/Widget.MaterialComponents.Chip.Entry"
             android:layout_width="wrap_content"
@@ -74,6 +94,7 @@
             android:layout_height="wrap_content"
             android:text="pen."
             tools:ignore="MissingConstraints" />
+
     </com.google.android.flexbox.FlexboxLayout>
 
     <com.google.android.material.button.MaterialButton

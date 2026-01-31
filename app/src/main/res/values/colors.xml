@@ -64,4 +64,6 @@
     <color name="badge_review">#EF4444</color>
     <color name="badge_master">#F59E0B</color>
     <color name="badge_new">#10B981</color>
+    <color name="sort_question_navy">#0D1B3D</color>
+
 </resources>
