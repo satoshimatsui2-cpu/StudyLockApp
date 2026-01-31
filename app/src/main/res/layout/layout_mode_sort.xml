@@ -7,6 +7,17 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="正しい順番に並べて下さい。"
+        android:textAppearance="?attr/textAppearanceListItem"
+        android:textColor="@color/sort_question_navy"
+        tools:ignore="HardcodedText" />
+
     <!-- Japanese Translation -->
     <TextView
         android:id="@+id/japanese_text"

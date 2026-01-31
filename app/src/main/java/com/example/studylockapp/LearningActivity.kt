@@ -1858,10 +1858,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 // padding 80%
                 chipMinHeight = (dp(56) * padScale).toFloat().coerceAtLeast(dp(44).toFloat())
-                chipStartPadding = (dp(16) * padScale).toFloat()
-                chipEndPadding = (dp(16) * padScale).toFloat()
-                textStartPadding = (dp(8) * padScale).toFloat()
-                textEndPadding = (dp(8) * padScale).toFloat()
+                chipStartPadding = (dp(10) * padScale).toFloat()
+                chipEndPadding = (dp(10) * padScale).toFloat()
+                textStartPadding = (dp(5) * padScale).toFloat()
+                textEndPadding = (dp(5) * padScale).toFloat()
 
                 elevation = dp(2).toFloat()
 
