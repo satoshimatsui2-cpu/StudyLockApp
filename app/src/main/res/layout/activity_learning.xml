@@ -504,6 +504,16 @@
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
+                <!-- ▼▼▼ ここから追加 ▼▼▼ -->
+                <include
+                    android:id="@+id/sort_question_layout"
+                    layout="@layout/layout_mode_sort"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:visibility="visible" />
+                <!-- ▲▲▲ ここまで追加 ▲▲▲ -->
+
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 

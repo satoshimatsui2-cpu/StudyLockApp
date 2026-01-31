@@ -124,6 +124,29 @@ class CsvDataLoader(private val context: Context) {
         return questions
     }
 
+    fun loadSortQuestions(): List<SortQuestion> {
+        val result = mutableListOf<SortQuestion>()
+        runCatching {
+            context.resources.openRawResource(R.raw.sentence_ordering_questions).use { input ->
+                BufferedReader(InputStreamReader(input)).useLines { lines ->
+                    lines.drop(1).forEach { line ->
+                        val cols = parseCsvLine(line)
+                        if (cols.size >= 5) {
+                            result.add(SortQuestion(
+                                id = cols[0].trim(),
+                                grade = cols[1].trim(),
+                                unit = cols[2].trim(),
+                                japaneseText = cols[3].trim(),
+                                englishSentence = cols[4].trim()
+                            ))
+                        }
+                    }
+                }
+            }
+        }.onFailure { Log.e("CsvDataLoader", "Error reading sort questions CSV", it) }
+        return result
+    }
+
     private fun parseCsvLine(line: String): List<String> {
         val result = mutableListOf<String>()
         var current = StringBuilder()

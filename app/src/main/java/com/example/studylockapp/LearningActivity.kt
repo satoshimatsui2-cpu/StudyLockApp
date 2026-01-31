@@ -41,6 +41,7 @@ import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.abs
 
+
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // region ViewModel & Data
@@ -53,6 +54,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var allWordsFull: List<WordEntity> = emptyList()
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
     private var fillBlankQuestions: List<FillBlankQuestion> = emptyList()
+    private var sortQuestions: List<SortQuestion> = emptyList()
+    private var sortQuestionIndex: Int = 0
+
     private var currentLegacyContext: LegacyQuestionContext? = null
 
     // 再生ボタン用に現在の会話スクリプトを保持する変数
@@ -77,6 +81,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textPoints: TextView
     private var textCurrentGrade: TextView? = null
     private lateinit var textFeedback: TextView
+    private val sortViewModel: com.example.studylockapp.learning.SortQuestionViewModel by viewModels()
+
 
     private lateinit var textScriptDisplay: TextView
     private lateinit var layoutActionButtons: LinearLayout
@@ -128,10 +134,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         initMediaServices()
         setupObservers()
         setupListeners()
+        applyUiVisibilityForMode()
 
         lifecycleScope.launch {
             loadInitialData()
+            if (currentMode == LearningModes.TEST_SORT) {
+                showFirstSortQuestion()
+            }
         }
+
     }
 
     override fun onResume() {
@@ -289,6 +300,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         fillBlankQuestions = withContext(Dispatchers.IO) {
             CsvDataLoader(this@LearningActivity).loadFillBlankQuestions()
         }
+        sortQuestions = withContext(Dispatchers.IO) {
+            CsvDataLoader(this@LearningActivity).loadSortQuestions()
+        }
         refreshConversationQueue()
 
         val db = AppDatabase.getInstance(this@LearningActivity)
@@ -379,6 +393,94 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     is QuestionUiState.Conversation -> renderConversationUi(state)
                     is QuestionUiState.Empty -> showNoQuestion()
                     else -> {}
+                }
+            }
+        }
+        lifecycleScope.launch {
+            sortViewModel.uiState.collect { state ->
+                renderSortUi(state)
+
+                val q = state.question ?: return@collect
+
+                // 判定が出ていて、まだ採点していない場合だけポイント処理を実行
+                if (state.isCorrect != null && !state.hasScored) {
+                    val isCorrect = (state.isCorrect == true)
+
+                    // まず履歴保存（穴埋め等と同じ）
+                    StudyHistoryRepository.save(gradeFilter, LearningModes.TEST_SORT, isCorrect)
+
+                    val basePoint = settings.getBasePoint(LearningModes.TEST_SORT)
+                    val deltaPoint = if (isCorrect) {
+                        basePoint
+                    } else {
+                        -((basePoint * 0.25).toInt())
+                    }
+
+                    // ★TEST_SORT用 progressId（SortQuestionをDBのprogressと紐づける）
+                    val progressId = sortProgressId(q)
+
+                    // ポイント反映＆履歴保存（DB）＋ TEST_SORT進捗保存
+                    lifecycleScope.launch(Dispatchers.IO) {
+
+                        val db = AppDatabase.getInstance(this@LearningActivity)
+
+                        // ---- 1) ポイント反映＆履歴 ----
+                        if (deltaPoint != 0) {
+                            PointManager(this@LearningActivity).add(deltaPoint)
+
+                            db.pointHistoryDao().insert(
+                                PointHistoryEntity(
+                                    mode = LearningModes.TEST_SORT,
+                                    dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
+                                    delta = deltaPoint
+                                )
+                            )
+                        }
+
+                        // ---- 2) TEST_SORT 進捗（due/new用） ----
+                        val progressDao = db.wordProgressDao()
+                        val nowSec = System.currentTimeMillis() / 1000L
+
+                        val current = progressDao.getProgress(progressId, LearningModes.TEST_SORT)
+                        val currentLevel = current?.level ?: 0
+
+                        // 既存の共通ロジックを流用（テストモードは翌日扱いになる）
+                        val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
+
+                        progressDao.upsert(
+                            WordProgressEntity(
+                                wordId = progressId,
+                                mode = LearningModes.TEST_SORT,
+                                level = newLevel,
+                                nextDueAtSec = nextDueAtSec,
+                                lastAnsweredAt = System.currentTimeMillis(),
+                                studyCount = (current?.studyCount ?: 0) + 1
+                            )
+                        )
+
+                        db.studyLogDao().insert(
+                            WordStudyLogEntity(
+                                wordId = progressId,
+                                mode = LearningModes.TEST_SORT,
+                                learnedAt = System.currentTimeMillis()
+                            )
+                        )
+
+                        // ---- 3) UI更新 ----
+                        withContext(Dispatchers.Main) {
+                            updatePointView()
+
+                            val msg = if (isCorrect) {
+                                "正解！ +${deltaPoint}pt"
+                            } else {
+                                "不正解… ${deltaPoint}pt"
+                            }
+                            Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    // ★ここが二重加点防止の要：採点済みにする
+                    sortViewModel.markScored()
                 }
             }
         }
@@ -546,6 +648,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     // region Logic: Legacy Word Learning (Main Pipeline)
     private fun loadNextQuestionLegacy() {
+        setSortLayoutVisible(false) // ★保険：TEST_SORT以外の経路で必ず消す
         loadingJob?.cancel()
         loadingJob = lifecycleScope.launch {
             stopMedia()
@@ -1070,10 +1173,29 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     checkIncludeOtherGrades?.isChecked = false
                 }
 
+                // ★追加：モードに応じて表示/非表示を切り替える
+                applyUiVisibilityForMode()
+
                 updateStudyStatsView()
-                if (modeKey == LearningModes.TEST_LISTEN_Q2) viewModel.setMode(modeKey) else loadNextQuestionLegacy()
+
+                when (modeKey) {
+                    LearningModes.TEST_SORT -> {
+                        // 並び替えはあなたの実装している開始処理へ
+                        showFirstSortQuestion()
+                    }
+                    LearningModes.TEST_LISTEN_Q2 -> {
+                        viewModel.setMode(modeKey)
+                    }
+                    else -> {
+                        loadNextQuestionLegacy()
+                    }
+                }
+
                 dialog.dismiss()
             }
+
+
+
         }
 
         setupRow(R.id.row_meaning, LearningModes.MEANING, getString(R.string.mode_meaning), R.drawable.ic_flash_cards_24, R.color.mode_indigo)
@@ -1201,4 +1323,218 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts?.stop()
     }
     // endregion
+    private fun sortProgressId(q: SortQuestion): Int {
+        // grade + id を混ぜて衝突しにくくする（例: 5級のso1 と 4級のso1 が別扱いになる）
+        return kotlin.math.abs("${q.grade}:${q.id}".hashCode())
+    }
+    private suspend fun selectNextSortQuestion(): SortQuestion? = withContext(Dispatchers.IO) {
+        if (sortQuestions.isEmpty()) return@withContext null
+
+        val gfRaw = gradeFilter.trim()
+        val gfNorm = normalizeGrade(gfRaw).trim()
+
+        fun gradeMatches(questionGrade: String): Boolean {
+            val qgRaw = questionGrade.trim()
+            val qgNorm = normalizeGrade(qgRaw).trim()
+
+            // いろんな表記揺れを許容して一致判定する
+            return qgRaw == gfRaw ||
+                    qgRaw == gfNorm ||
+                    qgNorm == gfRaw ||
+                    qgNorm == gfNorm
+        }
+
+        // まずはグレード一致で絞り込み
+        var filtered = sortQuestions.filter { gradeMatches(it.grade) }
+
+        // もし一致がゼロなら、grade表記が噛み合ってない可能性が高いのでフォールバック（出題ゼロ回避）
+        if (filtered.isEmpty()) {
+            filtered = sortQuestions
+        }
+
+        if (filtered.isEmpty()) return@withContext null
+
+        // progressId -> question のマップ
+        val qMap: Map<Int, SortQuestion> = filtered.associateBy { sortProgressId(it) }
+        val idSet: Set<Int> = qMap.keys
+
+        val db = AppDatabase.getInstance(this@LearningActivity)
+        val progressDao = db.wordProgressDao()
+        val nowSec = System.currentTimeMillis() / 1000L
+
+        // 1) due（復習）優先
+        val dueIds = progressDao.getDueWordIdsOrdered(LearningModes.TEST_SORT, nowSec)
+        val nextDueId = dueIds.firstOrNull { it in idSet }
+        if (nextDueId != null) {
+            return@withContext qMap[nextDueId]
+        }
+
+        // 2) 新規（まだ進捗が無いもの）
+        val progressedIds = progressDao.getProgressIds(LearningModes.TEST_SORT).toSet()
+        val newQuestions = filtered.filter { sortProgressId(it) !in progressedIds }
+        if (newQuestions.isNotEmpty()) {
+            return@withContext newQuestions.random()
+        }
+
+        // 3) dueも新規もない
+        return@withContext null
+    }
+
+    private fun applyUiVisibilityForMode() {
+        val sortRoot = findViewById<View?>(R.id.sort_question_layout)
+
+        val isSortMode = (currentMode == LearningModes.TEST_SORT)
+
+        // --- 並び替えUIの表示/非表示 ---
+        sortRoot?.visibility = if (isSortMode) View.VISIBLE else View.GONE
+
+        // --- 既存（レガシー）UIを並び替え中は隠す ---
+        // 既存の問題テキスト類
+        textQuestionTitle.visibility = if (isSortMode) View.GONE else View.VISIBLE
+        textQuestionBody.visibility  = if (isSortMode) View.GONE else View.VISIBLE
+        textScriptDisplay.visibility = if (isSortMode) View.GONE else View.GONE // 通常も状況で出るので一旦GONEに寄せる
+        textFeedback.visibility      = if (isSortMode) View.GONE else View.GONE // 同上
+
+        // 6択ボタンは全て隠す
+        choiceButtons.forEach { it.visibility = if (isSortMode) View.GONE else View.VISIBLE }
+
+        // アクションボタン群
+        layoutActionButtons.visibility = if (isSortMode) View.GONE else View.VISIBLE
+        buttonNextQuestion.visibility  = if (isSortMode) View.GONE else View.VISIBLE
+
+        // 音声系
+        buttonPlayAudio.visibility   = if (isSortMode) View.GONE else View.VISIBLE
+        buttonReplayAudio.visibility = if (isSortMode) View.GONE else View.VISIBLE
+        buttonSoundSettings.visibility = if (isSortMode) View.GONE else View.VISIBLE
+
+        // チェックボックス類
+        checkIncludeOtherGrades?.visibility = if (isSortMode) View.GONE else View.VISIBLE
+        checkboxAutoPlayAudio?.visibility  = if (isSortMode) View.GONE else View.VISIBLE
+    }
+
+    private fun showFirstSortQuestion() {
+        val root = sortRoot() ?: return
+
+        lifecycleScope.launch {
+            val q = selectNextSortQuestion()
+            if (q == null) {
+                root.visibility = View.GONE
+                return@launch
+            }
+
+            root.visibility = View.VISIBLE
+            sortViewModel.setQuestion(q)
+        }
+    }
+
+    private fun showNextSortQuestion() {
+        val root = sortRoot() ?: return
+
+        lifecycleScope.launch {
+            val q = selectNextSortQuestion()
+            if (q == null) {
+                root.visibility = View.GONE
+                return@launch
+            }
+
+            root.visibility = View.VISIBLE
+            sortViewModel.setQuestion(q)
+        }
+    }
+
+
+
+
+
+
+    private fun sortRoot(): View? = findViewById(R.id.sort_question_layout)
+
+    private fun setSortLayoutVisible(visible: Boolean) {
+        sortRoot()?.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+    private fun renderSortUi(state: com.example.studylockapp.learning.SortQuestionUiState) {
+        val root = sortRoot() ?: return
+
+        val choicesContainer =
+            root.findViewById<com.google.android.flexbox.FlexboxLayout>(R.id.flexbox_choices) ?: return
+        val answersContainer =
+            root.findViewById<com.google.android.flexbox.FlexboxLayout>(R.id.flexbox_answers) ?: return
+        val checkButton =
+            root.findViewById<com.google.android.material.button.MaterialButton>(R.id.button_sort_check) ?: return
+        val japaneseText = root.findViewById<TextView>(R.id.japanese_text) ?: return
+
+        // 問題が無いなら非表示
+        val q = state.question ?: run {
+            root.visibility = View.GONE
+            return
+        }
+        root.visibility = View.VISIBLE
+        japaneseText.text = q.japaneseText
+
+        // 全単語を選び終わったら判定ボタンを押せる
+        val isComplete = state.answerWords.size == q.words.size
+
+        // 判定済みかどうか（isCorrectがnull以外なら判定後）
+        val isJudged = (state.isCorrect != null)
+
+        // ボタンの有効/無効
+        // - 判定前：全部選んだ + 未採点 のときだけ有効
+        // - 判定後：常に「次へ」押せる
+        checkButton.isEnabled = if (isJudged) {
+            true
+        } else {
+            isComplete && !state.hasScored
+        }
+
+        // ボタン文言
+        checkButton.text = when {
+            isJudged && state.isCorrect == true -> "次へ（正解！）"
+            isJudged && state.isCorrect == false -> "次へ（不正解…）"
+            else -> "判定"
+        }
+
+        // クリック動作
+        // - 判定前：checkAnswer()
+        // - 判定後：次の問題へ
+        checkButton.setOnClickListener {
+            if (!isJudged) {
+                if (!isComplete) {
+                    Toast.makeText(this, "全部選んでから判定してね", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                sortViewModel.checkAnswer()
+            } else {
+                showNextSortQuestion()
+            }
+        }
+
+        // いったん全消しして描画し直す（最小で確実）
+        choicesContainer.removeAllViews()
+        answersContainer.removeAllViews()
+
+        fun makeChip(word: String, onClick: () -> Unit): com.google.android.material.chip.Chip {
+            return com.google.android.material.chip.Chip(this).apply {
+                text = word
+                isClickable = true
+                isCheckable = false
+                setOnClickListener { onClick() }
+            }
+        }
+
+        val m = (8 * resources.displayMetrics.density).toInt()
+
+        state.choiceWords.forEach { word ->
+            val chip = makeChip(word) { sortViewModel.selectWord(word) }
+            choicesContainer.addView(chip)
+            (chip.layoutParams as? com.google.android.flexbox.FlexboxLayout.LayoutParams)
+                ?.setMargins(m, m, m, m)
+        }
+
+        state.answerWords.forEach { word ->
+            val chip = makeChip(word) { sortViewModel.deselectWord(word) }
+            answersContainer.addView(chip)
+            (chip.layoutParams as? com.google.android.flexbox.FlexboxLayout.LayoutParams)
+                ?.setMargins(m, m, m, m)
+        }
+    }
 }
