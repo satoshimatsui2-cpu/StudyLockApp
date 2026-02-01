@@ -535,6 +535,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         // ---- 3) UI更新 ----
                         withContext(Dispatchers.Main) {
                             updatePointView()
+                            // ▼▼▼ ここに移動 ▼▼▼
+                            updateStudyStatsView()
 
                             val msg = if (isCorrect) {
                                 "正解！ +${deltaPoint}pt"
@@ -546,11 +548,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 msg,
                                 Snackbar.LENGTH_SHORT
                             ).show()
+
+                            // ▼▼▼ 二重加点防止の採点済みマークもIO完了後に移動 ▼▼▼
+                            sortViewModel.markScored()
                         }
                     }
-
-                    // ★ここが二重加点防止の要：採点済みにする
-                    sortViewModel.markScored()
                 }
             }
         }
@@ -1464,76 +1466,72 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updateStudyStatsView() {
         lifecycleScope.launch(Dispatchers.Default) {
-            if (allWords.isEmpty() && currentMode != LearningModes.TEST_LISTEN_Q2) return@launch
 
-            val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
             val nowSec = System.currentTimeMillis() / 1000L
             val db = AppDatabase.getInstance(this@LearningActivity)
-            // 穴埋め問題のIDセットも現在のグレードでフィルタリングする
+
+            // 単語系モード用
+            val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
+
+            // 穴埋め問題用
             val fillBlankIdSet = fillBlankQuestions
-                .filter { it.grade == gradeFilter }
+                .filter { it.grade.trim() == gradeFilter.trim() }
                 .map { it.id }
                 .toSet()
 
+            // ▼▼▼ ここから追加 ▼▼▼
+            // 並び替え問題用
+            val sortQuestionIdSet = if (gradeFilter == "All") {
+                sortQuestions.map { sortProgressId(it) }.toSet()
+            } else {
+                val gfRaw = gradeFilter.trim()
+                val gfNorm = normalizeGrade(gfRaw).trim()
+
+                fun gradeMatches(questionGrade: String): Boolean {
+                    val qgRaw = questionGrade.trim()
+                    val qgNorm = normalizeGrade(qgRaw).trim()
+                    return qgRaw == gfRaw || qgRaw == gfNorm || qgNorm == gfRaw || qgNorm == gfNorm
+                }
+                sortQuestions.filter { gradeMatches(it.grade) }.map { sortProgressId(it) }.toSet()
+            }
+            // ▲▲▲ ここまで追加 ▲▲▲
+
+
             currentStats = mapOf(
                 LearningModes.MEANING to LearningStatsLogic.computeModeStats(
-                    db,
-                    wordIdSet,
-                    LearningModes.MEANING,
-                    nowSec,
-                    listeningQuestions
+                    db, wordIdSet, LearningModes.MEANING, nowSec, listeningQuestions
                 ),
                 LearningModes.LISTENING to LearningStatsLogic.computeModeStats(
-                    db,
-                    wordIdSet,
-                    LearningModes.LISTENING,
-                    nowSec,
-                    listeningQuestions
+                    db, wordIdSet, LearningModes.LISTENING, nowSec, listeningQuestions
                 ),
                 LearningModes.LISTENING_JP to LearningStatsLogic.computeModeStats(
-                    db,
-                    wordIdSet,
-                    LearningModes.LISTENING_JP,
-                    nowSec,
-                    listeningQuestions
+                    db, wordIdSet, LearningModes.LISTENING_JP, nowSec, listeningQuestions
                 ),
                 LearningModes.JA_TO_EN to LearningStatsLogic.computeModeStats(
-                    db,
-                    wordIdSet,
-                    LearningModes.JA_TO_EN,
-                    nowSec,
-                    listeningQuestions
+                    db, wordIdSet, LearningModes.JA_TO_EN, nowSec, listeningQuestions
                 ),
                 LearningModes.EN_EN_1 to LearningStatsLogic.computeModeStats(
-                    db,
-                    wordIdSet,
-                    LearningModes.EN_EN_1,
-                    nowSec,
-                    listeningQuestions
+                    db, wordIdSet, LearningModes.EN_EN_1, nowSec, listeningQuestions
                 ),
                 LearningModes.EN_EN_2 to LearningStatsLogic.computeModeStats(
-                    db,
-                    wordIdSet,
-                    LearningModes.EN_EN_2,
-                    nowSec,
-                    listeningQuestions
+                    db, wordIdSet, LearningModes.EN_EN_2, nowSec, listeningQuestions
                 ),
-                // 修正: フィルタリングしたIDセット(fillBlankIdSet)を渡す
+
                 LearningModes.TEST_FILL_BLANK to LearningStatsLogic.computeModeStats(
-                    db,
-                    fillBlankIdSet,
-                    LearningModes.TEST_FILL_BLANK,
-                    nowSec,
-                    listeningQuestions
+                    db, fillBlankIdSet, LearningModes.TEST_FILL_BLANK, nowSec, listeningQuestions
                 ),
+
+                // ▼▼▼ ここも追加 ▼▼▼
+                LearningModes.TEST_SORT to LearningStatsLogic.computeModeStats(
+                    db, sortQuestionIdSet, LearningModes.TEST_SORT, nowSec, listeningQuestions
+                ),
+                // ▲▲▲ ここまで追加 ▲▲▲
+
                 LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(
-                    db,
-                    emptySet(),
-                    LearningModes.TEST_LISTEN_Q2,
-                    nowSec,
-                    listeningQuestions
+                    db, emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions
                 )
             )
+
             withContext(Dispatchers.Main) { updateModeUi() }
         }
     }
@@ -1547,6 +1545,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             LearningModes.EN_EN_1 -> getString(R.string.mode_english_english_1)
             LearningModes.EN_EN_2 -> getString(R.string.mode_english_english_2)
             LearningModes.TEST_LISTEN_Q2 -> "会話文リスニング"
+            LearningModes.TEST_SORT -> "並び替え"
+            LearningModes.TEST_FILL_BLANK -> "穴埋め"
+            LearningModes.TEST_LISTEN_Q1 -> "リスニング質問"
             else -> "選択中"
         }
         val iconRes = when (currentMode) {
