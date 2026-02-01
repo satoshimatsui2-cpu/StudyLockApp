@@ -451,11 +451,31 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     StudyHistoryRepository.save(gradeFilter, LearningModes.TEST_SORT, isCorrect)
 
                     val basePoint = settings.getBasePoint(LearningModes.TEST_SORT)
-                    val deltaPoint = if (isCorrect) {
+                    var points = if (isCorrect) {
                         basePoint
                     } else {
                         -((basePoint * 0.25).toInt())
                     }
+
+                    if (isCorrect) {
+                        val userGradeStr = settings.currentLearningGrade
+                        val gradeMap = mapOf(
+                            "1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7,
+                            "1" to 1, "1.5" to 2, "2" to 3, "2.5" to 4, "3" to 5, "4" to 6, "5" to 7
+                        )
+                        val userGrade = gradeMap[userGradeStr] ?: 0
+                        val questionGrade = gradeMap[q.grade.trim().replace("英検", "")] ?: 0
+
+                        if (userGrade > 0 && questionGrade > 0) {
+                            val gradeDiff = questionGrade - userGrade
+                            points = when {
+                                gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
+                                gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
+                                else -> points
+                            }
+                        }
+                    }
+                    val deltaPoint = points
 
                     // ★TEST_SORT用 progressId（SortQuestionをDBのprogressと紐づける）
                     val progressId = sortProgressId(q)
@@ -1613,32 +1633,29 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private suspend fun selectNextSortQuestion(): SortQuestion? = withContext(Dispatchers.IO) {
         if (sortQuestions.isEmpty()) return@withContext null
 
-        val gfRaw = gradeFilter.trim()
-        val gfNorm = normalizeGrade(gfRaw).trim()
+        // 1. gradeFilter に基づいて問題を絞り込む
+        val filteredQuestions = if (gradeFilter == "All") {
+            sortQuestions
+        } else {
+            val gfRaw = gradeFilter.trim()
+            val gfNorm = normalizeGrade(gfRaw).trim()
 
-        fun gradeMatches(questionGrade: String): Boolean {
-            val qgRaw = questionGrade.trim()
-            val qgNorm = normalizeGrade(qgRaw).trim()
+            fun gradeMatches(questionGrade: String): Boolean {
+                val qgRaw = questionGrade.trim()
+                val qgNorm = normalizeGrade(qgRaw).trim()
 
-            // いろんな表記揺れを許容して一致判定する
-            return qgRaw == gfRaw ||
-                    qgRaw == gfNorm ||
-                    qgNorm == gfRaw ||
-                    qgNorm == gfNorm
+                return qgRaw == gfRaw ||
+                        qgRaw == gfNorm ||
+                        qgNorm == gfRaw ||
+                        qgNorm == gfNorm
+            }
+            sortQuestions.filter { gradeMatches(it.grade) }
         }
 
-        // まずはグレード一致で絞り込み
-        var filtered = sortQuestions.filter { gradeMatches(it.grade) }
-
-        // もし一致がゼロなら、grade表記が噛み合ってない可能性が高いのでフォールバック（出題ゼロ回避）
-        if (filtered.isEmpty()) {
-            filtered = sortQuestions
-        }
-
-        if (filtered.isEmpty()) return@withContext null
+        if (filteredQuestions.isEmpty()) return@withContext null
 
         // progressId -> question のマップ
-        val qMap: Map<Int, SortQuestion> = filtered.associateBy { sortProgressId(it) }
+        val qMap: Map<Int, SortQuestion> = filteredQuestions.associateBy { sortProgressId(it) }
         val idSet: Set<Int> = qMap.keys
 
         val db = AppDatabase.getInstance(this@LearningActivity)
@@ -1654,7 +1671,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // 2) 新規（まだ進捗が無いもの）
         val progressedIds = progressDao.getProgressIds(LearningModes.TEST_SORT).toSet()
-        val newQuestions = filtered.filter { sortProgressId(it) !in progressedIds }
+        val newQuestions = filteredQuestions.filter { sortProgressId(it) !in progressedIds }
         if (newQuestions.isNotEmpty()) {
             return@withContext newQuestions.random()
         }

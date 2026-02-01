@@ -1,11 +1,12 @@
 id,grade,unit,japanese_text,english_sentence
-so1,英検5級,1,これはペンです。,This is a pen.
-so2,英検5級,1,私は音楽が好きです。,I like music.
-so3,英検5級,1,あなたはピアノを弾きますか？,Do you play the piano?
-so4,英検5級,1,彼は野球をしません。,He does not play baseball.
-so5,英検5級,1,公園へ行きましょう。,Let's go to the park.
-so6,英検5級,1,私は犬を2匹飼っています。,I have two dogs.
-so7,英検5級,1,あなたの名前は何ですか？,What is your name?
-so8,英検5級,1,今、7時です。,It is seven now.
-so9,英検5級,1,私は毎日英語を勉強します。,I study English every day.
-so10,英検5級,1,これはあなたの本ですか？,Is this your book?
+220001,5,1,これはペンです。,This is a pen.
+220002,5,1,私は音楽が好きです。,I like music.
+220003,5,1,あなたはピアノを弾きますか？,Do you play the piano?
+220004,5,1,彼は野球をしません。,He does not play baseball.
+220005,5,1,公園へ行きましょう。,Let's go to the park.
+220006,5,1,私は犬を2匹飼っています。,I have two dogs.
+220007,5,1,あなたの名前は何ですか？,What is your name?
+220008,5,1,今、7時です。,It is seven now.
+220009,5,1,私は毎日英語を勉強します。,I study English every day.
+220010,5,1,これはあなたの本ですか？,Is this your book?
+220011,4,1,これはあなたの本ですか？,How logn does is take to the libraly?
