@@ -82,7 +82,9 @@ class AppLockAccessibilityService : AccessibilityService() {
         "Network & internet", "ネットワークとインターネット"
     )
     private val accessibilityKeywords = listOf(
-        "Accessibility", "ユーザー補助"
+        "Accessibility", "ユーザー補助",
+        "Accessibility settings", "ユーザー補助設定",
+        "Security & privacy", "セキュリティとプライバシー"
     )
 
     // ランチャーメニュー

@@ -128,10 +128,10 @@
     <string name="mode_japanese_to_english">日本語→英単語</string>
     <string name="mode_english_english_1">英単語→英語意味</string>
     <string name="mode_english_english_2">英語意味→英単語</string>
-    <string name="admin_accessibility_lock_title">アクセシビリティ設定をロック</string>
-    <string name="admin_accessibility_lock_desc">ONにすると、子供がアクセシビリティ設定画面を開くことをブロックします。</string>
-    <string name="admin_tethering_lock_title">テザリング設定をロック</string>
-    <string name="admin_tethering_lock_desc">ONにすると、子供がテザリングとアクセスポイントの設定画面を開くことをブロックします。</string>
+    <string name="admin_accessibility_lock_title">アクセシビリティ設定画面アクセス禁止</string>
+    <string name="admin_accessibility_lock_desc">「設定」＞「ユーザー補助」画面へのアクセス禁止（この画面でこのアプリのフルコントロールの解除をすると他アプリへのロックが無効化されます。）</string>
+    <string name="admin_tethering_lock_title">テザリング設定画面へのアクセス禁止</string>
+    <string name="admin_tethering_lock_desc">１．「設定」＞「ネットワークとインターネット」へのアクセス禁止　２．「クイック設定パネル」の編集禁止（＊すでにテザリングパネルが追加されている場合は、上部スライドの通知画面自体が開けなくなります。事前にテザリングパネルを削除してからONにしてください。）</string>
     <string name="restricted_access_icon_desc">Restricted Access Icon</string>
 
 

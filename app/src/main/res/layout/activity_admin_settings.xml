@@ -219,6 +219,16 @@
 
                         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_accessibility_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
 
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_uninstall_lock"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="アプリ削除画面へのアクセス禁止"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"/>
+
+                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="１．アプリの長押し機能の無効化（一時停止、アンインストール）２．「アプリ」画面へのアクセスロック。　３．「セキュリティとプライバシー」画面へのアクセスロック" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_tethering_lock"
                             android:layout_width="match_parent"
@@ -228,16 +238,6 @@
                             android:textColor="@android:color/black"/>
 
                         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_tethering_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_uninstall_lock"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="アプリ削除ロック"
-                            android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ONにすると、このアプリをアンインストールできなくなります。" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
 
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginVertical="8dp"/>
 
