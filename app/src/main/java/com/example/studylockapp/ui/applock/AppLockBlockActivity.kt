@@ -42,6 +42,7 @@ class AppLockBlockActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             super.onCreate(savedInstanceState)
+            overridePendingTransition(0, 0) // ★アニメ無し
             setContentView(R.layout.activity_app_lock_block)
 
             settings = AppSettings(this)

@@ -195,16 +195,20 @@ class AppLockAccessibilityService : AccessibilityService() {
                 if (PrefsManager.isTetheringLockEnabled(this)) {
                     if (checkKeywords(clickedText, tetheringKeywords) ||
                         checkKeywords(clickedText, networkMenuKeywords)) {
+                        backAndCooldown()
                         showRestrictedScreen(pkgName)
                         return
+
                     }
                 }
 
                 // ★追加: 「アプリ削除ロック」がONなら、設定一覧の「アプリ」クリックもブロック
                 if (settings.isUninstallLockEnabled()) {
                     if (checkKeywords(clickedText, appsListKeywords)) {
+                        backAndCooldown()
                         showRestrictedScreen(pkgName)
                         return
+
                     }
                 }
             }
@@ -228,16 +232,20 @@ class AppLockAccessibilityService : AccessibilityService() {
 
                             // 1. 設定＞アプリ一覧画面自体のブロック
                             if (findAndValidateTitle(rootNode, appsListKeywords)) {
+                                backAndCooldown()
                                 showRestrictedScreen(pkgName)
                                 return
+
                             }
 
                             // 2. 詳細画面でのアンインストールボタン検知
                             if (findAndValidateTitle(rootNode, listOf(myAppName))) {
                                 if (recursiveCheckForTile(rootNode, appInfoKeywords)) {
                                     Log.d("AppLockSvc", "Protected Self Settings detected. Locking.")
+                                    backAndCooldown()
                                     showRestrictedScreen(pkgName)
                                     return
+
                                 }
                             }
                         }
@@ -245,8 +253,10 @@ class AppLockAccessibilityService : AccessibilityService() {
                         // ユーザー補助
                         if (PrefsManager.isAccessibilityLockEnabled(this)) {
                             if (findAndValidateTitle(rootNode, accessibilityKeywords)) {
+                                backAndCooldown()
                                 showRestrictedScreen(pkgName)
                                 return
+
                             }
                         }
 
@@ -254,8 +264,10 @@ class AppLockAccessibilityService : AccessibilityService() {
                         if (PrefsManager.isTetheringLockEnabled(this)) {
                             if (findAndValidateTitle(rootNode, networkMenuKeywords) ||
                                 findAndValidateTitle(rootNode, tetheringKeywords)) {
+                                backAndCooldown()
                                 showRestrictedScreen(pkgName)
                                 return
+
                             }
                         }
                     } finally {
@@ -314,12 +326,23 @@ class AppLockAccessibilityService : AccessibilityService() {
             if (unlockUntil > nowSec) return@launch
 
             val label = locked.label.ifBlank { pkgName }
-            showBlockScreen(pkgName, label)
+            Handler(Looper.getMainLooper()).post {
+                backAndCooldown()
+                showBlockScreen(pkgName, label)
+            }
+
         }
     }
 
     // --- Helper Methods ---
     // (変更なし、そのまま記述してください)
+
+    private fun backAndCooldown(ms: Long = 800L) {
+        // 自分のBACKでイベントが連続してループしないように
+        skipLockUntilMs = System.currentTimeMillis() + ms
+        performGlobalAction(GLOBAL_ACTION_BACK)
+    }
+
 
     private fun isSettingsTopScreen(rootNode: AccessibilityNodeInfo): Boolean {
         val windows = this.windows
@@ -436,28 +459,34 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     private fun showRestrictedScreen(pkg: String) {
         // クールダウン中なら何もしない
-        if (System.currentTimeMillis() < skipLockUntilMs) return
 
         // ★修正: やはり警告画面を出す（無言バックはやめる）
         val intent = Intent(applicationContext, RestrictedAccessActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
-        Handler(Looper.getMainLooper()).post {
+        Handler(Looper.getMainLooper()).postDelayed({
             val nowMs = System.currentTimeMillis()
+
             // 連続起動防止
-            if (pkg == lastBlockPkg && (nowMs - lastBlockAtMs) < blockCooldownMs) return@post
+            if (pkg == lastBlockPkg && (nowMs - lastBlockAtMs) < blockCooldownMs) return@postDelayed
             lastBlockPkg = pkg
             lastBlockAtMs = nowMs
 
-            // 警告画面を起動
-            startActivity(intent)
-        }
+            // ★まず即戻す（タップで進める隙を潰す）
+            // （戻る操作でイベントが連打されることがあるので短めにクールダウン）
+            skipLockUntilMs = nowMs + 600L
+            performGlobalAction(GLOBAL_ACTION_BACK)
+
+            // ★アニメ無しで警告画面を起動
+            val options = android.app.ActivityOptions.makeCustomAnimation(this, 0, 0)
+            startActivity(intent, options.toBundle())
+        }, 80L) // ★遷移中のroot/状態ズレ対策：少しだけ遅らせる
+
     }
 
     // 学習アプリ用のロック画面（こちらは表示する）
     private fun showBlockScreen(pkg: String, label: String) {
-        if (System.currentTimeMillis() < skipLockUntilMs) return
 
         val intent = Intent(applicationContext, AppLockBlockActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -475,6 +504,15 @@ class AppLockAccessibilityService : AccessibilityService() {
             startActivity(intent)
         }
     }
+    private fun disableNextActivityAnimation() {
+        // startActivity直後の遷移アニメを抑止
+        try {
+            val am = getSystemService(ACTIVITY_SERVICE) as? android.app.ActivityManager
+            // ActivityじゃないのでoverridePendingTransitionは直接使えない端末がある
+            // その場合でも0アニメ指定はActivity側で入れるのが確実（後述）
+        } catch (_: Exception) {}
+    }
+
 
     private fun showAlertActivity() {
         val intent = Intent(this, BlockedAlertActivity::class.java).apply {

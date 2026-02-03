@@ -12,6 +12,7 @@ class RestrictedAccessActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        overridePendingTransition(0, 0) // ★アニメ無し
         setContentView(R.layout.activity_restricted_access)
 
         // 閉じるボタン（手動で押した場合もホームへ）
