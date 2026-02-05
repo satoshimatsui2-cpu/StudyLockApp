@@ -1,12 +1,250 @@
-id,grade,unit,japanese_text,english_sentence
-220001,5,1,これはペンです。,This is a pen.
-220002,5,1,私は音楽が好きです。,I like music.
-220003,5,1,あなたはピアノを弾きますか？,Do you play the piano?
-220004,5,1,彼は野球をしません。,He does not play baseball.
-220005,5,1,公園へ行きましょう。,Let's go to the park.
-220006,5,1,私は犬を2匹飼っています。,I have two dogs.
-220007,5,1,あなたの名前は何ですか？,What is your name?
-220008,5,1,今、7時です。,It is seven now.
-220009,5,1,私は毎日英語を勉強します。,I study English every day.
-220010,5,1,これはあなたの本ですか？,Is this your book?
-220011,4,1,これはあなたの本ですか？,How logn does is take to the libraly?
+35001,5,3,その花屋は毎日10時に開きます。,The flower shop opens at ten o'clock every day.
+35002,5,3,私は毎朝学校へ歩いて行きます。,I walk to school every morning.
+35003,5,3,私のおばはロンドンに住んでいます。,My aunt lives in London.
+35004,5,3,あなたの姉は毎年スキーに行きますか？,Does your sister go skiing every year?
+35005,5,3,キムは今リビングでテレビを見ていますか？,Is Kim watching TV in the living room now?
+35006,5,3,あなたは今何をしていますか？,What are you doing now?
+35007,5,3,今日は私たちの修学旅行の最初の日です。,Today is the first day of our school trip.
+35008,5,3,これは私の姉のピアノです。,This is my sister's piano.
+35009,5,3,あなたのクラスで英語を上手に話せるのはだれですか？,Who can speak English well in your class?
+35010,5,3,私の父は毎朝3キロ走ります。,My father runs three kilometers every morning.
+35011,5,3,このくつはいくらですか？,How much are these shoes?
+35012,5,3,この写真の女の子はだれですか？,Who is the girl in this photo?
+35013,5,3,明日のピクニックに何が必要ですか？,What do we need for the picnic tomorrow?
+35014,5,3,トムのお父さんは大学で何を教えますか？,What does Tom's father teach at college?
+35015,5,3,私はヒロシのために朝ごはんを作っています。,I am cooking breakfast for Hiroshi.
+35016,5,3,あなたは朝食のあとに歯をみがきますか？,Do you brush your teeth after breakfast?
+35017,5,3,彼は毎日自転車で学校へ行きます。,He goes to school by bike every day.
+35018,5,3,彼女は今宿題をしています。,She is doing her homework now.
+35019,5,3,あなたは英語を毎日勉強しますか？,Do you study English every day?
+35020,5,3,私は音楽が好きです。,I like music.
+35021,5,3,あなたはピアノをひきますか？,Do you play the piano?
+35022,5,3,彼は野球をしません。,He does not play baseball.
+35023,5,3,公園へ行きましょう。,Let's go to the park.
+35024,5,3,私は犬を2匹飼っています。,I have two dogs.
+35025,5,3,あなたの名前は何ですか？,What is your name?
+35026,5,3,今7時です。,It is seven now.
+35027,5,3,これはあなたの本ですか？,Is this your book?
+35028,5,3,あなたは図書館へ行くのにどのくらいかかりますか？,How long does it take to get to the library?
+35029,5,3,あなたは駅まで歩いて行けますか？,Can you walk to the station?
+35030,5,3,次のバスは何時ですか？,What time is the next bus?
+35031,5,3,右に曲がってください。,Please turn right.
+35032,5,3,まっすぐ行ってください。,Please go straight.
+35033,5,3,この道をまっすぐ行くと郵便局があります。,If you go straight on this road there is a post office.
+35034,5,3,その店は駅の近くにあります。,That shop is near the station.
+35035,5,3,あなたはどうやって学校に行きますか？,How do you go to school?
+35036,5,3,私は朝に水を飲みます。,I drink water in the morning.
+35037,5,3,彼女は毎朝6時に起きます。,She gets up at six every morning.
+35038,5,3,私は夕方に家で勉強します。,I study at home in the evening.
+35039,5,3,あなたは放課後に公園へ行きますか？,Do you go to the park after school?
+35040,5,3,私たちは昼ごはんのあとで公園へ行きます。,We go to the park after lunch.
+35041,5,3,この教室に先生はいますか？,Is there a teacher in this classroom?
+35042,5,3,机の上に私のかばんがあります。,My bag is on the desk.
+35043,5,3,いすは机のとなりにあります。,The chair is next to the desk.
+35044,5,3,あなたの部屋は2階ですか？,Is your room on the second floor?
+35045,5,3,彼は今公園で走っています。,He is running in the park now.
+35046,5,3,彼らは今サッカーをしていますか？,Are they playing soccer now?
+35047,5,3,あなたは今どこにいますか？,Where are you now?
+35048,5,3,あなたは今家にいますか？,Are you at home now?
+35049,5,3,私は今とてもおなかがすいています。,I am very hungry now.
+35050,5,3,あなたは昼ごはんを食べていますか？,Are you eating lunch now?
+35051,5,3,彼女は今水を飲んでいます。,She is drinking water now.
+35052,5,3,私は今本を読んでいます。,I am reading a book now.
+35053,5,3,あなたは今何を読んでいますか？,What are you reading now?
+35054,5,3,彼は今何をしていますか？,What is he doing now?
+35055,5,3,あなたの父は毎朝ジョギングをしますか？,Does your father go jogging every morning?
+35056,5,3,あなたは毎週日曜日に母を手伝いますか？,Do you help your mother every Sunday?
+35057,5,3,私は週に3回テニスをします。,I play tennis three times a week.
+35058,5,3,彼は英語を上手に話します。,He speaks English well.
+35059,5,3,あなたはこの問題がわかりますか？,Do you understand this question?
+35060,5,3,私はその答えを知りません。,I do not know the answer.
+35061,5,3,あなたは昨日宿題をしましたか？,Did you do your homework yesterday?
+35062,5,3,私は昨日新しいくつを買いました。,I bought new shoes yesterday.
+35063,5,3,あなたはその映画を見ましたか？,Did you see that movie?
+35064,5,3,私は昨日テレビを見ませんでした。,I did not watch TV yesterday.
+35065,5,3,あなたは昨日どこへ行きましたか？,Where did you go yesterday?
+35066,5,3,私は昨日公園へ行きました。,I went to the park yesterday.
+35067,5,3,彼は昨日学校へ行きませんでした。,He did not go to school yesterday.
+35068,5,3,あなたは昨日何を食べましたか？,What did you eat yesterday?
+35069,5,3,私は昨日りんごを食べました。,I ate an apple yesterday.
+35070,5,3,あなたは昨日何時に起きましたか？,What time did you get up yesterday?
+35071,5,3,私は毎日10時に寝ます。,I go to bed at ten every day.
+35072,5,3,あなたは毎日何時に寝ますか？,What time do you go to bed every day?
+35073,5,3,彼女は毎日学校でピアノを練習します。,She practices the piano at school every day.
+35074,5,3,あなたは学校で英語を勉強しますか？,Do you study English at school?
+35075,5,3,私は放課後に友だちと話します。,I talk with my friends after school.
+35076,5,3,あなたは放課後に何をしますか？,What do you do after school?
+35077,5,3,彼は放課後に図書館へ行きます。,He goes to the library after school.
+35078,5,3,その図書館は何時に開きますか？,What time does the library open?
+35079,5,3,その図書館は毎日9時に開きます。,The library opens at nine o'clock every day.
+35080,5,3,あなたはその店が好きですか？,Do you like that store?
+35081,5,3,私はその店が好きです。,I like that store.
+35082,5,3,あなたはこの写真が好きですか？,Do you like this photo?
+35083,5,3,この写真の男の子はだれですか？,Who is the boy in this photo?
+35084,5,3,これはだれの自転車ですか？,Whose bike is this?
+35085,5,3,これは私の父の自転車です。,This is my father's bike.
+35086,5,3,あなたの姉のかばんはどこですか？,Where is your sister's bag?
+35087,5,3,私の姉のかばんは椅子の上にあります。,My sister's bag is on the chair.
+35088,5,3,その赤いかさはあなたのものですか？,Is that red umbrella yours?
+35089,5,3,あなたはこのペンを持っていますか？,Do you have this pen?
+35090,5,3,私は黒いペンを持っています。,I have a black pen.
+35091,5,3,あなたは今雨の音が聞こえますか？,Can you hear the sound of the rain now?
+35092,5,3,その音は何ですか？,What is that sound?
+35093,5,3,あなたはここで写真を撮ってもいいですか？,Can I take a picture here?
+35094,5,3,この箱の中に何がありますか？,What is in this box?
+35095,5,3,この箱の中にりんごが2つあります。,There are two apples in this box.
+35096,5,3,あなたはその少年を知っていますか？,Do you know that boy?
+35097,5,3,私はこの道を知っています。,I know this way.
+35098,5,3,あなたは駅で私を待ちますか？,Do you wait for me at the station?
+35099,5,3,私は駅であなたを待ちます。,I wait for you at the station.
+35100,5,3,雨が降っているので家にいましょう。,It is raining so let's stay at home.
+34001,4,3,先生に宿題についてたずねました。,I asked my teacher about my homework.
+34002,4,3,彼にそのことについてたずねてください。,Please ask him about it.
+34003,4,3,あなたは先生に部活動について聞きますか？,Do you ask your teacher about your club?
+34004,4,3,私は母にその映画について聞きました。,I asked my mother about the movie.
+34005,4,3,あなたは彼女に旅行についてたずねましたか？,Did you ask her about the trip?
+34006,4,3,今朝は朝食を食べる時間がありませんでした。,I didn't have time to eat breakfast this morning.
+34007,4,3,私は宿題をする時間がありませんでした。,I didn't have time to do my homework.
+34008,4,3,彼は友だちに会う時間がありませんでした。,He didn't have time to meet his friend.
+34009,4,3,あなたは昼ごはんを食べる時間がありましたか？,Did you have time to eat lunch?
+34010,4,3,放課後にテニスをする時間がありますか？,Do you have time to play tennis after school?
+34011,4,3,週末は家族と京都で楽しい時間をすごしました。,I had a great weekend in Kyoto with my family.
+34012,4,3,あなたは東京で楽しい週末をすごしましたか？,Did you have a great weekend in Tokyo?
+34013,4,3,私たちは友だちと大阪で楽しい週末をすごしました。,We had a great weekend in Osaka with our friends.
+34014,4,3,彼女は家族と北海道で楽しい週末をすごしました。,She had a great weekend in Hokkaido with her family.
+34015,4,3,あなたは家族と旅行で楽しい週末をすごしましたか？,Did you have a great weekend on the trip with your family?
+34016,4,3,彼は中国語とフランス語の両方を話せます。,He can speak both Chinese and French.
+34017,4,3,あなたは英語と日本語の両方を話せますか？,Can you speak both English and Japanese?
+34018,4,3,彼女はスペイン語と英語の両方を話せます。,She can speak both Spanish and English.
+34019,4,3,あなたの兄は中国語と英語の両方を話せますか？,Can your brother speak both Chinese and English?
+34020,4,3,私はフランス語と英語の両方を勉強しています。,I study both French and English.
+34021,4,3,あなたは動物園でライオンを見ましたか？,Did you see a lion at the zoo?
+34022,4,3,彼女は公園で大きい鳥を見ました。,She saw a big bird at the park.
+34023,4,3,あなたは駅でその男の人を見ましたか？,Did you see the man at the station?
+34024,4,3,私は昨日、水族館でイルカを見ました。,I saw dolphins at the aquarium yesterday.
+34025,4,3,あなたは美術館でその絵を見ましたか？,Did you see the picture at the museum?
+34026,4,3,私の祖父は去年初めて飛行機に乗りました。,My grandfather took a plane for the first time last year.
+34027,4,3,彼は先週初めて新幹線に乗りました。,He rode the bullet train for the first time last week.
+34028,4,3,私は去年初めて海で泳ぎました。,I swam in the sea for the first time last year.
+34029,4,3,あなたは初めて一人で料理をしましたか？,Did you cook by yourself for the first time?
+34030,4,3,彼女は先月初めて外国へ行きました。,She went abroad for the first time last month.
+34031,4,3,英語の宿題を見せてください。,Please show me your English homework.
+34032,4,3,その写真を見せてください。,Please show me that photo.
+34033,4,3,あなたのノートを見せてください。,Please show me your notebook.
+34034,4,3,この地図を見せてください。,Please show me this map.
+34035,4,3,あなたの新しいかばんを見せてください。,Please show me your new bag.
+34036,4,3,明日は家を掃除しなければなりませんか？,Do we have to clean our house tomorrow?
+34037,4,3,今日は学校へ早く行かなければなりませんか？,Do we have to go to school early today?
+34038,4,3,あなたは今夜、宿題を終えなければなりませんか？,Do you have to finish your homework tonight?
+34039,4,3,私たちは今日、買い物に行かなければなりません。,We have to go shopping today.
+34040,4,3,彼は毎日早く起きなければなりません。,He has to get up early every day.
+34041,4,3,私は兄とよく映画について話します。,I often talk about movies with my brother.
+34042,4,3,彼女は友だちと音楽についてよく話します。,She often talks about music with her friends.
+34043,4,3,あなたは家族と旅行について話しますか？,Do you talk about your trip with your family?
+34044,4,3,私は友だちと学校について話します。,I talk about school with my friends.
+34045,4,3,彼は先生と英語について話します。,He talks about English with his teacher.
+34046,4,3,あなたはどんなアイスクリームが好きですか？,What kind of ice cream do you like?
+34047,4,3,あなたはどんな音楽が好きですか？,What kind of music do you like?
+34048,4,3,あなたはどんなスポーツが好きですか？,What kind of sports do you like?
+34049,4,3,あなたはどんな映画が好きですか？,What kind of movies do you like?
+34050,4,3,あなたはどんな本が好きですか？,What kind of books do you like?
+34051,4,3,電話番号を教えてください。,Can you tell me your phone number, please?
+34052,4,3,この道を教えてください。,Can you tell me the way, please?
+34053,4,3,あなたの名前を教えてください。,Can you tell me your name, please?
+34054,4,3,次の電車は何時か教えてください。,Can you tell me what time the next train is, please?
+34055,4,3,この店が何時に開くか教えてください。,Can you tell me what time this store opens, please?
+34056,4,3,あなたは来月引っ越す予定ですか？,Are you going to move next month?
+34057,4,3,彼は来週旅行に行く予定ですか？,Is he going to go on a trip next week?
+34058,4,3,あなたは今夜友だちに会う予定ですか？,Are you going to meet your friend tonight?
+34059,4,3,彼女は明日早く起きる予定ですか？,Is she going to get up early tomorrow?
+34060,4,3,あなたは週末に買い物に行く予定ですか？,Are you going to go shopping this weekend?
+34061,4,3,私は昨日図書館で彼に会いました。,I met him at the library yesterday.
+34062,4,3,彼女は昨日駅で彼に会いました。,She met him at the station yesterday.
+34063,4,3,私は昨日公園で友だちに会いました。,I met my friend at the park yesterday.
+34064,4,3,彼は昨日学校で先生に会いました。,He met his teacher at school yesterday.
+34065,4,3,あなたは昨日お店で彼女に会いましたか？,Did you meet her at the store yesterday?
+34066,4,3,あなたはいつ京都に行きましたか？,When did you go to Kyoto?
+34067,4,3,あなたはいつ東京に行きましたか？,When did you go to Tokyo?
+34068,4,3,彼女はいつ北海道に行きましたか？,When did she go to Hokkaido?
+34069,4,3,あなたはいつ海へ行きましたか？,When did you go to the beach?
+34070,4,3,彼はいつその博物館に行きましたか？,When did he go to the museum?
+34071,4,3,あなたはテニスをする時間がありますか？,Do you have time to play tennis?
+34072,4,3,あなたは今夜話す時間がありますか？,Do you have time to talk tonight?
+34073,4,3,彼女は放課後に勉強する時間があります。,She has time to study after school.
+34074,4,3,私は今日料理をする時間がありません。,I don't have time to cook today.
+34075,4,3,あなたは今日買い物に行く時間がありますか？,Do you have time to go shopping today?
+34076,4,3,私は先生に英語についてたずねました。,I asked my teacher about English.
+34077,4,3,あなたは彼にそのテストについて聞きましたか？,Did you ask him about the test?
+34078,4,3,母に夕食についてたずねてください。,Please ask your mother about dinner.
+34079,4,3,私は友だちに宿題についてたずねました。,I asked my friend about the homework.
+34080,4,3,あなたは先生にその本について聞きますか？,Do you ask your teacher about the book?
+34081,4,3,私は今朝朝食を食べる時間がありませんでした。,I didn't have time to eat breakfast this morning.
+34082,4,3,彼は昨日宿題をする時間がありませんでした。,He didn't have time to do his homework yesterday.
+34083,4,3,彼女は今朝バスに乗る時間がありませんでした。,She didn't have time to take a bus this morning.
+34084,4,3,私は今朝早く出る時間がありませんでした。,I didn't have time to leave early this morning.
+34085,4,3,あなたは昨日昼ごはんを食べる時間がありましたか？,Did you have time to eat lunch yesterday?
+34086,4,3,私は家族と奈良で楽しい週末をすごしました。,I had a great weekend in Nara with my family.
+34087,4,3,彼は友だちと神戸で楽しい週末をすごしました。,He had a great weekend in Kobe with his friends.
+34088,4,3,彼女は家族と沖縄で楽しい週末をすごしました。,She had a great weekend in Okinawa with her family.
+34089,4,3,あなたは家族と名古屋で楽しい週末をすごしましたか？,Did you have a great weekend in Nagoya with your family?
+34090,4,3,私たちは家族と旅行で楽しい週末をすごしました。,We had a great weekend on the trip with our family.
+34091,4,3,私は英語と数学の両方を勉強しています。,I study both English and math.
+34092,4,3,彼はサッカーと野球の両方が好きです。,He likes both soccer and baseball.
+34093,4,3,あなたは犬と猫の両方を飼っていますか？,Do you have both a dog and a cat?
+34094,4,3,彼女は赤と青の両方が好きです。,She likes both red and blue.
+34095,4,3,私は兄と姉の両方がいます。,I have both a brother and a sister.
+34096,4,3,あなたは公園でその犬を見ましたか？,Did you see the dog at the park?
+34097,4,3,私は昨日駅であなたを見ました。,I saw you at the station yesterday.
+34098,4,3,彼は学校でその先生を見ました。,He saw the teacher at school.
+34099,4,3,彼女は店でそのかばんを見ました。,She saw the bag at the store.
+34100,4,3,あなたは昨日博物館でその絵を見ましたか？,Did you see the picture at the museum yesterday?
+34101,4,3,あなたは先生にその人のことをたずねましたか？,Did you ask your teacher about the person?
+34102,4,3,私は兄に新しいゲームについて聞きました。,I asked my brother about the new game.
+34103,4,3,彼女は友だちにその歌についてたずねました。,She asked her friend about the song.
+34104,4,3,あなたは母に夕食の時間について聞きますか？,Do you ask your mother about dinner time?
+34105,4,3,先生にその旅行について聞いてください。,Please ask your teacher about the trip.
+34106,4,3,私は今朝バスに乗る時間がありませんでした。,I didn't have time to take a bus this morning.
+34107,4,3,彼は今朝宿題をする時間がありませんでした。,He didn't have time to do his homework this morning.
+34108,4,3,彼女は昨日早く寝る時間がありませんでした。,She didn't have time to go to bed early yesterday.
+34109,4,3,私は昨日友だちに会う時間がありませんでした。,I didn't have time to meet my friend yesterday.
+34110,4,3,あなたは今朝朝ごはんを作る時間がありましたか？,Did you have time to make breakfast this morning?
+34111,4,3,私は家族と箱根で楽しい週末をすごしました。,I had a great weekend in Hakone with my family.
+34112,4,3,彼は家族と広島で楽しい週末をすごしました。,He had a great weekend in Hiroshima with his family.
+34113,4,3,あなたはどんな果物が好きですか？,What kind of fruit do you like?
+34114,4,3,あなたはどんな動物が好きですか？,What kind of animals do you like?
+34115,4,3,私たちは家族と旅行で楽しい週末をすごしました。,We had a great weekend on the trip with our family.
+34116,4,3,彼は日本語と英語の両方を話せます。,He can speak both Japanese and English.
+34117,4,3,あなたはピアノとギターの両方を弾けますか？,Can you play both the piano and the guitar?
+34118,4,3,彼女は水泳とテニスの両方が好きです。,She likes both swimming and tennis.
+34119,4,3,あなたの父は料理とそうじの両方をしますか？,Does your father do both cooking and cleaning?
+34120,4,3,私は赤と白の両方のシャツを持っています。,I have both a red shirt and a white shirt.
+34121,4,3,あなたは昨日店でその帽子を見ましたか？,Did you see the hat at the store yesterday?
+34122,4,3,私は昨日公園で大きい犬を見ました。,I saw a big dog at the park yesterday.
+34123,4,3,彼は昨日駅でその少年を見ました。,He saw the boy at the station yesterday.
+34124,4,3,彼女は昨日学校でその女の子を見ました。,She saw the girl at school yesterday.
+34125,4,3,あなたは水族館で魚を見ましたか？,Did you see fish at the aquarium?
+34126,4,3,私は去年初めて海でサーフィンをしました。,I went surfing in the sea for the first time last year.
+34127,4,3,彼は去年初めて日本の歌を歌いました。,He sang a Japanese song for the first time last year.
+34128,4,3,彼女は先週初めて一人で料理をしました。,She cooked by herself for the first time last week.
+34129,4,3,あなたは先月初めて外国へ行きましたか？,Did you go abroad for the first time last month?
+34130,4,3,私は先週初めてその店に行きました。,I went to that store for the first time last week.
+34131,4,3,あなたの英語の宿題を見せてください。,Please show me your English homework.
+34132,4,3,そのメールを見せてください。,Please show me that email.
+34133,4,3,あなたの時間割を見せてください。,Please show me your schedule.
+34134,4,3,この切符を見せてください。,Please show me this ticket.
+34135,4,3,あなたの写真を見せてください。,Please show me your photo.
+34136,4,3,私たちは明日家をそうじしなければなりませんか？,Do we have to clean our house tomorrow?
+34137,4,3,あなたは今日早く帰らなければなりませんか？,Do you have to go home early today?
+34138,4,3,彼は今日部屋を片づけなければなりません。,He has to clean his room today.
+34139,4,3,私は今夜早く寝なければなりません。,I have to go to bed early tonight.
+34140,4,3,あなたは今週末に勉強しなければなりませんか？,Do you have to study this weekend?
+34141,4,3,私は友だちとよくそのゲームについて話します。,I often talk about the game with my friends.
+34142,4,3,彼女は兄とよく学校について話します。,She often talks about school with her brother.
+34143,4,3,あなたは母とよく料理について話しますか？,Do you often talk about cooking with your mother?
+34144,4,3,彼は友だちとよく旅行について話します。,He often talks about trips with his friends.
+34145,4,3,私は先生とよく英語について話します。,I often talk about English with my teacher.
+34146,4,3,あなたはどんな音楽が好きですか？,What kind of music do you like?
+34147,4,3,彼女は友だちと福岡で楽しい週末をすごしました。,She had a great weekend in Fukuoka with her friends.
+34148,4,3,あなたは友だちと札幌で楽しい週末をすごしましたか？,Did you have a great weekend in Sapporo with your friends?
+34149,4,3,あなたはどんなテレビ番組が好きですか？,What kind of TV shows do you like?
+34150,4,3,あなたはどんな映画が好きですか？,What kind of movies do you like?
