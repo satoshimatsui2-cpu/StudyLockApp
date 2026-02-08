@@ -71,22 +71,11 @@ class CsvDataLoader(private val context: Context) {
 
     fun loadFillBlankQuestions(): List<FillBlankQuestion> {
         val questions = mutableListOf<FillBlankQuestion>()
-        val TAG = "CsvDataLoader"
-        Log.d(TAG, "loadFillBlankQuestions: Starting to load questions from res/raw.")
-
         try {
-            // ▼▼▼ 修正: assets.open ではなく resources.openRawResource を使用 ▼▼▼
-            // ファイル名: fill_in_the_blank_questions.csv -> R.raw.fill_in_the_blank_questions
             context.resources.openRawResource(R.raw.fill_in_the_blank_questions).bufferedReader().useLines { lines ->
-
-                Log.d(TAG, "loadFillBlankQuestions: Raw resource opened successfully.")
-                var parsedCount = 0
-                val lineList = lines.toList()
-                Log.d(TAG, "loadFillBlankQuestions: Total lines: ${lineList.size}")
-
-                lineList.drop(1) // ヘッダーをスキップ
+                lines.drop(1) // ヘッダーをスキップ
                     .forEach { line ->
-                        val tokens = line.split(",")
+                        val tokens = parseCsvLine(line) // ★★★ ここを修正 ★★★
                         if (tokens.size >= 10) {
                             try {
                                 val id = tokens[0].toInt()
@@ -109,17 +98,15 @@ class CsvDataLoader(private val context: Context) {
                                             explanation = explanation
                                         )
                                     )
-                                    parsedCount++
                                 }
                             } catch (e: NumberFormatException) {
-                                Log.e(TAG, "loadFillBlankQuestions: Parse error on line: $line")
+                                Log.e("CsvDataLoader", "Parse error on line: $line")
                             }
                         }
                     }
-                Log.d(TAG, "loadFillBlankQuestions: Parsing complete. Count: $parsedCount")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "loadFillBlankQuestions: Failed to read raw resource.", e)
+            Log.e("CsvDataLoader", "Failed to read fill_in_the_blank_questions.csv.", e)
         }
         return questions
     }
