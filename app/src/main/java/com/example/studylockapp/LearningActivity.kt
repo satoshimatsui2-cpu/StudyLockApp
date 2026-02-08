@@ -1510,20 +1510,23 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 sortQuestions.filter { gradeMatches(it.grade) }.map { sortProgressId(it) }.toSet()
             }
 
-            // 会話文リスニング問題用のIDセットを正しく生成するロジック
-            val listeningQuestionIdSet = if (gradeFilter == "All") {
-                listeningQuestions.map { listeningProgressId(it) }.toSet()
+            // ▼▼▼ 会話文リスニング用のロジックを修正 ▼▼▼
+            // 1. まず、選択された級でリスニング問題を絞り込む
+            val filteredListeningQuestions = if (gradeFilter == "All") {
+                listeningQuestions
             } else {
                 val gfRaw = gradeFilter.trim()
                 val gfNorm = normalizeGrade(gfRaw).trim()
-
                 fun gradeMatches(questionGrade: String): Boolean {
                     val qgRaw = questionGrade.trim()
                     val qgNorm = normalizeGrade(qgRaw).trim()
                     return qgRaw == gfRaw || qgRaw == gfNorm || qgNorm == gfRaw || qgNorm == gfNorm
                 }
-                listeningQuestions.filter { gradeMatches(it.grade) }.map { listeningProgressId(it) }.toSet()
+                listeningQuestions.filter { gradeMatches(it.grade) }
             }
+
+            // 2. 絞り込んだリストからIDセットを生成する
+            val listeningQuestionIdSet = filteredListeningQuestions.map { listeningProgressId(it) }.toSet()
 
 
             currentStats = mapOf(
@@ -1551,8 +1554,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 LearningModes.TEST_SORT to LearningStatsLogic.computeModeStats(
                     db, sortQuestionIdSet, LearningModes.TEST_SORT, nowSec, listeningQuestions
                 ),
+                // ▼▼▼ computeModeStatsに「絞り込んだ後」のリストを渡すように修正 ▼▼▼
                 LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(
-                    db, listeningQuestionIdSet, LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions
+                    db, listeningQuestionIdSet, LearningModes.TEST_LISTEN_Q2, nowSec, filteredListeningQuestions
                 )
             )
 
