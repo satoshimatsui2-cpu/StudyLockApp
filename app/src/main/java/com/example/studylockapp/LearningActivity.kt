@@ -43,6 +43,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.text.toIntOrNull
 
 
 class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -678,8 +679,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (gradeFilter == "All") {
                 listeningQuestions
             } else {
+                val gfRaw = gradeFilter.trim()
+                val gfNorm = targetDbGrade.trim()
+
                 listeningQuestions.filter { q ->
-                    val isMatch = (q.grade == gradeFilter || q.grade == targetDbGrade)
+                    val qgRaw = q.grade.trim()
+                    // "英検"などのプレフィックスがあっても対応できるように、問題の級も正規化する
+                    val qgNorm = normalizeGrade(qgRaw).trim()
+
+                    // raw/正規化後の表記を相互に比較し、マッチの精度を上げる
+                    val isMatch = qgRaw == gfRaw || qgRaw == gfNorm || qgNorm == gfRaw || qgNorm == gfNorm
                     isMatch || (q.id in dueIdsInOtherGrades)
                 }
             }
@@ -1473,13 +1482,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // 単語系モード用
             val wordIdSet: Set<Int> = allWords.map { it.no }.toSet()
 
-            // 穴埋め問題用
-            val fillBlankIdSet = fillBlankQuestions
-                .filter { it.grade.trim() == gradeFilter.trim() }
-                .map { it.id }
+            val fillBlankIdSet: Set<Int> = fillBlankQuestions
+                .filter { q -> q.grade.trim() == gradeFilter.trim() }
+                .mapNotNull { q ->
+                    when (val id = q.id) {
+                        is Int -> id
+                        is Long -> id.toInt()
+                        is String -> id.toIntOrNull()
+                        is Number -> id.toInt()
+                        else -> null
+                    }
+                }
                 .toSet()
 
-            // ▼▼▼ ここから追加 ▼▼▼
             // 並び替え問題用
             val sortQuestionIdSet = if (gradeFilter == "All") {
                 sortQuestions.map { sortProgressId(it) }.toSet()
@@ -1494,7 +1509,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
                 sortQuestions.filter { gradeMatches(it.grade) }.map { sortProgressId(it) }.toSet()
             }
-            // ▲▲▲ ここまで追加 ▲▲▲
+
+            // 会話文リスニング問題用のIDセットを正しく生成するロジック
+            val listeningQuestionIdSet = if (gradeFilter == "All") {
+                listeningQuestions.map { listeningProgressId(it) }.toSet()
+            } else {
+                val gfRaw = gradeFilter.trim()
+                val gfNorm = normalizeGrade(gfRaw).trim()
+
+                fun gradeMatches(questionGrade: String): Boolean {
+                    val qgRaw = questionGrade.trim()
+                    val qgNorm = normalizeGrade(qgRaw).trim()
+                    return qgRaw == gfRaw || qgRaw == gfNorm || qgNorm == gfRaw || qgNorm == gfNorm
+                }
+                listeningQuestions.filter { gradeMatches(it.grade) }.map { listeningProgressId(it) }.toSet()
+            }
 
 
             currentStats = mapOf(
@@ -1516,26 +1545,24 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 LearningModes.EN_EN_2 to LearningStatsLogic.computeModeStats(
                     db, wordIdSet, LearningModes.EN_EN_2, nowSec, listeningQuestions
                 ),
-
                 LearningModes.TEST_FILL_BLANK to LearningStatsLogic.computeModeStats(
                     db, fillBlankIdSet, LearningModes.TEST_FILL_BLANK, nowSec, listeningQuestions
                 ),
-
-                // ▼▼▼ ここも追加 ▼▼▼
                 LearningModes.TEST_SORT to LearningStatsLogic.computeModeStats(
                     db, sortQuestionIdSet, LearningModes.TEST_SORT, nowSec, listeningQuestions
                 ),
-                // ▲▲▲ ここまで追加 ▲▲▲
-
                 LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(
-                    db, emptySet(), LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions
+                    db, listeningQuestionIdSet, LearningModes.TEST_LISTEN_Q2, nowSec, listeningQuestions
                 )
             )
 
             withContext(Dispatchers.Main) { updateModeUi() }
         }
     }
-
+    private fun listeningProgressId(q: ListeningQuestion): Int {
+        // IDが衝突しないように、モード名と問題IDを組み合わせてハッシュ化する
+        return kotlin.math.abs("listening_q2:${q.id}".hashCode())
+    }
     private fun updateModeUi() {
         val modeName = when (currentMode) {
             LearningModes.MEANING -> getString(R.string.mode_meaning)

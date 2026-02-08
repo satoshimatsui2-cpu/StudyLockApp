@@ -52,7 +52,9 @@ object QuestionLogic {
      * 正解とプールから選択肢リスト（正解含む）を生成する
      */
     fun buildChoices(correct: WordEntity, pool: List<WordEntity>, count: Int, mode: String): List<WordEntity> {
-        val candidates = pool.filter { it.no != correct.no }
+        val candidates = pool.filter {
+            it.no != correct.no && it.word != correct.word && it.japanese != correct.japanese
+        }
         if (candidates.isEmpty()) return listOf(correct)
 
         val distractors = when (mode) {
