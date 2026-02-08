@@ -94,39 +94,64 @@ export const sendSecurityAlert = functions.region('asia-northeast1').https.onCal
     return { success: true };
 });
 
-// ■ 3. 日次レポート（毎日21時）
-export const sendDailyReport = functions.region('asia-northeast1').pubsub.schedule('every day 21:00').timeZone('Asia/Tokyo').onRun(async (context) => {
+// ■ 3. 日次レポート（毎日7時）
+export const sendDailyReport = functions.region('asia-northeast1').pubsub.schedule('every day 07:00').timeZone('Asia/Tokyo').onRun(async (context) => {
     const usersSnapshot = await db.collection("users").where("role", "==", "child").get();
     if (usersSnapshot.empty) {
-        console.log("No children found.");
+        console.log("No children found for daily report.");
         return null;
     }
+
+    // レポート対象日（昨日）の日付文字列を YYYY-MM-DD 形式で取得
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
 
     const promises: Promise<any>[] = [];
 
     for (const userDoc of usersSnapshot.docs) {
         const uid = userDoc.id;
-        const todayStr = new Date().toISOString().split('T')[0];
-        const statsRef = db.collection("users").doc(uid).collection("dailyStats").doc(todayStr);
+        const statsRef = db.collection("users").doc(uid).collection("dailyStats").doc(yesterdayStr);
         const statsDoc = await statsRef.get();
 
-        let studyMessage = "本日の学習データはありません。";
+        let reportBody: string;
         if (statsDoc.exists) {
-            const data = statsDoc.data();
-            const points = data?.points || 0;
-            studyMessage = `今日の獲得ポイント: ${points} pt`;
+            const data = statsDoc.data() || {};
+            // Firestoreから取得するデータ。Androidアプリ側でこのフィールド名で保存されている必要があります。
+            const earnedPoints = data.points || 0;
+            const usedPoints = data.pointsUsed || 0;
+            const grades = (data.gradesStudied && data.gradesStudied.length > 0) ? data.gradesStudied.join(', ') : 'なし';
+            const modes = (data.modesStudied && data.modesStudied.length > 0) ? data.modesStudied.join(', ') : 'なし';
+            const studyCount = data.studyCount || 0;
+            const correctCount = data.correctCount || 0;
+
+            // 通知の本文を組み立て
+            reportBody = [
+                `獲得ポイント: ${earnedPoints} pt`,
+                `使用ポイント: ${usedPoints} pt`,
+                `学習グレード: ${grades}`,
+                `学習モード: ${modes}`,
+                `学習数: ${studyCount}問`,
+                `正解数: ${correctCount}問`
+            ].join('\\n');
+
+        } else {
+            reportBody = "昨日の学習データはありませんでした。";
         }
 
+        // ユーザーのすべての親に通知を送信
         const parentsSnapshot = await db.collection("users").doc(uid).collection("parents").get();
+        if (parentsSnapshot.empty) continue;
+
+        const dateString = `${yesterday.getMonth() + 1}/${yesterday.getDate()}`;
+        const title = `📅 学習レポート (${dateString})`;
+
         parentsSnapshot.forEach((parentDoc) => {
             const parentData = parentDoc.data();
             if (parentData.fcmToken) {
                 promises.push(admin.messaging().send({
                     token: parentData.fcmToken,
-                    notification: {
-                        title: "📅 日次学習レポート",
-                        body: studyMessage,
-                    },
+                    notification: { title, body: reportBody },
                 }));
             }
         });
