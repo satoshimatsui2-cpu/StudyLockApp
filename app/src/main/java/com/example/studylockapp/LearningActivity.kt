@@ -780,57 +780,49 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val progressDao = AppDatabase.getInstance(this).wordProgressDao()
             val nowSec = System.currentTimeMillis() / 1000L
 
-            // 1. まず、現在の級に対応する問題のリストとIDセットを作成
             val questionsForGrade = fillBlankQuestions.filter { it.grade == gradeFilter }
             val idsForGrade = questionsForGrade.map { it.id }.toSet()
-            if (idsForGrade.isEmpty()) {
-                return null // この級には問題がない
-            }
+            if (idsForGrade.isEmpty()) return null
 
-            // 2.【優先度1】復習(due)対象の問題を探す
-            //    - DBから復習時期が来たIDリストを取得
-            //    - その中から現在の級に含まれるIDを最初に見つける
             val dueIds = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
             val nextDueId = dueIds.find { it in idsForGrade }
             if (nextDueId != null) {
-                // 見つかったら、その問題を返す
                 val question = questionsForGrade.find { it.id == nextDueId }
-                return question?.let { QuestionLogic.prepareFillBlankQuestion(it) }
+                val ctx = question?.let { QuestionLogic.prepareFillBlankQuestion(it) } ?: return null
+                return shrinkOptionsTo4(ctx) // ★追加：4択化
             }
 
-            // 3.【優先度2】新規(new)の問題を探す
-            //    - このモードで一度でも学習した問題のIDリストを取得
-            //    - 今の級の問題リストから、学習済みIDを除外して「新規リスト」を作成
-            val progressedIds =
-                progressDao.getAllProgressForMode(currentMode).map { it.wordId }.toSet()
+            val progressedIds = progressDao.getAllProgressForMode(currentMode).map { it.wordId }.toSet()
             val newQuestions = questionsForGrade.filter { it.id !in progressedIds }
             if (newQuestions.isNotEmpty()) {
-                // 新規問題があれば、そこからランダムで1問選んで返す
                 val question = newQuestions.random()
-                return QuestionLogic.prepareFillBlankQuestion(question)
+                val ctx = QuestionLogic.prepareFillBlankQuestion(question)
+                return shrinkOptionsTo4(ctx) // ★追加：4択化
             }
 
-            // 4. 復習対象も新規問題もなければ、出題する問題はない
             return null
         }
+
         val nextWord = selectNextWord() ?: return null
         val choicePool = getChoicePool()
+
+        // 通常は6択のまま
         val choices = QuestionLogic.buildChoices(nextWord, choicePool, 6, currentMode)
+
         val (title, body, options) = QuestionLogic.formatQuestionAndOptions(
-            this,
-            nextWord,
-            choices,
-            currentMode
+            this, nextWord, choices, currentMode
         )
+
         val correctStr = QuestionLogic.getCorrectStringForMode(nextWord, currentMode)
         val correctIndex = options.indexOf(correctStr)
+
         val shouldAuto = when (currentMode) {
             LearningModes.JA_TO_EN -> false
             LearningModes.LISTENING, LearningModes.LISTENING_JP -> true
             else -> checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE
         }
-        val audioText =
-            if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
+
+        val audioText = if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
 
         return LegacyQuestionContext(
             word = nextWord,
@@ -843,19 +835,41 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
     }
 
+    /**
+     * 穴埋め用：選択肢を4つに圧縮（正解1つ + 他3つ）
+     */
+    private fun shrinkOptionsTo4(ctx: LegacyQuestionContext): LegacyQuestionContext {
+        if (ctx.options.size <= 4) return ctx
+
+        val correct = ctx.options.getOrNull(ctx.correctIndex) ?: return ctx
+
+        val others = ctx.options.filterIndexed { i, _ -> i != ctx.correctIndex }
+        val picked = others.shuffled().take(3).toMutableList()
+        picked.add(correct)
+
+        val newOptions = picked.shuffled()
+        val newCorrectIndex = newOptions.indexOf(correct)
+
+        return ctx.copy(
+            options = newOptions,
+            correctIndex = newCorrectIndex
+        )
+    }
+
     private fun renderLegacyQuestion(ctx: LegacyQuestionContext) {
 
         textQuestionTitle.text = ctx.title
         textQuestionBody.text = ctx.body
         textQuestionBody.visibility = if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
 
-// ---- ここが大事：毎回スタイルを「完全に」決め打ちする ----
+        // ---- ここが大事：毎回スタイルを「完全に」決め打ちする ----
         val lp = textQuestionBody.layoutParams
 
         if (currentMode == LearningModes.TEST_FILL_BLANK) {
             lp.width = ViewGroup.LayoutParams.MATCH_PARENT
             textQuestionBody.layoutParams = lp
 
+            // 穴埋め：左寄せ（2行でも左揃え）
             textQuestionBody.gravity = android.view.Gravity.START
             textQuestionBody.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
             textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21f)
@@ -864,8 +878,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textQuestionBody.setHorizontallyScrolling(false)
 
         } else {
-            // ★ここを「センター寄せに見える」設定にする
-            lp.width = ViewGroup.LayoutParams.MATCH_PARENT   // ← WRAP_CONTENTやめる
+            // それ以外：センター寄りに戻す（複数行も中央揃え）
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
             textQuestionBody.layoutParams = lp
 
             textQuestionBody.gravity = android.view.Gravity.CENTER
@@ -878,10 +892,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         textQuestionBody.requestLayout()
 
-        choiceButtons.forEach {
-            it.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f
+        // ---- ボタン表示：options数だけ出す（穴埋め4択対応）----
+        choiceButtons.forEachIndexed { index, btn ->
+            btn.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f
+            btn.visibility = View.GONE
+            btn.text = "" // 残り文字対策
         }
-        choiceButtons.zip(ctx.options).forEach { (btn, txt) -> btn.text = txt }
+
+        ctx.options.forEachIndexed { i, txt ->
+            val btn = choiceButtons.getOrNull(i) ?: return@forEachIndexed
+            btn.text = txt
+            btn.visibility = View.VISIBLE
+        }
 
         when (currentMode) {
             LearningModes.JA_TO_EN -> {
