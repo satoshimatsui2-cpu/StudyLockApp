@@ -2,27 +2,33 @@ package com.example.studylockapp.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.core.app.NotificationCompat
 import com.example.studylockapp.PrefsManager
+import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.ui.alert.BlockedAlertActivity
 import com.example.studylockapp.ui.applock.AppLockBlockActivity
 import com.example.studylockapp.ui.restricted.RestrictedAccessActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.time.Instant
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.functions.FirebaseFunctions
-import java.util.Date
 
 class AppLockAccessibilityService : AccessibilityService() {
 
@@ -124,6 +130,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         info.notificationTimeout = 100
         this.serviceInfo = info
         startExpiryWatcher()
+        sendSecurityAlertToFunctions("accessibility_enabled")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -567,24 +574,44 @@ class AppLockAccessibilityService : AccessibilityService() {
         expiryRunnable?.let { expiryHandler.removeCallbacks(it) }
         serviceJob.cancel()
     }
-    // ▼▼▼ デバッグログ付きに変更 ▼▼▼
+
     override fun onUnbind(intent: Intent?): Boolean {
-        android.util.Log.d("AppLockDebug", "★onUnbind 呼ばれました！(OFF操作を検知)")
+        Log.d("AppLockDebug", "★onUnbind 呼ばれました！(OFF操作を検知)")
         sendSecurityAlertToFunctions("accessibility_disabled")
+        showAccessibilityOffNotification()
         return super.onUnbind(intent)
+    }
+
+    private fun showAccessibilityOffNotification() {
+        val channelId = "SECURITY_ALERTS"
+
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        val builder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_lock_24dp)
+            .setContentTitle("⚠️ アクセシビリティ設定がOFFになっています")
+            .setContentText("アプリを使用出来ないためアクセシビリティをONにして下さい。")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(1001, builder.build())
     }
 
     private fun sendSecurityAlertToFunctions(alertType: String) {
         val auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
 
-        // 原因1: ユーザーがいない？
         if (user == null) {
-            android.util.Log.e("AppLockDebug", "★エラー: User is null。ログイン情報が取れませんでした。")
+            Log.e("AppLockDebug", "★エラー: User is null。ログイン情報が取れませんでした。")
             return
         }
 
-        android.util.Log.d("AppLockDebug", "★送信開始: UID=${user.uid} へ警告を送ります...")
+        Log.d("AppLockDebug", "★送信開始: UID=${user.uid} へ警告を送ります...")
 
         val functions = FirebaseFunctions.getInstance("asia-northeast1")
         val data = hashMapOf(
@@ -595,11 +622,10 @@ class AppLockAccessibilityService : AccessibilityService() {
 
         functions.getHttpsCallable("sendSecurityAlert").call(data)
             .addOnSuccessListener {
-                android.util.Log.d("AppLockDebug", "★送信成功！親に通知が届いたはずです")
+                Log.d("AppLockDebug", "★送信成功！親に通知が届いたはずです")
             }
             .addOnFailureListener { e ->
-                // 原因2: 送信エラー？
-                android.util.Log.e("AppLockDebug", "★送信失敗...", e)
+                Log.e("AppLockDebug", "★送信失敗...", e)
             }
     }
 }

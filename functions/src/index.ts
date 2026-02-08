@@ -36,49 +36,61 @@ export const requestUnlockCode = functions.region('asia-northeast1').https.onCal
     return { success: true };
 });
 
-// ■ 2. 緊急セキュリティ警告（不正検知→親）
+// ■ 2. 緊急セキュリティ警告（不正検知→親・子）
 export const sendSecurityAlert = functions.region('asia-northeast1').https.onCall(async (data: any, context: any) => {
     const uid = (context.auth && context.auth.uid) || data.uid;
     if (!uid) return { success: false, message: "ID missing" };
 
     const alertType = data.alertType || "unknown";
-   // ★スマホの時間は信用せず、サーバー側で強制的に現在時刻（日本時間）を取得する
-       const timestamp = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+    const timestamp = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 
-    // 親を探す
+    // 親と子のドキュメントを並行して取得
     const parentsRef = db.collection("users").doc(uid).collection("parents");
-    const parentsSnapshot = await parentsRef.get();
-
-    if (parentsSnapshot.empty) return { success: false, message: "No parents" };
-
-    // 通知内容を決める
-    let title = "⚠️ 緊急セキュリティ警告";
-    // ★修正: ここで timestamp を使うようにしました
-    let body = `StudyLockの状態が変わりました。\nタイプ: ${alertType}\n時刻: ${timestamp}`;
-
-    if (alertType === "accessibility_disabled") {
-        // ★修正: ここにも timestamp を追加
-        body = `⚠️ お子様が「アクセシビリティ権限」をOFFにしました！\nアプリの監視が無効化されています。\n時刻: ${timestamp}`;
-    }
+    const userDocRef = db.collection("users").doc(uid);
+    const [parentsSnapshot, userDoc] = await Promise.all([parentsRef.get(), userDocRef.get()]);
 
     const messages: admin.messaging.Message[] = [];
-    parentsSnapshot.forEach((doc) => {
-        const parentData = doc.data();
-        if (parentData.fcmToken) {
+
+    // --- 親への通知を作成 ---
+    if (!parentsSnapshot.empty) {
+        const title = "⚠️ セキュリティアラート";
+        let body = `お子様が「アクセシビリティ権限」をONにしました。\n時刻: ${timestamp}`;
+        if (alertType === "accessibility_disabled") {
+            body = `⚠️ お子様が「アクセシビリティ権限」をOFFにしました！\nアプリの監視が無効化されています。\n時刻: ${timestamp}`;
+        }
+
+        parentsSnapshot.forEach((doc) => {
+            const parentData = doc.data();
+            if (parentData.fcmToken) {
+                messages.push({
+                    token: parentData.fcmToken,
+                    notification: { title, body },
+                    android: { priority: "high" },
+                });
+            }
+        });
+    }
+
+    // --- 子供への通知を作成 (OFFの場合のみ) ---
+    if (alertType === "accessibility_disabled") {
+        const userData = userDoc.data();
+        if (userData && userData.fcmToken) {
             messages.push({
-                token: parentData.fcmToken,
+                token: userData.fcmToken,
                 notification: {
-                    title: title,
-                    body: body,
+                    title: "⚠️ 設定が必要です",
+                    body: "⚠️アプリを使用出来ないためアクセシビリティをONにして下さい。",
                 },
                 android: { priority: "high" },
             });
         }
-    });
+    }
 
+    // 作成したすべての通知を送信
     if (messages.length > 0) {
         await Promise.all(messages.map((msg) => admin.messaging().send(msg)));
     }
+
     return { success: true };
 });
 

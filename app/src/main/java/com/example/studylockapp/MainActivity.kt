@@ -1,8 +1,12 @@
 package com.example.studylockapp
 
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,8 +31,12 @@ import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
-import com.example.studylockapp.worker.DailyReportWorker // ▼ 追加
+import com.example.studylockapp.worker.DailyReportWorker
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -329,23 +337,33 @@ class MainActivity : AppCompatActivity() {
                         it.resolveInfo?.serviceInfo?.name == expected.className
             }
     }
-    // ▼▼▼ 1. 通知チャンネル作成（重複しないように1つだけ！） ▼▼▼
+
     private fun createNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val name = "学習レポート"
-            val descriptionText = "日々の学習状況やポイントをお知らせします"
-            val importance = android.app.NotificationManager.IMPORTANCE_DEFAULT
-            val channel = android.app.NotificationChannel("REPORT_CHANNEL", name, importance).apply {
-                description = descriptionText
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // チャンネル1: 学習レポート
+            val reportChannelName = "学習レポート"
+            val reportChannelDesc = "日々の学習状況やポイントをお知らせします"
+            val reportChannelImportance = NotificationManager.IMPORTANCE_DEFAULT
+            val reportChannel = NotificationChannel("REPORT_CHANNEL", reportChannelName, reportChannelImportance).apply {
+                description = reportChannelDesc
             }
-            val notificationManager = getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(reportChannel)
+
+            // チャンネル2: セキュリティアラート
+            val securityChannelName = "セキュリティアラート"
+            val securityChannelDesc = "アプリのセキュリティに関する重要な通知です。"
+            val securityChannelImportance = NotificationManager.IMPORTANCE_HIGH
+            val securityChannel = NotificationChannel("SECURITY_ALERTS", securityChannelName, securityChannelImportance).apply {
+                description = securityChannelDesc
+            }
+            notificationManager.createNotificationChannel(securityChannel)
         }
     }
 
-    // ▼▼▼ 2. 起動時の自動設定（重複しないように1つだけ！） ▼▼▼
     private fun ensureUserRole() {
-        val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+        val auth = FirebaseAuth.getInstance()
         val currentUser = auth.currentUser
 
         if (currentUser != null) {
@@ -362,9 +380,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ▼▼▼ 3. 設定の実行部分（重複しないように1つだけ！） ▼▼▼
-    private fun checkAndSetRole(user: com.google.firebase.auth.FirebaseUser) {
-        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+    private fun checkAndSetRole(user: FirebaseUser) {
+        val db = FirebaseFirestore.getInstance()
         val docRef = db.collection("users").document(user.uid)
         docRef.get().addOnSuccessListener { snapshot ->
             if (snapshot.exists() && snapshot.contains("role")) {
@@ -372,8 +389,7 @@ class MainActivity : AppCompatActivity() {
             }
             // roleがない時だけ child を書き込む
             val data = hashMapOf("role" to "child")
-            docRef.set(data, com.google.firebase.firestore.SetOptions.merge())
+            docRef.set(data, SetOptions.merge())
         }
     }
-// ↑ ここが MainActivity の最後の閉じカッコ "}" です
 }
