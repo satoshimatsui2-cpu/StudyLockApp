@@ -844,9 +844,39 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun renderLegacyQuestion(ctx: LegacyQuestionContext) {
+
         textQuestionTitle.text = ctx.title
         textQuestionBody.text = ctx.body
         textQuestionBody.visibility = if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
+
+// ---- ここが大事：毎回スタイルを「完全に」決め打ちする ----
+        val lp = textQuestionBody.layoutParams
+
+        if (currentMode == LearningModes.TEST_FILL_BLANK) {
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+            textQuestionBody.layoutParams = lp
+
+            textQuestionBody.gravity = android.view.Gravity.START
+            textQuestionBody.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
+            textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21f)
+
+            textQuestionBody.isSingleLine = false
+            textQuestionBody.setHorizontallyScrolling(false)
+
+        } else {
+            // ★ここを「センター寄せに見える」設定にする
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT   // ← WRAP_CONTENTやめる
+            textQuestionBody.layoutParams = lp
+
+            textQuestionBody.gravity = android.view.Gravity.CENTER
+            textQuestionBody.textAlignment = View.TEXT_ALIGNMENT_CENTER
+            textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+
+            textQuestionBody.isSingleLine = false
+            textQuestionBody.setHorizontallyScrolling(false)
+        }
+
+        textQuestionBody.requestLayout()
 
         choiceButtons.forEach {
             it.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f
@@ -858,12 +888,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 checkboxAutoPlayAudio?.visibility = View.GONE
                 buttonPlayAudio.visibility = View.GONE
             }
-
             LearningModes.MEANING, LearningModes.EN_EN_1, LearningModes.EN_EN_2 -> {
                 checkboxAutoPlayAudio?.visibility = View.VISIBLE
                 buttonPlayAudio.visibility = View.VISIBLE
             }
-
             else -> {
                 checkboxAutoPlayAudio?.visibility = View.GONE
                 buttonPlayAudio.visibility = View.VISIBLE
@@ -871,7 +899,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun onChoiceSelected(selectedIndex: Int) {
+
+
+        private fun onChoiceSelected(selectedIndex: Int) {
         if (currentMode == LearningModes.TEST_LISTEN_Q2) {
             viewModel.submitAnswer(selectedIndex)
             return
