@@ -663,30 +663,90 @@ class AdminSettingsActivity : AppCompatActivity() {
                     }
             }
     }
-
     private fun promptForChildNameAndRegister(childUid: String) {
         val inputLayout = TextInputLayout(this).apply {
             hint = "お子様の名前 (通知に表示されます)"
+            isErrorEnabled = true
         }
-        val editText = TextInputEditText(this).apply {
+
+        val editText = TextInputEditText(inputLayout.context).apply {
             inputType = InputType.TYPE_CLASS_TEXT
+            filters = arrayOf(android.text.InputFilter.LengthFilter(20))
+
+            // ★ 追加：見やすさ改善
+            setTextColor(dialogTextColor)
+            setHintTextColor(dialogHintColor)
         }
         inputLayout.addView(editText)
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle("管理対象の追加")
-            .setMessage("通知に表示されるお子様の名前を入力してください。")
+        // ★ 追加：メッセージも白に
+        val msg = SpannableString("通知に表示されるお子様の名前を入力してください。").apply {
+            setSpan(ForegroundColorSpan(dialogTextColor), 0, length, 0)
+        }
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            // ★ 変更：タイトルを白に（既存の coloredTitle を使う）
+            .setTitle(coloredTitle("管理対象の追加"))
+            // ★ 変更：メッセージを白に
+            .setMessage(msg)
             .setView(inputLayout)
-            .setPositiveButton("登録") { _, _ ->
-                val childName = editText.text.toString()
-                if (childName.isNotBlank()) {
-                    registerAsParent(childUid, childName)
-                } else {
-                    Toast.makeText(this, "名前を入力してください", Toast.LENGTH_SHORT).show()
-                }
-            }
+            .setPositiveButton("登録", null)
             .setNegativeButton("キャンセル", null)
-            .show()
+            .create()
+
+        dialog.setOnShowListener {
+            // ★ 念のため：メッセージ TextView が取れたら強制で白
+            dialog.findViewById<TextView>(android.R.id.message)?.setTextColor(dialogTextColor)
+
+            val okBtn = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+            okBtn.setOnClickListener {
+                val (normalized, err) = validateAndNormalizeChildName(
+                    editText.text?.toString().orEmpty()
+                )
+                if (err != null) {
+                    inputLayout.error = err
+                    return@setOnClickListener
+                }
+                inputLayout.error = null
+
+                registerAsParent(childUid, normalized!!)
+                dialog.dismiss()
+            }
+
+            editText.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    if (inputLayout.error != null) inputLayout.error = null
+                }
+
+                override fun afterTextChanged(s: android.text.Editable?) {}
+            })
+        }
+
+        dialog.show()
+
+    }
+
+    private fun validateAndNormalizeChildName(input: String): Pair<String?, String?> {
+        // return: (normalizedName, errorMessage)
+        val raw = input.trim().replace(Regex("""[ 　]+"""), " ") // 半角/全角スペースを連続→1個
+
+        if (raw.isEmpty()) return Pair(null, "名前を入力してください。")
+        if (raw.length !in 1..15) return Pair(null, "名前は1〜15文字で入力してください。")
+
+        val re = Regex("""^[0-9A-Za-zぁ-んァ-ン一-龥ー・ 　]+$""")
+        if (!re.matches(raw)) {
+            return Pair(null, "使える文字は「英数字/ひらがな/カタカナ/漢字/スペース/・/ー」のみです。")
+        }
+
+        return Pair(raw, null)
     }
 
     // ▼▼▼ 修正: 親子双方にデータを書き込む ▼▼▼
