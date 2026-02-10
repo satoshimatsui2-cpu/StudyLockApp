@@ -1292,13 +1292,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
         )
 
-        val msg = if (currentMode == LearningModes.TEST_FILL_BLANK) {
-            // 穴埋めモードなら、正解/不正解に関わらず解説を表示
-            // (prepareFillBlankQuestion で word.japanese に explanation を入れたため)
+        val msg: String = if (currentMode == LearningModes.TEST_FILL_BLANK) {
             val explanation = currentLegacyContext?.word?.japanese ?: ""
-            if (isCorrect) "正解！ $explanation" else "不正解… $explanation"
+
+            if (isCorrect) {
+                "正解！ +${addPoint}pt\n$explanation"
+            } else {
+                if (addPoint < 0) "不正解… ${addPoint}pt\n$explanation" else "不正解…\n$explanation"
+            }
         } else {
-            // 既存のロジック
             if (isCorrect) {
                 val praise =
                     listOf("すごい！", "その調子！", "天才！", "完璧！", "いいね！", "ナイス！").random()
@@ -1307,7 +1309,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (addPoint < 0) "不正解… ${addPoint}pt" else "不正解…"
             }
         }
-        // ▲ 変更ここまで
 
         currentSnackbar?.dismiss()
         currentSnackbar =
@@ -1315,8 +1316,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 setBackgroundTint(bgColor)
                 setTextColor(android.graphics.Color.WHITE)
                 duration =
-                    if (currentMode == LearningModes.TEST_FILL_BLANK) 5000 else settings.answerIntervalMs.toInt()
-                        .coerceIn(600, 4000)
+                    if (currentMode == LearningModes.TEST_FILL_BLANK) 5000
+                    else settings.answerIntervalMs.toInt().coerceIn(600, 4000)
                 show()
             }
     }

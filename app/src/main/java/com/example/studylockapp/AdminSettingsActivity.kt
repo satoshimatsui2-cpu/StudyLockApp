@@ -266,11 +266,10 @@ class AdminSettingsActivity : AppCompatActivity() {
             if (textView != null && seekBar != null) {
                 seekBar.max = 7
                 seekBar.progress = pointToProgress(settings.getBasePoint(mode))
-                val displayName = getModeDisplayName(mode)
-                textView.text = "$displayName: ${progressToPoint(seekBar.progress)} pt"
+                textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(seekBar.progress)} pt"
                 seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        textView.text = "$displayName: ${progressToPoint(progress)} pt"
+                        textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(progress)} pt"
                     }
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -348,22 +347,6 @@ class AdminSettingsActivity : AppCompatActivity() {
             settings.setUnlockMinutesPer10Pt(progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
             AdAudioManager.apply(settings)
             finish()
-        }
-    }
-
-    private fun getModeDisplayName(mode: String): String {
-        return when (mode) {
-            "meaning" -> getString(R.string.mode_meaning)
-            "listening" -> getString(R.string.mode_listening)
-            "listening_jp" -> getString(R.string.mode_listening_jp)
-            "japanese_to_english" -> getString(R.string.mode_japanese_to_english)
-            "english_english_1" -> getString(R.string.mode_english_english_1)
-            "english_english_2" -> getString(R.string.mode_english_english_2)
-            "test_fill_blank" -> "穴埋め"
-            "test_sort" -> "並び替え"
-            "test_listen_q1" -> "リスニング質問"
-            "test_listen_q2" -> "会話文リスニング"
-            else -> mode.replace("_", " ").capitalize()
         }
     }
 
