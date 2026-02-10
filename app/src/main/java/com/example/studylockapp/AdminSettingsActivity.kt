@@ -64,9 +64,9 @@ class AdminSettingsActivity : AppCompatActivity() {
         if (result.contents == null) {
             Toast.makeText(this, "スキャンをキャンセルしました", Toast.LENGTH_SHORT).show()
         } else {
-            // 読み取り成功！サーバーへの登録処理を開始
+            // ▼▼▼ 修正: 名前入力ダイアログを呼び出す ▼▼▼
             val childUid = result.contents
-            registerAsParent(childUid)
+            promptForChildNameAndRegister(childUid)
         }
     }
 
@@ -266,10 +266,10 @@ class AdminSettingsActivity : AppCompatActivity() {
             if (textView != null && seekBar != null) {
                 seekBar.max = 7
                 seekBar.progress = pointToProgress(settings.getBasePoint(mode))
-                textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(seekBar.progress)} pt"
+                textView.text = "${getModeDisplayName(mode)}: ${progressToPoint(seekBar.progress)} pt"
                 seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        textView.text = "${mode.replace("_", " ").capitalize()}: ${progressToPoint(progress)} pt"
+                        textView.text = "${getModeDisplayName(mode)}: ${progressToPoint(progress)} pt"
                     }
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -347,6 +347,22 @@ class AdminSettingsActivity : AppCompatActivity() {
             settings.setUnlockMinutesPer10Pt(progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
             AdAudioManager.apply(settings)
             finish()
+        }
+    }
+
+    private fun getModeDisplayName(mode: String): String {
+        return when (mode) {
+            "meaning" -> getString(R.string.mode_meaning)
+            "listening" -> getString(R.string.mode_listening)
+            "listening_jp" -> getString(R.string.mode_listening_jp)
+            "japanese_to_english" -> getString(R.string.mode_japanese_to_english)
+            "english_english_1" -> getString(R.string.mode_english_english_1)
+            "english_english_2" -> getString(R.string.mode_english_english_2)
+            "test_fill_blank" -> "穴埋め"
+            "test_sort" -> "並び替え"
+            "test_listen_q1" -> "リスニング質問"
+            "test_listen_q2" -> "会話文リスニング"
+            else -> mode.replace("_", " ").capitalize()
         }
     }
 
@@ -591,58 +607,86 @@ class AdminSettingsActivity : AppCompatActivity() {
 
     private fun showToast(msg: String) { Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
 
-    private fun registerAsParent(childUid: String) {
-        val user = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser ?: return
-        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+    private fun registerAsParent(childUid: String, childName: String) {
+        val user = FirebaseAuth.getInstance().currentUser ?: run {
+            Toast.makeText(this, "未ログインです", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val db = FirebaseFirestore.getInstance()
         val myUid = user.uid
 
-        // ▼▼▼ 追加: まず通知用のトークンを取得する ▼▼▼
-        com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+        FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
-                    android.widget.Toast.makeText(this, "トークン取得失敗", android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "トークン取得失敗", Toast.LENGTH_SHORT).show()
                     return@addOnCompleteListener
                 }
 
-                // トークンGET！
                 val token = task.result
 
-                // 1. 親（自分）の情報を、子供の「parents」フォルダに登録
+                // 1) 子の parents サブコレ：親のトークン + 子の表示名(親が付けた呼び名) を保存
                 val parentData = hashMapOf(
                     "uid" to myUid,
                     "role" to "parent",
-                    "fcmToken" to token, // ★これが必要です！通知の宛先
+                    "fcmToken" to token,
+                    "childDisplayName" to childName, // ★ここに保存する
                     "timestamp" to com.google.firebase.Timestamp.now()
                 )
                 val task1 = db.collection("users").document(childUid)
                     .collection("parents").document(myUid)
                     .set(parentData)
 
-                // 2. 子供の情報を、親（自分）の「children」フォルダに登録
+                // 2) 親の children サブコレ：子のUID + 表示名（親側UI用）
                 val childData = hashMapOf(
                     "uid" to childUid,
                     "role" to "child",
+                    "displayName" to childName, // ★親側UI用にここへ
                     "timestamp" to com.google.firebase.Timestamp.now()
                 )
                 val task2 = db.collection("users").document(myUid)
                     .collection("children").document(childUid)
                     .set(childData)
 
-                // 3. 自分自身を「親」に昇格させる
+                // 3) 親自身の role を parent に（displayName は触らない）
                 val meUpdate = hashMapOf("role" to "parent")
                 val task3 = db.collection("users").document(myUid)
                     .set(meUpdate, com.google.firebase.firestore.SetOptions.merge())
 
-                // 3つ全ての処理が終わったら完了
                 com.google.android.gms.tasks.Tasks.whenAll(task1, task2, task3)
                     .addOnSuccessListener {
-                        android.widget.Toast.makeText(this, "ペアリング完了！\n通知設定も更新しました", android.widget.Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "ペアリング完了！\n${childName}さんを登録しました", Toast.LENGTH_LONG).show()
                         updateConnectionStatus()
                     }
                     .addOnFailureListener { e ->
-                        android.widget.Toast.makeText(this, "登録失敗: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "登録失敗: ${e.message}", Toast.LENGTH_LONG).show()
                     }
             }
+    }
+
+    private fun promptForChildNameAndRegister(childUid: String) {
+        val inputLayout = TextInputLayout(this).apply {
+            hint = "お子様の名前 (通知に表示されます)"
+        }
+        val editText = TextInputEditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+        }
+        inputLayout.addView(editText)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("管理対象の追加")
+            .setMessage("通知に表示されるお子様の名前を入力してください。")
+            .setView(inputLayout)
+            .setPositiveButton("登録") { _, _ ->
+                val childName = editText.text.toString()
+                if (childName.isNotBlank()) {
+                    registerAsParent(childUid, childName)
+                } else {
+                    Toast.makeText(this, "名前を入力してください", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
     }
 
     // ▼▼▼ 修正: 親子双方にデータを書き込む ▼▼▼

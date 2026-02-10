@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -20,6 +21,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AdminAuthManager
@@ -56,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     private var selectedGradeKey: String? = null
 
     private var accessibilityDialog: AlertDialog? = null
+    private var notificationDialog: AlertDialog? = null
 
     data class GradeSpinnerItem(
         val gradeKey: String,   // 例: "5", "2.5"
@@ -172,8 +175,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // アクセシビリティOFFでロックが有効/対象がある場合は強制誘導
+        // ▼▼▼ 順序変更 ▼▼▼
+        // 1. 通知OFFでロックが有効/対象がある場合は強制誘導
+        maybeShowNotificationPermissionDialog()
+
+        // 2. アクセシビリティOFFでロックが有効/対象がある場合は強制誘導
         maybeShowAccessibilityDialog()
+        // ▲▲▲ 順序変更ここまで ▲▲▲
 
         updatePointView()
         updateGradeDropdownLabels()
@@ -292,7 +300,8 @@ class MainActivity : AppCompatActivity() {
     // --- アクセシビリティ誘導 ---
     private fun maybeShowAccessibilityDialog() {
         val settings = AppSettings(this)
-        if (accessibilityDialog?.isShowing == true) return
+        // ▼▼▼ 修正: 通知ダイアログが表示中なら何もしない ▼▼▼
+        if (accessibilityDialog?.isShowing == true || notificationDialog?.isShowing == true) return
 
         val svcEnabled = isAppLockServiceEnabled()
         val isRequired = AdminAuthManager.isAppLockRequired(this)
@@ -336,6 +345,41 @@ class MainActivity : AppCompatActivity() {
                 it.resolveInfo?.serviceInfo?.packageName == packageName &&
                         it.resolveInfo?.serviceInfo?.name == expected.className
             }
+    }
+
+    private fun areNotificationsEnabled(): Boolean {
+        return NotificationManagerCompat.from(this).areNotificationsEnabled()
+    }
+
+    private fun maybeShowNotificationPermissionDialog() {
+        val settings = AppSettings(this)
+        if (notificationDialog?.isShowing == true || accessibilityDialog?.isShowing == true) return
+
+        val notificationsEnabled = areNotificationsEnabled()
+        val isRequired = AdminAuthManager.isAppLockRequired(this)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getInstance(this@MainActivity)
+            val lockedCount = db.lockedAppDao().countLocked()
+            val shouldForce = settings.isAppLockEnabled() || lockedCount > 0
+            if (!notificationsEnabled && shouldForce) {
+                withContext(Dispatchers.Main) {
+                    val msg = "セキュリティアラートや日次レポートを保護者に送信するために、通知をONにしてください。"
+                    val builder = AlertDialog.Builder(this@MainActivity)
+                        .setTitle("通知の許可が必要です")
+                        .setMessage(msg)
+                        .setCancelable(false)
+                        .setPositiveButton("設定を開く") { _, _ ->
+                            val intent = Intent().apply {
+                                action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            }
+                            startActivity(intent)
+                        }
+                    notificationDialog = builder.show()
+                }
+            }
+        }
     }
 
     private fun createNotificationChannel() {
