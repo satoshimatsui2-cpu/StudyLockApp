@@ -12,7 +12,6 @@ object LearningModes {
     const val JA_TO_EN = "japanese_to_english"
     const val EN_EN_1 = "english_english_1"
     const val EN_EN_2 = "english_english_2"
-
     const val TEST_FILL_BLANK = "test_fill_blank"
     const val TEST_SORT = "test_sort"
     const val TEST_LISTEN_Q1 = "test_listen_q1"

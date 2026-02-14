@@ -122,6 +122,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var checkboxAutoPlayAudio: CheckBox? = null
     private var currentSnackbar: Snackbar? = null
     private var sortJapaneseBaseTextSizePx: Float? = null
+    private var sortCorrectBaseTextSizePx: Float? = null
 
 
     private val greenTint by lazy {
@@ -461,8 +462,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     if (isCorrect) {
                         val userGradeStr = settings.currentLearningGrade
                         val gradeMap = mapOf(
-                            "1級" to 1, "準1級" to 2, "2級" to 3, "準2級" to 4, "3級" to 5, "4級" to 6, "5級" to 7,
-                            "1" to 1, "1.5" to 2, "2" to 3, "2.5" to 4, "3" to 5, "4" to 6, "5" to 7
+                            "1級" to 1,
+                            "準1級" to 2,
+                            "2級" to 3,
+                            "準2級" to 4,
+                            "3級" to 5,
+                            "4級" to 6,
+                            "5級" to 7,
+                            "1" to 1,
+                            "1.5" to 2,
+                            "2" to 3,
+                            "2.5" to 4,
+                            "3" to 5,
+                            "4" to 6,
+                            "5" to 7
                         )
                         val userGrade = gradeMap[userGradeStr] ?: 0
                         val questionGrade = gradeMap[q.grade.trim().replace("英検", "")] ?: 0
@@ -688,7 +701,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val qgNorm = normalizeGrade(qgRaw).trim()
 
                     // raw/正規化後の表記を相互に比較し、マッチの精度を上げる
-                    val isMatch = qgRaw == gfRaw || qgRaw == gfNorm || qgNorm == gfRaw || qgNorm == gfNorm
+                    val isMatch =
+                        qgRaw == gfRaw || qgRaw == gfNorm || qgNorm == gfRaw || qgNorm == gfNorm
                     isMatch || (q.id in dueIdsInOtherGrades)
                 }
             }
@@ -788,11 +802,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val nextDueId = dueIds.find { it in idsForGrade }
             if (nextDueId != null) {
                 val question = questionsForGrade.find { it.id == nextDueId }
-                val ctx = question?.let { QuestionLogic.prepareFillBlankQuestion(it) } ?: return null
+                val ctx =
+                    question?.let { QuestionLogic.prepareFillBlankQuestion(it) } ?: return null
                 return shrinkOptionsTo4(ctx) // ★追加：4択化
             }
 
-            val progressedIds = progressDao.getAllProgressForMode(currentMode).map { it.wordId }.toSet()
+            val progressedIds =
+                progressDao.getAllProgressForMode(currentMode).map { it.wordId }.toSet()
             val newQuestions = questionsForGrade.filter { it.id !in progressedIds }
             if (newQuestions.isNotEmpty()) {
                 val question = newQuestions.random()
@@ -822,7 +838,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             else -> checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE
         }
 
-        val audioText = if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
+        val audioText =
+            if (currentMode == LearningModes.EN_EN_2) nextWord.description ?: "" else nextWord.word
 
         return LegacyQuestionContext(
             word = nextWord,
@@ -910,10 +927,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 checkboxAutoPlayAudio?.visibility = View.GONE
                 buttonPlayAudio.visibility = View.GONE
             }
+
             LearningModes.MEANING, LearningModes.EN_EN_1, LearningModes.EN_EN_2 -> {
                 checkboxAutoPlayAudio?.visibility = View.VISIBLE
                 buttonPlayAudio.visibility = View.VISIBLE
             }
+
             else -> {
                 checkboxAutoPlayAudio?.visibility = View.GONE
                 buttonPlayAudio.visibility = View.VISIBLE
@@ -922,8 +941,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
 
-
-        private fun onChoiceSelected(selectedIndex: Int) {
+    private fun onChoiceSelected(selectedIndex: Int) {
         if (currentMode == LearningModes.TEST_LISTEN_Q2) {
             viewModel.submitAnswer(selectedIndex)
             return
@@ -1579,7 +1597,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             // 2. 絞り込んだリストからIDセットを生成する
-            val listeningQuestionIdSet = filteredListeningQuestions.map { listeningProgressId(it) }.toSet()
+            val listeningQuestionIdSet =
+                filteredListeningQuestions.map { listeningProgressId(it) }.toSet()
 
 
             currentStats = mapOf(
@@ -1609,17 +1628,23 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 ),
                 // ▼▼▼ computeModeStatsに「絞り込んだ後」のリストを渡すように修正 ▼▼▼
                 LearningModes.TEST_LISTEN_Q2 to LearningStatsLogic.computeModeStats(
-                    db, listeningQuestionIdSet, LearningModes.TEST_LISTEN_Q2, nowSec, filteredListeningQuestions
+                    db,
+                    listeningQuestionIdSet,
+                    LearningModes.TEST_LISTEN_Q2,
+                    nowSec,
+                    filteredListeningQuestions
                 )
             )
 
             withContext(Dispatchers.Main) { updateModeUi() }
         }
     }
+
     private fun listeningProgressId(q: ListeningQuestion): Int {
         // IDが衝突しないように、モード名と問題IDを組み合わせてハッシュ化する
         return kotlin.math.abs("listening_q2:${q.id}".hashCode())
     }
+
     private fun updateModeUi() {
         val modeName = when (currentMode) {
             LearningModes.MEANING -> getString(R.string.mode_meaning)
@@ -1837,7 +1862,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun renderSortUi(state: com.example.studylockapp.learning.SortQuestionUiState) {
         val root = sortRoot() ?: return
-
         val choicesContainer =
             root.findViewById<com.google.android.flexbox.FlexboxLayout>(R.id.flexbox_choices) ?: return
         val answersContainer =
@@ -1845,18 +1869,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val checkButton =
             root.findViewById<com.google.android.material.button.MaterialButton>(R.id.button_sort_check) ?: return
         val japaneseText = root.findViewById<TextView>(R.id.japanese_text) ?: return
-
-        // 問題が無いなら非表示
+        val correctAnswerText = root.findViewById<TextView>(R.id.correct_answer_text) ?: return
         val q = state.question ?: run {
             root.visibility = View.GONE
             return
         }
         root.visibility = View.VISIBLE
-
         fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
         // ---------------------------
-        // 問題文（日本語）: 紺 + 1.5倍（増殖しない）
+        // 問題文（日本語）: 紺 + 1.2倍（増殖しない）
         // ---------------------------
         japaneseText.text = q.japaneseText
 
@@ -1865,22 +1887,40 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         japaneseText.setTextSize(
             TypedValue.COMPLEX_UNIT_PX,
-            (sortJapaneseBaseTextSizePx ?: japaneseText.textSize) * 1.2f
+            (sortJapaneseBaseTextSizePx ?: japaneseText.textSize) * 1.1f
         )
         japaneseText.setTextColor(Color.parseColor("#0D1B3D"))
 
         // ---------------------------
-        // 判定ボタン
+        // ▼ Gemini風：状態に応じてUIを更新（※既存stateから導出）
         // ---------------------------
         val isComplete = state.answerWords.size == q.words.size
         val isJudged = (state.isCorrect != null)
 
-        checkButton.isEnabled = if (isJudged) true else (isComplete && !state.hasScored)
+        if (!isJudged) {
+            // 未判定
+            checkButton.text = "判定"
+            // 既存の「全部選んだら判定OK」ロジックを維持
+            checkButton.isEnabled = isComplete && !state.hasScored
+            correctAnswerText.visibility = View.GONE
+        } else {
+            // 判定後（正解/不正解）
+            checkButton.text = "次へ"
+            checkButton.isEnabled = true
 
-        checkButton.text = when {
-            isJudged && state.isCorrect == true -> "次へ（正解！）"
-            isJudged && state.isCorrect == false -> "次へ（不正解…）"
-            else -> "判定"
+            correctAnswerText.text = q.englishSentence
+
+            // 正解英文：少しだけ大きく（増殖しない）
+            if (sortCorrectBaseTextSizePx == null) {
+                sortCorrectBaseTextSizePx = correctAnswerText.textSize
+            }
+            correctAnswerText.setTextSize(
+                TypedValue.COMPLEX_UNIT_PX,
+                (sortCorrectBaseTextSizePx ?: correctAnswerText.textSize) * 1.10f
+            )
+            correctAnswerText.setTextColor(Color.parseColor("#0D1B3D"))
+
+            correctAnswerText.visibility = View.VISIBLE
         }
 
         checkButton.setOnClickListener {
@@ -1896,22 +1936,22 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         // ---------------------------
-        // コンテナ見た目（ここが重要）
+        // コンテナ見た目（ここが重要：既存維持）
         // ---------------------------
 
         // choices（下）端の余白
         val choicesEdge = dp(16)
 
         // answers（上）端の余白：左右は半分（16→8）
-        val answersEdgeH = dp(8)
+        val answersEdgeH = dp(4)
 
         // answers（上）上下は 16dp をベースに「1.25倍」＋ 下だけ追加（2行でも潰れない）
-        val answersBaseV = dp(16)
+        val answersBaseV = dp(4)
         val answersEdgeV = (answersBaseV * 1.25f).toInt() // 1.25倍
-        val answersExtraBottom = dp(12)                   // ここが“2行で下が潰れる”対策
+        val answersExtraBottom = dp(12)                   // “2行で下が潰れる”対策
 
         // チップ間隔（今の半分）
-        val gap = dp(4)
+        val gap = dp(3)
 
         choicesContainer.setPadding(choicesEdge, choicesEdge, choicesEdge, choicesEdge)
         answersContainer.setPadding(answersEdgeH, answersEdgeV, answersEdgeH, answersEdgeV + answersExtraBottom)
@@ -1920,45 +1960,37 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         (root as? ViewGroup)?.clipChildren = false
         (root as? ViewGroup)?.clipToPadding = false
 
-
         choicesContainer.clipToPadding = false
         answersContainer.clipToPadding = false
 
-        // minHeightは「最低保証」なので保険として設定
-        // ※見た目を変える主役は padding（上でやってる）
-        //answersContainer.minimumHeight = dp(60)
-
         // ---------------------------
-        // チップ描画
+        // チップ描画（変更なし）
         // ---------------------------
         choicesContainer.removeAllViews()
         answersContainer.removeAllViews()
 
         // Chip: テキスト少し小さく、padding 80%
-        val textScale = 1.35f // “少しだけ小さく”
-        val padScale = 0.8f   // padding 80%
+        val textScale = 1.25f
+        val padScale = 0.7f
 
         fun makeChip(word: String, onClick: () -> Unit): com.google.android.material.chip.Chip {
             return com.google.android.material.chip.Chip(this).apply {
                 text = word
                 isClickable = true
                 isCheckable = false
-
+                setEnsureMinTouchTargetSize(false)
                 setTypeface(Typeface.DEFAULT, Typeface.NORMAL)
                 setTextColor(Color.parseColor("#0D1B3D"))
 
-                // 文字サイズ
                 val currentPx = textSize
                 setTextSize(TypedValue.COMPLEX_UNIT_PX, currentPx * textScale)
 
-                // カード感
                 chipCornerRadius = dp(14).toFloat()
                 chipStrokeWidth = dp(1).toFloat()
                 chipStrokeColor = ColorStateList.valueOf(Color.parseColor("#D6DAE3"))
                 chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#F7F8FB"))
                 rippleColor = ColorStateList.valueOf(Color.parseColor("#1A000000"))
 
-                // padding 80%
                 chipMinHeight = (dp(56) * padScale).toFloat().coerceAtLeast(dp(44).toFloat())
                 chipStartPadding = (dp(10) * padScale).toFloat()
                 chipEndPadding = (dp(10) * padScale).toFloat()

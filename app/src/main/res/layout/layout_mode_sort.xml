@@ -15,7 +15,9 @@
         android:gravity="center"
         android:text="正しい順番に並べて下さい。"
         android:textAppearance="?attr/textAppearanceListItem"
-        android:textColor="@color/sort_question_navy"
+        android:textSize="13sp"
+        android:textColor="#5A637A"
+        android:alpha="0.90"
         tools:ignore="HardcodedText" />
 
     <!-- Japanese Translation -->
@@ -28,6 +30,20 @@
         android:textAppearance="?attr/textAppearanceListItem"
         android:textColor="@color/sort_question_navy"
         tools:text="これはペンです。" />
+    <TextView
+        android:id="@+id/correct_answer_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="#E8F5E9"
+        android:textColor="#2E7D32"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="This is the correct answer."
+        tools:visibility="visible" />
 
     <!-- Answer Area (固定高さ + 中だけスクロール) -->
     <FrameLayout
