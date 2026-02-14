@@ -51,7 +51,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // region ViewModel & Data
     private val viewModel: LearningViewModel by viewModels()
     private var currentMode = LearningModes.MEANING
-    private var gradeFilter: String = "All"
+    private var gradeFilter: String = ""
     private var includeOtherGradesReview: Boolean = false
     private var loadingJob: Job? = null
     private var allWords: List<WordEntity> = emptyList()
@@ -151,7 +151,24 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupWindowInsets()
 
         settings = AppSettings(this)
-        gradeFilter = intent.getStringExtra("gradeFilter") ?: "All"
+
+        // ★ここから追加（gradeFilterガード）
+        val grade = intent.getStringExtra("gradeFilter")
+        val allowed = setOf("5","4","3","2.5","2","1.5","1")
+
+        if (grade.isNullOrBlank() || grade !in allowed) {
+            android.util.Log.w("LearningActivity", "invalid gradeFilter=$grade, intent=$intent")
+
+            // ★「その場合だけ、強制的にMainActivityへ」
+            startActivity(Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            })
+            finish()
+            return
+        }
+
+        gradeFilter = grade
+        // ★ここまで追加
 
         initViews()
         initMediaServices()
@@ -165,7 +182,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 showFirstSortQuestion()
             }
         }
-
     }
 
     override fun onResume() {
@@ -185,7 +201,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts?.stop()
         tts?.shutdown()
         conversationTts?.shutdown()
-        soundEffectManager.release()
+
+        // ★ここがポイント：初期化されてる時だけrelease
+        if (::soundEffectManager.isInitialized) {
+            soundEffectManager.release()
+        }
+
         currentSnackbar?.dismiss()
         super.onDestroy()
     }
