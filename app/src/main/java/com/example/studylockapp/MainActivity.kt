@@ -41,6 +41,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import kotlin.math.abs
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 
     private var accessibilityDialog: AlertDialog? = null
     private var notificationDialog: AlertDialog? = null
+    private var permissionDialogsJob: Job? = null
 
     data class GradeSpinnerItem(
         val gradeKey: String,   // 例: "5", "2.5"
@@ -175,13 +177,16 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // ▼▼▼ 順序変更 ▼▼▼
-        // 1. 通知OFFでロックが有効/対象がある場合は強制誘導
-        maybeShowNotificationPermissionDialog()
+        // 連打 / 戻ってきた時の多重起動防止
+        permissionDialogsJob?.cancel()
+        permissionDialogsJob = lifecycleScope.launch {
+            // 1) 通知チェック → 表示したならここで終了（アクセは出さない）
+            val shownNotification = maybeShowNotificationPermissionDialogSequential()
+            if (shownNotification) return@launch
 
-        // 2. アクセシビリティOFFでロックが有効/対象がある場合は強制誘導
-        maybeShowAccessibilityDialog()
-        // ▲▲▲ 順序変更ここまで ▲▲▲
+            // 2) 次にアクセシビリティチェック
+            maybeShowAccessibilityDialogSequential()
+        }
 
         updatePointView()
         updateGradeDropdownLabels()
@@ -297,44 +302,51 @@ class MainActivity : AppCompatActivity() {
         textGradeStatsTop.text = gradeStatsMap[grade] ?: "復習 0 • 新規 0/0"
     }
 
-    // --- アクセシビリティ誘導 ---
-    private fun maybeShowAccessibilityDialog() {
-        val settings = AppSettings(this)
-        // ▼▼▼ 修正: 通知ダイアログが表示中なら何もしない ▼▼▼
-        if (accessibilityDialog?.isShowing == true || notificationDialog?.isShowing == true) return
+    private suspend fun maybeShowAccessibilityDialogSequential(): Boolean {
+        // 既に何か出てたら何もしない（＝他を優先）
+        if (accessibilityDialog?.isShowing == true || notificationDialog?.isShowing == true) return true
 
+        val settings = AppSettings(this)
         val svcEnabled = isAppLockServiceEnabled()
         val isRequired = AdminAuthManager.isAppLockRequired(this)
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        // DBチェックはIOで待つ（launchしない）
+        val shouldForce = withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@MainActivity)
             val lockedCount = db.lockedAppDao().countLocked()
-            val shouldForce = settings.isAppLockEnabled() || lockedCount > 0
-            if (!svcEnabled && shouldForce) {
-                withContext(Dispatchers.Main) {
-                    val msg = getString(R.string.app_lock_accessibility_message)
-                    val builder = AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.app_lock_accessibility_title)
-                        .setMessage(msg)
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.app_lock_accessibility_go_settings) { _, _ ->
-                            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            })
-                        }
-                    // 必須ONなら全解除ボタンを出さない
-                    if (!isRequired) {
-                        builder.setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
-                            lifecycleScope.launch(Dispatchers.IO) {
-                                settings.setAppLockEnabled(false)
-                                db.lockedAppDao().disableAllLocks()
-                            }
+            settings.isAppLockEnabled() || lockedCount > 0
+        }
+
+        if (!svcEnabled && shouldForce) {
+            withContext(Dispatchers.Main) {
+                val msg = getString(R.string.app_lock_accessibility_message)
+                val builder = AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.app_lock_accessibility_title)
+                    .setMessage(msg)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.app_lock_accessibility_go_settings) { _, _ ->
+                        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        })
+                    }
+
+                // 必須ONなら全解除ボタンを出さない
+                if (!isRequired) {
+                    builder.setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val db = AppDatabase.getInstance(this@MainActivity)
+                            settings.setAppLockEnabled(false)
+                            db.lockedAppDao().disableAllLocks()
                         }
                     }
-                    accessibilityDialog = builder.show()
                 }
+
+                // show() は1回だけ
+                accessibilityDialog = builder.show()
             }
+            return true
         }
+        return false
     }
 
     private fun isAppLockServiceEnabled(): Boolean {
@@ -351,35 +363,39 @@ class MainActivity : AppCompatActivity() {
         return NotificationManagerCompat.from(this).areNotificationsEnabled()
     }
 
-    private fun maybeShowNotificationPermissionDialog() {
+    private suspend fun maybeShowNotificationPermissionDialogSequential(): Boolean {
+        if (notificationDialog?.isShowing == true || accessibilityDialog?.isShowing == true) return true
+
         val settings = AppSettings(this)
-        if (notificationDialog?.isShowing == true || accessibilityDialog?.isShowing == true) return
-
         val notificationsEnabled = areNotificationsEnabled()
-        val isRequired = AdminAuthManager.isAppLockRequired(this)
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        val shouldForce = withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@MainActivity)
             val lockedCount = db.lockedAppDao().countLocked()
-            val shouldForce = settings.isAppLockEnabled() || lockedCount > 0
-            if (!notificationsEnabled && shouldForce) {
-                withContext(Dispatchers.Main) {
-                    val msg = "セキュリティアラートや日次レポートを保護者に送信するために、通知をONにしてください。"
-                    val builder = AlertDialog.Builder(this@MainActivity)
-                        .setTitle("通知の許可が必要です")
-                        .setMessage(msg)
-                        .setCancelable(false)
-                        .setPositiveButton("設定を開く") { _, _ ->
-                            val intent = Intent().apply {
-                                action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                            }
-                            startActivity(intent)
-                        }
-                    notificationDialog = builder.show()
-                }
-            }
+            settings.isAppLockEnabled() || lockedCount > 0
         }
+
+        if (!notificationsEnabled && shouldForce) {
+            withContext(Dispatchers.Main) {
+                val msg = "本端末で学習レポート等を受信するため通知をONにしてください。保護者端末の場合、ONにしないと子端末からのセキュリティアラート、学習記録は届きません。"
+                val builder = AlertDialog.Builder(this@MainActivity)
+                    .setTitle("通知の許可が必要です")
+                    .setMessage(msg)
+                    .setCancelable(false)
+                    .setPositiveButton("設定を開く") { _, _ ->
+                        val intent = Intent().apply {
+                            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                        }
+                        startActivity(intent)
+                    }
+
+                // show() は1回だけ
+                notificationDialog = builder.show()
+            }
+            return true
+        }
+        return false
     }
 
     private fun createNotificationChannel() {
