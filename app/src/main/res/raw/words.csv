@@ -97,8 +97,8 @@ no,grade,word,japanese,description,small_topic,medium_category
 96,5,Mike,マイク(名前),Person name.,self_introduction,people_character
 97,5,mom,お母さん,Mother casual word.,family_relations,people_relationships
 98,5,mother's,母の,Possessive form of mother.,language_learning,education_academics
-99,5,Mr,～さん（男性を呼ぶとき）,Title for a man.,roles_and_titles,people_character
-100,5,Ms,～さん（女性を呼ぶとき）,Title for a woman.,roles_and_titles,people_character
+99,5,Mr.,～さん（男性を呼ぶとき）,Title for a man.,roles_and_titles,people_character
+100,5,Ms.,～さん（女性を呼ぶとき）,Title for a woman.,roles_and_titles,people_character
 101,5,musician,音楽家,Person who plays music.,musical_instruments,arts_music
 102,5,Nancy,ナンシー(名前),Person name.,self_introduction,people_character
 103,5,next,次の,Following one.,past_present_future,abstract_time_and_space
@@ -166,7 +166,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 165,5,washing,洗っている,Ing form of wash.,laundry_and_washing,home_housework
 166,5,weekends,週末,Saturdays and Sundays.,week,abstract_time_and_space
 167,5,what's,何が,Short form of what is.,language_learning,education_academics
-168,5,windows,窓,Glass opening in a wall.,walls_and_windows,home_infrastructure
+168,5,windows,窓(複数),Glass opening in a wall.,walls_and_windows,home_infrastructure
 169,5,word,単語,Word in a language.,language_learning,education_academics
 170,5,writes,書く 三単現,Third person singular of write.,writing,education_academics
 171,5,writing,書いている,Ing form of write.,writing,education_academics
