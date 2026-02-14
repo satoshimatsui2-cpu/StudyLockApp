@@ -10,32 +10,119 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- 上部余白（約32dp ≒ 画面高の5%目安） -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@android:color/transparent" />
-
-        <!-- タイトル -->
-        <TextView
+        <!-- タイトル（左にサウンドアイコン追加） -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/sound_settings_title"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface"
-            android:paddingBottom="6dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="12dp">
 
-        <!-- TTS 音量 -->
-        <TextView
-            android:id="@+id/text_tts_volume"
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="10dp"
+                android:src="@drawable/ic_volume_up_24"
+                android:contentDescription="@string/sound_settings_title" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sound_settings_title"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+        </LinearLayout>
+
+        <!-- TTS Speed -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:textColor="?attr/colorOnSurface"
-            tools:text="発音音量: 100%" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="14dp">
+
+            <TextView
+                android:id="@+id/text_tts_speed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="発音スピード: 1.0" />
+
+            <ImageButton
+                android:id="@+id/reset_tts_speed"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_refresh_24"
+                android:contentDescription="発音スピードをリセット"
+                style="?attr/materialIconButtonStyle" />
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/seek_tts_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="20" />
+
+        <!-- TTS Pitch -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="14dp">
+
+            <TextView
+                android:id="@+id/text_tts_pitch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="声の高さ: 1.0" />
+
+            <ImageButton
+                android:id="@+id/reset_tts_pitch"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_refresh_24"
+                android:contentDescription="声の高さをリセット"
+                style="?attr/materialIconButtonStyle" />
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/seek_tts_pitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="20" />
+
+        <!-- TTS Volume -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="14dp">
+
+            <TextView
+                android:id="@+id/text_tts_volume"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="発音音量: 100%" />
+
+            <ImageButton
+                android:id="@+id/reset_tts_volume"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_refresh_24"
+                android:contentDescription="発音音量をリセット"
+                style="?attr/materialIconButtonStyle" />
+        </LinearLayout>
 
         <SeekBar
             android:id="@+id/seek_tts_volume"
@@ -43,44 +130,30 @@
             android:layout_height="wrap_content"
             android:max="20" />
 
-        <!-- TTS 再生スピード -->
-        <TextView
-            android:id="@+id/text_tts_speed"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:textColor="?attr/colorOnSurface"
-            tools:text="発音スピード: 1.0x" />
-
-        <SeekBar
-            android:id="@+id/seek_tts_speed"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="20" /> <!-- 0..20 => 0.5x..1.5x -->
-
-        <!-- TTS ピッチ -->
-        <TextView
-            android:id="@+id/text_tts_pitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:textColor="?attr/colorOnSurface"
-            tools:text="発音ピッチ（声の高さ）: 1.0" />
-
-        <SeekBar
-            android:id="@+id/seek_tts_pitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="20" /> <!-- 0..20 => 0.5..1.5 -->
-
         <!-- 正解SE -->
-        <TextView
-            android:id="@+id/text_se_correct"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:textColor="?attr/colorOnSurface"
-            tools:text="正解サウンド音量: 90%" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="14dp">
+
+            <TextView
+                android:id="@+id/text_se_correct"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="正解SE: 100%" />
+
+            <ImageButton
+                android:id="@+id/reset_se_correct"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_refresh_24"
+                android:contentDescription="正解SEをリセット"
+                style="?attr/materialIconButtonStyle" />
+        </LinearLayout>
 
         <SeekBar
             android:id="@+id/seek_se_correct"
@@ -89,13 +162,29 @@
             android:max="20" />
 
         <!-- 不正解SE -->
-        <TextView
-            android:id="@+id/text_se_wrong"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:textColor="?attr/colorOnSurface"
-            tools:text="不正解サウンド音量: 90%" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="14dp">
+
+            <TextView
+                android:id="@+id/text_se_wrong"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="不正解SE: 100%" />
+
+            <ImageButton
+                android:id="@+id/reset_se_wrong"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_refresh_24"
+                android:contentDescription="不正解SEをリセット"
+                style="?attr/materialIconButtonStyle" />
+        </LinearLayout>
 
         <SeekBar
             android:id="@+id/seek_se_wrong"
@@ -103,14 +192,30 @@
             android:layout_height="wrap_content"
             android:max="20" />
 
-        <!-- 広告 音量 -->
-        <TextView
-            android:id="@+id/text_ad_volume"
+        <!-- 広告音量 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="14dp"
-            android:textColor="?attr/colorOnSurface"
-            tools:text="広告音量: 20%" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="14dp">
+
+            <TextView
+                android:id="@+id/text_ad_volume"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="広告音量: 100%" />
+
+            <ImageButton
+                android:id="@+id/reset_ad_volume"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_refresh_24"
+                android:contentDescription="広告音量をリセット"
+                style="?attr/materialIconButtonStyle" />
+        </LinearLayout>
 
         <SeekBar
             android:id="@+id/seek_ad_volume"
@@ -118,22 +223,20 @@
             android:layout_height="wrap_content"
             android:max="20" />
 
+        <!-- 既存ボタン（IDそのまま） -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_toggle_ad_mute"
-            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text=""
-            android:textAllCaps="false"
-            tools:text="@string/sound_settings_ad_mute_off" />
+            android:layout_marginTop="18dp"
+            android:text="@string/sound_settings_ad_mute_off" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_sound"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/sound_settings_save"
-            android:textAllCaps="false" />
+            android:layout_marginTop="10dp"
+            android:text="@string/sound_settings_save"/>
+
     </LinearLayout>
 </ScrollView>

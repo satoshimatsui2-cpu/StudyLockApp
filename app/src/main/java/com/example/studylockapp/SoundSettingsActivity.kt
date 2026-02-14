@@ -2,6 +2,7 @@ package com.example.studylockapp
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
@@ -27,8 +28,26 @@ class SoundSettingsActivity : AppCompatActivity() {
     private lateinit var seekTtsVolume: SeekBar
     private lateinit var textAdVolume: TextView
     private lateinit var seekAdVolume: SeekBar
+
+    // ★追加：リセットボタン
+    private lateinit var resetTtsSpeed: ImageButton
+    private lateinit var resetTtsPitch: ImageButton
+    private lateinit var resetTtsVolume: ImageButton
+    private lateinit var resetSeCorrect: ImageButton
+    private lateinit var resetSeWrong: ImageButton
+    private lateinit var resetAdVolume: ImageButton
+
     private lateinit var btnToggleAdMute: MaterialButton
     private lateinit var btnSave: MaterialButton
+
+    // ★デフォルト（必要ならここだけ好みに合わせて調整）
+    private val DEFAULT_SPEED = 1.0f // 0.5〜1.5の中間
+    private val DEFAULT_PITCH = 1.0f
+    private val DEFAULT_VOL = 1.0f   // 0.0〜1.0（=100%）
+
+    private fun speedToProgress(v: Float): Int = ((v - 0.5f) / 0.05f).roundToInt().coerceIn(0, 20)
+    private fun pitchToProgress(v: Float): Int = ((v - 0.5f) / 0.05f).roundToInt().coerceIn(0, 20)
+    private fun volToProgress(v: Float): Int = (v * 20f).roundToInt().coerceIn(0, 20)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +60,7 @@ class SoundSettingsActivity : AppCompatActivity() {
             seekTtsSpeed = findViewById(R.id.seek_tts_speed)
             textTtsPitch = findViewById(R.id.text_tts_pitch)
             seekTtsPitch = findViewById(R.id.seek_tts_pitch)
+
             textSeCorrect = findViewById(R.id.text_se_correct)
             seekSeCorrect = findViewById(R.id.seek_se_correct)
             textSeWrong = findViewById(R.id.text_se_wrong)
@@ -49,6 +69,15 @@ class SoundSettingsActivity : AppCompatActivity() {
             seekTtsVolume = findViewById(R.id.seek_tts_volume)
             textAdVolume = findViewById(R.id.text_ad_volume)
             seekAdVolume = findViewById(R.id.seek_ad_volume)
+
+            // ★追加：resetボタン find
+            resetTtsSpeed = findViewById(R.id.reset_tts_speed)
+            resetTtsPitch = findViewById(R.id.reset_tts_pitch)
+            resetTtsVolume = findViewById(R.id.reset_tts_volume)
+            resetSeCorrect = findViewById(R.id.reset_se_correct)
+            resetSeWrong = findViewById(R.id.reset_se_wrong)
+            resetAdVolume = findViewById(R.id.reset_ad_volume)
+
             btnToggleAdMute = findViewById(R.id.btn_toggle_ad_mute)
             btnSave = findViewById(R.id.btn_save_sound)
 
@@ -60,7 +89,11 @@ class SoundSettingsActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e("SoundSettingsActivity", "onCreate failed", e)
-            Toast.makeText(this, getString(R.string.sound_settings_init_failed, e.javaClass.simpleName), Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                getString(R.string.sound_settings_init_failed, e.javaClass.simpleName),
+                Toast.LENGTH_LONG
+            ).show()
             finish()
         }
     }
@@ -68,20 +101,22 @@ class SoundSettingsActivity : AppCompatActivity() {
     private fun setupInitialValues() {
         // TTS Speed (0.5-1.5) -> SeekBar (0-20)
         val speed = settings.getTtsSpeed()
-        seekTtsSpeed.progress = ((speed - 0.5f) / 0.05f).roundToInt()
+        seekTtsSpeed.progress = speedToProgress(speed)
 
         // TTS Pitch (0.5-1.5) -> SeekBar (0-20)
         val pitch = settings.getTtsPitch()
-        seekTtsPitch.progress = ((pitch - 0.5f) / 0.05f).roundToInt()
+        seekTtsPitch.progress = pitchToProgress(pitch)
 
         // Volumes (0-100%) -> SeekBar (0-20)
-        seekTtsVolume.progress = (settings.ttsVolume * 20f).roundToInt()
-        seekSeCorrect.progress = (settings.seCorrectVolume * 20f).roundToInt()
-        seekSeWrong.progress = (settings.seWrongVolume * 20f).roundToInt()
-        seekAdVolume.progress = (settings.adVolume * 20f).roundToInt()
+        seekTtsVolume.progress = volToProgress(settings.ttsVolume)
+        seekSeCorrect.progress = volToProgress(settings.seCorrectVolume)
+        seekSeWrong.progress = volToProgress(settings.seWrongVolume)
+        seekAdVolume.progress = volToProgress(settings.adVolume)
 
-        btnToggleAdMute.text = if (settings.adMuted) getString(R.string.sound_settings_ad_mute_on) else getString(R.string.sound_settings_ad_mute_off)
-        
+        btnToggleAdMute.text =
+            if (settings.adMuted) getString(R.string.sound_settings_ad_mute_on)
+            else getString(R.string.sound_settings_ad_mute_off)
+
         updateAllLabels()
     }
 
@@ -93,10 +128,38 @@ class SoundSettingsActivity : AppCompatActivity() {
         seekSeWrong.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
         seekAdVolume.setOnSeekBarChangeListener(simpleSeekListener { updateAllLabels() })
 
+        // ★追加：リセット処理
+        resetTtsSpeed.setOnClickListener {
+            seekTtsSpeed.progress = speedToProgress(DEFAULT_SPEED)
+            updateAllLabels()
+        }
+        resetTtsPitch.setOnClickListener {
+            seekTtsPitch.progress = pitchToProgress(DEFAULT_PITCH)
+            updateAllLabels()
+        }
+        resetTtsVolume.setOnClickListener {
+            seekTtsVolume.progress = volToProgress(DEFAULT_VOL)
+            updateAllLabels()
+        }
+        resetSeCorrect.setOnClickListener {
+            seekSeCorrect.progress = volToProgress(DEFAULT_VOL)
+            updateAllLabels()
+        }
+        resetSeWrong.setOnClickListener {
+            seekSeWrong.progress = volToProgress(DEFAULT_VOL)
+            updateAllLabels()
+        }
+        resetAdVolume.setOnClickListener {
+            seekAdVolume.progress = volToProgress(DEFAULT_VOL)
+            updateAllLabels()
+        }
+
         btnToggleAdMute.setOnClickListener {
             val newMute = !settings.adMuted
             settings.adMuted = newMute
-            btnToggleAdMute.text = if (newMute) getString(R.string.sound_settings_ad_mute_on) else getString(R.string.sound_settings_ad_mute_off)
+            btnToggleAdMute.text =
+                if (newMute) getString(R.string.sound_settings_ad_mute_on)
+                else getString(R.string.sound_settings_ad_mute_off)
         }
 
         btnSave.setOnClickListener {
