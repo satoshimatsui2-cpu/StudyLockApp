@@ -125,12 +125,12 @@
                 android:layout_height="wrap_content"
                 app:singleSelection="true">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_sort_review"
-                    style="@style/Widget.MaterialComponents.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="要復習のみ" />
+                 <com.google.android.material.chip.Chip
+                     android:id="@+id/chip_sort_review"
+                     style="@style/Widget.MaterialComponents.Chip.Filter"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="学習中" />
              </com.google.android.material.chip.ChipGroup>
 
         </LinearLayout>

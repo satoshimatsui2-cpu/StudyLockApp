@@ -88,14 +88,15 @@ class LearningHistoryAdapter(
             indicator.layoutParams = indicatorParams
             
             // レベルに応じた色設定
-            indicator.setBackgroundResource(R.drawable.bg_circle_indicator) 
-            
+            indicator.setBackgroundResource(R.drawable.bg_circle_indicator)
+
             val color = when (status.level) {
-                in 1..2 -> Color.parseColor("#9E9E9E") // Gray
-                in 3..5 -> Color.parseColor("#2196F3") // Blue
-                in 6..7 -> Color.parseColor("#4CAF50") // Green
-                8 -> Color.parseColor("#FFC107")       // Gold
-                else -> Color.LTGRAY
+                0 -> Color.parseColor("#F9F9F9")
+                1 -> Color.parseColor("#2563EB")
+                2 -> Color.parseColor("#22C55E")
+                3 -> Color.parseColor("#F97316")
+                4 -> Color.parseColor("#EF4444")
+                else -> Color.parseColor("#E11D48") // Lv5
             }
             indicator.background.setTint(color)
             

@@ -243,7 +243,14 @@ class LearningHistoryActivity : AppCompatActivity() {
 
             fullList = words.map { word ->
                 val wordProgresses = progresses[word.no] ?: emptyList()
-                val modes = listOf("meaning", "listening", "japanese_to_english", "english_english_1", "english_english_2")
+                val modes = listOf(
+                    "meaning",
+                    "listening",
+                    "listening_jp",
+                    "japanese_to_english",
+                    "english_english_1",
+                    "english_english_2"
+                )
                 val statuses = modes.map { mode ->
                     val progress = wordProgresses.find { p -> p.mode == mode }
                     ModeStatus(
@@ -272,11 +279,12 @@ class LearningHistoryActivity : AppCompatActivity() {
 
     private fun getDisplayModeName(mode: String): String {
         return when (mode) {
-            "meaning" -> "英日"
-            "listening" -> "リスニング"
-            "japanese_to_english" -> "日英"
-            "english_english_1" -> "英英1"
-            "english_english_2" -> "英英2"
+            "meaning" -> getString(R.string.mode_meaning)
+            "listening" -> getString(R.string.mode_listening)
+            "listening_jp" -> getString(R.string.mode_listening_jp)
+            "japanese_to_english" -> getString(R.string.mode_japanese_to_english)
+            "english_english_1" -> getString(R.string.mode_english_english_1)
+            "english_english_2" -> getString(R.string.mode_english_english_2)
             else -> mode
         }
     }
@@ -288,22 +296,28 @@ class LearningHistoryActivity : AppCompatActivity() {
         val checkedGradeChipId = gradeChipGroup.checkedChipId
         if (checkedGradeChipId != View.NO_ID) {
             val selectedGrade = gradeChipGroup.findViewById<Chip>(checkedGradeChipId).tag.toString()
-            filteredList = fullList.filter { it.grade == selectedGrade }
+            filteredList = filteredList.filter { it.grade == selectedGrade }
         }
-        
+
         // 検索クエリでのフィルタリング
         if (currentFilterQuery.isNotEmpty()) {
             val query = currentFilterQuery.lowercase()
-            filteredList = filteredList.filter { 
-                it.word.lowercase().contains(query) || 
-                it.meaning.lowercase().contains(query) 
+            filteredList = filteredList.filter {
+                it.word.lowercase().contains(query) ||
+                        it.meaning.lowercase().contains(query)
             }
         }
 
-        // Sort
+        // 「学習中」: 学習済みのみ表示（※絞り込みだけ）
         if (sortChipGroup.findViewById<Chip>(R.id.chip_sort_review)?.isChecked == true) {
-            filteredList = filteredList.sortedByDescending { item -> item.statuses.any { it.isReviewNeeded } }
+            filteredList = filteredList.filter { item -> item.statuses.any { it.level > 0 } }
         }
+
+        // ✅ デフォルトの並び：習得度（max level）降順（常に適用）
+        filteredList = filteredList.sortedWith(
+            compareByDescending<WordHistoryItem> { item -> item.statuses.maxOfOrNull { it.level } ?: 0 }
+                .thenBy { it.word } // 同点の安定化（任意）
+        )
 
         adapter.submitList(filteredList)
     }
