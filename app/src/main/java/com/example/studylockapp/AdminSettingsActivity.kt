@@ -170,26 +170,26 @@ class AdminSettingsActivity : AppCompatActivity() {
                     settings.setParentUid(firstParentId) // IDをキャッシュ保存
 
                     val parentIds = snapshot.documents.joinToString(", ") { it.id.take(4) + "..." }
-                    textManager.text = "管理者: 接続済み ($count)\nID: $parentIds"
+                    textManager.text = "親端末: 接続済み ($count)\nID: $parentIds"
                 }
             }
             .addOnFailureListener {
-                textManager.text = "管理者: 取得エラー"
+                textManager.text = "親端末: 取得エラー"
             }
 
         // 2. 私は誰を管理している？ (users/{me}/children)
         db.collection("users").document(myUid).collection("children").get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot == null || snapshot.isEmpty) {
-                    textTarget.text = "管理対象: なし"
+                    textTarget.text = "子端末: なし"
                 } else {
                     val count = snapshot.size()
                     val childIds = snapshot.documents.joinToString(", ") { it.id.take(4) + "..." }
-                    textTarget.text = "管理対象: 接続済み ($count)\nID: $childIds"
+                    textTarget.text = "子端末: 接続済み ($count)\nID: $childIds"
                 }
             }
             .addOnFailureListener {
-                textTarget.text = "管理対象: 取得エラー"
+                textTarget.text = "子端末: 取得エラー"
             }
     }
 

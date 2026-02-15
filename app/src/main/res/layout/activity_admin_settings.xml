@@ -50,13 +50,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="80dp">
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
-                android:text="現在の学習グレード"
+                android:text="現在の学習グレードを設定する"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorOnSurface"/>
@@ -87,13 +86,23 @@
                     android:padding="4dp"/>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- アプリロック設定ボタン：鍵アイコン -->
+
+            <!-- ペアリング（アコーディオン） -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_app_lock_settings"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
                 android:text="@string/admin_select_lock_apps"
-                android:layout_marginBottom="8dp"/>
+                android:textAlignment="center"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                app:icon="@drawable/ic_lock_24"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="?attr/colorOnSecondaryContainer" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -115,16 +124,25 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="?attr/colorSurfaceVariant"
-                        android:gravity="center_vertical"
-                        android:padding="16dp"
                         android:clickable="true"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+
+                        <!-- 追加：先頭アイコン -->
+                        <ImageView
+                            android:id="@+id/icon_pairing"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_link_24"
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="ペアリング"
+                            android:text="子供の端末と接続する"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold" />
@@ -135,6 +153,7 @@
                             android:layout_height="24dp"
                             android:src="@android:drawable/arrow_down_float"
                             app:tint="?attr/colorOnSurfaceVariant" />
+
                     </LinearLayout>
 
                     <!-- Content -->
@@ -146,21 +165,46 @@
                         android:padding="16dp"
                         android:visibility="gone">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginBottom="8dp"
+                            android:text="ペアリング設定すると、①子供端末の管理画面パスワードを忘れた場合に解除出来る。②子供がアクセシビリティのON,OFFをした際にアラートを通知できる。③子供の日々の学習結果を通知出来る。"
+                            android:textSize="12sp"
+                            android:textColor="?attr/colorOnSurface"/>
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_show_qr"
                             style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="ペアリング用QR表示"
-                            android:layout_marginBottom="8dp"/>
+                            android:layout_marginBottom="8dp"
+                            android:text="【子端末】ペアリング用QR表示"
+                            android:gravity="center"
+                            android:textAlignment="center"
+                            app:icon="@drawable/ic_qr_code_24"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconTint="?attr/colorOnSecondaryContainer"
+                            android:textColor="?attr/colorOnSecondaryContainer" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_scan_parent_qr"
                             style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="【保護者用】子供のQRを読み取る"
-                            android:layout_marginBottom="16dp"/>
+                            android:layout_marginBottom="16dp"
+                            android:text="【親端末】子供のQRを読み取る"
+
+                            android:gravity="center"
+                            android:textAlignment="center"
+
+                            app:icon="@drawable/ic_camera_24"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconTint="?attr/colorOnSecondaryContainer"
+                            android:textColor="?attr/colorOnSecondaryContainer" />
 
                         <TextView
                             android:id="@+id/text_connected_manager"
@@ -184,6 +228,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- セキュリティ（アコーディオン） -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -207,6 +252,15 @@
                         android:padding="16dp"
                         android:clickable="true"
                         android:focusable="true">
+
+                        <!-- 追加：先頭アイコン -->
+                        <ImageView
+                            android:id="@+id/icon_security"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_security_24"
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -233,6 +287,7 @@
                         android:padding="16dp"
                         android:visibility="gone">
 
+                        <!-- Switchには“左アイコン”が付けられないので、必要なら後で行ごとに置き換え（提案は下に書くね） -->
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_admin_lock"
                             android:layout_width="match_parent"
@@ -261,7 +316,11 @@
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="4dp"
-                                android:text="@string/admin_change_pin" />
+                                android:text="@string/admin_change_pin"
+                                app:icon="@drawable/ic_lock_24"
+                                app:iconGravity="textStart"
+                                app:iconPadding="6dp"
+                                app:iconTint="?attr/colorOnSurface" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_setup_authenticator"
@@ -270,7 +329,11 @@
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="4dp"
-                                android:text="2段階認証" />
+                                android:text="2段階認証"
+                                app:icon="@drawable/ic_security_24"
+                                app:iconGravity="textStart"
+                                app:iconPadding="6dp"
+                                app:iconTint="?attr/colorOnSurface" />
                         </LinearLayout>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -362,6 +425,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- 学習ポイント -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -385,6 +449,14 @@
                         android:padding="16dp"
                         android:clickable="true"
                         android:focusable="true">
+
+                        <ImageView
+                            android:id="@+id/icon_study_points"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_school_24"
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -411,6 +483,7 @@
                         android:padding="16dp"
                         android:visibility="gone">
 
+                        <!-- ここは将来的に「テキスト+SeekBar」を行コンポーネントにすると、左アイコン付けやすいよ（下に提案） -->
                         <TextView
                             android:id="@+id/text_point_meaning"
                             android:layout_width="match_parent"
@@ -485,6 +558,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- テストポイント -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -508,6 +582,14 @@
                         android:padding="16dp"
                         android:clickable="true"
                         android:focusable="true">
+
+                        <ImageView
+                            android:id="@+id/icon_test_points"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_quiz_24"
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -584,6 +666,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- 時間制限 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -607,6 +690,14 @@
                         android:padding="16dp"
                         android:clickable="true"
                         android:focusable="true">
+
+                        <ImageView
+                            android:id="@+id/icon_time_settings"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_timer_24"
+                            app:tint="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -707,7 +798,11 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
                             android:text="@string/admin_open_timezone_settings"
-                            android:textAllCaps="false" />
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_timer_24"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconTint="?attr/colorOnSurface" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
