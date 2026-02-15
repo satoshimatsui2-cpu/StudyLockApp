@@ -27,7 +27,7 @@
     <string name="common_off">OFF</string>
     <string name="block_points_lack">ポイントが足りません</string>
     <string name="admin_hint_unlock_min_per_10pt">10ポイントあたりの分数（1〜10）</string>
-    <string name="admin_label_unlock_min_per_10pt">10ポイントあたりの分数</string>
+    <string name="admin_label_unlock_min_per_10pt">交換レート：設定1分で学習と開放時間が同じぐらい</string>
     <string name="admin_label_unlock_min_per_10pt_value">10pt = %1$d分</string>
     <string name="block_points_input_hint">使うポイント数を入力</string>
     <string name="block_use_all_points">全て使う</string>

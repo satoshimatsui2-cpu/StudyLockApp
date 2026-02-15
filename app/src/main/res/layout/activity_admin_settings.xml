@@ -59,7 +59,8 @@
                 android:text="現在の学習グレード"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"/>
+                android:textColor="?attr/colorOnSurface"/>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -67,7 +68,7 @@
                 android:layout_marginBottom="8dp"
                 android:text="目標レベルのひとつ下のレベルの問題を解いた場合は取得ポイントは半分、それより下のレベルは四分の一になります。"
                 android:textSize="11sp"
-                android:textColor="@android:color/black"/>
+                android:textColor="?attr/colorOnSurface"/>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -85,6 +86,7 @@
                     android:minHeight="48dp"
                     android:padding="4dp"/>
             </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_app_lock_settings"
                 style="@style/Widget.Material3.Button.TonalButton"
@@ -93,46 +95,102 @@
                 android:text="@string/admin_select_lock_apps"
                 android:layout_marginBottom="8dp"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_show_qr"
-                style="@style/Widget.Material3.Button.TonalButton"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="ペアリング用QR表示"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="1dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_scan_parent_qr"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="【保護者用】子供のQRを読み取る"
-                android:layout_marginBottom="24dp"/>
-            <TextView
-                android:id="@+id/text_connected_manager"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="管理者: 未接続"
-                android:textColor="#000000"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/text_managed_target"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="32dp"
-                android:text="管理対象: なし"
-                android:textColor="#000000"
-                android:textSize="14sp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Header -->
+                    <LinearLayout
+                        android:id="@+id/header_pairing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:gravity="center_vertical"
+                        android:padding="16dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="ペアリング"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/arrow_pairing"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/arrow_down_float"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
+
+                    <!-- Content -->
+                    <LinearLayout
+                        android:id="@+id/content_pairing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_show_qr"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="ペアリング用QR表示"
+                            android:layout_marginBottom="8dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_scan_parent_qr"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="【保護者用】子供のQRを読み取る"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:id="@+id/text_connected_manager"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="管理者: 未接続"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/text_managed_target"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="管理対象: なし"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="14sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:strokeColor="?attr/colorError"
+                app:cardElevation="1dp"
+                app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -144,7 +202,7 @@
                         android:id="@+id/header_security"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@android:color/holo_red_dark"
+                        android:background="?attr/colorSurfaceVariant"
                         android:gravity="center_vertical"
                         android:padding="16dp"
                         android:clickable="true"
@@ -156,7 +214,7 @@
                             android:layout_weight="1"
                             android:text="セキュリティ設定 (親御様用)"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textColor="@android:color/white"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold" />
 
                         <ImageView
@@ -164,7 +222,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/arrow_down_float"
-                            app:tint="@android:color/white" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -181,9 +239,16 @@
                             android:layout_height="wrap_content"
                             android:text="@string/admin_lock_title"
                             android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
+                            android:textColor="?attr/colorOnSurface"/>
 
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_lock_desc"
+                            android:textSize="12sp"
+                            android:paddingBottom="12dp"
+                            android:textColor="?attr/colorOnSurface"/>
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -207,15 +272,22 @@
                                 android:layout_marginStart="4dp"
                                 android:text="2段階認証" />
                         </LinearLayout>
+
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_app_lock_required"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/admin_app_lock_required_title"
                             android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
+                            android:textColor="?attr/colorOnSurface"/>
 
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_app_lock_required_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_app_lock_required_desc"
+                            android:textSize="12sp"
+                            android:paddingBottom="12dp"
+                            android:textColor="?attr/colorOnSurface"/>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_accessibility_lock"
@@ -223,10 +295,15 @@
                             android:layout_height="wrap_content"
                             android:text="@string/admin_accessibility_lock_title"
                             android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
+                            android:textColor="?attr/colorOnSurface"/>
 
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_accessibility_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
-
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_accessibility_lock_desc"
+                            android:textSize="12sp"
+                            android:paddingBottom="12dp"
+                            android:textColor="?attr/colorOnSurface"/>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_uninstall_lock"
@@ -234,20 +311,37 @@
                             android:layout_height="wrap_content"
                             android:text="アプリ削除画面へのアクセス禁止"
                             android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
+                            android:textColor="?attr/colorOnSurface"/>
 
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="１．アプリの長押し機能の無効化（一時停止、アンインストール）２．「アプリ」画面へのアクセスロック。　３．「セキュリティとプライバシー」画面へのアクセスロック" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="１．アプリの長押し機能の無効化（一時停止、アンインストール）２．「アプリ」画面へのアクセスロック。　３．「セキュリティとプライバシー」画面へのアクセスロック"
+                            android:textSize="12sp"
+                            android:paddingBottom="12dp"
+                            android:textColor="?attr/colorOnSurface"/>
+
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_tethering_lock"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/admin_tethering_lock_title"
                             android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
+                            android:textColor="?attr/colorOnSurface"/>
 
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_tethering_lock_desc" android:textSize="12sp" android:paddingBottom="12dp" android:textColor="@android:color/black"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_tethering_lock_desc"
+                            android:textSize="12sp"
+                            android:paddingBottom="12dp"
+                            android:textColor="?attr/colorOnSurface"/>
 
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginVertical="8dp"/>
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="?attr/colorOutlineVariant"
+                            android:layout_marginVertical="8dp"/>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_enable_long_press"
@@ -255,8 +349,15 @@
                             android:layout_height="wrap_content"
                             android:text="タイトル長押しで管理画面"
                             android:textStyle="bold"
-                            android:textColor="@android:color/black"/>
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ONにすると、TOP画面のタイトルを長押しでPIN入力なしでこの画面を開けます。" android:textSize="12sp" android:paddingBottom="16dp" android:textColor="@android:color/black"/>
+                            android:textColor="?attr/colorOnSurface"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="ONにすると、TOP画面のタイトルを長押しでPIN入力なしでこの画面を開けます。"
+                            android:textSize="12sp"
+                            android:paddingBottom="16dp"
+                            android:textColor="?attr/colorOnSurface"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -266,7 +367,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardElevation="1dp"
                 app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp">
 
@@ -291,7 +392,7 @@
                             android:layout_weight="1"
                             android:text="学習モード 獲得ポイント"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textColor="@android:color/white"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold" />
 
                         <ImageView
@@ -299,7 +400,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/arrow_down_float"
-                            app:tint="@android:color/white" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -310,23 +411,76 @@
                         android:padding="16dp"
                         android:visibility="gone">
 
-                        <TextView android:id="@+id/text_point_meaning" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@android:color/black" tools:text="意味: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_meaning" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_meaning"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="意味: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_meaning"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_listening" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="リスニング: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_listening" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_listening"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="リスニング: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_listening"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_listening_jp" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="日本語リスニング: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_listening_jp" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_listening_jp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="日本語リスニング: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_listening_jp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_ja_to_en" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="日英: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_ja_to_en" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_ja_to_en"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="日英: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_ja_to_en"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_en_en_1" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="英英1: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_en_en_1" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_en_en_1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="英英1: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_en_en_1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_en_en_2" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="英英2: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_en_en_2" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_en_en_2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="英英2: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_en_en_2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -336,7 +490,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardElevation="1dp"
                 app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp">
 
@@ -361,14 +515,15 @@
                             android:layout_weight="1"
                             android:text="テストモード 獲得ポイント"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textColor="@android:color/white"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold" />
 
                         <ImageView
                             android:id="@+id/arrow_test_points"
                             android:layout_width="24dp"
-                            android:layout_height="24dp"                            android:src="@android:drawable/arrow_down_float"
-                            app:tint="@android:color/white" />
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/arrow_down_float"
+                            app:tint="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -379,17 +534,52 @@
                         android:padding="16dp"
                         android:visibility="gone">
 
-                        <TextView android:id="@+id/text_point_test_fill_blank" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@android:color/black" tools:text="穴埋め: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_test_fill_blank" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_test_fill_blank"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="穴埋め: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_test_fill_blank"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_test_sort" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="並び替え: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_test_sort" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_test_sort"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="並び替え: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_test_sort"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_test_listen_q1" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="リスニング質問: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_test_listen_q1" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_test_listen_q1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="リスニング質問: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_test_listen_q1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
-                        <TextView android:id="@+id/text_point_test_listen_q2" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="会話文リスニング: 10 pt" />
-                        <SeekBar android:id="@+id/seek_point_test_listen_q2" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                        <TextView
+                            android:id="@+id/text_point_test_listen_q2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="会話文リスニング: 10 pt" />
+                        <SeekBar
+                            android:id="@+id/seek_point_test_listen_q2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -399,7 +589,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardElevation="1dp"
                 app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp">
 
@@ -424,7 +614,7 @@
                             android:layout_weight="1"
                             android:text="時間制限と交換レート"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textColor="@android:color/white"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold" />
 
                         <ImageView
@@ -432,7 +622,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/arrow_down_float"
-                            app:tint="@android:color/white" />
+                            app:tint="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -443,20 +633,72 @@
                         android:padding="16dp"
                         android:visibility="visible">
 
-                        <TextView android:id="@+id/text_unlock_min_per_10pt_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/admin_label_unlock_min_per_10pt" android:textColor="@android:color/black"/>
-                        <TextView android:id="@+id/text_unlock_min_per_10pt_value" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="?attr/textAppearanceBodyMedium" android:text="@string/admin_label_unlock_min_per_10pt_value" android:textColor="?attr/colorPrimary" android:textStyle="bold" />
-                        <SeekBar android:id="@+id/seek_unlock_min_per_10pt" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="9" android:layout_marginBottom="16dp"/>
+                        <TextView
+                            android:id="@+id/text_unlock_min_per_10pt_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_label_unlock_min_per_10pt"
+                            android:textColor="?attr/colorOnSurface"/>
 
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:layout_marginBottom="16dp"/>
+                        <TextView
+                            android:id="@+id/text_unlock_min_per_10pt_value"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:text="@string/admin_label_unlock_min_per_10pt_value"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold" />
 
-                        <TextView android:id="@+id/text_interval" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@android:color/black" tools:text="回答間隔: 1.0 秒" />
-                        <SeekBar android:id="@+id/seek_interval" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="19" />
+                        <SeekBar
+                            android:id="@+id/seek_unlock_min_per_10pt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="9"
+                            android:layout_marginBottom="16dp"/>
 
-                        <TextView android:id="@+id/text_wrong_retry" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="当日再出題（不正解）: 120 秒" />
-                        <SeekBar android:id="@+id/seek_wrong_retry" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="118" />
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="?attr/colorOutlineVariant"
+                            android:layout_marginBottom="16dp"/>
 
-                        <TextView android:id="@+id/text_level1_retry" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="8dp" android:textColor="@android:color/black" tools:text="当日再出題（正解済）: 120 秒" />
-                        <SeekBar android:id="@+id/seek_level1_retry" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="118" />
+                        <TextView
+                            android:id="@+id/text_interval"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="回答間隔: 1.0 秒" />
+                        <SeekBar
+                            android:id="@+id/seek_interval"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="19" />
+
+                        <TextView
+                            android:id="@+id/text_wrong_retry"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="当日再出題（不正解）: 120 秒" />
+                        <SeekBar
+                            android:id="@+id/seek_wrong_retry"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="118" />
+
+                        <TextView
+                            android:id="@+id/text_level1_retry"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="当日再出題（正解済）: 120 秒" />
+                        <SeekBar
+                            android:id="@+id/seek_level1_retry"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="118" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_open_timezone_setup"
@@ -469,6 +711,8 @@
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
         </LinearLayout>
     </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
