@@ -60,6 +60,14 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="8dp"
+                android:text="目標レベルのひとつ下のレベルの問題を解いた場合は取得ポイントは半分、それより下のレベルは四分の一になります。"
+                android:textSize="11sp"
+                android:textColor="@android:color/black"/>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
