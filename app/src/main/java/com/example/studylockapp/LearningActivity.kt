@@ -123,6 +123,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentSnackbar: Snackbar? = null
     private var sortJapaneseBaseTextSizePx: Float? = null
     private var sortCorrectBaseTextSizePx: Float? = null
+    // ▼▼▼ 追加：選択肢を隠すUI ▼▼▼
+    private var checkboxHideChoices: CheckBox? = null
+    private var coverLayout: View? = null
+    private var buttonShowChoices: Button? = null
+    private var buttonDontKnow: Button? = null
+// ▲▲▲ 追加ここまで ▲▲▲
 
 
     private val greenTint by lazy {
@@ -277,6 +283,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         checkboxAutoPlayAudio = findViewById<CheckBox?>(R.id.checkbox_auto_play_audio)?.apply {
             isChecked = true
         }
+        // ▼▼▼ 追加：隠し機能UI取得 ▼▼▼
+        checkboxHideChoices = findViewById<CheckBox?>(R.id.checkbox_hide_choices)?.apply {
+            isChecked = false
+        }
+        coverLayout = findViewById(R.id.cover_layout)
+        buttonShowChoices = findViewById(R.id.button_show_choices)
+        buttonDontKnow = findViewById(R.id.button_dont_know)
+
+        // 起動時は念のため隠す
+        coverLayout?.visibility = View.GONE
+        // ▲▲▲ 追加ここまで ▲▲▲
 
         textFeedback.visibility = View.GONE
         updatePointView()
@@ -435,6 +452,29 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 loadNextQuestionLegacy()
             }
         }
+        // ▼▼▼ 追加：選択肢を隠すの挙動 ▼▼▼
+        checkboxHideChoices?.setOnCheckedChangeListener { _, isChecked ->
+            // 会話モード・並び替えモードでは使わない（事故防止）
+            if (currentMode == LearningModes.TEST_LISTEN_Q2 || currentMode == LearningModes.TEST_SORT) {
+                coverLayout?.visibility = View.GONE
+                return@setOnCheckedChangeListener
+            }
+
+            // まだ問題が無い / 選択肢が表示されてないなら無理に出さない
+            val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
+            coverLayout?.visibility = if (isChecked && hasVisibleChoice) View.VISIBLE else View.GONE
+        }
+
+        buttonShowChoices?.setOnClickListener {
+            // 「回答する」＝カバーを外して選択肢を見せる
+            coverLayout?.visibility = View.GONE
+        }
+
+        buttonDontKnow?.setOnClickListener {
+            // 「わからない」＝不正解処理（赤ボタンは塗らない）
+            processAsIncorrect()
+        }
+    // ▲▲▲ 追加ここまで ▲▲▲
     }
 
     // 正解・不正解を受け取って、適切な音量設定で再生する共通関数
@@ -959,6 +999,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 buttonPlayAudio.visibility = View.VISIBLE
             }
         }
+        // ▼▼▼ 追加：チェックONならカバーを出す（毎回ここで決め打ち） ▼▼▼
+        val enableHide = (checkboxHideChoices?.isChecked == true)
+        val allowHideInThisMode =
+            currentMode != LearningModes.TEST_LISTEN_Q2 && currentMode != LearningModes.TEST_SORT
+
+        val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
+        coverLayout?.visibility = if (enableHide && allowHideInThisMode && hasVisibleChoice) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    // ▲▲▲ 追加ここまで ▲▲▲
     }
 
 
@@ -969,20 +1021,29 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         val ctx = currentLegacyContext ?: return
-        val isCorrect = selectedIndex == ctx.correctIndex
+
+        // 「分からない」経由は -1 を渡す（ボタンは赤くしない）
+        val isDontKnow = (selectedIndex !in choiceButtons.indices)
+        val isCorrect = (!isDontKnow && selectedIndex == ctx.correctIndex)
+
+        // 選択した瞬間にカバーは閉じる（テンポ良く）
+        coverLayout?.visibility = View.GONE
 
         choiceButtons.forEach { it.isClickable = false }
+
+        // 正解ボタンは必ず緑
         if (ctx.correctIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[ctx.correctIndex], greenTint)
         }
-        if (!isCorrect && selectedIndex != ctx.correctIndex && selectedIndex in choiceButtons.indices) {
+
+        // 不正解のときだけ「押したボタン」を赤にする（ただし dontKnow では赤にしない）
+        if (!isCorrect && !isDontKnow && selectedIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
         }
 
         if (isCorrect) playCorrectEffect() else playWrongEffect()
 
-        // ▼▼▼ 修正 ▼▼▼
-        // どのモードであっても共通のStudyHistoryRepositoryとprocessAnswerResultLegacyを呼ぶようにする
+        // ★保存＆共通処理
         StudyHistoryRepository.save(ctx.word.grade, currentMode, isCorrect)
         processAnswerResultLegacy(ctx.word, isCorrect)
     }
@@ -1006,6 +1067,24 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 loadNextQuestionLegacy()
             }
         }
+    }
+    private fun processAsIncorrect() {
+        val ctx = currentLegacyContext ?: return
+
+        // カバーを外す
+        coverLayout?.visibility = View.GONE
+
+        // ボタン無効化 + 正解だけ緑表示（赤は出さない）
+        choiceButtons.forEach { it.isClickable = false }
+        if (ctx.correctIndex in choiceButtons.indices) {
+            ViewCompat.setBackgroundTintList(choiceButtons[ctx.correctIndex], greenTint)
+        }
+
+        playWrongEffect()
+
+        // 保存＆共通の不正解処理
+        StudyHistoryRepository.save(ctx.word.grade, currentMode, false)
+        processAnswerResultLegacy(ctx.word, false)
     }
 
     private suspend fun registerAnswerToDb(
