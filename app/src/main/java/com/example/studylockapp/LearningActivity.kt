@@ -128,6 +128,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var coverLayout: View? = null
     private var buttonShowChoices: Button? = null
     private var buttonDontKnow: Button? = null
+    // チェックボックスの onCheckedChange が「強制OFF」で発火しても暴れないようにするガード
+    private var suppressHideChoicesListener = false
+
+    private fun isTestMode(): Boolean = currentMode.startsWith("test_")
 // ▲▲▲ 追加ここまで ▲▲▲
 
 
@@ -452,29 +456,28 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 loadNextQuestionLegacy()
             }
         }
-        // ▼▼▼ 追加：選択肢を隠すの挙動 ▼▼▼
+
         checkboxHideChoices?.setOnCheckedChangeListener { _, isChecked ->
-            // 会話モード・並び替えモードでは使わない（事故防止）
-            if (currentMode == LearningModes.TEST_LISTEN_Q2 || currentMode == LearningModes.TEST_SORT) {
-                coverLayout?.visibility = View.GONE
+            if (suppressHideChoicesListener) return@setOnCheckedChangeListener
+
+            // ✅ テストモードでは機能させない（見えてても事故らない保険）
+            if (isTestMode()) {
+                setCoverVisible(false)
                 return@setOnCheckedChangeListener
             }
 
-            // まだ問題が無い / 選択肢が表示されてないなら無理に出さない
+            // 単語モードだけ：選択肢が出てる時だけカバー
             val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
-            coverLayout?.visibility = if (isChecked && hasVisibleChoice) View.VISIBLE else View.GONE
+            setCoverVisible(isChecked && hasVisibleChoice)
         }
 
         buttonShowChoices?.setOnClickListener {
-            // 「回答する」＝カバーを外して選択肢を見せる
-            coverLayout?.visibility = View.GONE
+            setCoverVisible(false)
         }
 
         buttonDontKnow?.setOnClickListener {
-            // 「わからない」＝不正解処理（赤ボタンは塗らない）
             processAsIncorrect()
         }
-    // ▲▲▲ 追加ここまで ▲▲▲
     }
 
     // 正解・不正解を受け取って、適切な音量設定で再生する共通関数
@@ -1013,6 +1016,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // ▲▲▲ 追加ここまで ▲▲▲
     }
 
+    private fun setCoverVisible(visible: Boolean) {
+        // coverLayout は initViews() で findViewById してる前提
+        coverLayout?.visibility = if (visible) View.VISIBLE else View.GONE
+
+        // ✅ カバー表示中は選択肢を押せないようにする
+        choiceButtons.forEach { btn ->
+            btn.isEnabled = !visible
+            btn.isClickable = !visible
+        }
+
+        // ✅ クリックが背面に抜けないようにする保険
+        coverLayout?.isClickable = visible
+        coverLayout?.isFocusable = visible
+    }
 
     private fun onChoiceSelected(selectedIndex: Int) {
         if (currentMode == LearningModes.TEST_LISTEN_Q2) {
@@ -1921,6 +1938,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // チェックボックス類
         checkIncludeOtherGrades?.visibility = if (isSortMode) View.GONE else View.VISIBLE
         checkboxAutoPlayAudio?.visibility = if (isSortMode) View.GONE else View.VISIBLE
+
+        applyHideChoicesPolicyForMode()
     }
 
     private fun showFirstSortQuestion() {
@@ -2127,6 +2146,32 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             chip.layoutParams = lp
 
             answersContainer.addView(chip)
+        }
+    }
+    private fun applyHideChoicesPolicyForMode() {
+        val cb = checkboxHideChoices
+        if (cb == null) {
+            // チェックボックスが無い構成でも落ちないように保険
+            setCoverVisible(false)
+            return
+        }
+
+        if (isTestMode()) {
+            // ✅ テストモード：チェックボックス非表示＋強制OFF＋カバー強制OFF
+            cb.visibility = View.GONE
+
+            suppressHideChoicesListener = true
+            cb.isChecked = false
+            suppressHideChoicesListener = false
+
+            setCoverVisible(false)
+        } else {
+            // ✅ 単語モード：今まで通り（チェックボックス表示＋必要ならカバー）
+            cb.visibility = View.VISIBLE
+
+            val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
+            val enableHide = (cb.isChecked == true)
+            setCoverVisible(enableHide && hasVisibleChoice)
         }
     }
 
