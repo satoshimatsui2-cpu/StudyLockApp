@@ -108,6 +108,7 @@ class AdminSettingsActivity : AppCompatActivity() {
             Triple(R.id.header_study_points, R.id.content_study_points, R.id.arrow_study_points),
             Triple(R.id.header_test_points, R.id.content_test_points, R.id.arrow_test_points),
             Triple(R.id.header_time_settings, R.id.content_time_settings, R.id.arrow_time_settings),
+            Triple(R.id.header_app_lock_block, R.id.content_app_lock_block, R.id.arrow_app_lock_block),
             Triple(R.id.header_pairing, R.id.content_pairing, R.id.arrow_pairing),
             Triple(R.id.header_security, R.id.content_security, R.id.arrow_security)
         )

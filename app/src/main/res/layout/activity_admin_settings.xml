@@ -86,24 +86,114 @@
                     android:padding="4dp"/>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- アプリロック設定ボタン：鍵アイコン -->
-
-            <!-- ペアリング（アコーディオン） -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_app_lock_settings"
-                style="@style/Widget.Material3.Button.TonalButton"
+            <!-- 他のアプリをロックする（アコーディオン） -->
+            <!-- 他のアプリをロックする（アコーディオン） -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:gravity="center"
-                android:text="@string/admin_select_lock_apps"
-                android:textAlignment="center"
-                android:textColor="?attr/colorOnSecondaryContainer"
-                app:icon="@drawable/ic_lock_24"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:iconTint="?attr/colorOnSecondaryContainer" />
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="1dp"
+                app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="1dp">
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Header -->
+                    <LinearLayout
+                        android:id="@+id/header_app_lock_block"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:padding="16dp">
+
+                        <!-- 先頭アイコン：ボタンと同じ鍵アイコン -->
+                        <ImageView
+                            android:id="@+id/icon_app_lock_block"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="12dp"
+                            android:src="@drawable/ic_lock_24"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="他のアプリをロックする"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/arrow_app_lock_block"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/arrow_down_float"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+
+                    </LinearLayout>
+
+                    <!-- Content -->
+                    <LinearLayout
+                        android:id="@+id/content_app_lock_block"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:visibility="gone">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginBottom="8dp"
+                            android:text="ロックするアプリの選択と、選択したアプリのロックと、稼いだポイントでロックの解除の機能が使用できます。"
+                            android:textSize="12sp"
+                            android:textColor="?attr/colorOnSurface"/>
+                        <!-- アプリロック機能を必須にする -->
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switch_app_lock_required"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_app_lock_required_title"
+                            android:textStyle="bold"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <TextView
+                            android:id="@+id/text_app_lock_required_desc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/admin_app_lock_required_desc"
+                            android:textSize="12sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:paddingBottom="12dp" />
+                        <!-- 「ロックするアプリを選択する」ボタン -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_app_lock_settings"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:gravity="center"
+                            android:text="@string/admin_select_lock_apps"
+                            android:textAlignment="center"
+                            android:textColor="?attr/colorOnSecondaryContainer"
+                            app:icon="@drawable/ic_lock_24"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconTint="?attr/colorOnSecondaryContainer" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <!-- ペアリング（アコーディオン） -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -335,22 +425,6 @@
                                 app:iconPadding="6dp"
                                 app:iconTint="?attr/colorOnSurface" />
                         </LinearLayout>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_app_lock_required"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_app_lock_required_title"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnSurface"/>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_app_lock_required_desc"
-                            android:textSize="12sp"
-                            android:paddingBottom="12dp"
-                            android:textColor="?attr/colorOnSurface"/>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_accessibility_lock"
