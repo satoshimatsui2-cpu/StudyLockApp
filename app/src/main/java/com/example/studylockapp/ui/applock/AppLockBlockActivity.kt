@@ -15,12 +15,19 @@ import com.example.studylockapp.data.PointHistoryEntity
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.UnlockHistoryEntity
 import com.example.studylockapp.data.db.AppUnlockEntity
+import com.example.studylockapp.data.StudyHistoryRepository
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.TimeZone
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.math.ceil
@@ -191,37 +198,47 @@ class AppLockBlockActivity : AppCompatActivity() {
         if (lockedPkg.isBlank()) return
 
         val nowSec = Instant.now().epochSecond
-        // ポイント減算 & 履歴追加
-        pointManager.add(-usePoints)
-        val db = AppDatabase.getInstance(this)
         val zone = settings.getAppZoneId()
-        val today = LocalDate.now(zone).toEpochDay()
-        db.pointHistoryDao().insert(
-            PointHistoryEntity(
-                mode = "unlock",
-                dateEpochDay = today,
-                delta = -usePoints
-            )
-        )
+        val todayEpochDay = LocalDate.now(zone).toEpochDay()
 
-        // 新しい履歴テーブルにも書き込む
-        db.unlockHistoryDao().insert(
-            UnlockHistoryEntity(
-                packageName = lockedPkg,
-                usedPoints = usePoints,
-                unlockDurationSec = durationSec,
-                unlockedAt = nowSec
-            )
-        )
+        // Room書き込みはIOへ
+        withContext(Dispatchers.IO) {
+            // ポイント減算 & 履歴追加
+            pointManager.add(-usePoints)
 
-        // app_unlocks に期限を書き込む（秒）
-        val untilSec = nowSec + durationSec
-        db.appUnlockDao().upsert(
-            AppUnlockEntity(
-                packageName = lockedPkg,
-                unlockedUntilSec = untilSec
+            val db = AppDatabase.getInstance(this@AppLockBlockActivity)
+
+            db.pointHistoryDao().insert(
+                PointHistoryEntity(
+                    mode = "unlock",
+                    dateEpochDay = todayEpochDay,
+                    delta = -usePoints
+                )
             )
-        )
+
+            // 新しい履歴テーブルにも書き込む
+            db.unlockHistoryDao().insert(
+                UnlockHistoryEntity(
+                    packageName = lockedPkg,
+                    usedPoints = usePoints,
+                    unlockDurationSec = durationSec,
+                    unlockedAt = nowSec
+                )
+            )
+
+            // app_unlocks に期限を書き込む（秒）
+            val untilSec = nowSec + durationSec
+            db.appUnlockDao().upsert(
+                AppUnlockEntity(
+                    packageName = lockedPkg,
+                    unlockedUntilSec = untilSec
+                )
+            )
+        }
+
+        // ★親向け日次レポート用：Firestoreへ「使用ポイント」を加算
+        // （失敗してもロック解除自体は成功していいので、内部で握りつぶしてOK）
+        StudyHistoryRepository.addUsedPoints(usePoints, lockedPkg)
 
         // 画面を閉じて元アプリに戻る
         runOnUiThread {

@@ -14,4 +14,11 @@ interface PointHistoryDao {
 
     @Query("SELECT COALESCE(SUM(delta), 0) FROM point_history WHERE dateEpochDay = :date")
     suspend fun getSumByDate(date: Long): Int
+
+    @Query("""
+    SELECT COALESCE(SUM(delta), 0)
+    FROM point_history
+    WHERE mode = :mode AND dateEpochDay = :day
+    """)
+    suspend fun sumDeltaByModeAndDay(mode: String, day: Long): Int
 }
