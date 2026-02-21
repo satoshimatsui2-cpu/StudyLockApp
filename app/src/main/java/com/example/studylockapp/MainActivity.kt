@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var gradeButton: MaterialButton
     private lateinit var buttonToLearning: Button
+    private lateinit var settings: AppSettings
 
     private lateinit var textPointsTop: TextView
     private lateinit var textPointStatsTop: TextView
@@ -74,6 +75,11 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContentView(R.layout.activity_main)
+        settings = AppSettings(this)
+
+// ✅ 前回選んだグレードを復元（なければ null のまま）
+        val savedGrade = settings.lastGradeFilter
+        selectedGradeKey = savedGrade.takeIf { it.isNotBlank() }
 
         // ▼▼▼ ＋追加: 通知の通り道を作る（これを忘れると通知が来ません！） ▼▼▼
         createNotificationChannel()
@@ -113,6 +119,7 @@ class MainActivity : AppCompatActivity() {
         // 学習画面へ（gradeFilter は DB の grade と一致する値：例 "5"）
         buttonToLearning.setOnClickListener {
             val gradeSelected = selectedGradeKey ?: return@setOnClickListener
+            settings.lastGradeFilter = gradeSelected // ✅ 念のため保存
             startActivity(
                 Intent(this, LearningActivity::class.java).apply {
                     putExtra("gradeFilter", gradeSelected)
@@ -269,7 +276,10 @@ class MainActivity : AppCompatActivity() {
             gradeStatsMap = statsBuilder
 
             // 現在選択を保持
-            val keepKey = selectedGradeKey ?: gradeKeys.firstOrNull()
+            // ✅ 現在選択を保持（保存値 → 現在値 → デフォルト）
+
+            val saved = settings.lastGradeFilter.takeIf { it.isNotBlank() && it in gradeKeys }
+            val keepKey = saved ?: selectedGradeKey ?: gradeKeys.firstOrNull()
             if (keepKey != null) {
                 selectedGradeKey = keepKey
                 gradeButton.text = gradeKeyToLabel(keepKey)
@@ -296,6 +306,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun applyGradeSelection(grade: String) {
         selectedGradeKey = grade
+        settings.lastGradeFilter = grade   // ✅ 追加：保存
+
         val label = gradeKeyToLabel(grade)
         gradeButton.text = label
         buttonToLearning.isEnabled = true
