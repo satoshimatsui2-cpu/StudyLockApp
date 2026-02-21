@@ -181,19 +181,61 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // ★ここまで追加
 
         initViews()
+
+        // ★追加：回転などで消えないようにUI状態を復元（リスナーを付ける前！）
+        restoreUiState(savedInstanceState)
+
         initMediaServices()
         setupObservers()
         setupListeners()
+
+        // ★restore後の currentMode を反映
         applyUiVisibilityForMode()
 
         lifecycleScope.launch {
             loadInitialData()
-            if (currentMode == LearningModes.TEST_SORT) {
-                showFirstSortQuestion()
+
+            // ★モードに応じて開始処理（loadInitialData後に正しい開始）
+            when (currentMode) {
+                LearningModes.TEST_SORT -> showFirstSortQuestion()
+                LearningModes.TEST_LISTEN_Q2 -> viewModel.setMode(currentMode)
+                else -> loadNextQuestionLegacy()
             }
         }
-    }
 
+    }
+    private fun restoreUiState(savedInstanceState: Bundle?) {
+        if (savedInstanceState == null) return
+
+        // 1) モード復元（まずこれが最優先）
+        currentMode = savedInstanceState.getString(STATE_MODE, currentMode)
+
+        // 2) includeOtherGrades 復元（変数とチェックを一致させる）
+        includeOtherGradesReview = savedInstanceState.getBoolean(STATE_INCLUDE_OTHER, false)
+        checkIncludeOtherGrades?.isChecked = includeOtherGradesReview
+
+        // 3) チェック状態復元（リスナー暴発防止）
+        suppressHideChoicesListener = true
+        checkboxHideChoices?.isChecked = savedInstanceState.getBoolean(STATE_HIDE_CHOICES, false)
+        suppressHideChoicesListener = false
+
+        checkboxAutoPlayAudio?.isChecked = savedInstanceState.getBoolean(STATE_AUTO_PLAY, true)
+
+        // 4) カバー状態復元（テストモードでは必ずOFFにする）
+        val coverWanted = savedInstanceState.getBoolean(STATE_COVER_VISIBLE, false)
+
+        // あなたの既存ポリシーに合わせて強制制御
+        applyHideChoicesPolicyForMode()
+
+        // 単語モードのときだけ「前回カバーON」を復元
+        if (!isTestMode() && checkboxHideChoices?.isChecked == true && coverWanted) {
+            // 選択肢が表示されてる時だけ出す（安全）
+            val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
+            setCoverVisible(hasVisibleChoice)
+        } else {
+            setCoverVisible(false)
+        }
+    }
     override fun onResume() {
         super.onResume()
         applyTtsParams()
@@ -323,7 +365,23 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         soundEffectManager = SoundEffectManager(this)
     }
+    companion object {
+        private const val STATE_MODE = "state_mode"
+        private const val STATE_INCLUDE_OTHER = "state_include_other"
+        private const val STATE_HIDE_CHOICES = "state_hide_choices"
+        private const val STATE_AUTO_PLAY = "state_auto_play"
+        private const val STATE_COVER_VISIBLE = "state_cover_visible"
+    }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putString(STATE_MODE, currentMode)
+        outState.putBoolean(STATE_INCLUDE_OTHER, includeOtherGradesReview)
+        outState.putBoolean(STATE_HIDE_CHOICES, checkboxHideChoices?.isChecked == true)
+        outState.putBoolean(STATE_AUTO_PLAY, checkboxAutoPlayAudio?.isChecked == true)
+        outState.putBoolean(STATE_COVER_VISIBLE, coverLayout?.visibility == View.VISIBLE)
+    }
     private fun enableConversationButtons() {
         choiceButtons.forEach { btn ->
             if (btn.visibility == View.VISIBLE) {
@@ -399,7 +457,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         updateStudyStatsView()
 
-        routeNextQuestionAction()
     }
     // endregion
 
