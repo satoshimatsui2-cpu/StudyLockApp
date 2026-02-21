@@ -162,14 +162,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         settings = AppSettings(this)
 
-        // ★ここから追加（gradeFilterガード）
-        val grade = intent.getStringExtra("gradeFilter")
-        val allowed = setOf("5","4","3","2.5","2","1.5","1")
+        // ------------------------------------------------------------
+        // 1) gradeFilter を決める（Intent優先 → 無ければ保存済みを復元）
+        // ------------------------------------------------------------
+        val allowed = setOf("5", "4", "3", "2.5", "2", "1.5", "1")
+
+        // Intent が無い/壊れてるケースでも、前回値で復帰できるようにする
+        val gradeFromIntent = intent.getStringExtra("gradeFilter")
+        val restoredGrade = settings.lastGradeFilter.takeIf { it.isNotBlank() }
+
+        val grade = (gradeFromIntent ?: restoredGrade)
 
         if (grade.isNullOrBlank() || grade !in allowed) {
             android.util.Log.w("LearningActivity", "invalid gradeFilter=$grade, intent=$intent")
 
-            // ★「その場合だけ、強制的にMainActivityへ」
+            // 無効なら Main に戻す（従来の安全策）
             startActivity(Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             })
@@ -178,31 +185,56 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         gradeFilter = grade
-        // ★ここまで追加
+        settings.lastGradeFilter = gradeFilter // ★アプリ終了/再起動でも復元できるよう保存
 
+        // ------------------------------------------------------------
+        // 2) View取得（リスナーより前）
+        // ------------------------------------------------------------
         initViews()
 
-        // ★追加：回転などで消えないようにUI状態を復元（リスナーを付ける前！）
-        restoreUiState(savedInstanceState)
+        // ------------------------------------------------------------
+        // 3) UI状態を復元（リスナーを付ける前！）
+        //    - 回転（savedInstanceState）より、アプリ終了後も残すなら settings を主に使う
+        // ------------------------------------------------------------
+        // まず AppSettings から復元（アプリを閉じても残る）
+        currentMode = settings.learningMode
+        includeOtherGradesReview = settings.learningIncludeOtherGrades
 
+        checkIncludeOtherGrades?.isChecked = includeOtherGradesReview
+        checkboxHideChoices?.isChecked = settings.learningHideChoices
+        checkboxAutoPlayAudio?.isChecked = settings.learningAutoPlay
+
+        // つぎに savedInstanceState があれば上書き（回転などの一時復元）
+        // ※あなたが別途 save/restore を入れているなら、キー名を合わせてね
+        savedInstanceState?.let { b ->
+            b.getString("ui_mode")?.let { currentMode = it }
+            includeOtherGradesReview = b.getBoolean("ui_include_other_grades", includeOtherGradesReview)
+
+            checkIncludeOtherGrades?.isChecked = includeOtherGradesReview
+            checkboxHideChoices?.isChecked = b.getBoolean("ui_hide_choices", checkboxHideChoices?.isChecked == true)
+            checkboxAutoPlayAudio?.isChecked = b.getBoolean("ui_auto_play", checkboxAutoPlayAudio?.isChecked == true)
+        }
+
+        // ------------------------------------------------------------
+        // 4) ここから通常初期化
+        // ------------------------------------------------------------
         initMediaServices()
         setupObservers()
         setupListeners()
 
-        // ★restore後の currentMode を反映
+        // 復元した currentMode を画面に反映
         applyUiVisibilityForMode()
 
         lifecycleScope.launch {
             loadInitialData()
 
-            // ★モードに応じて開始処理（loadInitialData後に正しい開始）
+            // モードに応じて開始（loadInitialData後に）
             when (currentMode) {
                 LearningModes.TEST_SORT -> showFirstSortQuestion()
                 LearningModes.TEST_LISTEN_Q2 -> viewModel.setMode(currentMode)
                 else -> loadNextQuestionLegacy()
             }
         }
-
     }
     private fun restoreUiState(savedInstanceState: Bundle?) {
         if (savedInstanceState == null) return
@@ -504,6 +536,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         checkIncludeOtherGrades?.setOnCheckedChangeListener { _, isChecked ->
             includeOtherGradesReview = isChecked
+            settings.learningIncludeOtherGrades = isChecked  // ★保存
+
             if (currentMode == LearningModes.TEST_LISTEN_Q2) {
                 lifecycleScope.launch {
                     refreshConversationQueue()
@@ -513,17 +547,24 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 loadNextQuestionLegacy()
             }
         }
-
+        checkboxAutoPlayAudio?.setOnCheckedChangeListener { _, isChecked ->
+            settings.learningAutoPlay = isChecked  // ★保存
+        }
         checkboxHideChoices?.setOnCheckedChangeListener { _, isChecked ->
             if (suppressHideChoicesListener) return@setOnCheckedChangeListener
 
-            // ✅ テストモードでは機能させない（見えてても事故らない保険）
+            // テストモードは常にOFFにしたいポリシーなら、ここで戻す（表示は applyHideChoicesPolicyForMode で制御）
             if (isTestMode()) {
                 setCoverVisible(false)
+                suppressHideChoicesListener = true
+                checkboxHideChoices?.isChecked = false
+                suppressHideChoicesListener = false
+                settings.learningHideChoices = false  // ★保存（強制OFFも永続化）
                 return@setOnCheckedChangeListener
             }
 
-            // 単語モードだけ：選択肢が出てる時だけカバー
+            settings.learningHideChoices = isChecked  // ★保存
+
             val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
             setCoverVisible(isChecked && hasVisibleChoice)
         }
@@ -1608,7 +1649,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             card.setOnClickListener {
                 currentMode = modeKey
-
+                settings.learningMode = modeKey  // ★保存
                 if (currentMode.startsWith("test_")) {
                     includeOtherGradesReview = false
                     checkIncludeOtherGrades?.isChecked = false

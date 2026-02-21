@@ -56,10 +56,16 @@ class AppSettings(context: Context) {
 
         // ▼▼▼ 追加: 親連携用ID ▼▼▼
         private const val KEY_PARENT_UID = "parent_uid"
-
+        private const val KEY_LEARNING_MODE = "learning_mode"
+        private const val KEY_INCLUDE_OTHER_GRADES = "learning_include_other_grades"
+        private const val KEY_HIDE_CHOICES = "learning_hide_choices"
+        private const val KEY_AUTO_PLAY = "learning_auto_play"
+        private const val KEY_LAST_GRADE_FILTER = "learning_last_grade_filter"
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+
+
     }
 
     fun isEnableAdminLongPress(): Boolean = prefs.getBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, true)
@@ -265,4 +271,23 @@ class AppSettings(context: Context) {
     fun getParentUid(): String? {
         return prefs.getString(KEY_PARENT_UID, null)
     }
+    var learningMode: String
+        get() = prefs.getString(KEY_LEARNING_MODE, "meaning") ?: "meaning"
+        set(value) { prefs.edit().putString(KEY_LEARNING_MODE, value).apply() }
+
+    var learningIncludeOtherGrades: Boolean
+        get() = prefs.getBoolean(KEY_INCLUDE_OTHER_GRADES, false)
+        set(value) { prefs.edit().putBoolean(KEY_INCLUDE_OTHER_GRADES, value).apply() }
+
+    var learningHideChoices: Boolean
+        get() = prefs.getBoolean(KEY_HIDE_CHOICES, false)
+        set(value) { prefs.edit().putBoolean(KEY_HIDE_CHOICES, value).apply() }
+
+    var learningAutoPlay: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_PLAY, true)
+        set(value) { prefs.edit().putBoolean(KEY_AUTO_PLAY, value).apply() }
+
+    var lastGradeFilter: String
+        get() = prefs.getString(KEY_LAST_GRADE_FILTER, "") ?: ""
+        set(value) { prefs.edit().putString(KEY_LAST_GRADE_FILTER, value).apply() }
 }
