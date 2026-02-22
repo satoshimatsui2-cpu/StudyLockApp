@@ -389,9 +389,9 @@ class MainActivity : AppCompatActivity() {
 
         if (!notificationsEnabled && shouldForce) {
             withContext(Dispatchers.Main) {
-                val msg = "本端末で学習レポート等を受信するため通知をONにしてください。保護者端末の場合、ONにしないと子端末からのセキュリティアラート、学習記録は届きません。"
+                val msg = "利用制限の状態（制限の開始/終了、家族共有、レポート等）を通知でお知らせします。\n" +"通知を許可しない場合でも、アプリ内では確認できます。"
                 val builder = AlertDialog.Builder(this@MainActivity)
-                    .setTitle("通知の許可が必要です")
+                    .setTitle("通知の許可（おすすめ）")
                     .setMessage(msg)
                     .setCancelable(false)
                     .setPositiveButton("設定を開く") { _, _ ->

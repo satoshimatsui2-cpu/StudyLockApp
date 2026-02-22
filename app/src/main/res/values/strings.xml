@@ -34,10 +34,11 @@
     <string name="block_invalid_points">有効なポイント数を入力してください</string>
     <string name="block_points_info">所持: %1$dpt / 使用: %2$dpt（%3$.1f分解放, 10pt=%4$d分）</string>
     <string name="block_unlocked_message">%1$.1f分 開放</string>
-    <string name="app_lock_accessibility_message">ロックを有効にするには、アクセシビリティ設定で本アプリを「許可」してください。\nロックしない場合はアプリロック設定をすべて無効にしてください。</string>
-    <string name="app_lock_accessibility_go_settings">アクセシビリティの設定を行う</string>
-    <string name="app_lock_accessibility_disable_all">ロック設定を全て解除する</string>
-    <string name="app_lock_accessibility_title">アクセシビリティの設定</string>
+    <string name="app_lock_accessibility_message">このアプリは、あなたが設定した“利用制限（対象アプリ）”を実行するために、アクセシビリティ権限を使用します。\nこの権限により、現在表示されているアプリを検知し、制限対象のアプリが開かれた場合に制限画面へ切り替えます。\n※キーボード入力内容（パスワード等）を読み取ったり、個人のメッセージ内容を収集したりはしません。\n同意しない場合でも、学習機能（単語・テスト等）は利用できますが、利用制限機能は動作しません。</string>
+    <string name="app_lock_accessibility_go_settings">同意して次へ</string>
+    <string name="app_lock_accessibility_disable_all">同意しない（後で）</string>
+    <string name="app_lock_accessibility_title">アクセシビリティ権限のお願い</string>
+    <string name="privacy_policy">プライバシーポリシー</string>
     <string name="app_lock_accessibility_intro">アプリロック機能を利用するにはアクセシビリティサービスを許可する必要があります。設定へ進み許可してください。不要な場合は後から設定画面で解除も出来ます。</string>
     <string name="go_to_settings">設定へ</string>
     <string name="not_now">今は設定しない</string>
@@ -71,7 +72,7 @@
 
     <string name="imported_count_message">%1$d 件インポートしました</string>
     <string name="no_question_available">現在出題可能な問題がありません</string>
-    <string name="label_include_other_grades">他レベルも含む</string>
+    <string name="label_include_other_grades">他Lv含む</string>
     <string name="label_auto_play_audio">自動再生</string>
 
     <string name="admin_lock_title">管理者画面のロック</string>

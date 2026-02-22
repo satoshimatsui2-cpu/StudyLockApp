@@ -859,7 +859,6 @@ no,grade,word,japanese,description,small_topic,medium_category
 858,4,Bicycle,自転車,Two wheel vehicle.,bicycles_and_cycling,transport_road
 859,4,Came,来た,Past tense of come.,movement_transport,actions_physical
 860,4,Choose,選ぶ,Pick one.,deciding_and_choosing,actions_mental_and_social
-861,4,Classmates,クラスメート,Students in same class.,students_and_life,education_school_life
 862,4,Kyoto,京都,Place name in Japan.,city_places,transport_travel
 863,4,Mountains,山々,High land areas.,mountains_and_valleys,nature_environment
 864,4,Osaka,大阪,Place name in Japan.,city_places,transport_travel
@@ -958,7 +957,7 @@ no,grade,word,japanese,description,small_topic,medium_category
 957,4,Camping,キャンプ,Outdoor activity.,camping_and_outdoors,leisure_hobbies
 958,4,Care,世話,Look after someone.,raising_and_caring,actions_mental_and_social
 959,4,Caught,つかまえた,Past tense of catch.,hand_actions_hold_take,actions_physical
-960,4,Child,子ども,Young person.,childhood,life_stages_and_events
+960,4,Child,子供,Young person.,childhood,life_stages_and_events
 961,4,Chose,選んだ,Past tense of choose.,deciding_and_choosing,actions_mental_and_social
 962,4,Cleaned,掃除した,Past tense of clean.,home_housework,home_housework
 963,4,Climbed,登った,Past tense of climb.,movement_walk_run,actions_physical

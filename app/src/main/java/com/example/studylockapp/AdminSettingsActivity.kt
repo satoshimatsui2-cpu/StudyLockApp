@@ -101,6 +101,9 @@ class AdminSettingsActivity : AppCompatActivity() {
             options.setCaptureActivity(CaptureActivityPortrait::class.java) // 縦画面固定
             barcodeLauncher.launch(options)
         }
+        findViewById<TextView>(R.id.text_privacy_policy)?.setOnClickListener {
+            startActivity(Intent(this, com.example.studylockapp.ui.PrivacyPolicyActivity::class.java))
+        }
     }
 
     private fun setupAccordions() {
