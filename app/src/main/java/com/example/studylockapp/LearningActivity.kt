@@ -1656,7 +1656,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textGold?.text = "${(stats?.gold ?: 0) * 100 / total}%"
             textCrystal?.text = "${(stats?.crystal ?: 0) * 100 / total}%"
 
-            if (isTestMode && modeKey != LearningModes.TEST_LISTEN_Q2) card.alpha = 0.5f
+
 
             if (currentMode == modeKey) {
                 card.strokeColor = color
