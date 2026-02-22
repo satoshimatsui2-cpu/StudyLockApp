@@ -152,7 +152,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
     }
     // endregion
+    private fun showCover() {
+        val cover = findViewById<View>(R.id.cover_layout)
+        cover.visibility = View.VISIBLE
+        cover.bringToFront()
+        cover.invalidate()
+    }
 
+    private fun hideCover() {
+        findViewById<View>(R.id.cover_layout).visibility = View.GONE
+    }
     // region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -370,7 +379,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         buttonDontKnow = findViewById(R.id.button_dont_know)
 
         // 起動時は念のため隠す
-        coverLayout?.visibility = View.GONE
+        showCover()
         // ▲▲▲ 追加ここまで ▲▲▲
 
         textFeedback.visibility = View.GONE
@@ -413,6 +422,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         outState.putBoolean(STATE_HIDE_CHOICES, checkboxHideChoices?.isChecked == true)
         outState.putBoolean(STATE_AUTO_PLAY, checkboxAutoPlayAudio?.isChecked == true)
         outState.putBoolean(STATE_COVER_VISIBLE, coverLayout?.visibility == View.VISIBLE)
+        outState.putBoolean(STATE_COVER_VISIBLE,findViewById<View>(R.id.cover_layout).visibility == View.VISIBLE)
     }
     private fun enableConversationButtons() {
         choiceButtons.forEach { btn ->
@@ -1115,18 +1125,25 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun setCoverVisible(visible: Boolean) {
-        // coverLayout は initViews() で findViewById してる前提
-        coverLayout?.visibility = if (visible) View.VISIBLE else View.GONE
+        val cover = findViewById<View>(R.id.cover_layout) // 変数に依存しないで確実に取る
 
-        // ✅ カバー表示中は選択肢を押せないようにする
+        if (visible) {
+            cover.visibility = View.VISIBLE
+            cover.isClickable = true
+            cover.isFocusable = true
+
+            // ★これが効く：表示するたび最前面へ
+            cover.bringToFront()
+            cover.invalidate()
+        } else {
+            cover.visibility = View.GONE
+        }
+
+        // ✅ カバー表示中は選択肢を押せないようにする（最強の保険）
         choiceButtons.forEach { btn ->
             btn.isEnabled = !visible
             btn.isClickable = !visible
         }
-
-        // ✅ クリックが背面に抜けないようにする保険
-        coverLayout?.isClickable = visible
-        coverLayout?.isFocusable = visible
     }
 
     private fun onChoiceSelected(selectedIndex: Int) {
@@ -1142,7 +1159,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val isCorrect = (!isDontKnow && selectedIndex == ctx.correctIndex)
 
         // 選択した瞬間にカバーは閉じる（テンポ良く）
-        coverLayout?.visibility = View.GONE
+        hideCover()
 
         choiceButtons.forEach { it.isClickable = false }
 
@@ -1187,7 +1204,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val ctx = currentLegacyContext ?: return
 
         // カバーを外す
-        coverLayout?.visibility = View.GONE
+        hideCover()
 
         // ボタン無効化 + 正解だけ緑表示（赤は出さない）
         choiceButtons.forEach { it.isClickable = false }
