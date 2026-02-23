@@ -13,12 +13,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="プライバシーポリシー"
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline5" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:textColor="?attr/colorOnSurface"
             android:text="本アプリは、学習機能および利用制限機能を提供するため、以下の情報を取り扱います。" />
 
         <TextView
@@ -26,12 +28,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="取得する情報："
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="?attr/colorOnSurface"
             android:text="・アカウント識別子（例：Firebase AuthenticationのUID）\n・学習履歴（正誤、学習回数、習熟度、獲得ポイント等）\n・アプリ設定情報（利用制限の設定、通知設定等）\n・通知配信用トークン（Firebase Cloud Messaging トークン）" />
 
         <TextView
@@ -39,12 +43,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="取得しない情報："
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="?attr/colorOnSurface"
             android:text="・キーボード入力内容（パスワード、メッセージ本文等）\n・通話内容、連絡先、写真・動画等（本アプリが要求していない範囲）" />
 
         <TextView
@@ -52,12 +58,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="アクセシビリティ権限について："
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="?attr/colorOnSurface"
             android:text="本アプリは、ユーザーが設定した利用制限（対象アプリの検知と制限画面への切替）を実行するためにアクセシビリティ権限を利用します。\n取得した情報を広告目的で利用したり、入力内容を収集したりすることはありません。" />
 
         <TextView
@@ -65,12 +73,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="外部サービスの利用："
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="?attr/colorOnSurface"
             android:text="本アプリは Firebase（Firestore/FCM 等）を利用してデータ保存や通知送信を行う場合があります。" />
 
         <TextView
@@ -78,25 +88,29 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="データの削除："
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="ユーザーは [アプリ内の削除導線 / 問い合わせ窓口] からデータ削除を申請できます。" />
+            android:textColor="?attr/colorOnSurface"
+            android:text="ユーザーは [問い合わせ窓口] からデータ削除を申請できます。" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="お問い合わせ先："
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="?attr/colorOnSurface"
             android:text="[studylocking@gmail.com]" />
 
         <TextView
@@ -104,12 +118,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="改定："
+            android:textColor="?attr/colorOnSurface"
             android:textAppearance="?attr/textAppearanceHeadline6" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textColor="?attr/colorOnSurface"
             android:text="本ポリシーは必要に応じて改定されます。" />
 
     </LinearLayout>
