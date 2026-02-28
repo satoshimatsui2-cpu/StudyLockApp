@@ -179,10 +179,10 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         val settings = AppSettings(this)
-        if (!settings.hasChosenTimeZone()) {
-            startActivity(Intent(this, TimeZoneSetupActivity::class.java))
-            return
-        }
+//        if (!settings.hasChosenTimeZone()) {
+//            startActivity(Intent(this, TimeZoneSetupActivity::class.java))
+//            return
+//        }
 
         // 連打 / 戻ってきた時の多重起動防止
         permissionDialogsJob?.cancel()

@@ -25,7 +25,6 @@ import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.QrCodeActivity
 import com.example.studylockapp.ui.applock.AppLockSettingsActivity
 import com.example.studylockapp.ui.setup.AuthenticatorSetupActivity
-import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -292,8 +291,8 @@ class AdminSettingsActivity : AppCompatActivity() {
         val seekUnlockMinPer10Pt = findViewById<SeekBar>(R.id.seek_unlock_min_per_10pt)
         val btnSave = findViewById<MaterialButton>(R.id.btn_save)
 
-        findViewById<MaterialButton>(R.id.button_open_timezone_setup)?.setOnClickListener {
-            startActivity(Intent(this, TimeZoneSetupActivity::class.java))
+        findViewById<MaterialButton>(R.id.button_open_timezone_setup)?.apply {
+            visibility = View.GONE
         }
         findViewById<MaterialButton>(R.id.button_app_lock_settings)?.setOnClickListener {
             startActivity(Intent(this, AppLockSettingsActivity::class.java))

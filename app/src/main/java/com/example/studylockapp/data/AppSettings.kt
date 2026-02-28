@@ -165,21 +165,12 @@ class AppSettings(context: Context) {
 
     /**
      * アプリ内で使う ZoneId を統一して取得する
-     * 保存値が null/空：Tokyo をデフォルト採用
-     * 保存値が不正：Tokyo → それも失敗した場合は systemDefault にフォールバック
+     *
+     * Phase 1: 挙動を端末タイムゾーンに統一するため、常に systemDefault を返す。
+     * 呼び出し側は変更しない。
      */
     fun getAppZoneId(): ZoneId {
-        val stored = appTimeZoneId
-        val tokyo = try {
-            ZoneId.of(DEFAULT_ZONE_ID)
-        } catch (_: Exception) {
-            ZoneId.systemDefault()
-        }
-        return try {
-            if (stored.isNullOrBlank()) tokyo else ZoneId.of(stored)
-        } catch (_: Exception) {
-            tokyo
-        }
+        return ZoneId.systemDefault()
     }
 
     // --- App Lock ---
