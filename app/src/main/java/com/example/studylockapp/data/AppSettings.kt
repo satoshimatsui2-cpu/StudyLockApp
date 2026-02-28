@@ -60,6 +60,7 @@ class AppSettings(context: Context) {
         private const val KEY_INCLUDE_OTHER_GRADES = "learning_include_other_grades"
         private const val KEY_HIDE_CHOICES = "learning_hide_choices"
         private const val KEY_AUTO_PLAY = "learning_auto_play"
+        private const val PREF_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec"
         private const val KEY_LAST_GRADE_FILTER = "learning_last_grade_filter"
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
@@ -136,6 +137,9 @@ class AppSettings(context: Context) {
         get() = prefs.getString(KEY_LAST_SELECTED_GRADE, null)
         set(value) = prefs.edit { putString(KEY_LAST_SELECTED_GRADE, value) }
 
+    var dontKnowRetrySec: Long
+        get() = prefs.getLong(PREF_DONT_KNOW_RETRY_SEC, 5L)
+        set(value) = prefs.edit().putLong(PREF_DONT_KNOW_RETRY_SEC, value).apply()
     /**
      * タイムゾーンID（例: "Asia/Tokyo"）
      * null/空の場合は端末の systemDefault を使う

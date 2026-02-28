@@ -1177,12 +1177,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // ★保存＆共通処理
         StudyHistoryRepository.save(ctx.word.grade, currentMode, isCorrect)
-        processAnswerResultLegacy(ctx.word, isCorrect)
+
+        // ★通常解答は fromDontKnow=false（isDontKnow経路が将来来ても対応できるよう渡す）
+        processAnswerResultLegacy(ctx.word, isCorrect, fromDontKnow = isDontKnow)
     }
 
-    private fun processAnswerResultLegacy(word: WordEntity, isCorrect: Boolean) {
+    private fun processAnswerResultLegacy(
+        word: WordEntity,
+        isCorrect: Boolean,
+        fromDontKnow: Boolean = false
+    ) {
         lifecycleScope.launch {
-            val (addPoint, levelUpInfo) = registerAnswerToDb(word, isCorrect)
+            val (addPoint, levelUpInfo) = registerAnswerToDb(word, isCorrect, fromDontKnow)
 
             if (isCorrect) {
                 checkAndAnimateTrophy(levelUpInfo.first, levelUpInfo.second)
@@ -1216,12 +1222,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // 保存＆共通の不正解処理
         StudyHistoryRepository.save(ctx.word.grade, currentMode, false)
-        processAnswerResultLegacy(ctx.word, false)
+
+        // ★「わからない」経由
+        processAnswerResultLegacy(ctx.word, false, fromDontKnow = true)
     }
 
     private suspend fun registerAnswerToDb(
         word: WordEntity,
-        isCorrect: Boolean
+        isCorrect: Boolean,
+        fromDontKnow: Boolean = false
     ): Pair<Int, Pair<Int, Int>> {
         return withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@LearningActivity)
@@ -1231,7 +1240,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val current = progressDao.getProgress(word.no, currentMode)
             val currentLevel = current?.level ?: 0
-            val (newLevel, nextDueAtSec) = calcNextDueAtSec(isCorrect, currentLevel, nowSec)
+
+            // ★ここが重要：fromDontKnow を渡す
+            val (newLevel, nextDueAtSec) = calcNextDueAtSec(
+                isCorrect = isCorrect,
+                currentLevel = currentLevel,
+                nowSec = nowSec,
+                fromDontKnow = fromDontKnow
+            )
 
             val basePoint = settings.getBasePoint(currentMode)
 
@@ -1404,12 +1420,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun calcNextDueAtSec(
         isCorrect: Boolean,
         currentLevel: Int,
-        nowSec: Long
+        nowSec: Long,
+        fromDontKnow: Boolean = false
     ): Pair<Int, Long> {
         val newLevel = if (isCorrect) currentLevel + 1 else maxOf(0, currentLevel - 2)
         val zone = settings.getAppZoneId()
 
-        // ★追加: テストモードかどうかを判定
+        // ★ テストモード判定
         val isTestMode = currentMode in setOf(
             LearningModes.TEST_FILL_BLANK,
             LearningModes.TEST_SORT,
@@ -1422,34 +1439,38 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .toLocalDate().plusDays(1).atStartOfDay(zone).toEpochSecond()
 
         if (!isCorrect) {
-            // --- 不正解の場合 ---
             return if (isTestMode) {
-                // テストモードなら、間違えてもすぐには出さず「翌日」に回す
+                // テストモードなら翌日
                 newLevel to nextDaySec
             } else {
-                // 通常モードなら、設定された短い時間（数分後など）で再出題
-                newLevel to (nowSec + settings.wrongRetrySec)
+                // ★通常不正解：wrongRetrySec / 「わからない」：dontKnowRetrySec
+                val retrySec = if (fromDontKnow) {
+                    settings.dontKnowRetrySec   // ← AppSettingsに追加（デフォルト5秒）
+                } else {
+                    settings.wrongRetrySec
+                }
+                newLevel to (nowSec + retrySec)
             }
         }
 
         if (newLevel == 1) {
-            // --- 正解したがレベルが低い(Lv1)場合 ---
             return if (isTestMode) {
-                // テストモードなら、ここでも「翌日」まで空ける
                 newLevel to nextDaySec
             } else {
-                // 通常モードなら、短時間で復習
                 newLevel to (nowSec + settings.level1RetrySec)
             }
         }
 
-        // --- レベル2以上（間隔反復） ---
-        // 元々「1日後、3日後...」という設定なので、そのまま適用（最低でも翌日になる）
         val days = when (newLevel) {
-            2 -> 1; 3 -> 3; 4 -> 7; 5 -> 14; 6 -> 30; 7 -> 60; else -> 90
+            2 -> 1
+            3 -> 3
+            4 -> 7
+            5 -> 14
+            6 -> 30
+            7 -> 60
+            else -> 90
         }
-        val dueDate =
-            Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate().plusDays(days.toLong())
+        val dueDate = Instant.ofEpochSecond(nowSec).atZone(zone).toLocalDate().plusDays(days.toLong())
         return newLevel to dueDate.atStartOfDay(zone).toEpochSecond()
     }
 
