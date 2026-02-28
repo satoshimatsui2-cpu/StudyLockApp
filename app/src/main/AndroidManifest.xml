@@ -53,10 +53,6 @@
             android:label="アプリロック設定" />
 
         <activity
-            android:name=".ui.setup.TimeZoneSetupActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".AdminSettingsActivity"
             android:hardwareAccelerated="true"
             android:exported="false" />
