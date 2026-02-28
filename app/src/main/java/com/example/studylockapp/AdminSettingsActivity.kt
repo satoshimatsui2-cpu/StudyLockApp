@@ -283,12 +283,20 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         val textInterval = findViewById<TextView>(R.id.text_interval)
         val seekInterval = findViewById<SeekBar>(R.id.seek_interval)
+
         val textWrongRetry = findViewById<TextView>(R.id.text_wrong_retry)
         val seekWrongRetry = findViewById<SeekBar>(R.id.seek_wrong_retry)
+
         val textLevel1Retry = findViewById<TextView>(R.id.text_level1_retry)
         val seekLevel1Retry = findViewById<SeekBar>(R.id.seek_level1_retry)
+
+        // ★追加：わからない用
+        val textDontKnowRetry = findViewById<TextView>(R.id.text_dont_know_retry)
+        val seekDontKnowRetry = findViewById<SeekBar>(R.id.seek_dont_know_retry)
+
         val textUnlockMinPer10Pt = findViewById<TextView>(R.id.text_unlock_min_per_10pt_value)
         val seekUnlockMinPer10Pt = findViewById<SeekBar>(R.id.seek_unlock_min_per_10pt)
+
         val btnSave = findViewById<MaterialButton>(R.id.btn_save)
 
         findViewById<MaterialButton>(R.id.button_open_timezone_setup)?.apply {
@@ -305,34 +313,72 @@ class AdminSettingsActivity : AppCompatActivity() {
         seekWrongRetry.max = 118
         seekLevel1Retry.max = 118
 
-        fun intervalMsToProgress(ms: Long): Int = ((ms.coerceIn(500L, 10_000L) - 500L) / 500L).toInt()
-        fun progressToIntervalMs(progress: Int): Long = 500L + (progress.coerceIn(0, 19) * 500L)
-        fun secToProgress(sec: Long): Int = ((sec.coerceIn(10L, 600L) - 10L) / 5L).toInt()
-        fun progressToSec(progress: Int): Long = 10L + (progress.coerceIn(0, 118) * 5L)
+        // ★追加：5〜100秒（5秒刻み） => progress 0..19
+        seekDontKnowRetry.max = 19
+
+        fun intervalMsToProgress(ms: Long): Int =
+            ((ms.coerceIn(500L, 10_000L) - 500L) / 500L).toInt()
+        fun progressToIntervalMs(progress: Int): Long =
+            500L + (progress.coerceIn(0, 19) * 500L)
+
+        fun secToProgress(sec: Long): Int =
+            ((sec.coerceIn(10L, 600L) - 10L) / 5L).toInt()
+        fun progressToSec(progress: Int): Long =
+            10L + (progress.coerceIn(0, 118) * 5L)
+
         fun minPer10PtToProgress(value: Int): Int = value.coerceIn(1, 10) - 1
         fun progressToMinPer10Pt(progress: Int): Int = progress.coerceIn(0, 9) + 1
+
+        // ★追加：わからない用（5〜100秒）
+        fun dontKnowSecToProgress(sec: Long): Int =
+            ((sec.coerceIn(5L, 100L) - 5L) / 5L).toInt()
+        fun progressToDontKnowSec(progress: Int): Long =
+            5L + (progress.coerceIn(0, 19) * 5L)
 
         seekInterval.progress = intervalMsToProgress(settings.answerIntervalMs)
         seekWrongRetry.progress = secToProgress(settings.wrongRetrySec)
         seekLevel1Retry.progress = secToProgress(settings.level1RetrySec)
         seekUnlockMinPer10Pt.progress = minPer10PtToProgress(settings.getUnlockMinutesPer10Pt())
 
+        // ★追加：わからない用の初期値
+        seekDontKnowRetry.progress = dontKnowSecToProgress(settings.dontKnowRetrySec)
+
         fun refreshLabels() {
             val sec = progressToIntervalMs(seekInterval.progress) / 1000f
             textInterval.text = getString(R.string.admin_label_interval_sec, sec)
-            textWrongRetry.text = getString(R.string.admin_label_wrong_retry_sec, progressToSec(seekWrongRetry.progress))
-            textLevel1Retry.text = getString(R.string.admin_label_level1_retry_sec, progressToSec(seekLevel1Retry.progress))
-            textUnlockMinPer10Pt.text = getString(R.string.admin_label_unlock_min_per_10pt_value, progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
+            textWrongRetry.text = getString(
+                R.string.admin_label_wrong_retry_sec,
+                progressToSec(seekWrongRetry.progress)
+            )
+            textLevel1Retry.text = getString(
+                R.string.admin_label_level1_retry_sec,
+                progressToSec(seekLevel1Retry.progress)
+            )
+
+            // ★追加：strings.xml に admin_label_dont_know_retry_sec を追加している前提
+            textDontKnowRetry.text = getString(
+                R.string.admin_label_dont_know_retry_sec,
+                progressToDontKnowSec(seekDontKnowRetry.progress)
+            )
+
+            textUnlockMinPer10Pt.text = getString(
+                R.string.admin_label_unlock_min_per_10pt_value,
+                progressToMinPer10Pt(seekUnlockMinPer10Pt.progress)
+            )
         }
         refreshLabels()
 
         val commonListener = object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) { refreshLabels() }
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                refreshLabels()
+            }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         }
 
-        listOf(seekInterval, seekWrongRetry, seekLevel1Retry, seekUnlockMinPer10Pt).forEach { it.setOnSeekBarChangeListener(commonListener) }
+        // ★追加：seekDontKnowRetry も共通リスナーに含める
+        listOf(seekInterval, seekWrongRetry, seekLevel1Retry, seekDontKnowRetry, seekUnlockMinPer10Pt)
+            .forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnSave.setOnClickListener {
             val selectedGrade = spinnerCurrentGrade.selectedItem?.toString() ?: "1級"
@@ -348,6 +394,10 @@ class AdminSettingsActivity : AppCompatActivity() {
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
+
+            // ★追加：保存
+            settings.dontKnowRetrySec = progressToDontKnowSec(seekDontKnowRetry.progress)
+
             settings.setUnlockMinutesPer10Pt(progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
             AdAudioManager.apply(settings)
             finish()

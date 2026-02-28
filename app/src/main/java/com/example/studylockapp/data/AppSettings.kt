@@ -138,7 +138,7 @@ class AppSettings(context: Context) {
         set(value) = prefs.edit { putString(KEY_LAST_SELECTED_GRADE, value) }
 
     var dontKnowRetrySec: Long
-        get() = prefs.getLong(PREF_DONT_KNOW_RETRY_SEC, 5L)
+        get() = prefs.getLong(PREF_DONT_KNOW_RETRY_SEC, 10L)
         set(value) = prefs.edit().putLong(PREF_DONT_KNOW_RETRY_SEC, value).apply()
     /**
      * タイムゾーンID（例: "Asia/Tokyo"）

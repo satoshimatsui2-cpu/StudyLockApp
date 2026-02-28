@@ -18,6 +18,7 @@
     <string name="admin_label_interval_sec">回答後、次の問題が出題されるまで: %.1f 秒</string>
     <string name="admin_label_wrong_retry_sec">当日再出題(不正解)まで: %1$d 秒</string>
     <string name="admin_label_level1_retry_sec">当日再出題(正解)まで: %1$d 秒</string>
+    <string name="admin_label_dont_know_retry_sec">当日再出題（わからない）: %1$d 秒</string>
     <string name="admin_label_se_correct">正解SE音量: %1$d%%</string>
     <string name="admin_label_se_wrong">不正解SE音量: %1$d%%</string>
     <string name="admin_label_tts">単語発音(TTS)音量: %1$d%%</string>

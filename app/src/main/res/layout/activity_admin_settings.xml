@@ -852,6 +852,7 @@
                             android:layout_height="wrap_content"
                             android:max="118" />
 
+
                         <TextView
                             android:id="@+id/text_level1_retry"
                             android:layout_width="match_parent"
@@ -864,6 +865,21 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:max="118" />
+                        <TextView
+                            android:id="@+id/text_dont_know_retry"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:textColor="?attr/colorOnSurface"
+                            tools:text="当日再出題（わからない）: 10 秒"
+                            />
+
+                        <SeekBar
+                            android:id="@+id/seek_dont_know_retry"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="19"
+                            />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_open_timezone_setup"
