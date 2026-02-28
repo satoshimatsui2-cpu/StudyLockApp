@@ -32,7 +32,6 @@ import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
-import com.example.studylockapp.ui.setup.TimeZoneSetupActivity
 import com.example.studylockapp.worker.DailyReportWorker
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
@@ -178,7 +177,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        val settings = AppSettings(this)
+//        val settings = AppSettings(this)
 //        if (!settings.hasChosenTimeZone()) {
 //            startActivity(Intent(this, TimeZoneSetupActivity::class.java))
 //            return

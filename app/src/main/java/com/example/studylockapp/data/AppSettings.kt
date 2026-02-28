@@ -11,7 +11,6 @@ class AppSettings(context: Context) {
 
     companion object {
         private const val KEY_ANSWER_INTERVAL_MS = "answer_interval_ms" // Long
-        private const val DEFAULT_ZONE_ID = "Asia/Tokyo"
 
         // 音量・TTS
         private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume" // 0..100 または 0f..1f が混在し得る
@@ -26,11 +25,6 @@ class AppSettings(context: Context) {
 
         private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"
         private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"
-
-        // タイムゾーン（例: "Asia/Tokyo"）。null/空なら端末の systemDefault を使う
-        private const val KEY_APP_TIME_ZONE_ID = "app_time_zone_id"
-        // 「初回にタイムゾーン選択を済ませたか」
-        private const val KEY_TIME_ZONE_CHOSEN = "time_zone_chosen" // Boolean
 
         private const val KEY_LAST_SELECTED_GRADE = "last_selected_grade"
 
@@ -140,32 +134,6 @@ class AppSettings(context: Context) {
     var dontKnowRetrySec: Long
         get() = prefs.getLong(PREF_DONT_KNOW_RETRY_SEC, 10L)
         set(value) = prefs.edit().putLong(PREF_DONT_KNOW_RETRY_SEC, value).apply()
-    /**
-     * タイムゾーンID（例: "Asia/Tokyo"）
-     * null/空の場合は端末の systemDefault を使う
-     */
-    var appTimeZoneId: String?
-        get() = prefs.getString(KEY_APP_TIME_ZONE_ID, null)
-        set(value) = prefs.edit { putString(KEY_APP_TIME_ZONE_ID, value) }
-
-    /**
-     * 初回セットアップ用：タイムゾーンを「選択したことがあるか」
-     * - 端末デフォルト（appTimeZoneId=null）を選んでも true にできるよう別キーで管理
-     */
-    var timeZoneChosen: Boolean
-        get() = prefs.getBoolean(KEY_TIME_ZONE_CHOSEN, false)
-        set(value) = prefs.edit { putBoolean(KEY_TIME_ZONE_CHOSEN, value) }
-
-    fun hasChosenTimeZone(): Boolean = timeZoneChosen
-
-    /**
-     * timeZoneId: "Asia/Tokyo" など。端末デフォルトを使うなら null を渡す
-     * ※必ず「選択済み」にする
-     */
-    fun setTimeZone(timeZoneId: String?) {
-        appTimeZoneId = timeZoneId
-        timeZoneChosen = true
-    }
 
     /**
      * アプリ内で使う ZoneId を統一して取得する
@@ -185,7 +153,7 @@ class AppSettings(context: Context) {
         prefs.edit { putBoolean(KEY_APP_LOCK_ENABLED, enabled) }
     }
 
-    // ★追加: アンインストール防止機能が有効かどうか
+    // ★追加: アンインストール防止機能用キー
     fun isUninstallLockEnabled(): Boolean {
         return prefs.getBoolean(KEY_UNINSTALL_LOCK, false)
     }
