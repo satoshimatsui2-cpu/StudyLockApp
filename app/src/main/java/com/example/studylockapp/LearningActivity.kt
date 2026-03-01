@@ -1049,43 +1049,38 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         textQuestionTitle.text = ctx.title
         textQuestionBody.text = ctx.body
-        textQuestionBody.visibility = if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
+        textQuestionBody.visibility =
+            if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
 
-        // ---- ここが大事：毎回スタイルを「完全に」決め打ちする ----
-        val lp = textQuestionBody.layoutParams
+        // ⭐ 幅は絶対に触らない（wrap_contentのまま）
+        // val lp = textQuestionBody.layoutParams  ← 削除
 
         if (currentMode == LearningModes.TEST_FILL_BLANK) {
-            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
-            textQuestionBody.layoutParams = lp
 
-            // 穴埋め：左寄せ（2行でも左揃え）
+            // 穴埋め：左寄せ
             textQuestionBody.gravity = android.view.Gravity.START
             textQuestionBody.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
             textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21f)
 
-            textQuestionBody.isSingleLine = false
-            textQuestionBody.setHorizontallyScrolling(false)
-
         } else {
-            // それ以外：センター寄りに戻す（複数行も中央揃え）
-            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
-            textQuestionBody.layoutParams = lp
 
+            // それ以外：中央寄せ
             textQuestionBody.gravity = android.view.Gravity.CENTER
             textQuestionBody.textAlignment = View.TEXT_ALIGNMENT_CENTER
             textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
-
-            textQuestionBody.isSingleLine = false
-            textQuestionBody.setHorizontallyScrolling(false)
         }
 
-        textQuestionBody.requestLayout()
+        textQuestionBody.isSingleLine = false
+        textQuestionBody.setHorizontallyScrolling(false)
 
-        // ---- ボタン表示：options数だけ出す（穴埋め4択対応）----
-        choiceButtons.forEachIndexed { index, btn ->
+        // ⭐ requestLayoutも不要（削除）
+        // textQuestionBody.requestLayout()
+
+        // ---- ボタン表示 ----
+        choiceButtons.forEachIndexed { _, btn ->
             btn.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f
             btn.visibility = View.GONE
-            btn.text = "" // 残り文字対策
+            btn.text = ""
         }
 
         ctx.options.forEachIndexed { i, txt ->
@@ -1100,7 +1095,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 buttonPlayAudio.visibility = View.GONE
             }
 
-            LearningModes.MEANING, LearningModes.EN_EN_1, LearningModes.EN_EN_2 -> {
+            LearningModes.MEANING,
+            LearningModes.EN_EN_1,
+            LearningModes.EN_EN_2 -> {
                 checkboxAutoPlayAudio?.visibility = View.VISIBLE
                 buttonPlayAudio.visibility = View.VISIBLE
             }
@@ -1110,17 +1107,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 buttonPlayAudio.visibility = View.VISIBLE
             }
         }
-        // ▼▼▼ 追加：チェックONならカバーを出す（毎回ここで決め打ち） ▼▼▼
+
+        // ---- カバー制御 ----
         val enableHide = (checkboxHideChoices?.isChecked == true)
         val allowHideInThisMode =
-            currentMode != LearningModes.TEST_LISTEN_Q2 && currentMode != LearningModes.TEST_SORT
+            currentMode != LearningModes.TEST_LISTEN_Q2 &&
+                    currentMode != LearningModes.TEST_SORT
 
         val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
-        coverLayout?.visibility = if (enableHide && allowHideInThisMode && hasVisibleChoice) {
-            View.VISIBLE
-        } else {
-            View.GONE
-        }
+
+        coverLayout?.visibility =
+            if (enableHide && allowHideInThisMode && hasVisibleChoice)
+                View.VISIBLE
+            else
+                View.GONE
+
         // ---- TTSアイコン制御 ----
         val showTtsIcon =
             currentMode == LearningModes.EN_EN_1 ||
@@ -1132,8 +1133,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textQuestionBody.setOnClickListener {
                 ctx.audioText?.let { speakText(it) }
             }
+        } else {
+            textQuestionBody.setOnClickListener(null)
         }
-    // ▲▲▲ 追加ここまで ▲▲▲
     }
     private fun applyTtsDrawable(show: Boolean) {
         if (!show) {
@@ -1149,7 +1151,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         ) ?: return
 
         // 20dpくらいに縮小
-        val size = (resources.displayMetrics.density * 20).toInt()
+        val size = (resources.displayMetrics.density * 28).toInt()
         drawable.setBounds(0, 0, size, size)
 
         // 少し薄く
