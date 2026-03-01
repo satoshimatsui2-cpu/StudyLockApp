@@ -177,7 +177,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-//        val settings = AppSettings(this)
 //        if (!settings.hasChosenTimeZone()) {
 //            startActivity(Intent(this, TimeZoneSetupActivity::class.java))
 //            return
@@ -316,19 +315,27 @@ class MainActivity : AppCompatActivity() {
     private suspend fun maybeShowAccessibilityDialogSequential(): Boolean {
         // 既に何か出てたら何もしない（＝他を優先）
         if (accessibilityDialog?.isShowing == true || notificationDialog?.isShowing == true) return true
-
+    
         val settings = AppSettings(this)
         val svcEnabled = isAppLockServiceEnabled()
         val isRequired = AdminAuthManager.isAppLockRequired(this)
-
+    
         // DBチェックはIOで待つ（launchしない）
         val shouldForce = withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@MainActivity)
             val lockedCount = db.lockedAppDao().countLocked()
             settings.isAppLockEnabled() || lockedCount > 0
         }
-
-        if (!svcEnabled && shouldForce) {
+    
+        // ★追加：初回（未表示）かどうか
+        val isFirstIntro = !settings.hasShownAccessibilityIntro()
+    
+        // ★変更：AppLock有効/ロックあり「または」初回は表示する
+        if (!svcEnabled && (shouldForce || isFirstIntro)) {
+    
+            // ★重要：表示した時点でフラグを立てる（ループ防止）
+            settings.setHasShownAccessibilityIntro(true)
+    
             withContext(Dispatchers.Main) {
                 val msg = getString(R.string.app_lock_accessibility_message)
                 val builder = AlertDialog.Builder(this@MainActivity)
@@ -340,9 +347,10 @@ class MainActivity : AppCompatActivity() {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         })
                     }
-
+    
                 // 必須ONなら全解除ボタンを出さない
-                if (!isRequired) {
+                // ただし「初回表示」ではロックをいじる導線を出さない方が安全
+                if (!isRequired && shouldForce) {
                     builder.setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
                         lifecycleScope.launch(Dispatchers.IO) {
                             val db = AppDatabase.getInstance(this@MainActivity)
@@ -351,12 +359,13 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-
+    
                 // show() は1回だけ
                 accessibilityDialog = builder.show()
             }
             return true
         }
+
         return false
     }
 

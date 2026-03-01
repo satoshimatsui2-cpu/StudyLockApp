@@ -1121,9 +1121,52 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } else {
             View.GONE
         }
+        // ---- TTSアイコン制御 ----
+        val showTtsIcon =
+            currentMode == LearningModes.EN_EN_1 ||
+                    currentMode == LearningModes.EN_EN_2
+
+        applyTtsDrawable(showTtsIcon)
+
+        if (showTtsIcon) {
+            textQuestionBody.setOnClickListener {
+                ctx.audioText?.let { speakText(it) }
+            }
+        }
     // ▲▲▲ 追加ここまで ▲▲▲
     }
+    private fun applyTtsDrawable(show: Boolean) {
+        if (!show) {
+            textQuestionBody.setCompoundDrawablesRelative(null, null, null, null)
+            textQuestionBody.setOnClickListener(null)
+            textQuestionBody.isClickable = false
+            return
+        }
 
+        val drawable = ContextCompat.getDrawable(
+            this,
+            R.drawable.ic_round_play_circle_outline_24
+        ) ?: return
+
+        // 20dpくらいに縮小
+        val size = (resources.displayMetrics.density * 20).toInt()
+        drawable.setBounds(0, 0, size, size)
+
+        // 少し薄く
+        drawable.alpha = 160
+
+        textQuestionBody.setCompoundDrawablesRelative(
+            null,
+            null,
+            drawable,
+            null
+        )
+
+        textQuestionBody.compoundDrawablePadding =
+            (resources.displayMetrics.density * 6).toInt()
+
+        textQuestionBody.isClickable = true
+    }
     private fun setCoverVisible(visible: Boolean) {
         val cover = findViewById<View>(R.id.cover_layout) // 変数に依存しないで確実に取る
 
