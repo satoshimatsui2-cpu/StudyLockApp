@@ -1125,7 +1125,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // ---- TTSアイコン制御 ----
         val showTtsIcon =
             currentMode == LearningModes.EN_EN_1 ||
-                    currentMode == LearningModes.EN_EN_2
+            currentMode == LearningModes.EN_EN_2 ||
+            currentMode == LearningModes.MEANING
 
         applyTtsDrawable(showTtsIcon)
 
