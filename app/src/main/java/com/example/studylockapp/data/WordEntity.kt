@@ -11,5 +11,7 @@ data class WordEntity(
     val japanese: String,
     val description: String?,
     val smallTopicId: String?,
-    val mediumCategoryId: String?
+    val mediumCategoryId: String?,
+    val sentence: String? = null,
+    val japaneseSentence: String? = null
 )

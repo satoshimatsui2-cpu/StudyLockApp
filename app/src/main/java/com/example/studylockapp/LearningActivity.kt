@@ -1130,8 +1130,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         applyTtsDrawable(showTtsIcon)
 
-        if (showTtsIcon) {
-            textQuestionBody.setOnClickListener {
+        if (showTtsIcon) {            textQuestionBody.setOnClickListener {
                 ctx.audioText?.let { speakText(it) }
             }
         } else {

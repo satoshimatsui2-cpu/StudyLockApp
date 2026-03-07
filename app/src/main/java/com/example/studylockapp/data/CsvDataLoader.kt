@@ -27,7 +27,9 @@ class CsvDataLoader(private val context: Context) {
                                 japanese = cols[3].trim(),
                                 description = cols[4].trim(),
                                 smallTopicId = cols[5].trim(),
-                                mediumCategoryId = cols[6].trim()
+                                mediumCategoryId = cols[6].trim(),
+                                sentence = cols.getOrNull(7)?.trim(),
+                                japaneseSentence = cols.getOrNull(8)?.trim()
                             ))
                         }
                     }

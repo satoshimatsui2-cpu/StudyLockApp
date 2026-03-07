@@ -377,6 +377,47 @@
 
                         </LinearLayout>
 
+                        <!-- 例文セクション (Phase 2追加) -->
+                        <LinearLayout
+                            android:id="@+id/example_sentence_row"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/text_example_sentence"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="18sp"
+                                android:textStyle="italic"
+                                android:textColor="?attr/colorOnSurface"
+                                android:gravity="center"
+                                android:padding="4dp"/>
+
+                            <ImageView
+                                android:id="@+id/icon_example_tts"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_marginStart="6dp"
+                                android:src="@drawable/ic_round_play_circle_outline_24"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:clickable="true"
+                                android:focusable="true"/>
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/text_example_japanese"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:textAlignment="center"
+                            android:visibility="gone"/>
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
