@@ -306,6 +306,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
+                            android:gravity="center_vertical"
                             android:layout_marginTop="0dp">
 
                             <com.google.android.material.checkbox.MaterialCheckBox
@@ -325,16 +326,15 @@
                                 android:text="回答隠す"
                                 android:textColor="?attr/colorOnSurface"/>
 
-                            <com.google.android.material.checkbox.MaterialCheckBox
-                                android:id="@+id/checkbox_auto_play_audio"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                            <ImageButton
+                                android:id="@+id/button_toggle_auto_play"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
                                 android:layout_marginStart="16dp"
-                                android:textSize="13sp"
-                                android:text="@string/label_auto_play_audio"
-                                android:checked="true"
-                                android:visibility="gone"
-                                android:textColor="?attr/colorOnSurface"/>
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:src="@drawable/ic_volume_up_24"
+                                app:tint="?attr/colorOnSurface"
+                                android:contentDescription="自動再生切り替え" />
                         </LinearLayout>
                         <TextView
                             android:id="@+id/text_question_title"

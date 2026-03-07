@@ -97,6 +97,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var buttonReplayAudio: Button
     private lateinit var choiceButtons: List<Button>
     private lateinit var defaultChoiceTints: List<ColorStateList?>
+    private lateinit var buttonToggleAutoPlay: ImageButton
 
     private lateinit var layoutModeSelector: View
     private lateinit var selectorIconMode: ImageView
@@ -334,6 +335,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         buttonNextQuestion = findViewById(R.id.button_next_question)
         buttonReplayAudio = findViewById(R.id.button_replay_audio)
 
+        buttonToggleAutoPlay = findViewById(R.id.button_toggle_auto_play)
+        updateAutoPlayIcon(settings.learningAutoPlay)
         layoutModeSelector = findViewById(R.id.layout_mode_selector)
         selectorIconMode = findViewById(R.id.selector_icon_mode)
         selectorTextTitle = findViewById(R.id.selector_text_title)
@@ -375,9 +378,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 isChecked = false
                 includeOtherGradesReview = false
             }
-        checkboxAutoPlayAudio = findViewById<CheckBox?>(R.id.checkbox_auto_play_audio)?.apply {
-            isChecked = true
-        }
         // ▼▼▼ 追加：隠し機能UI取得 ▼▼▼
         checkboxHideChoices = findViewById<CheckBox?>(R.id.checkbox_hide_choices)?.apply {
             isChecked = false
@@ -428,7 +428,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         outState.putString(STATE_MODE, currentMode)
         outState.putBoolean(STATE_INCLUDE_OTHER, includeOtherGradesReview)
         outState.putBoolean(STATE_HIDE_CHOICES, checkboxHideChoices?.isChecked == true)
-        outState.putBoolean(STATE_AUTO_PLAY, checkboxAutoPlayAudio?.isChecked == true)
         outState.putBoolean(STATE_COVER_VISIBLE, coverLayout?.visibility == View.VISIBLE)
         outState.putBoolean(STATE_COVER_VISIBLE,findViewById<View>(R.id.cover_layout).visibility == View.VISIBLE)
     }
@@ -537,6 +536,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         buttonPlayAudio.setOnClickListener(audioClickListener)
         buttonReplayAudio.setOnClickListener(audioClickListener)
 
+        buttonToggleAutoPlay.setOnClickListener {
+            val newValue = !settings.learningAutoPlay
+            settings.learningAutoPlay = newValue
+            updateAutoPlayIcon(newValue)
+
+            // ユーザーへのフィードバック（任意）
+            val msg = if (newValue) "自動再生 ON" else "自動再生 OFF"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        }
+
         buttonSoundSettings.setOnClickListener {
             runCatching {
                 startActivity(Intent().apply {
@@ -564,9 +573,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             } else {
                 loadNextQuestionLegacy()
             }
-        }
-        checkboxAutoPlayAudio?.setOnCheckedChangeListener { _, isChecked ->
-            settings.learningAutoPlay = isChecked  // ★保存
         }
         checkboxHideChoices?.setOnCheckedChangeListener { _, isChecked ->
             if (suppressHideChoicesListener) return@setOnCheckedChangeListener
@@ -1015,7 +1021,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val shouldAuto = when (currentMode) {
             LearningModes.JA_TO_EN -> false
             LearningModes.LISTENING, LearningModes.LISTENING_JP -> true
-            else -> checkboxAutoPlayAudio?.isChecked == true && checkboxAutoPlayAudio?.visibility == View.VISIBLE
+            // チェックボックスではなく settings の値を直接見るように変更
+            else -> settings.learningAutoPlay
         }
 
         val audioText =
@@ -1099,19 +1106,19 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         when (currentMode) {
             LearningModes.JA_TO_EN -> {
-                checkboxAutoPlayAudio?.visibility = View.GONE
+                buttonToggleAutoPlay.visibility = View.GONE
                 buttonPlayAudio.visibility = View.GONE
             }
 
             LearningModes.MEANING,
             LearningModes.EN_EN_1,
             LearningModes.EN_EN_2 -> {
-                checkboxAutoPlayAudio?.visibility = View.VISIBLE
+                buttonToggleAutoPlay.visibility = View.VISIBLE
                 buttonPlayAudio.visibility = View.VISIBLE
             }
 
             else -> {
-                checkboxAutoPlayAudio?.visibility = View.GONE
+                buttonToggleAutoPlay.visibility = View.GONE
                 buttonPlayAudio.visibility = View.VISIBLE
             }
         }
@@ -2412,6 +2419,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val enableHide = (cb.isChecked == true)
             setCoverVisible(enableHide && hasVisibleChoice)
         }
+    }
+    private fun updateAutoPlayIcon(isEnabled: Boolean) {
+        val resId = if (isEnabled) {
+            R.drawable.ic_volume_up_24
+        } else {
+            R.drawable.outline_volume_off_24
+        }
+        buttonToggleAutoPlay.setImageResource(resId)
     }
 
 
