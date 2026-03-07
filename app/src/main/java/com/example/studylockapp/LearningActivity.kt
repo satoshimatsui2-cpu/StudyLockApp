@@ -28,6 +28,7 @@ import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.semantics.text
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -109,13 +110,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var textMasterGold: TextView
     private lateinit var textMasterCrystal: TextView
     private lateinit var textMasterPurple: TextView
-
+    private lateinit var exampleSentenceRow: LinearLayout
+    private lateinit var textExampleSentence: TextView
+    private lateinit var iconExampleTts: ImageView
+    private lateinit var textExampleJapanese: TextView
     private lateinit var iconMasterBronze: ImageView
     private lateinit var iconMasterSilver: ImageView
     private lateinit var iconMasterGold: ImageView
     private lateinit var iconMasterCrystal: ImageView
     private lateinit var iconMasterPurple: ImageView
-
     private lateinit var buttonPlayAudio: ImageButton
     private lateinit var buttonSoundSettings: ImageButton
     private var checkIncludeOtherGrades: CheckBox? = null
@@ -351,6 +354,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         buttonPlayAudio = findViewById(R.id.button_play_audio)
         buttonSoundSettings = findViewById(R.id.button_sound_settings)
+
+        exampleSentenceRow = findViewById(R.id.example_sentence_row)
+        textExampleSentence = findViewById(R.id.text_example_sentence)
+        iconExampleTts = findViewById(R.id.icon_example_tts)
+        textExampleJapanese = findViewById(R.id.text_example_japanese)
 
         choiceButtons = listOf(
             findViewById(R.id.button_choice_1),
@@ -1137,6 +1145,34 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textQuestionBody.setOnClickListener(null)
         }
     }
+    /** 回答後に例文を表示する */
+    private fun showExampleSentence(word: WordEntity) {
+        // 穴埋め・並び替えモードでは例文を表示しない
+        if (currentMode == LearningModes.TEST_FILL_BLANK || currentMode == LearningModes.TEST_SORT) {
+            exampleSentenceRow.visibility = View.GONE
+            textExampleJapanese.visibility = View.GONE
+            return
+        }
+
+        if (!word.sentence.isNullOrBlank()) {
+            textExampleSentence.text = word.sentence
+            textExampleJapanese.text = word.japaneseSentence ?: ""
+
+            exampleSentenceRow.visibility = View.VISIBLE
+            textExampleJapanese.visibility = if (word.japaneseSentence.isNullOrBlank()) View.GONE else View.VISIBLE
+
+            // TTS再生イベント
+            val playAction = View.OnClickListener {
+                word.sentence?.let { speakText(it) }
+            }
+            textExampleSentence.setOnClickListener(playAction)
+            iconExampleTts.setOnClickListener(playAction)
+            exampleSentenceRow.setOnClickListener(playAction)
+        } else {
+            exampleSentenceRow.visibility = View.GONE
+            textExampleJapanese.visibility = View.GONE
+        }
+    }
     private fun applyTtsDrawable(show: Boolean) {
         if (!show) {
             textQuestionBody.setCompoundDrawablesRelative(null, null, null, null)
@@ -1243,11 +1279,24 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             showFeedbackSnackbarInternal(isCorrect, addPoint)
             updatePointView()
 
+            // ▼ 例文を表示 (現在のコンテキストから安全に取得)
+            currentLegacyContext?.word?.let { showExampleSentence(it) }
+
             if (!isCorrect) {
+                // 不正解時：ボタンを出して停止
+                buttonNextQuestion.visibility = View.VISIBLE
                 layoutActionButtons.visibility = View.VISIBLE
             } else {
-                delay(settings.answerIntervalMs)
-                loadNextQuestionLegacy()
+                // 正解時
+                if (!currentLegacyContext?.word?.sentence.isNullOrBlank()) {
+                    // 例文がある場合：ボタンを出して停止
+                    buttonNextQuestion.visibility = View.VISIBLE
+                    layoutActionButtons.visibility = View.VISIBLE
+                } else {
+                    // 例文がない場合：自動で次へ
+                    delay(settings.answerIntervalMs)
+                    loadNextQuestionLegacy()
+                }
             }
         }
     }
@@ -1563,6 +1612,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         buttonPlayAudio.visibility = View.VISIBLE
+
+        // ▼ 例文表示のリセットとリスナー解除
+        exampleSentenceRow.visibility = View.GONE
+        textExampleJapanese.visibility = View.GONE
+        textExampleSentence.text = ""
+        textExampleJapanese.text = ""
+        textExampleSentence.setOnClickListener(null)
+        iconExampleTts.setOnClickListener(null)
+        exampleSentenceRow.setOnClickListener(null)
     }
 
     private fun showNoQuestion() {
