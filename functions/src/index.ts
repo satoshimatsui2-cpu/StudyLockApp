@@ -117,6 +117,20 @@ export const sendSecurityAlert = functions
     return { success: true };
   });
 
+// モード名変換マップ
+const modeMap: Record<string, string> = {
+  meaning: "英単語→日本語",
+  listening: "リスニング(英語→英語)",
+  listening_jp: "リスニング(英語→日本語)",
+  japanese_to_english: "日本語→英単語",
+  english_english_1: "英単語→英語意味",
+  english_english_2: "英語意味→英単語",
+  test_fill_blank: "穴埋めテスト",
+  test_sort: "並べ替えテスト",
+  test_listen_q1: "リスニング質問テスト",
+  test_listen_q2: "会話リスニングテスト"
+};
+
 // ■ 3. 日次レポート（毎日 朝7時 / Tokyo基準で前日→当日→2日前フォールバック）
 export const sendDailyReport = functions
   .region("asia-northeast1")
@@ -165,7 +179,6 @@ export const sendDailyReport = functions
       if (pickedDate && pickedStats) {
         const points = pickedStats.points || 0;
 
-        // ★重要：pointsUsed が本命。互換で usedPoints も見る
         const pointsUsed =
           (pickedStats.pointsUsed ?? pickedStats.usedPoints ?? pickedStats.usedPointsTotal ?? 0) || 0;
 
@@ -178,7 +191,10 @@ export const sendDailyReport = functions
         const accuracy = studyCount > 0 ? Math.round((correctCount / studyCount) * 100) : 0;
 
         const gradesText = gradesStudied.length > 0 ? gradesStudied.join("、") : "なし";
-        const modesText = modesStudied.length > 0 ? modesStudied.join("、") : "なし";
+
+        // モード名を日本語に変換
+        const displayModes = modesStudied.map((m: string) => modeMap[m] ?? m);
+        const modesText = displayModes.length > 0 ? displayModes.join("、") : "なし";
 
         studyMessage =
           `獲得: ${points} pt / 使用: ${pointsUsed} pt\n` +
@@ -197,8 +213,8 @@ export const sendDailyReport = functions
         const pickedMD = (() => {
           const parts = (pickedDate ?? "").split("-");
           if (parts.length !== 3) return pickedDate ?? "";
-          const m = String(parseInt(parts[1], 10)); // "2"
-          const d = String(parseInt(parts[2], 10)); // "21"
+          const m = String(parseInt(parts[1], 10));
+          const d = String(parseInt(parts[2], 10));
           return `${m}/${d}`;
         })();
         if (parentData.fcmToken) {
@@ -207,7 +223,7 @@ export const sendDailyReport = functions
               token: parentData.fcmToken,
               notification: {
                 title: `📅 【${childName}】${pickedMD}レポート`,
-          body: studyMessage, // ← `${}`いらないのでそのままでOK
+                body: studyMessage,
               },
               android: { priority: "high" },
             })
