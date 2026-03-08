@@ -97,6 +97,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var choiceButtons: List<Button>
     private lateinit var defaultChoiceTints: List<ColorStateList?>
     private lateinit var buttonToggleAutoPlay: ImageButton
+    private lateinit var buttonSoundSettings: ImageButton
 
     private lateinit var layoutModeSelector: View
     private lateinit var selectorIconMode: ImageView
@@ -119,8 +120,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var iconMasterGold: ImageView
     private lateinit var iconMasterCrystal: ImageView
     private lateinit var iconMasterPurple: ImageView
-    private lateinit var buttonPlayAudio: ImageButton
-    private lateinit var buttonSoundSettings: ImageButton
     private var checkIncludeOtherGrades: CheckBox? = null
     private var checkboxAutoPlayAudio: CheckBox? = null
     private var currentSnackbar: Snackbar? = null
@@ -333,7 +332,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         layoutActionButtons = findViewById(R.id.layout_action_buttons)
         buttonNextQuestion = findViewById(R.id.button_next_question)
         buttonReplayAudio = findViewById(R.id.button_replay_audio)
-
         buttonToggleAutoPlay = findViewById(R.id.button_toggle_auto_play)
         updateAutoPlayIcon(settings.learningAutoPlay)
         layoutModeSelector = findViewById(R.id.layout_mode_selector)
@@ -353,8 +351,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         iconMasterGold = findViewById(R.id.icon_master_gold)
         iconMasterCrystal = findViewById(R.id.icon_master_crystal)
         iconMasterPurple = findViewById(R.id.icon_master_purple)
+        buttonToggleAutoPlay = findViewById(R.id.button_toggle_auto_play)
+        buttonSoundSettings = findViewById(R.id.button_sound_settings)
 
-        buttonPlayAudio = findViewById(R.id.button_play_audio)
+        // 自動再生アイコンの初期状態を反映
+        updateAutoPlayIcon(settings.learningAutoPlay)
+
         buttonSoundSettings = findViewById(R.id.button_sound_settings)
 
         exampleSentenceRow = findViewById(R.id.example_sentence_row)
@@ -428,7 +430,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         outState.putBoolean(STATE_INCLUDE_OTHER, includeOtherGradesReview)
         outState.putBoolean(STATE_HIDE_CHOICES, checkboxHideChoices?.isChecked == true)
         outState.putBoolean(STATE_COVER_VISIBLE, coverLayout?.visibility == View.VISIBLE)
-        outState.putBoolean(STATE_COVER_VISIBLE,findViewById<View>(R.id.cover_layout).visibility == View.VISIBLE)
     }
     private fun enableConversationButtons() {
         choiceButtons.forEach { btn ->
@@ -532,15 +533,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        buttonPlayAudio.setOnClickListener(audioClickListener)
         buttonReplayAudio.setOnClickListener(audioClickListener)
 
         buttonToggleAutoPlay.setOnClickListener {
             val newValue = !settings.learningAutoPlay
             settings.learningAutoPlay = newValue
             updateAutoPlayIcon(newValue)
-
-            // ユーザーへのフィードバック（任意）
             val msg = if (newValue) "自動再生 ON" else "自動再生 OFF"
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
@@ -548,10 +546,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         buttonSoundSettings.setOnClickListener {
             runCatching {
                 startActivity(Intent().apply {
-                    setClassName(
-                        this@LearningActivity,
-                        "com.example.studylockapp.SoundSettingsActivity"
-                    )
+                    setClassName(this@LearningActivity, "com.example.studylockapp.SoundSettingsActivity")
                 })
             }.onFailure { Toast.makeText(this, "起動に失敗", Toast.LENGTH_SHORT).show() }
         }
@@ -920,9 +915,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         checkIncludeOtherGrades?.visibility = View.GONE
         checkboxAutoPlayAudio?.visibility = View.GONE
-        buttonPlayAudio.visibility = View.GONE
         layoutActionButtons.visibility = View.GONE
-
         choiceButtons.forEachIndexed { index, btn ->
             if (index < state.choices.size) {
                 btn.text = state.choices[index]
@@ -1062,9 +1055,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun renderLegacyQuestion(ctx: LegacyQuestionContext) {
         // リスニングモード判定（英語→英語、英語→日本語）
         val isListeningMode = currentMode == LearningModes.LISTENING || currentMode == LearningModes.LISTENING_JP
-
         textQuestionTitle.text = ctx.title
-
         if (isListeningMode) {
             // リスニングモード：テキストは表示しないが、アイコンを中央に見せるためにViewはVISIBLEにする
             textQuestionBody.text = ""
@@ -1103,29 +1094,27 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.visibility = View.VISIBLE
         }
 
-        // ---- 下部コントロールの制御（再生ボタン一本化のため buttonPlayAudio は非表示） ----
+        // ---- 上部コントロール（自動再生トグル）の制御 ----
+        // ※buttonPlayAudio はXMLから削除されたため、ここでの制御も削除しました。
         when (currentMode) {
             LearningModes.JA_TO_EN -> {
                 buttonToggleAutoPlay.visibility = View.GONE
-                buttonPlayAudio.visibility = View.GONE
             }
 
             LearningModes.MEANING,
             LearningModes.EN_EN_1,
             LearningModes.EN_EN_2 -> {
                 buttonToggleAutoPlay.visibility = View.VISIBLE
-                buttonPlayAudio.visibility = View.GONE
             }
 
             LearningModes.LISTENING,
             LearningModes.LISTENING_JP -> {
+                // 音声メインのモードではトグルを隠す（または常時ON扱いにする）
                 buttonToggleAutoPlay.visibility = View.GONE
-                buttonPlayAudio.visibility = View.GONE
             }
 
             else -> {
                 buttonToggleAutoPlay.visibility = View.GONE
-                buttonPlayAudio.visibility = View.GONE
             }
         }
 
@@ -1150,7 +1139,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     currentMode == LearningModes.MEANING ||
                     isListeningMode // リスニングモードも対象に含める
 
-        // アイコンを適用（リスニングモード時は特大サイズを指定）
+        // アイコンを適用（リスニングモード時はネイビーの大きめサイズを指定）
         applyTtsDrawable(showTtsIcon, isLarge = isListeningMode)
 
         if (showTtsIcon) {
@@ -1646,8 +1635,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             checkIncludeOtherGrades?.visibility = View.VISIBLE
         }
 
-        buttonPlayAudio.visibility = View.VISIBLE
-
         // --- 末尾にあった例文リセットコードは削除してOKです ---
     }
 
@@ -1660,7 +1647,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (currentMode.startsWith("test_")) {
             checkIncludeOtherGrades?.visibility = View.GONE
             checkboxAutoPlayAudio?.visibility = View.GONE
-            buttonPlayAudio.visibility = View.GONE
         } else {
             checkIncludeOtherGrades?.visibility = View.VISIBLE
         }
@@ -2198,7 +2184,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         buttonNextQuestion.visibility = if (isSortMode) View.GONE else View.VISIBLE
 
         // 音声系
-        buttonPlayAudio.visibility = if (isSortMode) View.GONE else View.VISIBLE
         buttonReplayAudio.visibility = if (isSortMode) View.GONE else View.VISIBLE
         buttonSoundSettings.visibility = if (isSortMode) View.GONE else View.VISIBLE
 
@@ -2437,7 +2422,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             cb.visibility = View.VISIBLE
 
             val hasVisibleChoice = choiceButtons.any { it.visibility == View.VISIBLE }
-            val enableHide = (cb.isChecked == true)
+            val enableHide = cb.isChecked
             setCoverVisible(enableHide && hasVisibleChoice)
         }
     }
@@ -2448,16 +2433,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             R.drawable.outline_volume_off_24
         }
         buttonToggleAutoPlay.setImageResource(resId)
-    }
-    /** 再生ボタンのサイズを動的に変更する */
-    private fun updatePlayButtonSize(isLarge: Boolean) {
-        val sizeDp = if (isLarge) 120 else 64 // リスニング時は120dp、通常は64dp（既存XMLに合わせる）
-        val sizePx = (resources.displayMetrics.density * sizeDp).toInt()
-
-        val lp = buttonPlayAudio.layoutParams
-        lp.width = sizePx
-        lp.height = sizePx
-        buttonPlayAudio.layoutParams = lp
     }
 
 

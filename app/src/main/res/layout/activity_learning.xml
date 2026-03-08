@@ -30,65 +30,82 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <!-- 1. 最上部ヘッダー (比率指定: 24 / 50 / 13 / 13) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="0dp">
+                    android:gravity="center_vertical"
+                    android:weightSum="100"
+                    android:layout_marginTop="4dp">
 
+                    <!-- グレード (24%) -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_weight="24"
                         app:cardUseCompatPadding="true"
                         app:strokeWidth="1dp"
                         app:strokeColor="@color/outline">
-
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/text_current_grade"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/text_current_grade"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text=""
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:gravity="center"/>
-
-                        </LinearLayout>
+                            android:padding="8dp"
+                            android:text=""
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:gravity="center"
+                            tools:text="5級"/>
                     </com.google.android.material.card.MaterialCardView>
 
+                    <!-- ポイント (50%) -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
+                        android:layout_weight="50"
                         app:cardUseCompatPadding="true"
                         app:strokeWidth="1dp"
                         app:strokeColor="@color/outline">
-
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/text_points"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/text_points"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_points_format"
-                                android:textSize="15sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:gravity="center"/>
-
-                        </LinearLayout>
+                            android:padding="8dp"
+                            android:text="@string/label_points_format"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:gravity="center"
+                            tools:text="保有: 1200pt"/>
                     </com.google.android.material.card.MaterialCardView>
+
+                    <!-- 自動再生トングル (10%) -->
+                    <ImageButton
+                        android:id="@+id/button_toggle_auto_play"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="13"
+                        android:scaleType="fitCenter"
+                        android:padding="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_volume_up_24"
+                        app:tint="?attr/colorOnSurface"
+                        android:contentDescription="自動再生" />
+
+                    <!-- 設定ボタン (10%) -->
+                    <ImageButton
+                        android:id="@+id/button_sound_settings"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="13"
+                        android:scaleType="fitCenter"
+                        android:padding="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_settings"
+                        app:tint="?attr/colorOnSurface"
+                        android:contentDescription="設定" />
                 </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
@@ -301,7 +318,7 @@
 
                         </androidx.constraintlayout.widget.ConstraintLayout>
 
-                        <!-- ✅ チェック列：ここに「選択肢を隠す」を追加 -->
+                        <!-- チェック列 -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -325,17 +342,8 @@
                                 android:textSize="13sp"
                                 android:text="回答隠す"
                                 android:textColor="?attr/colorOnSurface"/>
-
-                            <ImageButton
-                                android:id="@+id/button_toggle_auto_play"
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                android:layout_marginStart="16dp"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:src="@drawable/ic_volume_up_24"
-                                app:tint="?attr/colorOnSurface"
-                                android:contentDescription="自動再生切り替え" />
                         </LinearLayout>
+
                         <TextView
                             android:id="@+id/text_question_title"
                             android:layout_width="match_parent"
@@ -345,6 +353,7 @@
                             android:textSize="13sp"
                             android:textColor="@color/text_secondary"
                             android:textAlignment="center"/>
+
                         <LinearLayout
                             android:id="@+id/question_row"
                             android:layout_width="match_parent"
@@ -374,10 +383,9 @@
                                 android:clickable="true"
                                 android:focusable="true"
                                 android:visibility="gone"/>
-
                         </LinearLayout>
 
-                        <!-- 例文セクション (Phase 2追加) -->
+                        <!-- 例文セクション -->
                         <LinearLayout
                             android:id="@+id/example_sentence_row"
                             android:layout_width="match_parent"
@@ -475,19 +483,17 @@
                                     app:icon="@drawable/ic_arrow_forward_24"
                                     app:iconGravity="textEnd"/>
                             </LinearLayout>
-
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- ✅ 選択肢ブロック：ここを FrameLayout 化してカバーを重ねる -->
+                <!-- 選択肢ブロック -->
                 <FrameLayout
                     android:id="@+id/choices_frame"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp">
 
-                    <!-- 既存の6ボタン -->
                     <LinearLayout
                         android:id="@+id/choices_container"
                         android:layout_width="match_parent"
@@ -499,12 +505,10 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:baselineAligned="false">
-
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_choice_1"
                                 style="@style/ChoiceButtonStyle"
                                 android:text="@string/dummy_choice" />
-
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_choice_2"
                                 style="@style/ChoiceButtonStyle"
@@ -516,12 +520,10 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:baselineAligned="false">
-
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_choice_3"
                                 style="@style/ChoiceButtonStyle"
                                 android:text="@string/dummy_choice" />
-
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_choice_4"
                                 style="@style/ChoiceButtonStyle"
@@ -533,21 +535,18 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:baselineAligned="false">
-
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_choice_5"
                                 style="@style/ChoiceButtonStyle"
                                 android:text="@string/dummy_choice" />
-
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_choice_6"
                                 style="@style/ChoiceButtonStyle"
                                 android:text="@string/dummy_choice" />
                         </LinearLayout>
-
                     </LinearLayout>
 
-                    <!-- ✅ カバー（隠すONのときだけ表示） -->
+                    <!-- カバー -->
                     <FrameLayout
                         android:id="@+id/cover_layout"
                         android:layout_width="match_parent"
@@ -581,8 +580,6 @@
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
                                 android:gravity="center">
-
-                                <!-- 見る（選択肢を表示）: 明るいボタンで目立たせる -->
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/button_show_choices"
                                     style="@style/Widget.Material3.Button"
@@ -599,12 +596,9 @@
                                     app:cornerRadius="24dp"
                                     android:backgroundTint="#F8FAFC"
                                     android:textColor="#0D1B3D" />
-
                                 <Space
                                     android:layout_width="12dp"
                                     android:layout_height="1dp" />
-
-                                <!-- 分からない: 透明＋白枠で落ち着いたサブに -->
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/button_dont_know"
                                     style="@style/Widget.Material3.Button.OutlinedButton"
@@ -625,47 +619,9 @@
                             </LinearLayout>
                         </LinearLayout>
                     </FrameLayout>
-
                 </FrameLayout>
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp">
-
-                    <ImageButton
-                        android:id="@+id/button_play_audio"
-                        android:layout_width="wrap_content"
-                        android:layout_height="64dp"
-                        android:adjustViewBounds="true"
-                        android:background="?attr/selectableItemBackground"
-                        android:contentDescription="@string/action_play_audio"
-                        android:padding="0dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/play_sound"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageButton
-                        android:id="@+id/button_sound_settings"
-                        android:layout_width="wrap_content"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="24dp"
-                        android:adjustViewBounds="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="サウンド設定"
-                        android:padding="0dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/setting_sound"
-                        app:layout_constraintBottom_toBottomOf="@id/button_play_audio"
-                        app:layout_constraintEnd_toStartOf="@id/button_play_audio"
-                        app:layout_constraintTop_toTopOf="@id/button_play_audio" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <!-- ▼▼▼ ここから追加 ▼▼▼ -->
+                <!-- 並び替えUI -->
                 <include
                     android:id="@+id/sort_question_layout"
                     layout="@layout/layout_mode_sort"
@@ -673,10 +629,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:visibility="visible" />
-                <!-- ▲▲▲ ここまで追加 ▲▲▲ -->
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
