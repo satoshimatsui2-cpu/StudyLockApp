@@ -21,4 +21,8 @@ interface UnlockHistoryDao {
     
     @Query("SELECT * FROM unlock_history WHERE unlockedAt >= :startSec")
     suspend fun getHistoryAfter(startSec: Long): List<UnlockHistoryEntity>
+
+    // 追加: 特定期間の履歴を取得する (Phase 1)
+    @Query("SELECT * FROM unlock_history WHERE unlockedAt BETWEEN :startSec AND :endSec")
+    suspend fun getUnlockHistoryBetween(startSec: Long, endSec: Long): List<UnlockHistoryEntity>
 }

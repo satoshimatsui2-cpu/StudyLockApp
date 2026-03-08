@@ -10,5 +10,6 @@ data class UnlockHistoryEntity(
     val usedPoints: Int,
     val unlockDurationSec: Long,
     val unlockedAt: Long, // Epoch seconds
-    var cancelled: Boolean = false
+    var cancelled: Boolean = false,
+    var cancelledAt: Long? = null // 追加: キャンセルされた時刻 (Phase 1)
 )

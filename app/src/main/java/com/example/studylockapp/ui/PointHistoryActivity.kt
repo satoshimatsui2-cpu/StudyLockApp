@@ -89,6 +89,7 @@ class PointHistoryActivity : AppCompatActivity() {
 
             // 2. DBのステータスをキャンセルに更新
             item.cancelled = true
+            item.cancelledAt = now // Phase 2: キャンセル時刻を保存
             db.unlockHistoryDao().update(item)
 
             // 3. アプリのロックを即時再開

@@ -24,7 +24,7 @@ import com.example.studylockapp.data.db.StudyLogDao
         UnlockHistoryEntity::class,
         WordStudyLogEntity::class
     ],
-    version = 9, 
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
