@@ -28,7 +28,6 @@ import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.semantics.text
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -1061,24 +1060,27 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun renderLegacyQuestion(ctx: LegacyQuestionContext) {
+        // リスニングモード判定（英語→英語、英語→日本語）
+        val isListeningMode = currentMode == LearningModes.LISTENING || currentMode == LearningModes.LISTENING_JP
 
         textQuestionTitle.text = ctx.title
-        textQuestionBody.text = ctx.body
-        textQuestionBody.visibility =
-            if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
 
-        // ⭐ 幅は絶対に触らない（wrap_contentのまま）
-        // val lp = textQuestionBody.layoutParams  ← 削除
+        if (isListeningMode) {
+            // リスニングモード：テキストは表示しないが、アイコンを中央に見せるためにViewはVISIBLEにする
+            textQuestionBody.text = ""
+            textQuestionBody.visibility = View.VISIBLE
+        } else {
+            textQuestionBody.text = ctx.body
+            textQuestionBody.visibility = if (ctx.body.isEmpty()) View.GONE else View.VISIBLE
+        }
 
+        // レイアウトスタイル設定
         if (currentMode == LearningModes.TEST_FILL_BLANK) {
-
             // 穴埋め：左寄せ
             textQuestionBody.gravity = android.view.Gravity.START
             textQuestionBody.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
             textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21f)
-
         } else {
-
             // それ以外：中央寄せ
             textQuestionBody.gravity = android.view.Gravity.CENTER
             textQuestionBody.textAlignment = View.TEXT_ALIGNMENT_CENTER
@@ -1088,10 +1090,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textQuestionBody.isSingleLine = false
         textQuestionBody.setHorizontallyScrolling(false)
 
-        // ⭐ requestLayoutも不要（削除）
-        // textQuestionBody.requestLayout()
-
-        // ---- ボタン表示 ----
+        // ---- 選択肢ボタンの表示設定 ----
         choiceButtons.forEachIndexed { _, btn ->
             btn.textSize = if (currentMode == LearningModes.EN_EN_1) 12f else 14f
             btn.visibility = View.GONE
@@ -1104,6 +1103,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.visibility = View.VISIBLE
         }
 
+        // ---- 下部コントロールの制御（再生ボタン一本化のため buttonPlayAudio は非表示） ----
         when (currentMode) {
             LearningModes.JA_TO_EN -> {
                 buttonToggleAutoPlay.visibility = View.GONE
@@ -1114,16 +1114,22 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             LearningModes.EN_EN_1,
             LearningModes.EN_EN_2 -> {
                 buttonToggleAutoPlay.visibility = View.VISIBLE
-                buttonPlayAudio.visibility = View.VISIBLE
+                buttonPlayAudio.visibility = View.GONE
+            }
+
+            LearningModes.LISTENING,
+            LearningModes.LISTENING_JP -> {
+                buttonToggleAutoPlay.visibility = View.GONE
+                buttonPlayAudio.visibility = View.GONE
             }
 
             else -> {
                 buttonToggleAutoPlay.visibility = View.GONE
-                buttonPlayAudio.visibility = View.VISIBLE
+                buttonPlayAudio.visibility = View.GONE
             }
         }
 
-        // ---- カバー制御 ----
+        // ---- カバー（回答を隠す）の制御 ----
         val enableHide = (checkboxHideChoices?.isChecked == true)
         val allowHideInThisMode =
             currentMode != LearningModes.TEST_LISTEN_Q2 &&
@@ -1137,15 +1143,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             else
                 View.GONE
 
-        // ---- TTSアイコン制御 ----
+        // ---- TTSアイコンの表示制御（テキスト末尾のアイコン） ----
         val showTtsIcon =
             currentMode == LearningModes.EN_EN_1 ||
-            currentMode == LearningModes.EN_EN_2 ||
-            currentMode == LearningModes.MEANING
+                    currentMode == LearningModes.EN_EN_2 ||
+                    currentMode == LearningModes.MEANING ||
+                    isListeningMode // リスニングモードも対象に含める
 
-        applyTtsDrawable(showTtsIcon)
+        // アイコンを適用（リスニングモード時は特大サイズを指定）
+        applyTtsDrawable(showTtsIcon, isLarge = isListeningMode)
 
-        if (showTtsIcon) {            textQuestionBody.setOnClickListener {
+        if (showTtsIcon) {
+            textQuestionBody.setOnClickListener {
                 ctx.audioText?.let { speakText(it) }
             }
         } else {
@@ -1180,7 +1189,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             textExampleJapanese.visibility = View.GONE
         }
     }
-    private fun applyTtsDrawable(show: Boolean) {
+    private fun applyTtsDrawable(show: Boolean, isLarge: Boolean = false) {
         if (!show) {
             textQuestionBody.setCompoundDrawablesRelative(null, null, null, null)
             textQuestionBody.setOnClickListener(null)
@@ -1193,23 +1202,30 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             R.drawable.ic_round_play_circle_outline_24
         ) ?: return
 
-        // 20dpくらいに縮小
-        val size = (resources.displayMetrics.density * 28).toInt()
+        // ⭐ サイズ設定：通常 28dp / リスニング時 80dp (お好みの大きさに調整してください)
+        val sizeDp = if (isLarge) 64 else 28
+        val size = (resources.displayMetrics.density * sizeDp).toInt()
         drawable.setBounds(0, 0, size, size)
 
-        // 少し薄く
-        drawable.alpha = 160
+        // ⭐ リスニング時は目立つように不透明(255)に、通常は控えめ(160)に
+        if (isLarge) {
+            // リスニング時は navy (#0D1B3D) に設定
+            androidx.core.graphics.drawable.DrawableCompat.setTint(drawable, Color.parseColor("#0D1B3D"))
+            drawable.alpha = 200
+        } else {
+            // 通常時はデフォルト色（または既存のtint）で少し薄く
+            drawable.alpha = 160
+        }
 
         textQuestionBody.setCompoundDrawablesRelative(
             null,
             null,
-            drawable,
+            drawable, // drawableEnd (右側) に配置
             null
         )
 
-        textQuestionBody.compoundDrawablePadding =
-            (resources.displayMetrics.density * 6).toInt()
-
+        // テキストがある場合のみパディングを入れる
+        textQuestionBody.compoundDrawablePadding = if (isLarge) 0 else (resources.displayMetrics.density * 6).toInt()
         textQuestionBody.isClickable = true
     }
     private fun setCoverVisible(visible: Boolean) {
@@ -1593,6 +1609,18 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun resetUiForNewQuestion() {
         textFeedback.visibility = View.GONE
         textScriptDisplay.visibility = View.GONE
+
+        // ▼ Phase 3: 例文表示のリセット（ここに移動してすべてのモードで共通化）
+        if (::exampleSentenceRow.isInitialized) { // 未初期化エラー防止の保険
+            exampleSentenceRow.visibility = View.GONE
+            textExampleJapanese.visibility = View.GONE
+            textExampleSentence.text = ""
+            textExampleJapanese.text = ""
+            textExampleSentence.setOnClickListener(null)
+            iconExampleTts.setOnClickListener(null)
+            exampleSentenceRow.setOnClickListener(null)
+        }
+
         choiceButtons.forEachIndexed { index, button ->
             ViewCompat.setBackgroundTintList(button, defaultChoiceTints[index])
             button.isEnabled = true
@@ -1602,7 +1630,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun resetStandardUi() {
-        resetUiForNewQuestion()
+        resetUiForNewQuestion() // ここで上記の新ロジックが走ります
         choiceButtons.forEach { btn ->
             btn.isClickable = true
             btn.alpha = 1f
@@ -1620,14 +1648,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         buttonPlayAudio.visibility = View.VISIBLE
 
-        // ▼ 例文表示のリセットとリスナー解除
-        exampleSentenceRow.visibility = View.GONE
-        textExampleJapanese.visibility = View.GONE
-        textExampleSentence.text = ""
-        textExampleJapanese.text = ""
-        textExampleSentence.setOnClickListener(null)
-        iconExampleTts.setOnClickListener(null)
-        exampleSentenceRow.setOnClickListener(null)
+        // --- 末尾にあった例文リセットコードは削除してOKです ---
     }
 
     private fun showNoQuestion() {
@@ -2428,6 +2449,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         buttonToggleAutoPlay.setImageResource(resId)
     }
+    /** 再生ボタンのサイズを動的に変更する */
+    private fun updatePlayButtonSize(isLarge: Boolean) {
+        val sizeDp = if (isLarge) 120 else 64 // リスニング時は120dp、通常は64dp（既存XMLに合わせる）
+        val sizePx = (resources.displayMetrics.density * sizeDp).toInt()
+
+        val lp = buttonPlayAudio.layoutParams
+        lp.width = sizePx
+        lp.height = sizePx
+        buttonPlayAudio.layoutParams = lp
+    }
+
 
 
 
