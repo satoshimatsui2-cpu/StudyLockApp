@@ -130,6 +130,11 @@
     <string name="mode_japanese_to_english">日本語→英単語</string>
     <string name="mode_english_english_1">英単語→英語意味</string>
     <string name="mode_english_english_2">英語意味→英単語</string>
+    <string name="mode_test_listen_q2">会話リスニングテスト</string>
+    <string name="mode_test_sort">並べ替えテスト</string>
+    <string name="mode_test_fill_blank">穴埋めテスト</string>
+    <string name="mode_test_listen_q1">リスニング質問テスト</string>
+
     <string name="admin_accessibility_lock_title">アクセシビリティ設定画面アクセス禁止</string>
     <string name="admin_accessibility_lock_desc">「設定」＞「ユーザー補助」画面へのアクセス禁止（この画面でこのアプリのフルコントロールの解除をすると他アプリへのロックが無効化されます。）</string>
     <string name="admin_tethering_lock_title">テザリング設定画面へのアクセス禁止</string>

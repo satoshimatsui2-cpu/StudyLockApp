@@ -12,6 +12,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.studylockapp.MainActivity
+import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.UnlockHistoryEntity
 import com.google.firebase.auth.FirebaseAuth
@@ -58,7 +59,7 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
         val startSec = yesterday.atStartOfDay(zoneId).toEpochSecond()
         val endSec = yesterday.plusDays(1).atStartOfDay(zoneId).toEpochSecond() - 1
 
-        // --- 1. Firestoreから学習履歴を取得 ---
+        // --- 1. Firestoreから学習履歴を取得 (前日のドキュメントを正確に指定) ---
         val firestoreTask = async {
             try {
                 db.collection("users").document(user.uid)
@@ -70,7 +71,7 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
             }
         }
 
-        // --- 2. Room(端末内DB)から使用ポイントと解放履歴を取得 ---
+        // --- 2. Room(端末内DB)から使用ポイントと解放履歴を取得 (前日のEpochDayを指定) ---
         val roomTask = async(Dispatchers.IO) {
             try {
                 val appDb = AppDatabase.getInstance(context)
@@ -152,13 +153,30 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
             for ((grade, modes) in statsMap) {
                 sb.append("\n■$grade：")
                 for ((mode, stat) in modes) {
-                    sb.append("\n　〇$mode：回答数：${stat.answerCount}、正解数：${stat.correctCount}")
+                    val modeDisplayName = getModeDisplayName(context, mode)
+                    sb.append("\n　〇$modeDisplayName：回答数：${stat.answerCount}、正解数：${stat.correctCount}")
                 }
             }
         }
 
         // 通知タイトルも前日の日付に合わせる
         showNotification("${yesterday.monthValue}月${yesterday.dayOfMonth}日の学習レポート", sb.toString())
+    }
+
+    private fun getModeDisplayName(context: Context, mode: String): String {
+        return when (mode) {
+            "meaning" -> context.getString(R.string.mode_meaning)
+            "listening" -> context.getString(R.string.mode_listening)
+            "listening_jp" -> context.getString(R.string.mode_listening_jp)
+            "japanese_to_english" -> context.getString(R.string.mode_japanese_to_english)
+            "english_english_1" -> context.getString(R.string.mode_english_english_1)
+            "english_english_2" -> context.getString(R.string.mode_english_english_2)
+            "test_fill_blank" -> context.getString(R.string.mode_test_fill_blank)
+            "test_sort" -> context.getString(R.string.mode_test_sort)
+            "test_listen_q1" -> context.getString(R.string.mode_test_listen_q1)
+            "test_listen_q2" -> context.getString(R.string.mode_test_listen_q2)
+            else -> mode
+        }
     }
 
     private fun getAppLabel(context: Context, packageName: String): String {
