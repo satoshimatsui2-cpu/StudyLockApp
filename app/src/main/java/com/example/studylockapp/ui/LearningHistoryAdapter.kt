@@ -92,11 +92,12 @@ class LearningHistoryAdapter(
 
             val color = when (status.level) {
                 0 -> Color.parseColor("#F9F9F9")
-                1 -> Color.parseColor("#2563EB")
-                2 -> Color.parseColor("#22C55E")
-                3 -> Color.parseColor("#F97316")
-                4 -> Color.parseColor("#EF4444")
-                else -> Color.parseColor("#E11D48") // Lv5
+                1 -> Color.parseColor("#F9F9F9")
+                2 -> Color.parseColor("#8D6E63") // ブロンズ
+                3 -> Color.parseColor("#9E9E9E") // シルバー
+                4 -> Color.parseColor("#FFCA28") // ゴールド
+                5 -> Color.parseColor("#4DD0E1") // クリスタル
+                else -> Color.parseColor("#9C27B0") // パープル (Lv5以上)
             }
             indicator.background.setTint(color)
             
