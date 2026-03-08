@@ -30,20 +30,41 @@
         android:textAppearance="?attr/textAppearanceListItem"
         android:textColor="@color/sort_question_navy"
         tools:text="これはペンです。" />
-    <TextView
-        android:id="@+id/correct_answer_text"
+
+    <!-- 正解英文表示エリア (Phase 3 修正) -->
+    <LinearLayout
+        android:id="@+id/correct_answer_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_sort_correct_navy"
         android:gravity="center"
-        android:padding="8dp"
-        android:background="#E8F5E9"
-        android:textColor="#2E7D32"
-        android:textStyle="bold"
+        android:orientation="horizontal"
+        android:padding="12dp"
         android:visibility="gone"
-        tools:text="This is the correct answer."
-        tools:visibility="visible" />
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/correct_answer_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            tools:text="This is the correct answer." />
+
+        <ImageView
+            android:id="@+id/icon_sort_tts"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_round_play_circle_outline_24"
+            app:tint="#FFFFFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="音声再生" />
+    </LinearLayout>
 
     <!-- Answer Area (固定高さ + 中だけスクロール) -->
     <FrameLayout

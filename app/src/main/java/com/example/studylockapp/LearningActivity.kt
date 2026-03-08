@@ -2241,6 +2241,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             root.findViewById<com.google.android.material.button.MaterialButton>(R.id.button_sort_check) ?: return
         val japaneseText = root.findViewById<TextView>(R.id.japanese_text) ?: return
         val correctAnswerText = root.findViewById<TextView>(R.id.correct_answer_text) ?: return
+
+        // 追加したコンテナとアイコンを取得
+        val correctAnswerContainer = root.findViewById<View>(R.id.correct_answer_container) ?: return
+        val iconSortTts = root.findViewById<View>(R.id.icon_sort_tts) ?: return
+
         val q = state.question ?: run {
             root.visibility = View.GONE
             return
@@ -2249,7 +2254,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
         // ---------------------------
-        // 問題文（日本語）: 紺 + 1.2倍（増殖しない）
+        // 問題文（日本語）: 紺 + 1.1倍
         // ---------------------------
         japaneseText.text = q.japaneseText
 
@@ -2263,7 +2268,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         japaneseText.setTextColor(Color.parseColor("#0D1B3D"))
 
         // ---------------------------
-        // ▼ Gemini風：状態に応じてUIを更新（※既存stateから導出）
+        // 判定状態に応じた表示更新
         // ---------------------------
         val isComplete = state.answerWords.size == q.words.size
         val isJudged = (state.isCorrect != null)
@@ -2271,27 +2276,33 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (!isJudged) {
             // 未判定
             checkButton.text = "判定"
-            // 既存の「全部選んだら判定OK」ロジックを維持
             checkButton.isEnabled = isComplete && !state.hasScored
-            correctAnswerText.visibility = View.GONE
+            correctAnswerContainer.visibility = View.GONE // コンテナを隠す
         } else {
             // 判定後（正解/不正解）
             checkButton.text = "次へ"
             checkButton.isEnabled = true
 
             correctAnswerText.text = q.englishSentence
+            correctAnswerContainer.visibility = View.VISIBLE // コンテナを表示
 
-            // 正解英文：少しだけ大きく（増殖しない）
+            // TTS再生イベントの設定（枠ごとタップ可能に）
+            val playAction = View.OnClickListener {
+                speakText(q.englishSentence)
+            }
+            correctAnswerContainer.setOnClickListener(playAction)
+            iconSortTts.setOnClickListener(playAction)
+
+            // 正解英文のサイズ調整
             if (sortCorrectBaseTextSizePx == null) {
                 sortCorrectBaseTextSizePx = correctAnswerText.textSize
             }
             correctAnswerText.setTextSize(
                 TypedValue.COMPLEX_UNIT_PX,
-                (sortCorrectBaseTextSizePx ?: correctAnswerText.textSize) * 1.10f
+                (sortCorrectBaseTextSizePx ?: correctAnswerText.textSize) * 0.9f
             )
-            correctAnswerText.setTextColor(Color.parseColor("#0D1B3D"))
-
-            correctAnswerText.visibility = View.VISIBLE
+            // テキストはホワイト
+            correctAnswerText.setTextColor(Color.WHITE)
         }
 
         checkButton.setOnClickListener {
@@ -2307,21 +2318,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         // ---------------------------
-        // コンテナ見た目（ここが重要：既存維持）
+        // コンテナ見た目（既存維持）
         // ---------------------------
-
-        // choices（下）端の余白
         val choicesEdge = dp(16)
-
-        // answers（上）端の余白：左右は半分（16→8）
         val answersEdgeH = dp(4)
-
-        // answers（上）上下は 16dp をベースに「1.25倍」＋ 下だけ追加（2行でも潰れない）
         val answersBaseV = dp(4)
-        val answersEdgeV = (answersBaseV * 1.25f).toInt() // 1.25倍
-        val answersExtraBottom = dp(12)                   // “2行で下が潰れる”対策
-
-        // チップ間隔（今の半分）
+        val answersEdgeV = (answersBaseV * 1.25f).toInt()
+        val answersExtraBottom = dp(12)
         val gap = dp(3)
 
         choicesContainer.setPadding(choicesEdge, choicesEdge, choicesEdge, choicesEdge)
@@ -2330,7 +2333,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         answersContainer.clipChildren = false
         (root as? ViewGroup)?.clipChildren = false
         (root as? ViewGroup)?.clipToPadding = false
-
         choicesContainer.clipToPadding = false
         answersContainer.clipToPadding = false
 
@@ -2340,14 +2342,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         choicesContainer.removeAllViews()
         answersContainer.removeAllViews()
 
-        // Chip: テキスト少し小さく、padding 80%
         val textScale = 1.25f
         val padScale = 0.7f
 
         fun makeChip(word: String, onClick: () -> Unit): com.google.android.material.chip.Chip {
             return com.google.android.material.chip.Chip(this).apply {
                 text = word
-                isClickable = true
+                isClickable = state.isCorrect == null
                 isCheckable = false
                 setEnsureMinTouchTargetSize(false)
                 setTypeface(Typeface.DEFAULT, Typeface.NORMAL)
@@ -2376,27 +2377,23 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         state.choiceWords.forEach { word ->
             val chip = makeChip(word) { sortViewModel.selectWord(word) }
-
             val lp = com.google.android.flexbox.FlexboxLayout.LayoutParams(
                 com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT,
                 com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT
             )
             lp.setMargins(gap, gap, gap, gap)
             chip.layoutParams = lp
-
             choicesContainer.addView(chip)
         }
 
         state.answerWords.forEach { word ->
             val chip = makeChip(word) { sortViewModel.deselectWord(word) }
-
             val lp = com.google.android.flexbox.FlexboxLayout.LayoutParams(
                 com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT,
                 com.google.android.flexbox.FlexboxLayout.LayoutParams.WRAP_CONTENT
             )
             lp.setMargins(gap, gap, gap, gap)
             chip.layoutParams = lp
-
             answersContainer.addView(chip)
         }
     }

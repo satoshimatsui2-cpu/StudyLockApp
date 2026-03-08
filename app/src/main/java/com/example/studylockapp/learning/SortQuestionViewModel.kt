@@ -37,6 +37,9 @@ class SortQuestionViewModel(
      * 選択肢の単語を解答欄に移動します。
      */
     fun selectWord(word: String) {
+        // 判定済みなら操作を無効化
+        if (_uiState.value.isCorrect != null) return
+
         _uiState.update {
             val newChoiceWords = it.choiceWords.toMutableList()
             newChoiceWords.remove(word)
@@ -56,6 +59,9 @@ class SortQuestionViewModel(
      * 解答欄の単語を選択肢に戻します。
      */
     fun deselectWord(word: String) {
+        // 判定済みなら操作を無効化
+        if (_uiState.value.isCorrect != null) return
+
         _uiState.update {
             val newAnswerWords = it.answerWords.toMutableList()
             newAnswerWords.remove(word)
