@@ -5,18 +5,16 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.work.CoroutineWorker
-import androidx.work.WorkerParameters
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.work.*
 import com.example.studylockapp.MainActivity
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.UnlockHistoryEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -28,59 +26,64 @@ import java.util.concurrent.TimeUnit
 class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
-    // 集計用のデータクラス
+    private val TAG = "DailyReportWorker"
+
     data class ModeStats(
         var answerCount: Int = 0,
         var correctCount: Int = 0
     )
 
     override suspend fun doWork(): Result {
+        Log.d(TAG, "Worker started execution")
         return try {
             sendDailyReport()
             Result.success()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Worker failed", e)
             Result.retry()
         }
     }
 
     private suspend fun sendDailyReport() = coroutineScope {
-        val user = FirebaseAuth.getInstance().currentUser ?: return@coroutineScope
+        val user = FirebaseAuth.getInstance().currentUser ?: run {
+            Log.w(TAG, "No user logged in, skipping report")
+            return@coroutineScope
+        }
         val db = FirebaseFirestore.getInstance()
         val context = applicationContext
 
-        // ★日付は端末のZoneで「前日」を取得する (チャッピー提案の完成形)
+        // 1. 日付の計算 (端末Zoneベース)
         val zoneId = ZoneId.systemDefault()
         val yesterday = LocalDate.now(zoneId).minusDays(1)
-        val yesterdayStr = yesterday.toString() // "yyyy-MM-dd"
+        val yesterdayStr = yesterday.toString()
         val yesterdayEpochDay = yesterday.toEpochDay()
 
-        // 昨日の開始時刻と終了時刻 (Epoch秒) - 解放履歴取得用
+        // 昨日の開始/終了時刻 (Epoch秒)
         val startSec = yesterday.atStartOfDay(zoneId).toEpochSecond()
         val endSec = yesterday.plusDays(1).atStartOfDay(zoneId).toEpochSecond() - 1
 
-        // --- 1. Firestoreから学習履歴を取得 (前日のドキュメントを正確に指定) ---
+        Log.d(TAG, "Target Date: $yesterdayStr")
+
+        // 2. データ取得 (Firestore & Room)
         val firestoreTask = async {
             try {
                 db.collection("users").document(user.uid)
                     .collection("dailyStats").document(yesterdayStr)
                     .get().await()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Firestore fetch error", e)
                 null
             }
         }
 
-        // --- 2. Room(端末内DB)から使用ポイントと解放履歴を取得 (前日のEpochDayを指定) ---
         val roomTask = async(Dispatchers.IO) {
             try {
                 val appDb = AppDatabase.getInstance(context)
-                // unlock は delta がマイナスで入るので、反転して正の使用ポイントにする
                 val sumDelta = appDb.pointHistoryDao().sumDeltaByModeAndDay("unlock", yesterdayEpochDay)
                 val histories = appDb.unlockHistoryDao().getUnlockHistoryBetween(startSec, endSec)
                 sumDelta to histories
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Room fetch error", e)
                 0 to emptyList<UnlockHistoryEntity>()
             }
         }
@@ -89,13 +92,12 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
         val (sumDelta, unlockHistories) = roomTask.await()
         val usedPoints = (-sumDelta).coerceAtLeast(0)
 
-        // --- 3. 学習統計の集計 ---
+        // 3. 学習統計の集計
         var earnedPoints = 0
         val statsMap = mutableMapOf<String, MutableMap<String, ModeStats>>()
 
         if (dailyDoc != null && dailyDoc.exists()) {
             earnedPoints = dailyDoc.getLong("points")?.toInt() ?: 0
-
             @Suppress("UNCHECKED_CAST")
             val records = dailyDoc.get("studyRecords") as? List<Map<String, Any>> ?: emptyList()
 
@@ -106,27 +108,39 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
 
                 val gradeMap = statsMap.getOrPut(grade) { mutableMapOf() }
                 val modeStats = gradeMap.getOrPut(mode) { ModeStats() }
-
                 modeStats.answerCount += 1
                 if (isCorrect) modeStats.correctCount += 1
             }
         }
 
-        // --- 4. 解放アプリ実績の集計 (実績時間の計算) ---
+        // 4. アプリ解放実績の集計
         val labelCache = mutableMapOf<String, String>()
         val groupedUnlock = unlockHistories.groupBy { it.packageName }
             .mapValues { (_, list) ->
                 list.sumOf { history ->
-                    val actualSec = if (history.cancelled && history.cancelledAt != null) {
-                        (history.cancelledAt!! - history.unlockedAt).coerceAtLeast(0)
+                    // 実績時間の計算 (cancelledAt を安全に参照)
+                    val cAt = history.cancelledAt
+                    if (history.cancelled && cAt != null) {
+                        (cAt - history.unlockedAt).coerceAtLeast(0)
                     } else {
                         history.unlockDurationSec
                     }
-                    actualSec
                 }
             }
 
-        // --- 5. 通知メッセージの作成 ---
+        // Firestoreへサマリーをアップロード (親へのレポート用)
+        val uploadMap = groupedUnlock.mapKeys { (pkg, _) -> 
+            labelCache.getOrPut(pkg) { getAppLabel(context, pkg) } 
+        }
+        try {
+            db.collection("users").document(user.uid)
+                .collection("dailyStats").document(yesterdayStr)
+                .set(mapOf("unlockSummary" to uploadMap), SetOptions.merge())
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to upload summary", e)
+        }
+
+        // 5. 通知メッセージの作成
         val sb = StringBuilder()
         sb.append("昨日の獲得ポイント：$earnedPoints、使用ポイント：$usedPoints")
 
@@ -159,7 +173,6 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
             }
         }
 
-        // 通知タイトルも前日の日付に合わせる
         showNotification("${yesterday.monthValue}月${yesterday.dayOfMonth}日の学習レポート", sb.toString())
     }
 
@@ -184,29 +197,21 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
             val pm = context.packageManager
             val appInfo = pm.getApplicationInfo(packageName, 0)
             pm.getApplicationLabel(appInfo).toString()
-        } catch (e: PackageManager.NameNotFoundException) {
-            packageName.substringAfterLast(".")
         } catch (e: Exception) {
-            packageName
+            packageName.substringAfterLast(".")
         }
     }
 
     private fun showNotification(title: String, message: String) {
-        val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val intent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent = PendingIntent.getActivity(
-            applicationContext, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val notification = NotificationCompat.Builder(applicationContext, "REPORT_CHANNEL")
             .setSmallIcon(android.R.drawable.ic_menu_agenda)
             .setContentTitle(title)
-            .setContentText(message.substringBefore("\n"))
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
@@ -218,15 +223,17 @@ class DailyReportWorker(appContext: Context, workerParams: WorkerParameters) :
 
     companion object {
         fun schedule(context: Context) {
-            val request = PeriodicWorkRequestBuilder<DailyReportWorker>(
-                24, TimeUnit.HOURS
-            ).build()
+            val workManager = WorkManager.getInstance(context)
 
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                "DailyReportWork",
-                ExistingPeriodicWorkPolicy.KEEP,
-                request
-            )
+            // 1. 定期実行の設定 (24時間ごと)
+            val periodicRequest = PeriodicWorkRequestBuilder<DailyReportWorker>(24, TimeUnit.HOURS).build()
+            workManager.enqueueUniquePeriodicWork("DailyReportWork", ExistingPeriodicWorkPolicy.KEEP, periodicRequest)
+
+            // 2. ★一時的なデバッグ実行
+            if (true) {
+                val debugRequest = OneTimeWorkRequestBuilder<DailyReportWorker>().build()
+                workManager.enqueue(debugRequest)
+            }
         }
     }
 }
