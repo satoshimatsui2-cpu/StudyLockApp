@@ -40,6 +40,9 @@ class AppSettings(context: Context) {
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
 
+        // ★追加: アクセシビリティON通知済みフラグ
+        private const val KEY_ACCESSIBILITY_ENABLED_NOTIFIED = "accessibility_enabled_notified"
+
         // ベースポイント設定
         private const val KEY_BASE_POINT_PREFIX = "base_point_"
 
@@ -182,6 +185,14 @@ class AppSettings(context: Context) {
 
     fun setHasShownAccessibilityIntro(shown: Boolean) {
         prefs.edit { putBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, shown) }
+    }
+
+    // --- Accessibility Notification Flag ---
+    fun isAccessibilityEnabledNotified(): Boolean =
+        prefs.getBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, false)
+
+    fun setAccessibilityEnabledNotified(notified: Boolean) {
+        prefs.edit { putBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, notified) }
     }
 
     // --- Base Points ---

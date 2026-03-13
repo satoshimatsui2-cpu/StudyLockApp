@@ -13,6 +13,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityManager
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.app.NotificationCompat
 import com.example.studylockapp.PrefsManager
@@ -118,7 +119,7 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        settings = AppSettings(this)
+        if (!::settings.isInitialized) settings = AppSettings(this)
         db = AppDatabase.getInstance(this)
 
         val info = AccessibilityServiceInfo()
@@ -130,7 +131,15 @@ class AppLockAccessibilityService : AccessibilityService() {
         info.notificationTimeout = 100
         this.serviceInfo = info
         startExpiryWatcher()
-        sendSecurityAlertToFunctions("accessibility_enabled")
+
+        // ★改善: 通知済みでなければ、成功時のみフラグを立てる
+        if (!settings.isAccessibilityEnabledNotified()) {
+            sendSecurityAlertToFunctions("accessibility_enabled") { success ->
+                if (success) {
+                    settings.setAccessibilityEnabledNotified(true)
+                }
+            }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -342,7 +351,6 @@ class AppLockAccessibilityService : AccessibilityService() {
     }
 
     // --- Helper Methods ---
-    // (変更なし、そのまま記述してください)
 
     private fun backAndCooldown(ms: Long = 800L) {
         // 自分のBACKでイベントが連続してループしないように
@@ -511,15 +519,6 @@ class AppLockAccessibilityService : AccessibilityService() {
             startActivity(intent)
         }
     }
-    private fun disableNextActivityAnimation() {
-        // startActivity直後の遷移アニメを抑止
-        try {
-            val am = getSystemService(ACTIVITY_SERVICE) as? android.app.ActivityManager
-            // ActivityじゃないのでoverridePendingTransitionは直接使えない端末がある
-            // その場合でも0アニメ指定はActivity側で入れるのが確実（後述）
-        } catch (_: Exception) {}
-    }
-
 
     private fun showAlertActivity() {
         val intent = Intent(this, BlockedAlertActivity::class.java).apply {
@@ -577,9 +576,21 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         Log.d("AppLockDebug", "★onUnbind 呼ばれました！(OFF操作を検知)")
-        sendSecurityAlertToFunctions("accessibility_disabled")
-        showAccessibilityOffNotification()
+        if (!::settings.isInitialized) settings = AppSettings(this)
+
+        // ★改善: 本当に無効化された時だけ通知し、フラグをリセット
+        if (!isServiceEnabled(this)) {
+            sendSecurityAlertToFunctions("accessibility_disabled")
+            settings.setAccessibilityEnabledNotified(false)
+            showAccessibilityOffNotification()
+        }
         return super.onUnbind(intent)
+    }
+
+    private fun isServiceEnabled(context: Context): Boolean {
+        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        return am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+            .any { it.id.contains(context.packageName) }
     }
 
     private fun showAccessibilityOffNotification() {
@@ -602,16 +613,15 @@ class AppLockAccessibilityService : AccessibilityService() {
         notificationManager.notify(1001, builder.build())
     }
 
-    private fun sendSecurityAlertToFunctions(alertType: String) {
+    private fun sendSecurityAlertToFunctions(alertType: String, callback: ((Boolean) -> Unit)? = null) {
         val auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
 
         if (user == null) {
-            Log.e("AppLockDebug", "★エラー: User is null。ログイン情報が取れませんでした。")
+            Log.e("AppLockDebug", "★エラー: User is null。")
+            callback?.invoke(false)
             return
         }
-
-        Log.d("AppLockDebug", "★送信開始: UID=${user.uid} へ警告を送ります...")
 
         val functions = FirebaseFunctions.getInstance("asia-northeast1")
         val data = hashMapOf(
@@ -622,10 +632,12 @@ class AppLockAccessibilityService : AccessibilityService() {
 
         functions.getHttpsCallable("sendSecurityAlert").call(data)
             .addOnSuccessListener {
-                Log.d("AppLockDebug", "★送信成功！親に通知が届いたはずです")
+                Log.d("AppLockDebug", "★送信成功！")
+                callback?.invoke(true)
             }
             .addOnFailureListener { e ->
                 Log.e("AppLockDebug", "★送信失敗...", e)
+                callback?.invoke(false)
             }
     }
 }

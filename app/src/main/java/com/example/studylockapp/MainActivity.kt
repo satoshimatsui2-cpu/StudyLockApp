@@ -182,6 +182,12 @@ class MainActivity : AppCompatActivity() {
 //            return
 //        }
 
+        // ★改善: サービスが無効なら、通知済みフラグを確実にリセットしておく
+        // これにより、次にONにした際に確実に再通知が飛ぶようになる
+        if (!isAppLockServiceEnabled()) {
+            settings.setAccessibilityEnabledNotified(false)
+        }
+
         // 連打 / 戻ってきた時の多重起動防止
         permissionDialogsJob?.cancel()
         permissionDialogsJob = lifecycleScope.launch {
