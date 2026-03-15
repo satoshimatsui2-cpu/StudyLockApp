@@ -141,6 +141,22 @@
     <string name="admin_tethering_lock_desc">１．「設定」＞「ネットワークとインターネット」へのアクセス禁止　２．「クイック設定パネル」の編集禁止（＊すでにテザリングパネルが追加されている場合は、上部スライドの通知画面自体が開けなくなります。事前にテザリングパネルを削除してからONにしてください。）</string>
     <string name="restricted_access_icon_desc">Restricted Access Icon</string>
 
+    <!-- Pairing related strings -->
+    <string name="pairing_parent_device">親端末: 接続済み (%1$d)</string>
+    <string name="pairing_parent_none">親端末: なし</string>
+    <string name="pairing_parent_error">親端末: 取得エラー</string>
+    <string name="pairing_child_label">管理している子端末</string>
+    <string name="pairing_child_id_format">ID: %1$s</string>
+    <string name="pairing_child_none">接続済みの子端末はありません</string>
+    <string name="pairing_child_error">子端末リストの取得に失敗しました</string>
+    <string name="pairing_delete_confirm_title">ペアリング解除</string>
+    <string name="pairing_delete_confirm_msg">%1$s との接続を解除しますか？</string>
+    <string name="pairing_delete_success">接続を解除しました</string>
+    <string name="pairing_delete_failure">解除に失敗しました</string>
+    <string name="pairing_delete_action">解除</string>
+    <string name="pairing_delete_btn">削除</string>
+    <string name="pairing_register_failure">登録失敗</string>
+
 
     <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
     <string-array name="grade_display_items">
