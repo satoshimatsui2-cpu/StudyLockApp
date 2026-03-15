@@ -2644,6 +2644,6 @@ no,grade,word,japanese,description,small_topic,medium_category,sentence,japanese
 2643,3,poet,詩人,Writer of poems.,literature_and_books,arts_visual_and_media,The poet loved nature.,その詩人は自然を愛しました。
 2644,3,shout,叫ぶ,Yell loud voice.,voice_and_breath,body_functions_and_senses,He shouted loudly.,彼は大声で叫びました。
 2645,3,gold,金,Yellow precious metal.,accessories_and_jewelry,fashion_accessories,This medal is gold.,このメダルは金です。
-2646,3,children,子どもたち,Young people.,childhood,life_stages_and_events,Children need love.,子どもには愛が必要です。
-2647,3,semester,学期（アメリカ：前期,後期）,Half school year.,calendar_and_dates,The semester starts soon.,学期はもうすぐ始まります。
-2648,3,term,学期/期間（イギリス：秋,春,夏）,School time part.,This term is busy.,今学期は忙しいです。
+2646,2.5,children,子どもたち,Young people.,childhood,life_stages_and_events,Children need love.,子どもには愛が必要です。
+2647,2.5,semester,学期（アメリカ：前期,後期）,Half school year.,calendar_and_dates,The semester starts soon.,学期はもうすぐ始まります。
+2648,2.5,term,学期/期間（イギリス：秋,春,夏）,School time part.,This term is busy.,今学期は忙しいです。

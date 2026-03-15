@@ -619,17 +619,16 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             }
         }
+
         lifecycleScope.launch {
             sortViewModel.uiState.collect { state ->
                 renderSortUi(state)
 
                 val q = state.question ?: return@collect
 
-                // 判定が出ていて、まだ採点していない場合だけポイント処理を実行
                 if (state.isCorrect != null && !state.hasScored) {
                     val isCorrect = (state.isCorrect == true)
 
-                    // まず履歴保存（穴埋め等と同じ）
                     StudyHistoryRepository.save(gradeFilter, LearningModes.TEST_SORT, isCorrect)
 
                     val basePoint = settings.getBasePoint(LearningModes.TEST_SORT)
@@ -641,27 +640,15 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                     if (isCorrect) {
                         val userGradeStr = settings.currentLearningGrade
-                        val gradeMap = mapOf(
-                            "1級" to 1,
-                            "準1級" to 2,
-                            "2級" to 3,
-                            "準2級" to 4,
-                            "3級" to 5,
-                            "4級" to 6,
-                            "5級" to 7,
-                            "1" to 1,
-                            "1.5" to 2,
-                            "2" to 3,
-                            "2.5" to 4,
-                            "3" to 5,
-                            "4" to 6,
-                            "5" to 7
-                        )
-                        val userGrade = gradeMap[userGradeStr] ?: 0
-                        val questionGrade = gradeMap[q.grade.trim().replace("英検", "")] ?: 0
 
+                        val userGrade = gradeToRank(userGradeStr)
+                        val questionGrade = gradeToRank(q.grade)
+
+                        // rank: 5級=1 → 1級=7
+                        // 自分より易しい問題なら正値になる
                         if (userGrade > 0 && questionGrade > 0) {
-                            val gradeDiff = questionGrade - userGrade
+                            val gradeDiff = userGrade - questionGrade
+
                             points = when {
                                 gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
                                 gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
@@ -669,17 +656,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             }
                         }
                     }
-                    val deltaPoint = points
 
-                    // ★TEST_SORT用 progressId（SortQuestionをDBのprogressと紐づける）
+                    val deltaPoint = points
                     val progressId = sortProgressId(q)
 
-                    // ポイント反映＆履歴保存（DB）＋ TEST_SORT進捗保存
                     lifecycleScope.launch(Dispatchers.IO) {
 
                         val db = AppDatabase.getInstance(this@LearningActivity)
 
-                        // ---- 1) ポイント反映＆履歴 ----
                         if (deltaPoint != 0) {
                             PointManager(this@LearningActivity).add(deltaPoint)
 
@@ -693,14 +677,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             )
                         }
 
-                        // ---- 2) TEST_SORT 進捗（due/new用） ----
                         val progressDao = db.wordProgressDao()
                         val nowSec = System.currentTimeMillis() / 1000L
 
                         val current = progressDao.getProgress(progressId, LearningModes.TEST_SORT)
                         val currentLevel = current?.level ?: 0
 
-                        // 既存の共通ロジックを流用（テストモードは翌日扱いになる）
                         val (newLevel, nextDueAtSec) = calcNextDueAtSec(
                             isCorrect,
                             currentLevel,
@@ -726,10 +708,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             )
                         )
 
-                        // ---- 3) UI更新 ----
                         withContext(Dispatchers.Main) {
                             updatePointView()
-                            // ▼▼▼ ここに移動 ▼▼▼
                             updateStudyStatsView()
 
                             val msg = if (isCorrect) {
@@ -737,13 +717,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             } else {
                                 "不正解… ${deltaPoint}pt"
                             }
+
                             Snackbar.make(
                                 findViewById(android.R.id.content),
                                 msg,
                                 Snackbar.LENGTH_SHORT
                             ).show()
 
-                            // ▼▼▼ 二重加点防止の採点済みマークもIO完了後に移動 ▼▼▼
                             sortViewModel.markScored()
                         }
                     }
@@ -755,13 +735,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             viewModel.answerResult.collect { result ->
                 if (currentMode == LearningModes.TEST_LISTEN_Q2) {
 
-                    // ▼▼▼ 新しい共通リポジトリを使って保存 ▼▼▼
                     StudyHistoryRepository.save(gradeFilter, currentMode, result.isCorrect)
 
-                    // --- 会話モード用の回答後処理 ---
                     var earnedPoints = result.points
 
-                    // ペナルティ対象モードを定義
                     val penaltyModes = setOf(
                         LearningModes.TEST_FILL_BLANK,
                         LearningModes.TEST_SORT,
@@ -769,18 +746,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         LearningModes.TEST_LISTEN_Q2
                     )
 
-                    // 不正解かつ、指定されたテストモードの場合のみ減点
                     if (currentMode in penaltyModes && !result.isCorrect) {
                         val db = AppDatabase.getInstance(this@LearningActivity)
                         val basePoint = settings.getBasePoint(currentMode)
 
-                        // 25%のペナルティ計算
                         val penalty = (basePoint * 0.25).toInt()
 
                         if (penalty > 0) {
                             lifecycleScope.launch(Dispatchers.IO) {
                                 val pointManager = PointManager(this@LearningActivity)
                                 pointManager.add(-penalty)
+
                                 db.pointHistoryDao().insert(
                                     PointHistoryEntity(
                                         mode = currentMode,
@@ -802,7 +778,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
 
                     textScriptDisplay.visibility = View.VISIBLE
-
                     textFeedback.text = result.feedback.replace("\\n", "\n")
                     textFeedback.visibility = View.VISIBLE
 
@@ -813,12 +788,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         if (result.isCorrect) R.color.snackbar_correct_bg else R.color.snackbar_wrong_bg
                     )
 
-                    // ★修正: 正解時にもポイントを表示するように変更
-                    val msg = if (result.isCorrect) "正解！ +${earnedPoints}pt" else {
+                    val msg = if (result.isCorrect) {
+                        "正解！ +${earnedPoints}pt"
+                    } else {
                         if (earnedPoints < 0) "不正解… ${earnedPoints}pt" else "不正解…"
                     }
 
                     choiceButtons.forEach { it.isEnabled = false }
+
                     currentSnackbar?.dismiss()
                     currentSnackbar = Snackbar.make(
                         findViewById(android.R.id.content),
@@ -830,10 +807,10 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         setAction("次へ") { viewModel.loadNextQuestion() }
                         show()
                     }
+
                     layoutActionButtons.visibility = View.VISIBLE
 
                 } else {
-                    // --- 通常モード ---
                     showFeedbackSnackbar(result)
                 }
 
@@ -842,7 +819,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
     }
-    // endregion
 
     // region Logic: Routing & Display
     private fun routeNextQuestionAction() {
@@ -1347,7 +1323,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val current = progressDao.getProgress(word.no, currentMode)
             val currentLevel = current?.level ?: 0
 
-            // ★ここが重要：fromDontKnow を渡す
             val (newLevel, nextDueAtSec) = calcNextDueAtSec(
                 isCorrect = isCorrect,
                 currentLevel = currentLevel,
@@ -1360,28 +1335,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             var points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint)
 
             val userGradeStr = settings.currentLearningGrade
-            val gradeMap = mapOf(
-                "1級" to 1,
-                "準1級" to 2,
-                "2級" to 3,
-                "準2級" to 4,
-                "3級" to 5,
-                "4級" to 6,
-                "5級" to 7,
-                "1" to 1,
-                "1.5" to 2,
-                "2" to 3,
-                "2.5" to 4,
-                "3" to 5,
-                "4" to 6,
-                "5" to 7
-            )
+            val userGrade = gradeToRank(userGradeStr)
+            val wordGrade = gradeToRank(word.grade)
 
-            val userGrade = gradeMap[userGradeStr] ?: 0
-            val wordGrade = gradeMap[word.grade.trim()] ?: 0
-
+            // rank: 5級=1 → 1級=7
+            // 自分より易しい問題なら正値になる
             if (userGrade > 0 && wordGrade > 0) {
-                val gradeDiff = wordGrade - userGrade
+                val gradeDiff = userGrade - wordGrade
+
                 points = when {
                     gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
                     gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
@@ -1389,7 +1350,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             }
 
-            // ★修正: 指定されたテストモードの場合のみ減点処理を行う
             val penaltyModes = setOf(
                 LearningModes.TEST_FILL_BLANK,
                 LearningModes.TEST_SORT,
@@ -1398,10 +1358,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             )
 
             if (currentMode in penaltyModes && !isCorrect) {
-                // 正解だった場合のポイントを仮計算
+
                 var potentialPoints = ProgressCalculator.calcPoint(true, currentLevel, basePoint)
+
                 if (userGrade > 0 && wordGrade > 0) {
-                    val gradeDiff = wordGrade - userGrade
+                    val gradeDiff = userGrade - wordGrade
+
                     potentialPoints = when {
                         gradeDiff == 1 -> potentialPoints * settings.pointReductionOneGradeDown / 100
                         gradeDiff >= 2 -> potentialPoints * settings.pointReductionTwoGradesDown / 100
@@ -1409,10 +1371,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
                 }
 
-                // 25%のペナルティ
                 val penalty = (potentialPoints * 0.25).toInt()
+
                 if (penalty > 0) {
                     pointManager.add(-penalty)
+
                     db.pointHistoryDao().insert(
                         PointHistoryEntity(
                             mode = currentMode,
@@ -1421,11 +1384,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         )
                     )
                 }
-                // 表示用にマイナス値を返す
+
                 points = -penalty
+
             } else {
-                // 通常の加算（テスト以外、または正解時）
+
                 pointManager.add(points)
+
                 if (points > 0) {
                     db.pointHistoryDao().insert(
                         PointHistoryEntity(
@@ -1447,6 +1412,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     studyCount = (current?.studyCount ?: 0) + 1
                 )
             )
+
             db.studyLogDao().insert(
                 WordStudyLogEntity(
                     wordId = word.no,
@@ -2432,7 +2398,20 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         buttonToggleAutoPlay.setImageResource(resId)
     }
 
-
+    private fun gradeToRank(g: String?): Int {
+        if (g == null) return 0
+        val key = g.replace("英検", "").replace("級", "").trim()
+        return when (key) {
+            "5" -> 1
+            "4" -> 2
+            "3" -> 3
+            "2.5" -> 4
+            "2" -> 5
+            "1.5" -> 6
+            "1" -> 7
+            else -> 0
+        }
+    }
 
 
 }
