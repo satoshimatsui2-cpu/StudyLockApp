@@ -12,6 +12,32 @@ import kotlin.math.abs
 object QuestionLogic {
 
     /**
+     * 級の文字列を比較用のランク(整数)に変換する
+     * 5級=1 〜 1級=7。数字が大きいほど上位級。
+     */
+    private fun gradeRank(g: String?): Int {
+        return when (g) {
+            "5" -> 1
+            "4" -> 2
+            "3" -> 3
+            "2.5" -> 4
+            "2" -> 5
+            "1.5" -> 6
+            "1" -> 7
+            else -> 0
+        }
+    }
+
+    /**
+     * 先頭2文字が一致するか判定する
+     */
+    private fun samePrefix(a: String, b: String): Boolean {
+        val len = minOf(2, a.length, b.length)
+        if (len == 0) return false
+        return a.take(len) == b.take(len)
+    }
+
+    /**
      * 穴埋め問題のデータをUIで使いやすい形式に変換する。
      * 選択肢をシャッフルし、正解のインデックスを再計算する。
      */
@@ -52,14 +78,19 @@ object QuestionLogic {
      * 正解とプールから選択肢リスト（正解含む）を生成する
      */
     fun buildChoices(correct: WordEntity, pool: List<WordEntity>, count: Int, mode: String): List<WordEntity> {
+        val correctDisplay = getCorrectStringForMode(correct, mode)
+
+        // スペル(word)と表示テキストの両方でチェック（チャッピー推奨）
         val candidates = pool.filter {
-            it.no != correct.no && it.word != correct.word && it.japanese != correct.japanese
+            it.no != correct.no &&
+            it.word != correct.word &&
+            getCorrectStringForMode(it, mode) != correctDisplay
         }
         if (candidates.isEmpty()) return listOf(correct)
 
         val distractors = when (mode) {
-            LearningModes.LISTENING, LearningModes.LISTENING_JP -> getListeningChoices(correct, candidates, count - 1)
-            else -> getStandardChoices(correct, candidates, count - 1)
+            LearningModes.LISTENING, LearningModes.LISTENING_JP -> getListeningChoices(correct, candidates, count - 1, mode)
+            else -> getStandardChoices(correct, candidates, count - 1, mode)
         }
         return (distractors + correct).shuffled()
     }
@@ -67,53 +98,105 @@ object QuestionLogic {
     /**
      * 通常モード用の選択肢選定（小カテゴリや中カテゴリを考慮）
      */
-    private fun getStandardChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
-        val sameGradePool = candidates.filter { it.grade == correct.grade }
-        // 同じ級がなければ全体から選ぶ
-        if (sameGradePool.isEmpty()) return candidates.shuffled().take(count)
+    private fun getStandardChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int, mode: String): List<WordEntity> {
+        val promptText = when (mode) {
+            LearningModes.MEANING, LearningModes.EN_EN_1 -> correct.word
+            LearningModes.JA_TO_EN -> correct.japanese ?: ""
+            LearningModes.EN_EN_2 -> correct.description ?: ""
+            else -> ""
+        }
+        val correctChoiceText = getCorrectStringForMode(correct, mode)
 
-        val correctSmallTopic = correct.smallTopicId
-        val sameSmallTopic = if (!correctSmallTopic.isNullOrEmpty()) {
-            sameGradePool.filter { !it.smallTopicId.isNullOrEmpty() && it.smallTopicId == correctSmallTopic }.shuffled()
-        } else emptyList()
-        val pickedIds = sameSmallTopic.map { it.no }.toSet()
+        fun getDisplay(w: WordEntity) = getCorrectStringForMode(w, mode)
+        fun isPromptMatch(w: WordEntity) = getDisplay(w) == promptText
+        fun isSamePrefix(w: WordEntity) = samePrefix(correctChoiceText, getDisplay(w))
 
-        val correctMediumCategory = correct.mediumCategoryId
-        val sameMediumCategory = if (!correctMediumCategory.isNullOrEmpty()) {
-            sameGradePool.filter { it.no !in pickedIds && !it.mediumCategoryId.isNullOrEmpty() && it.mediumCategoryId == correctMediumCategory }.shuffled()
-        } else emptyList()
+        // 1. プロンプトと一致するものは除外
+        val basePool = candidates.filter { getDisplay(it).isNotEmpty() && !isPromptMatch(it) }
 
-        val others = sameGradePool.filter {
-            it.no !in pickedIds &&
-            (it.mediumCategoryId != correctMediumCategory || correctMediumCategory.isNullOrEmpty())
-        }.shuffled()
+        // 2. 同じ級の中から選定
+        // 現在は保存値一致で同級判定（将来は gradeRank 比較へ移行予定）
+        val sameGradePool = basePool.filter { it.grade == correct.grade }
 
-        return (sameSmallTopic + sameMediumCategory + others).take(count)
+        // チャッピー推奨：説明文が長い英英モードではPrefixフィルタを適用しない
+        val usePrefixFilter = mode != LearningModes.EN_EN_1 && mode != LearningModes.EN_EN_2
+        val strictPool = if (usePrefixFilter) {
+            sameGradePool.filter { !isSamePrefix(it) }
+        } else {
+            sameGradePool
+        }
+
+        fun collectCategorized(pool: List<WordEntity>, targetCount: Int, existing: List<WordEntity>): List<WordEntity> {
+            if (targetCount <= 0) return emptyList()
+            val existingIds = existing.map { it.no }.toSet()
+            val available = pool.filter { it.no !in existingIds }
+
+            val sameSmallTopic = available.filter { !it.smallTopicId.isNullOrEmpty() && it.smallTopicId == correct.smallTopicId }.shuffled()
+            val pickedIds = sameSmallTopic.map { it.no }.toSet()
+
+            val sameMediumCategory = available.filter { it.no !in pickedIds && !it.mediumCategoryId.isNullOrEmpty() && it.mediumCategoryId == correct.mediumCategoryId }.shuffled()
+            val pickedIds2 = pickedIds + sameMediumCategory.map { it.no }
+
+            val others = available.filter { it.no !in pickedIds2 }.shuffled()
+
+            val result = mutableListOf<WordEntity>()
+            val seenDisplays = existing.map { getDisplay(it) }.toMutableSet()
+
+            for (w in (sameSmallTopic + sameMediumCategory + others)) {
+                if (result.size >= targetCount) break
+                val display = getDisplay(w)
+                if (display !in seenDisplays) {
+                    result.add(w)
+                    seenDisplays.add(display)
+                }
+            }
+            return result
+        }
+
+        // 1. 厳格フィルタ（同級・Prefix一致なし）
+        var result = collectCategorized(strictPool, count, emptyList())
+
+        // 2. 同級補充（Prefix一致を許容）
+        if (result.size < count) {
+            result = result + collectCategorized(sameGradePool, count - result.size, result)
+        }
+
+        // 3. 全級補充
+        if (result.size < count) {
+            result = result + collectCategorized(basePool, count - result.size, result)
+        }
+
+        return result
     }
 
     /**
      * リスニングモード用の選択肢選定（発音や綴りが似ているものを選定）
      */
-    private fun getListeningChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int): List<WordEntity> {
-        val correctGradeVal = correct.grade?.toIntOrNull() ?: 0
+    private fun getListeningChoices(correct: WordEntity, candidates: List<WordEntity>, count: Int, mode: String): List<WordEntity> {
+        val correctGradeVal = gradeRank(correct.grade)
         val correctLen = correct.word.length
         
-        // 級が近く、長さが近いものを候補にする
+        // 級が近く、長さが近く、表示テキストが空でないものを候補にする
         val validPool = candidates.filter {
-            val gVal = it.grade?.toIntOrNull() ?: 0
-            gVal >= correctGradeVal && abs(it.word.length - correctLen) <= 3
+            val gVal = gradeRank(it.grade)
+            gVal >= correctGradeVal && abs(it.word.length - correctLen) <= 3 &&
+            getCorrectStringForMode(it, mode).isNotEmpty()
         }
-        val poolToUse = if (validPool.size < count) candidates else validPool
+        val poolToUse = if (validPool.size < count) candidates.filter { getCorrectStringForMode(it, mode).isNotEmpty() } else validPool
 
         val p2 = correct.word.take(2).lowercase()
         val p1 = correct.word.take(1).lowercase()
 
-        // 優先度1: 最初の2文字が一致
-        val priority1 = poolToUse.filter { it.word.lowercase().startsWith(p2) }.shuffled()
+        // 優先度1: 最初の2文字が一致（空文字ガード）
+        val priority1 = if (p2.length == 2) {
+            poolToUse.filter { it.word.lowercase().startsWith(p2) }.shuffled()
+        } else emptyList()
         val p1Ids = priority1.map { it.no }.toSet()
         
-        // 優先度2: 最初の1文字が一致
-        val priority2 = poolToUse.filter { it.no !in p1Ids && it.word.lowercase().startsWith(p1) }.shuffled()
+        // 優先度2: 最初の1文字が一致（ガード付き）
+        val priority2 = if (p1.isNotEmpty()) {
+            poolToUse.filter { it.no !in p1Ids && it.word.lowercase().startsWith(p1) }.shuffled()
+        } else emptyList()
         val p1p2Ids = p1Ids + priority2.map { it.no }
         
         // 優先度3: 長さが±1文字
@@ -122,14 +205,33 @@ object QuestionLogic {
         // その他
         val others = poolToUse.filter { it.no !in p1p2Ids && it.no !in priority3.map { w -> w.no } }.shuffled()
 
-        val result = (priority1 + priority2 + priority3 + others).take(count)
+        val allCandidates = (priority1 + priority2 + priority3 + others)
+        val result = mutableListOf<WordEntity>()
+        val seenDisplays = mutableSetOf<String>()
+
+        for (w in allCandidates) {
+            if (result.size >= count) break
+            val display = getCorrectStringForMode(w, mode)
+            if (display !in seenDisplays) {
+                result.add(w)
+                seenDisplays.add(display)
+            }
+        }
         
         // 足りなければ補充
-        return if (result.size < count) {
-            result + candidates.filter { it.no !in result.map { w -> w.no } && it.no != correct.no }.shuffled().take(count - result.size)
-        } else {
-            result
+        if (result.size < count) {
+            val currentIds = result.map { it.no }.toSet()
+            val supplement = candidates.filter { it.no !in currentIds && it.no != correct.no && getCorrectStringForMode(it, mode).isNotEmpty() }.shuffled()
+            for (w in supplement) {
+                if (result.size >= count) break
+                val display = getCorrectStringForMode(w, mode)
+                if (display !in seenDisplays) {
+                    result.add(w)
+                    seenDisplays.add(display)
+                }
+            }
         }
+        return result
     }
 
     /**
