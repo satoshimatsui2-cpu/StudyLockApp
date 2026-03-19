@@ -17,11 +17,15 @@ object StudyHistoryRepository {
         return sdf.format(Date())
     }
 
-    fun save(grade: String, mode: String, isCorrect: Boolean) {
+    fun save(
+        grade: String,
+        mode: String,
+        isCorrect: Boolean,
+        points: Int = 0
+    ) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
 
-        // ★Tokyo固定（Cloud Functionsとズレない）
         val todayStr = todayTokyoStr()
 
         val record: Map<String, Any> = hashMapOf(
@@ -29,13 +33,14 @@ object StudyHistoryRepository {
             "grade" to grade,
             "mode" to mode,
             "isCorrect" to isCorrect,
+            "earnedPoints" to points.toLong(),
             "timestamp" to Date()
         )
 
         val docRef = db.collection("users").document(user.uid)
             .collection("dailyStats").document(todayStr)
 
-        val pointsToAdd = if (isCorrect) 10L else 0L
+        val pointsToAdd = points.toLong()
         val correctToAdd = if (isCorrect) 1L else 0L
 
         db.runTransaction { transaction ->
@@ -44,11 +49,8 @@ object StudyHistoryRepository {
             if (!snapshot.exists()) {
                 val newData: Map<String, Any> = hashMapOf(
                     "points" to pointsToAdd,
-                    // ★互換維持: usedPoints（旧）
                     "usedPoints" to 0L,
-                    // ★親向け: pointsUsed（Cloud Functionsが読む）
                     "pointsUsed" to 0L,
-
                     "studyCount" to 1L,
                     "correctCount" to correctToAdd,
                     "gradesStudied" to listOf(grade),
@@ -74,12 +76,10 @@ object StudyHistoryRepository {
         }
     }
 
-    // ★追加：アンロックで「使ったポイント」を日次集計に加算
     fun addUsedPoints(usedPoints: Int, packageName: String) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
 
-        // ★Tokyo固定（Cloud Functionsとズレない）
         val todayStr = todayTokyoStr()
 
         val docRef = db.collection("users").document(user.uid)
@@ -98,12 +98,8 @@ object StudyHistoryRepository {
             if (!snapshot.exists()) {
                 val newData: Map<String, Any> = hashMapOf(
                     "points" to 0L,
-
-                    // ★互換維持: usedPoints（旧）
                     "usedPoints" to usedPoints.toLong(),
-                    // ★親向け: pointsUsed（Cloud Functionsが読む）
                     "pointsUsed" to usedPoints.toLong(),
-
                     "studyCount" to 0L,
                     "correctCount" to 0L,
                     "gradesStudied" to emptyList<String>(),
@@ -114,11 +110,8 @@ object StudyHistoryRepository {
                 transaction.set(docRef, newData)
             } else {
                 val updates: Map<String, Any> = hashMapOf(
-                    // ★互換維持: usedPoints（旧）
                     "usedPoints" to FieldValue.increment(usedPoints.toLong()),
-                    // ★親向け: pointsUsed（Cloud Functionsが読む）
                     "pointsUsed" to FieldValue.increment(usedPoints.toLong()),
-
                     "studyRecords" to FieldValue.arrayUnion(record),
                     "updatedAt" to Date()
                 )

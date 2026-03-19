@@ -629,8 +629,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (state.isCorrect != null && !state.hasScored) {
                     val isCorrect = (state.isCorrect == true)
 
-                    StudyHistoryRepository.save(gradeFilter, LearningModes.TEST_SORT, isCorrect)
-
                     val basePoint = settings.getBasePoint(LearningModes.TEST_SORT)
                     var points = if (isCorrect) {
                         basePoint
@@ -658,6 +656,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
 
                     val deltaPoint = points
+
+                    StudyHistoryRepository.save(
+                        q.grade,
+                        LearningModes.TEST_SORT,
+                        isCorrect,
+                        deltaPoint
+                    )
+
                     val progressId = sortProgressId(q)
 
                     lifecycleScope.launch(Dispatchers.IO) {
@@ -735,8 +741,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             viewModel.answerResult.collect { result ->
                 if (currentMode == LearningModes.TEST_LISTEN_Q2) {
 
-                    StudyHistoryRepository.save(gradeFilter, currentMode, result.isCorrect)
-
                     var earnedPoints = result.points
 
                     val penaltyModes = setOf(
@@ -776,6 +780,13 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             }
                         }
                     }
+
+                    StudyHistoryRepository.save(
+                        gradeFilter,
+                        currentMode,
+                        result.isCorrect,
+                        earnedPoints
+                    )
 
                     textScriptDisplay.visibility = View.VISIBLE
                     textFeedback.text = result.feedback.replace("\\n", "\n")
@@ -1214,7 +1225,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             btn.isClickable = !visible
         }
     }
-
     private fun onChoiceSelected(selectedIndex: Int) {
         if (currentMode == LearningModes.TEST_LISTEN_Q2) {
             viewModel.submitAnswer(selectedIndex)
@@ -1242,15 +1252,27 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
         }
 
-        if (isCorrect) playCorrectEffect() else playWrongEffect()
+        if (isCorrect) {
+            playCorrectEffect()
+        } else {
+            playWrongEffect()
+        }
 
-        // ★保存＆共通処理
-        StudyHistoryRepository.save(ctx.word.grade, currentMode, isCorrect)
+        // ★ここではまだポイント未確定なので 0 を保存
+        StudyHistoryRepository.save(
+            ctx.word.grade,
+            currentMode,
+            isCorrect,
+            0
+        )
 
-        // ★通常解答は fromDontKnow=false（isDontKnow経路が将来来ても対応できるよう渡す）
-        processAnswerResultLegacy(ctx.word, isCorrect, fromDontKnow = isDontKnow)
+        // ★通常解答は fromDontKnow=false（isDontKnow経路も対応）
+        processAnswerResultLegacy(
+            ctx.word,
+            isCorrect,
+            fromDontKnow = isDontKnow
+        )
     }
-
     private fun processAnswerResultLegacy(
         word: WordEntity,
         isCorrect: Boolean,
@@ -1258,6 +1280,14 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     ) {
         lifecycleScope.launch {
             val (addPoint, levelUpInfo) = registerAnswerToDb(word, isCorrect, fromDontKnow)
+
+            // ★ここで実ポイント確定後に保存
+            StudyHistoryRepository.save(
+                word.grade,
+                currentMode,
+                isCorrect,
+                addPoint
+            )
 
             if (isCorrect) {
                 checkAndAnimateTrophy(levelUpInfo.first, levelUpInfo.second)
@@ -1267,27 +1297,32 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             showFeedbackSnackbarInternal(isCorrect, addPoint)
             updatePointView()
 
-            // ▼ 例文を表示 (現在のコンテキストから安全に取得)
-            currentLegacyContext?.word?.let { showExampleSentence(it) }
+            // ▼ 例文を表示
+            currentLegacyContext?.word?.let {
+                showExampleSentence(it)
+            }
 
             if (!isCorrect) {
-                // 不正解時：ボタンを出して停止
+                // 不正解時：停止
                 buttonNextQuestion.visibility = View.VISIBLE
                 layoutActionButtons.visibility = View.VISIBLE
+
             } else {
                 // 正解時
                 if (!currentLegacyContext?.word?.sentence.isNullOrBlank()) {
-                    // 例文がある場合：ボタンを出して停止
+                    // 例文あり → 停止
                     buttonNextQuestion.visibility = View.VISIBLE
                     layoutActionButtons.visibility = View.VISIBLE
+
                 } else {
-                    // 例文がない場合：自動で次へ
+                    // 例文なし → 自動次へ
                     delay(settings.answerIntervalMs)
                     loadNextQuestionLegacy()
                 }
             }
         }
     }
+
     private fun processAsIncorrect() {
         val ctx = currentLegacyContext ?: return
 
@@ -1296,17 +1331,24 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // ボタン無効化 + 正解だけ緑表示（赤は出さない）
         choiceButtons.forEach { it.isClickable = false }
+
         if (ctx.correctIndex in choiceButtons.indices) {
-            ViewCompat.setBackgroundTintList(choiceButtons[ctx.correctIndex], greenTint)
+            ViewCompat.setBackgroundTintList(
+                choiceButtons[ctx.correctIndex],
+                greenTint
+            )
         }
 
         playWrongEffect()
 
-        // 保存＆共通の不正解処理
-        StudyHistoryRepository.save(ctx.word.grade, currentMode, false)
+        // ★ saveはここでは不要（processAnswerResultLegacy 内で実ポイント保存される）
 
         // ★「わからない」経由
-        processAnswerResultLegacy(ctx.word, false, fromDontKnow = true)
+        processAnswerResultLegacy(
+            ctx.word,
+            false,
+            fromDontKnow = true
+        )
     }
 
     private suspend fun registerAnswerToDb(
