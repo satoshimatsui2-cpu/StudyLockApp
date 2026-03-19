@@ -1043,7 +1043,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun renderLegacyQuestion(ctx: LegacyQuestionContext) {
-
         legacyRenderer.render(
             ctx = ctx,
             currentMode = currentMode,
