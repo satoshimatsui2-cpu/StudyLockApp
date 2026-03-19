@@ -1233,21 +1233,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         val ctx = currentLegacyContext ?: return
 
-        // 「分からない」経由は -1 を渡す（ボタンは赤くしない）
         val isDontKnow = (selectedIndex !in choiceButtons.indices)
         val isCorrect = (!isDontKnow && selectedIndex == ctx.correctIndex)
 
-        // 選択した瞬間にカバーは閉じる（テンポ良く）
         hideCover()
 
         choiceButtons.forEach { it.isClickable = false }
 
-        // 正解ボタンは必ず緑
         if (ctx.correctIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[ctx.correctIndex], greenTint)
         }
 
-        // 不正解のときだけ「押したボタン」を赤にする（ただし dontKnow では赤にしない）
         if (!isCorrect && !isDontKnow && selectedIndex in choiceButtons.indices) {
             ViewCompat.setBackgroundTintList(choiceButtons[selectedIndex], redTint)
         }
@@ -1258,15 +1254,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             playWrongEffect()
         }
 
-        // ★ここではまだポイント未確定なので 0 を保存
-        StudyHistoryRepository.save(
-            ctx.word.grade,
-            currentMode,
-            isCorrect,
-            0
-        )
+        // ★ saveしない（processAnswerResultLegacy 側で一度だけ保存）
 
-        // ★通常解答は fromDontKnow=false（isDontKnow経路も対応）
         processAnswerResultLegacy(
             ctx.word,
             isCorrect,
