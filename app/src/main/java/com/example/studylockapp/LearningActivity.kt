@@ -35,6 +35,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.*
 import com.example.studylockapp.learning.AnswerResult
 import com.example.studylockapp.learning.QuestionUiState
+import com.example.studylockapp.learning.LegacyQuestionRenderer
+import com.example.studylockapp.learning.AnswerRegistrationUseCase
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
@@ -134,7 +136,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var suppressHideChoicesListener = false
 
     private fun isTestMode(): Boolean = currentMode.startsWith("test_")
-// ▲▲▲ 追加ここまで ▲▲▲
+    private val legacyRenderer by lazy { LegacyQuestionRenderer(this) }
+    private val registrationUseCase by lazy { AnswerRegistrationUseCase(this) }
 
 
     private val greenTint by lazy {
@@ -1040,9 +1043,26 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun renderLegacyQuestion(ctx: LegacyQuestionContext) {
-        // リスニングモード判定（英語→英語、英語→日本語）
+
+        legacyRenderer.render(
+            ctx = ctx,
+            currentMode = currentMode,
+            views = LegacyQuestionRenderer.RendererViews(
+                textQuestionTitle,
+                textQuestionBody,
+                choiceButtons,
+                buttonToggleAutoPlay,
+                coverLayout ?: return,
+                checkboxHideChoices?.isChecked == true
+            ),
+            speakAction = { text -> speakText(text) },
+            applyTtsDrawableAction = { show, large -> applyTtsDrawable(show, large) }
+        )
+
         val isListeningMode = currentMode == LearningModes.LISTENING || currentMode == LearningModes.LISTENING_JP
         textQuestionTitle.text = ctx.title
+
+
         if (isListeningMode) {
             // リスニングモード：テキストは表示しないが、アイコンを中央に見せるためにViewはVISIBLEにする
             textQuestionBody.text = ""
@@ -1345,115 +1365,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         isCorrect: Boolean,
         fromDontKnow: Boolean = false
     ): Pair<Int, Pair<Int, Int>> {
-        return withContext(Dispatchers.IO) {
-            val db = AppDatabase.getInstance(this@LearningActivity)
-            val progressDao = db.wordProgressDao()
-            val pointManager = PointManager(this@LearningActivity)
-            val nowSec = nowEpochSec()
-
-            val current = progressDao.getProgress(word.no, currentMode)
-            val currentLevel = current?.level ?: 0
-
-            val (newLevel, nextDueAtSec) = calcNextDueAtSec(
-                isCorrect = isCorrect,
-                currentLevel = currentLevel,
-                nowSec = nowSec,
-                fromDontKnow = fromDontKnow
-            )
-
-            val basePoint = settings.getBasePoint(currentMode)
-
-            var points = ProgressCalculator.calcPoint(isCorrect, currentLevel, basePoint)
-
-            val userGradeStr = settings.currentLearningGrade
-            val userGrade = gradeToRank(userGradeStr)
-            val wordGrade = gradeToRank(word.grade)
-
-            // rank: 5級=1 → 1級=7
-            // 自分より易しい問題なら正値になる
-            if (userGrade > 0 && wordGrade > 0) {
-                val gradeDiff = userGrade - wordGrade
-
-                points = when {
-                    gradeDiff == 1 -> points * settings.pointReductionOneGradeDown / 100
-                    gradeDiff >= 2 -> points * settings.pointReductionTwoGradesDown / 100
-                    else -> points
-                }
-            }
-
-            val penaltyModes = setOf(
-                LearningModes.TEST_FILL_BLANK,
-                LearningModes.TEST_SORT,
-                LearningModes.TEST_LISTEN_Q1,
-                LearningModes.TEST_LISTEN_Q2
-            )
-
-            if (currentMode in penaltyModes && !isCorrect) {
-
-                var potentialPoints = ProgressCalculator.calcPoint(true, currentLevel, basePoint)
-
-                if (userGrade > 0 && wordGrade > 0) {
-                    val gradeDiff = userGrade - wordGrade
-
-                    potentialPoints = when {
-                        gradeDiff == 1 -> potentialPoints * settings.pointReductionOneGradeDown / 100
-                        gradeDiff >= 2 -> potentialPoints * settings.pointReductionTwoGradesDown / 100
-                        else -> potentialPoints
-                    }
-                }
-
-                val penalty = (potentialPoints * 0.25).toInt()
-
-                if (penalty > 0) {
-                    pointManager.add(-penalty)
-
-                    db.pointHistoryDao().insert(
-                        PointHistoryEntity(
-                            mode = currentMode,
-                            dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
-                            delta = -penalty
-                        )
-                    )
-                }
-
-                points = -penalty
-
-            } else {
-
-                pointManager.add(points)
-
-                if (points > 0) {
-                    db.pointHistoryDao().insert(
-                        PointHistoryEntity(
-                            mode = currentMode,
-                            dateEpochDay = LocalDate.now(settings.getAppZoneId()).toEpochDay(),
-                            delta = points
-                        )
-                    )
-                }
-            }
-
-            progressDao.upsert(
-                WordProgressEntity(
-                    wordId = word.no,
-                    mode = currentMode,
-                    level = newLevel,
-                    nextDueAtSec = nextDueAtSec,
-                    lastAnsweredAt = System.currentTimeMillis(),
-                    studyCount = (current?.studyCount ?: 0) + 1
-                )
-            )
-
-            db.studyLogDao().insert(
-                WordStudyLogEntity(
-                    wordId = word.no,
-                    mode = currentMode,
-                    learnedAt = System.currentTimeMillis()
-                )
-            )
-
-            points to (currentLevel to newLevel)
-        }
+        return registrationUseCase.execute(
+            word,
+            currentMode,
+            isCorrect,
+            fromDontKnow
+        )
     }
 
     private fun checkAndAnimateTrophy(oldLevel: Int, newLevel: Int) {
