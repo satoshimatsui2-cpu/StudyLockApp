@@ -1058,9 +1058,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             speakAction = { text -> speakText(text) },
             applyTtsDrawableAction = { show, large -> applyTtsDrawable(show, large) }
         )
-
-        val isListeningMode = currentMode == LearningModes.LISTENING || currentMode == LearningModes.LISTENING_JP
-
     }
     /** 回答後に例文を表示する */
     private fun showExampleSentence(word: WordEntity) {
