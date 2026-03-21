@@ -57,6 +57,9 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var includeOtherGradesReview: Boolean = false
     private var loadingJob: Job? = null
     private var allWords: List<WordEntity> = emptyList()
+
+    // 既存の allWords 宣言の近くに追加
+    private var reviewWordsPool: Map<Int, WordEntity> = emptyMap()
     private var allWordsFull: List<WordEntity> = emptyList()
     private var listeningQuestions: List<ListeningQuestion> = emptyList()
     private var fillBlankQuestions: List<FillBlankQuestion> = emptyList()
@@ -180,6 +183,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // 1) gradeFilter を決める（Intent優先 → 無ければ保存済みを復元）
         // ------------------------------------------------------------
         val allowed = setOf("5", "4", "3", "2.5", "2", "1.5", "1")
+
 
         // Intent が無い/壊れてるケースでも、前回値で復帰できるようにする
         val gradeFromIntent = intent.getStringExtra("gradeFilter")
@@ -469,7 +473,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private suspend fun loadInitialData() {
-        val targetDbGrade = normalizeGrade(gradeFilter)
+        val targetDbGrade = GradeUtils.normalize(gradeFilter)
 
         val imported = withContext(Dispatchers.IO) {
             if (gradeFilter != "All") importMissingWordsForGrade(targetDbGrade) else 0
@@ -497,20 +501,43 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val db = AppDatabase.getInstance(this@LearningActivity)
         allWordsFull = withContext(Dispatchers.IO) { db.wordDao().getAll() }
 
+        // 1. 復習対象の級リストを解決 (設定がONなら下位級を含める)
+        val targetGradesForReview = if (gradeFilter == "All") {
+            allWordsFull.map { GradeUtils.normalize(it.grade) }.distinct()
+        } else {
+            GradeUtils.resolveTargetGrades(
+                selectedGrade = gradeFilter,
+                includeLower = settings.includeLowerGradeInReview,
+                isReview = true
+            )
+        }
+
+        // 2. 復習用プール（広域）をDBから一括取得してMap化 (N+1回避)
+        val broadWords = if (targetGradesForReview.isEmpty()) {
+            emptyList()
+        } else {
+            withContext(Dispatchers.IO) {
+                db.wordDao().getWordsByGrades(targetGradesForReview)
+            }
+        }
+        reviewWordsPool = broadWords.associateBy { it.no }
+
+        // 3. allWords は「選択中の級」のみに厳密に絞り込む (新規問題用)
         allWords = if (gradeFilter == "All") {
             allWordsFull
         } else {
             allWordsFull.filter {
-                it.grade == gradeFilter || it.grade == targetDbGrade
+                GradeUtils.normalize(it.grade) == targetDbGrade
             }
         }
 
+        // ViewModelに現在の級の単語リストを通知
         viewModel.setGradeInfo(gradeFilter, allWords)
 
         updateStudyStatsView()
-
     }
     // endregion
+
 
     // region Events & Observers
     private fun setupListeners() {
@@ -1311,25 +1338,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val db = AppDatabase.getInstance(this)
         val progressDao = db.wordProgressDao()
         val nowSec = nowEpochSec()
+
+        // A. 復習（最優先）
         val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
 
-        val wordMapFiltered = allWords.associateBy { it.no }
-        val wordMapAll = allWordsFull.associateBy { it.no }
-
-        val dueWords = if (includeOtherGradesReview && gradeFilter != "All") {
-            dueIdsOrdered.mapNotNull { wordMapAll[it] }
-        } else {
-            dueIdsOrdered.mapNotNull { wordMapFiltered[it] }
+        for (id in dueIdsOrdered) {
+            val word = reviewWordsPool[id]
+            if (word != null) return word
         }
-        if (dueWords.isNotEmpty()) return dueWords.first()
 
+        // B. 新規
         val progressedIds = progressDao.getProgressIds(currentMode).toSet()
-        val newWords = if (gradeFilter == "All") {
-            allWordsFull.filter { it.no !in progressedIds }
-        } else {
-            allWords.filter { it.no !in progressedIds }
-        }
-        return if (newWords.isNotEmpty()) newWords.random() else null
+
+        val newWords = allWords.filter { it.no !in progressedIds }
+
+        return newWords.randomOrNull()
     }
 
     private fun getChoicePool(): List<WordEntity> {

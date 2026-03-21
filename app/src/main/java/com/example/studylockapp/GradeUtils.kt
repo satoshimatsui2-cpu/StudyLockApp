@@ -5,6 +5,9 @@ package com.example.studylockapp
  */
 object GradeUtils {
 
+    // 上位から順に定義
+    private val gradesHierarchy = listOf("1", "1.5", "2", "2.5", "3", "4", "5")
+
     /**
      * 表記を正規化（数値文字列のみにする）
      * 例: "5級" -> "5", "準2級" -> "2.5", "5" -> "5"
@@ -12,14 +15,30 @@ object GradeUtils {
     fun normalize(grade: String?): String {
         if (grade.isNullOrBlank() || grade == "未設定") return ""
 
-        return grade
-            .replace("英検", "")
-            .replace("準1級", "1.5")
-            .replace("準2級", "2.5")
-            .replace("準1", "1.5")
-            .replace("準2", "2.5")
-            .replace("級", "")
-            .trim()
+        return when {
+            grade.contains("準1") -> "1.5"
+            grade.contains("準2") -> "2.5"
+            else -> grade.replace("英検", "").replace("級", "").trim()
+        }
+    }
+
+    /**
+     * 出題対象となる級のリストを解決する
+     */
+    fun resolveTargetGrades(
+        selectedGrade: String,
+        includeLower: Boolean,
+        isReview: Boolean
+    ): List<String> {
+        val normalized = normalize(selectedGrade)
+        // 復習かつ下位級設定がONの場合のみ拡張する
+        if (!isReview || !includeLower) return listOf(normalized)
+
+        val index = gradesHierarchy.indexOf(normalized)
+        if (index == -1) return listOf(normalized)
+
+        // 選択された級から最後（5級）までのリストを返す
+        return gradesHierarchy.subList(index, gradesHierarchy.size)
     }
 
     /**

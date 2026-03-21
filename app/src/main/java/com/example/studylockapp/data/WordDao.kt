@@ -25,4 +25,8 @@ interface WordDao {
     // 追加: 単語の意味と説明を更新するクエリ
     @Query("UPDATE words SET japanese = :meaning, description = :description WHERE word = :word")
     suspend fun updateWordInfo(word: String, meaning: String, description: String): Int
+
+    // 追加: 複数級の単語を一括取得する
+    @Query("SELECT * FROM words WHERE grade IN (:grades)")
+    suspend fun getWordsByGrades(grades: List<String>): List<WordEntity>
 }
