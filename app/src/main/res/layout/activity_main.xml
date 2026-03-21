@@ -246,16 +246,6 @@
                         app:iconPadding="4dp" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/text_grade_stats_top"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/grade_stats_default"
-                    android:textSize="16sp"
-                    android:textColor="?attr/colorOnSurface"
-                    android:gravity="center_horizontal" />
-
                 <!-- STARTボタン -->
                 <LinearLayout
                     android:layout_width="match_parent"

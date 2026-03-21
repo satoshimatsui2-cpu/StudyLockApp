@@ -53,19 +53,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gradeButton: MaterialButton
     private lateinit var buttonToLearning: Button
     private lateinit var settings: AppSettings
-
     private lateinit var textPointsTop: TextView
     private lateinit var textPointStatsTop: TextView
-    private lateinit var textGradeStatsTop: TextView
     private lateinit var textTargetGrade: TextView
-
     private var gradeStatsMap: Map<String, String> = emptyMap()
     private var selectedGradeKey: String? = null
-
     private var accessibilityDialog: AlertDialog? = null
     private var notificationDialog: AlertDialog? = null
     private var permissionDialogsJob: Job? = null
-    
     private var isInitialGradeDialogShowing = false
 
     data class GradeSpinnerItem(
@@ -78,7 +73,6 @@ class MainActivity : AppCompatActivity() {
 
         // アプリの表示領域をシステムバー（ステータスバーなど）の裏側まで広げる設定
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
         setContentView(R.layout.activity_main)
         settings = AppSettings(this)
 
@@ -94,7 +88,6 @@ class MainActivity : AppCompatActivity() {
         buttonToLearning = findViewById(R.id.button_to_learning)
         textPointsTop = findViewById(R.id.text_points_top)
         textPointStatsTop = findViewById(R.id.text_point_stats_top)
-        textGradeStatsTop = findViewById(R.id.text_grade_stats_top)
         textTargetGrade = findViewById(R.id.text_target_grade)
 
         setupLongPressForAdmin()
@@ -103,7 +96,6 @@ class MainActivity : AppCompatActivity() {
         gradeButton.text = getString(R.string.hint_select_grade)
         gradeButton.setOnClickListener { showGradePickerDialog() }
         buttonToLearning.isEnabled = false
-        textGradeStatsTop.text = "復習 0 • 新規 0/0"
 
         // 右上の設定バッジ
         findViewById<ImageButton>(R.id.button_admin_settings_top)?.setOnClickListener {
@@ -152,7 +144,6 @@ class MainActivity : AppCompatActivity() {
         updatePointView()
         updateGradeDropdownLabels()
     }
-
 
      private fun setupLongPressForAdmin() {
         if (!settings.isEnableAdminLongPress()) return
@@ -346,12 +337,10 @@ class MainActivity : AppCompatActivity() {
                 selectedGradeKey = keepKey
                 gradeButton.text = GradeUtils.toDisplay(keepKey)
                 buttonToLearning.isEnabled = true
-                textGradeStatsTop.text = gradeStatsMap[keepKey] ?: "復習 0 • 新規 0/0"
             } else {
                 gradeButton.text = getString(R.string.hint_select_grade)
                 selectedGradeKey = null
                 buttonToLearning.isEnabled = false
-                textGradeStatsTop.text = "復習 0 • 新規 0/0"
             }
             updateTargetGradeDisplay()
         }
@@ -373,7 +362,6 @@ class MainActivity : AppCompatActivity() {
         val label = GradeUtils.toDisplay(grade)
         gradeButton.text = label
         buttonToLearning.isEnabled = true
-        textGradeStatsTop.text = gradeStatsMap[grade] ?: "復習 0 • 新規 0/0"
 
         updateTargetGradeDisplay()
 
