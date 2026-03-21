@@ -29,4 +29,9 @@
         <item name="autoSizeMaxTextSize">18sp</item>
         <item name="autoSizeStepGranularity">1sp</item>
     </style>
+    <!-- ダイアログの文字色を強制的に見えるようにする -->
+    <style name="ThemeOverlay.MyDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <!-- ダイアログの本文・タイトルの文字色 -->
+        <item name="colorOnSurface">@android:color/white</item>
+    </style>
 </resources>

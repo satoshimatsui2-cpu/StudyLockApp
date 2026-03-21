@@ -58,7 +58,8 @@
                 android:text="現在の目標レベルを設定する"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"/>
+                android:textColor="?attr/colorOnSurface"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -67,7 +68,8 @@
                 android:layout_marginBottom="8dp"
                 android:text="目標レベルのひとつ下のレベルの問題を解いた場合は取得ポイントは半分、それより下のレベルは四分の一になります。"
                 android:textSize="11sp"
-                android:textColor="?attr/colorOnSurface"/>
+                android:textColor="?attr/colorOnSurface"
+                tools:ignore="HardcodedText" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -125,10 +127,12 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:contentDescription="TODO"
                             android:text="他のアプリをロックする"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            tools:ignore="HardcodedText" />
 
                         <ImageView
                             android:id="@+id/arrow_app_lock_block"
@@ -154,7 +158,8 @@
                             android:layout_marginBottom="8dp"
                             android:text="ロックするアプリの選択と、選択したアプリのロックと、稼いだポイントでロックの解除の機能が使用できます。"
                             android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurface"/>
+                            android:textColor="?attr/colorOnSurface"
+                            tools:ignore="HardcodedText" />
                         <!-- アプリロック機能を必須にする -->
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_app_lock_required"
@@ -234,7 +239,8 @@
                             android:text="学習モード 獲得ポイント"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            tools:ignore="HardcodedText" />
 
                         <ImageView
                             android:id="@+id/arrow_study_points"
@@ -366,7 +372,8 @@
                             android:text="テストモード 獲得ポイント"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            tools:ignore="HardcodedText" />
 
                         <ImageView
                             android:id="@+id/arrow_test_points"
@@ -464,6 +471,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
+                            android:importantForAccessibility="no"
                             android:src="@drawable/ic_timer_24"
                             app:tint="?attr/colorOnSurfaceVariant" />
 
@@ -474,7 +482,8 @@
                             android:text="時間制限と交換レート"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            tools:ignore="HardcodedText" />
 
                         <ImageView
                             android:id="@+id/arrow_time_settings"
@@ -633,7 +642,8 @@
                             android:text="子供の端末と接続する"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            tools:ignore="HardcodedText" />
 
                         <ImageView
                             android:id="@+id/arrow_pairing"
@@ -660,7 +670,8 @@
                             android:layout_marginBottom="8dp"
                             android:text="ペアリング設定すると、①子供端末の管理画面パスワードを忘れた場合に解除出来る。②子供がアクセシビリティのON,OFFをした際にアラートを通知できる。③子供の日々の学習結果を通知出来る。"
                             android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurface"/>
+                            android:textColor="?attr/colorOnSurface"
+                            tools:ignore="HardcodedText" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_show_qr"
@@ -764,7 +775,8 @@
                             android:text="セキュリティ設定 (親御様用)"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            tools:ignore="HardcodedText" />
 
                         <ImageView
                             android:id="@+id/arrow_security"
@@ -860,7 +872,8 @@
                             android:text="１．アプリの長押し機能の無効化（一時停止、アンインストール）２．「アプリ」画面へのアクセスロック。　３．「セキュリティとプライバシー」画面へのアクセスロック"
                             android:textSize="12sp"
                             android:paddingBottom="12dp"
-                            android:textColor="?attr/colorOnSurface"/>
+                            android:textColor="?attr/colorOnSurface"
+                            tools:ignore="HardcodedText" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_tethering_lock"
@@ -898,22 +911,27 @@
                             android:text="ONにすると、TOP画面のタイトルを長押しでPIN入力なしでこの画面を開けます。"
                             android:textSize="12sp"
                             android:paddingBottom="16dp"
-                            android:textColor="?attr/colorOnSurface"/>
+                            android:textColor="?attr/colorOnSurface"
+                            tools:ignore="HardcodedText" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
             <TextView
                 android:id="@+id/text_privacy_policy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="24dp"
-                android:padding="8dp"
-                android:text="プライバシーポリシー"
-                android:textColor="?attr/colorPrimary"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:gravity="center"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:padding="8dp"
+                android:text="プライバシーポリシー"
+                android:textColor="#D32F2F" />
         </LinearLayout>
     </ScrollView>
 

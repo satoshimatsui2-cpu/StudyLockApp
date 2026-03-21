@@ -79,7 +79,7 @@
                         android:maxHeight="420dp" />
                 </LinearLayout>
 
-                <!-- ポイントカード（幅80%、デザイン統一） -->
+                <!-- ポイントカード -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -156,7 +156,7 @@
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
-                <!-- 履歴ボタン横並び（ポイント履歴、学習履歴） -->
+                <!-- 履歴ボタン -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -165,7 +165,6 @@
                     android:gravity="center_horizontal"
                     android:layout_marginBottom="24dp">
 
-                    <!-- ポイント履歴・学習履歴をまとめるコンテナ（幅80%＋マージン） -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -182,12 +181,12 @@
                             android:layout_weight="1"
                             android:layout_marginEnd="6dp"
                             android:text="@string/action_point_history"
-                            android:textAllCaps="false"
                             android:background="@drawable/sl_button_bg_navy"
                             android:textColor="@color/sl_button_text"
                             android:paddingVertical="12dp"
                             app:backgroundTint="@null"
-                            android:textSize="16sp"/>
+                            android:textSize="16sp"
+                            android:textAllCaps="false"/>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_to_learning_history"
@@ -197,16 +196,28 @@
                             android:layout_weight="1"
                             android:layout_marginStart="6dp"
                             android:text="@string/action_learning_history"
-                            android:textAllCaps="false"
                             android:background="@drawable/sl_button_bg_navy"
                             android:textColor="@color/sl_button_text"
                             android:paddingVertical="12dp"
                             app:backgroundTint="@null"
-                            android:textSize="16sp"/>
+                            android:textSize="16sp"
+                            android:textAllCaps="false"/>
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- 級選択ボタン（他ボタンと同サイズ・同デザイン） -->
+                <!-- 目標・学習レベル表示 -->
+                <TextView
+                    android:id="@+id/text_target_grade"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_horizontal"
+                    android:textSize="14sp"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold"
+                    tools:text="目標：3級 / 学習：5級（復習）" />
+
+                <!-- 級選択ボタン -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -232,9 +243,7 @@
                         app:iconGravity="textEnd"
                         app:iconTint="@color/sl_button_text"
                         app:iconSize="32dp"
-
-                        app:iconPadding="4dp"
-                        />
+                        app:iconPadding="4dp" />
                 </LinearLayout>
 
                 <TextView
@@ -247,7 +256,7 @@
                     android:textColor="?attr/colorOnSurface"
                     android:gravity="center_horizontal" />
 
-                <!-- STARTボタン（幅80%） -->
+                <!-- STARTボタン -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -273,7 +282,7 @@
                         android:textSize="20sp"/>
                 </LinearLayout>
 
-                <!-- 管理設定ボタン（幅80%、非表示推奨） -->
+                <!-- 管理設定ボタン -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

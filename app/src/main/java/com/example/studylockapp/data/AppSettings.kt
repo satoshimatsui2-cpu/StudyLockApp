@@ -59,6 +59,7 @@ class AppSettings(context: Context) {
         private const val KEY_AUTO_PLAY = "learning_auto_play"
         private const val PREF_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec"
         private const val KEY_LAST_GRADE_FILTER = "learning_last_grade_filter"
+        
         // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -214,8 +215,11 @@ class AppSettings(context: Context) {
 
     // --- Grade-based Point Reduction ---
     var currentLearningGrade: String
-        get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "All") ?: "All"
+        get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "") ?: ""
         set(value) = prefs.edit { putString(KEY_CURRENT_LEARNING_GRADE, value) }
+
+    val safeLearningGrade: String
+        get() = if (currentLearningGrade.isBlank()) "3" else currentLearningGrade
 
     var pointReductionOneGradeDown: Int
         get() = prefs.getInt(KEY_POINT_REDUCTION_ONE_GRADE_DOWN, 50)
@@ -225,7 +229,7 @@ class AppSettings(context: Context) {
         get() = prefs.getInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, 25)
         set(value) = prefs.edit { putInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, value.coerceIn(0, 100)) }
 
-    // ▼▼▼ 追加: 親IDの読み書き（通知チェック用） ▼▼▼
+    // ▼▼▼ 追加: 親連携用ID ▼▼▼
 
     // 親IDを保存する
     fun setParentUid(uid: String?) {
@@ -264,4 +268,14 @@ class AppSettings(context: Context) {
     var lastGradeFilter: String
         get() = prefs.getString(KEY_LAST_GRADE_FILTER, "") ?: ""
         set(value) { prefs.edit().putString(KEY_LAST_GRADE_FILTER, value).apply() }
+
+    // --- Accessibility Lock ---
+    var isAccessibilityLockEnabled: Boolean
+        get() = prefs.getBoolean("accessibility_lock", false)
+        set(value) = prefs.edit { putBoolean("accessibility_lock", value) }
+
+    // --- Tethering Lock ---
+    var isTetheringLockEnabled: Boolean
+        get() = prefs.getBoolean("tethering_lock", false)
+        set(value) = prefs.edit { putBoolean("tethering_lock", value) }
 }

@@ -34,6 +34,7 @@ import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.worker.DailyReportWorker
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
@@ -41,8 +42,10 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import kotlin.coroutines.resume
 import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
@@ -54,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textPointsTop: TextView
     private lateinit var textPointStatsTop: TextView
     private lateinit var textGradeStatsTop: TextView
+    private lateinit var textTargetGrade: TextView
 
     private var gradeStatsMap: Map<String, String> = emptyMap()
     private var selectedGradeKey: String? = null
@@ -61,6 +65,8 @@ class MainActivity : AppCompatActivity() {
     private var accessibilityDialog: AlertDialog? = null
     private var notificationDialog: AlertDialog? = null
     private var permissionDialogsJob: Job? = null
+    
+    private var isInitialGradeDialogShowing = false
 
     data class GradeSpinnerItem(
         val gradeKey: String,   // 例: "5", "2.5"
@@ -76,19 +82,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         settings = AppSettings(this)
 
-// ✅ 前回選んだグレードを復元（なければ null のまま）
+        // ✅ 前回選んだグレードを復元（なければ null のまま）
         val savedGrade = settings.lastGradeFilter
         selectedGradeKey = savedGrade.takeIf { it.isNotBlank() }
 
-        // ▼▼▼ ＋追加: 通知の通り道を作る（これを忘れると通知が来ません！） ▼▼▼
         createNotificationChannel()
-        // ▲▲▲ 追加ここまで ▲▲▲
-
-        // ▼▼▼ 追加: 日次レポートWorkerのスケジュール登録 ▼▼▼
         DailyReportWorker.schedule(this)
-        // ▲▲▲ 追加ここまで ▲▲▲
-
-        // ▼▼▼ ★追加: 起動時に必ず「自分は子供だ」とサーバーに教える ▼▼▼
         ensureUserRole()
 
         gradeButton = findViewById(R.id.spinner_grade_top)
@@ -96,8 +95,8 @@ class MainActivity : AppCompatActivity() {
         textPointsTop = findViewById(R.id.text_points_top)
         textPointStatsTop = findViewById(R.id.text_point_stats_top)
         textGradeStatsTop = findViewById(R.id.text_grade_stats_top)
+        textTargetGrade = findViewById(R.id.text_target_grade)
 
-        // タイトルを長押しで管理者画面へ（長押し時間を倍にする）
         setupLongPressForAdmin()
 
         // 初期状態
@@ -115,10 +114,17 @@ class MainActivity : AppCompatActivity() {
             openAdminSettings(isLongPressRoute = false)
         }
 
-        // 学習画面へ（gradeFilter は DB の grade と一致する値：例 "5"）
         buttonToLearning.setOnClickListener {
+            if (settings.currentLearningGrade.isBlank()) {
+                lifecycleScope.launch {
+                    awaitInitialGradeSelection()
+                }
+                return@setOnClickListener
+            }
+
             val gradeSelected = selectedGradeKey ?: return@setOnClickListener
-            settings.lastGradeFilter = gradeSelected // ✅ 念のため保存
+            settings.lastGradeFilter = gradeSelected
+
             startActivity(
                 Intent(this, LearningActivity::class.java).apply {
                     putExtra("gradeFilter", gradeSelected)
@@ -149,7 +155,6 @@ class MainActivity : AppCompatActivity() {
 
 
      private fun setupLongPressForAdmin() {
-        val settings = AppSettings(this)
         if (!settings.isEnableAdminLongPress()) return
 
         val titleView = findViewById<View>(R.id.title_top) ?: return
@@ -162,7 +167,7 @@ class MainActivity : AppCompatActivity() {
                 MotionEvent.ACTION_DOWN -> {
                     longPressRunnable = Runnable { openAdminSettings(isLongPressRoute = true) }
                     handler.postDelayed(longPressRunnable!!, longPressDuration)
-                    true // イベントを消費して、クリックなどが発火しないようにする
+                    true 
                 }
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_CANCEL -> {
@@ -177,13 +182,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-//        if (!settings.hasChosenTimeZone()) {
-//            startActivity(Intent(this, TimeZoneSetupActivity::class.java))
-//            return
-//        }
-
         // ★改善: サービスが無効なら、通知済みフラグを確実にリセットしておく
-        // これにより、次にONにした際に確実に再通知が飛ぶようになる
         if (!isAppLockServiceEnabled()) {
             settings.setAccessibilityEnabledNotified(false)
         }
@@ -196,18 +195,82 @@ class MainActivity : AppCompatActivity() {
             if (shownNotification) return@launch
 
             // 2) 次にアクセシビリティチェック
-            maybeShowAccessibilityDialogSequential()
+            val shownAccessibility = maybeShowAccessibilityDialogSequential()
+            if (shownAccessibility) return@launch
+            
+            // 3) 初回の目標レベル選択
+            if (settings.currentLearningGrade.isEmpty() && !isInitialGradeDialogShowing) {
+                isInitialGradeDialogShowing = true
+                awaitInitialGradeSelection()
+            }
         }
 
+        updateTargetGradeDisplay()
         updatePointView()
         updateGradeDropdownLabels()
+    }
+
+    private fun updateTargetGradeDisplay() {
+        val targetRank = GradeUtils.toRank(settings.safeLearningGrade)
+        val targetDisplay = GradeUtils.toDisplay(settings.safeLearningGrade)
+
+        val currentRank = GradeUtils.toRank(selectedGradeKey)
+        val currentDisplay = selectedGradeKey?.let { GradeUtils.toDisplay(it) } ?: "未選択"
+
+        val isReview = currentRank < targetRank && currentRank > 0
+        val suffix = if (isReview) "（復習）" else ""
+
+        textTargetGrade.text = "目標：$targetDisplay / 学習：$currentDisplay$suffix"
+    }
+
+    private suspend fun awaitInitialGradeSelection() = suspendCancellableCoroutine<Unit> { continuation ->
+        var resumed = false
+
+        fun resumeOnce() {
+            if (!resumed && continuation.isActive) {
+                resumed = true
+                continuation.resume(Unit)
+            }
+        }
+
+        val dialog = MaterialAlertDialogBuilder(this, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
+            .setTitle("目標レベルを設定してください")
+            .setMessage("あなたの学習状況に合わせてポイント計算を最適化するため、目標とする英検級を選択してください。")
+            .setCancelable(false)
+            .setPositiveButton("選択する") { _, _ ->
+                val sheet = GradeBottomSheet { selectedGrade ->
+                    // ① 目標レベル保存
+                    settings.currentLearningGrade = GradeUtils.normalize(selectedGrade)
+                    
+                    // ② 学習レベルも同期
+                    settings.lastGradeFilter = selectedGrade
+                    selectedGradeKey = selectedGrade
+
+                    // ③ UI反映
+                    applyGradeSelection(selectedGrade)
+
+                    isInitialGradeDialogShowing = false
+                    resumeOnce()
+                }
+                sheet.show(supportFragmentManager, "InitialGradePicker")
+            }
+            .setOnDismissListener {
+                isInitialGradeDialogShowing = false
+                resumeOnce()
+            }
+            .create()
+
+        dialog.show()
+
+        continuation.invokeOnCancellation {
+            dialog.dismiss()
+            isInitialGradeDialogShowing = false
+        }
     }
 
     private fun openAdminSettings(isLongPressRoute: Boolean = false) {
         startActivity(Intent(this, AdminSettingsActivity::class.java).apply {
             putExtra("isLongPressRoute", isLongPressRoute)
-            // タイトル長押し経由なら認証済みとして扱うフラグ
-            // ただし、管理者設定側でもこのIntentを受け取って認証フラグを立てる必要がある
         })
     }
 
@@ -248,7 +311,6 @@ class MainActivity : AppCompatActivity() {
             val progressDao = db.wordProgressDao()
             val nowSec = System.currentTimeMillis() / 1000L
 
-            // Due/Started（型ズレ対策で Long に統一）
             val dueMeaning: List<Long> =
                 progressDao.getDueWordIdsOrdered("meaning", nowSec).map { it.toLong() }
             val dueListening: List<Long> =
@@ -260,7 +322,6 @@ class MainActivity : AppCompatActivity() {
                 progressDao.getProgressIds("listening").map { it.toLong() }.toSet()
             val startedUnion: Set<Long> = startedMeaning union startedListening
 
-            // gradeごとに wordId（Long）をまとめる
             val byGrade: Map<String, List<Long>> =
                 words.groupBy { it.grade }.mapValues { (_, list) -> list.map { it.no.toLong() } }
 
@@ -279,14 +340,11 @@ class MainActivity : AppCompatActivity() {
             }
             gradeStatsMap = statsBuilder
 
-            // 現在選択を保持
-            // ✅ 現在選択を保持（保存値 → 現在値 → デフォルト）
-
             val saved = settings.lastGradeFilter.takeIf { it.isNotBlank() && it in gradeKeys }
-            val keepKey = saved ?: selectedGradeKey ?: gradeKeys.firstOrNull()
+            val keepKey = saved ?: selectedGradeKey
             if (keepKey != null) {
                 selectedGradeKey = keepKey
-                gradeButton.text = gradeKeyToLabel(keepKey)
+                gradeButton.text = GradeUtils.toDisplay(keepKey)
                 buttonToLearning.isEnabled = true
                 textGradeStatsTop.text = gradeStatsMap[keepKey] ?: "復習 0 • 新規 0/0"
             } else {
@@ -295,6 +353,7 @@ class MainActivity : AppCompatActivity() {
                 buttonToLearning.isEnabled = false
                 textGradeStatsTop.text = "復習 0 • 新規 0/0"
             }
+            updateTargetGradeDisplay()
         }
     }
 
@@ -302,7 +361,6 @@ class MainActivity : AppCompatActivity() {
     private fun showGradePickerDialog() {
         // BottomSheetを表示
         val sheet = GradeBottomSheet { selectedGrade ->
-            // 選ばれた時の処理（既存の処理を呼ぶだけ）
             applyGradeSelection(selectedGrade)
         }
         sheet.show(supportFragmentManager, "GradeBottomSheet")
@@ -310,36 +368,51 @@ class MainActivity : AppCompatActivity() {
 
     private fun applyGradeSelection(grade: String) {
         selectedGradeKey = grade
-        settings.lastGradeFilter = grade   // ✅ 追加：保存
+        settings.lastGradeFilter = grade
 
-        val label = gradeKeyToLabel(grade)
+        val label = GradeUtils.toDisplay(grade)
         gradeButton.text = label
         buttonToLearning.isEnabled = true
         textGradeStatsTop.text = gradeStatsMap[grade] ?: "復習 0 • 新規 0/0"
+
+        updateTargetGradeDisplay()
+
+        // 目標レベルより上を選んだ場合のみ確認
+        val currentGoalRank = GradeUtils.toRank(settings.safeLearningGrade)
+        val selectedRank = GradeUtils.toRank(grade)
+
+        if (selectedRank > currentGoalRank && currentGoalRank > 0) {
+            showGoalUpdateConfirmDialog(grade)
+        }
+    }
+
+    private fun showGoalUpdateConfirmDialog(newGrade: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("目標レベルの更新")
+            .setMessage("現在の目標（${GradeUtils.toDisplay(settings.safeLearningGrade)}）より高い級です。\n目標を更新しますか？")
+            .setPositiveButton("更新する") { _, _ ->
+                settings.currentLearningGrade = GradeUtils.normalize(newGrade)
+                updateTargetGradeDisplay()
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
     }
 
     private suspend fun maybeShowAccessibilityDialogSequential(): Boolean {
-        // 既に何か出てたら何もしない（＝他を優先）
         if (accessibilityDialog?.isShowing == true || notificationDialog?.isShowing == true) return true
     
-        val settings = AppSettings(this)
         val svcEnabled = isAppLockServiceEnabled()
         val isRequired = AdminAuthManager.isAppLockRequired(this)
     
-        // DBチェックはIOで待つ（launchしない）
         val shouldForce = withContext(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@MainActivity)
             val lockedCount = db.lockedAppDao().countLocked()
             settings.isAppLockEnabled() || lockedCount > 0
         }
     
-        // ★追加：初回（未表示）かどうか
         val isFirstIntro = !settings.hasShownAccessibilityIntro()
     
-        // ★変更：AppLock有効/ロックあり「または」初回は表示する
         if (!svcEnabled && (shouldForce || isFirstIntro)) {
-    
-            // ★重要：表示した時点でフラグを立てる（ループ防止）
             settings.setHasShownAccessibilityIntro(true)
     
             withContext(Dispatchers.Main) {
@@ -354,8 +427,6 @@ class MainActivity : AppCompatActivity() {
                         })
                     }
     
-                // 必須ONなら全解除ボタンを出さない
-                // ただし「初回表示」ではロックをいじる導線を出さない方が安全
                 if (!isRequired && shouldForce) {
                     builder.setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
                         lifecycleScope.launch(Dispatchers.IO) {
@@ -365,13 +436,10 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-    
-                // show() は1回だけ
                 accessibilityDialog = builder.show()
             }
             return true
         }
-
         return false
     }
 
@@ -392,7 +460,6 @@ class MainActivity : AppCompatActivity() {
     private suspend fun maybeShowNotificationPermissionDialogSequential(): Boolean {
         if (notificationDialog?.isShowing == true || accessibilityDialog?.isShowing == true) return true
 
-        val settings = AppSettings(this)
         val notificationsEnabled = areNotificationsEnabled()
 
         val shouldForce = withContext(Dispatchers.IO) {
@@ -415,8 +482,6 @@ class MainActivity : AppCompatActivity() {
                         }
                         startActivity(intent)
                     }
-
-                // show() は1回だけ
                 notificationDialog = builder.show()
             }
             return true
@@ -428,7 +493,6 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            // チャンネル1: 学習レポート
             val reportChannelName = "学習レポート"
             val reportChannelDesc = "日々の学習状況やポイントをお知らせします"
             val reportChannelImportance = NotificationManager.IMPORTANCE_DEFAULT
@@ -437,7 +501,6 @@ class MainActivity : AppCompatActivity() {
             }
             notificationManager.createNotificationChannel(reportChannel)
 
-            // チャンネル2: セキュリティアラート
             val securityChannelName = "セキュリティアラート"
             val securityChannelDesc = "アプリのセキュリティに関する重要な通知です。"
             val securityChannelImportance = NotificationManager.IMPORTANCE_HIGH
@@ -455,7 +518,6 @@ class MainActivity : AppCompatActivity() {
         if (currentUser != null) {
             checkAndSetRole(currentUser)
         } else {
-            // 未ログインなら、匿名ログインしてから設定する
             auth.signInAnonymously()
                 .addOnSuccessListener { result ->
                     result.user?.let { checkAndSetRole(it) }
@@ -471,9 +533,8 @@ class MainActivity : AppCompatActivity() {
         val docRef = db.collection("users").document(user.uid)
         docRef.get().addOnSuccessListener { snapshot ->
             if (snapshot.exists() && snapshot.contains("role")) {
-                return@addOnSuccessListener // 設定済みなら何もしない
+                return@addOnSuccessListener 
             }
-            // roleがない時だけ child を書き込む
             val data = hashMapOf("role" to "child")
             docRef.set(data, SetOptions.merge())
         }

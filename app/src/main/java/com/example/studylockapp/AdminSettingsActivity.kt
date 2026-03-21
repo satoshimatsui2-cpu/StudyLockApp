@@ -137,7 +137,20 @@ class AdminSettingsActivity : AppCompatActivity() {
         super.onResume()
         ensureAuthenticatedOrFinish()
         updateConnectionStatus()
+        refreshGradeSpinner()
     }
+
+    private fun refreshGradeSpinner() {
+        val spinner = findViewById<Spinner>(R.id.spinner_current_learning_grade)
+        val grades = listOf("未設定", "1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
+
+        val current = GradeUtils.toDisplay(settings.safeLearningGrade)
+
+        val index = grades.indexOf(current).takeIf { it >= 0 } ?: 0
+
+        spinner.setSelection(index)
+    }
+
 
     private fun updateConnectionStatus() {
         if (!::textManager.isInitialized || !::containerManagedChildren.isInitialized) return
@@ -268,7 +281,7 @@ class AdminSettingsActivity : AppCompatActivity() {
 
     private fun setupExistingControls() {
         val spinnerCurrentGrade = findViewById<Spinner>(R.id.spinner_current_learning_grade)
-        val grades = arrayOf("1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
+        val grades = listOf("未設定", "1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
         val gradeAdapter = object : ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, grades) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getView(position, convertView, parent) as TextView
@@ -277,16 +290,25 @@ class AdminSettingsActivity : AppCompatActivity() {
             }
             override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getDropDownView(position, convertView, parent) as TextView
-                view.setTextColor(Color.BLACK)
                 view.setBackgroundColor(Color.WHITE)
+                if (position == 0) {
+                    view.setTextColor(Color.GRAY)
+                } else {
+                    view.setTextColor(Color.BLACK)
+                }
                 return view
             }
         }
         gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCurrentGrade.adapter = gradeAdapter
 
-        val currentGradePosition = grades.indexOf(settings.currentLearningGrade)
-        spinnerCurrentGrade.setSelection(if (currentGradePosition != -1) currentGradePosition else 0)
+        val currentGrade = GradeUtils.toDisplay(settings.safeLearningGrade)
+        val index = if (currentGrade.isBlank()) {
+            0 // 未設定
+        } else {
+            grades.indexOf(currentGrade).takeIf { it >= 0 } ?: 0
+        }
+        spinnerCurrentGrade.setSelection(index)
 
         val modes = mapOf(
             "meaning" to (findViewById<TextView>(R.id.text_point_meaning) to findViewById<SeekBar>(R.id.seek_point_meaning)),
@@ -375,7 +397,9 @@ class AdminSettingsActivity : AppCompatActivity() {
         listOf(seekInterval, seekWrongRetry, seekLevel1Retry, seekDontKnowRetry, seekUnlockMinPer10Pt).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnSave.setOnClickListener {
-            settings.currentLearningGrade = spinnerCurrentGrade.selectedItem?.toString() ?: "1級"
+            val selected = spinnerCurrentGrade.selectedItem?.toString() ?: "未設定"
+            settings.currentLearningGrade =
+                if (selected == "未設定") "" else GradeUtils.normalize(selected)
             settings.pointReductionOneGradeDown = 50
             settings.pointReductionTwoGradesDown = 25
             modes.forEach { (mode, views) -> val (_, seekBar) = views; if (seekBar != null) settings.setBasePoint(mode, progressToPoint(seekBar.progress)) }
@@ -415,6 +439,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         val switchTetheringLock = findViewById<SwitchMaterial>(R.id.switch_tethering_lock)
         val switchUninstallLock = findViewById<SwitchMaterial>(R.id.switch_uninstall_lock)
 
+        // 色設定
         switchAdminLock.setTextColor(switchTextColor)
         switchAppLockRequired?.setTextColor(switchTextColor)
         switchEnableLongPress.setTextColor(switchTextColor)
@@ -422,42 +447,91 @@ class AdminSettingsActivity : AppCompatActivity() {
         switchTetheringLock?.setTextColor(switchTextColor)
         switchUninstallLock?.setTextColor(switchTextColor)
 
+        // 初期状態セット
         switchAdminLock.isChecked = AdminAuthManager.isAdminLockEnabled(this)
         switchAppLockRequired?.isChecked = AdminAuthManager.isAppLockRequired(this)
         switchEnableLongPress.isChecked = settings.isEnableAdminLongPress()
-        switchAccessibilityLock?.isChecked = PrefsManager.isAccessibilityLockEnabled(this)
-        switchTetheringLock?.isChecked = PrefsManager.isTetheringLockEnabled(this)
+
+        // ⭐ PrefsManager → settings に変更
+        switchAccessibilityLock?.isChecked = settings.isAccessibilityLockEnabled
+        switchTetheringLock?.isChecked = settings.isTetheringLockEnabled
+
         switchUninstallLock?.isChecked = settings.isUninstallLockEnabled()
 
+        // 管理者ロック
         switchAdminLock.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 if (!AdminAuthManager.isPinSet(this)) {
-                    promptSetNewPin(onSuccess = { AdminAuthManager.setAdminLockEnabled(this, true); showToast(getString(R.string.admin_lock_enabled)) }, onCancel = { switchAdminLock.isChecked = false })
+                    promptSetNewPin(
+                        onSuccess = {
+                            AdminAuthManager.setAdminLockEnabled(this, true)
+                            showToast(getString(R.string.admin_lock_enabled))
+                        },
+                        onCancel = { switchAdminLock.isChecked = false }
+                    )
                 } else {
                     AdminAuthManager.setAdminLockEnabled(this, true)
                     showToast(getString(R.string.admin_lock_enabled))
                 }
             } else {
-                promptPinAndDo(title = getString(R.string.admin_enter_pin_title), onSuccess = { AdminAuthManager.setAdminLockEnabled(this, false); showToast(getString(R.string.admin_lock_disabled)) }, onFailure = { switchAdminLock.isChecked = true; showToast(getString(R.string.admin_pin_incorrect)) }, onCancel = { switchAdminLock.isChecked = true })
+                promptPinAndDo(
+                    title = getString(R.string.admin_enter_pin_title),
+                    onSuccess = {
+                        AdminAuthManager.setAdminLockEnabled(this, false)
+                        showToast(getString(R.string.admin_lock_disabled))
+                    },
+                    onFailure = {
+                        switchAdminLock.isChecked = true
+                        showToast(getString(R.string.admin_pin_incorrect))
+                    },
+                    onCancel = { switchAdminLock.isChecked = true }
+                )
             }
         }
 
+        // アプリロック必須
         switchAppLockRequired?.setOnCheckedChangeListener { _, isChecked ->
             AdminAuthManager.setAppLockRequired(this, isChecked)
             if (isChecked) settings.setAppLockEnabled(true)
+
             if (isChecked && !AccessibilityUtils.isServiceEnabled(this, AppLockAccessibilityService::class.java)) {
                 startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                 showToast(getString(R.string.admin_app_lock_required_on))
-            } else if (isChecked) { showToast(getString(R.string.admin_app_lock_required_on)) }
+            } else if (isChecked) {
+                showToast(getString(R.string.admin_app_lock_required_on))
+            }
         }
 
-        switchEnableLongPress.setOnCheckedChangeListener { _, isChecked -> settings.setEnableAdminLongPress(isChecked) }
-        switchAccessibilityLock?.setOnCheckedChangeListener { _, isChecked -> PrefsManager.setAccessibilityLockEnabled(this, isChecked) }
-        switchTetheringLock?.setOnCheckedChangeListener { _, isChecked -> PrefsManager.setTetheringLockEnabled(this, isChecked) }
-        switchUninstallLock?.setOnCheckedChangeListener { _, isChecked -> settings.setUninstallLockEnabled(isChecked) }
+        // 各設定保存
+        switchEnableLongPress.setOnCheckedChangeListener { _, isChecked ->
+            settings.setEnableAdminLongPress(isChecked)
+        }
 
-        buttonChangePin.setOnClickListener { promptPinAndDo(title = getString(R.string.admin_enter_pin_title), onSuccess = { promptSetNewPin() }, onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }) }
-        buttonSetupAuthenticator?.setOnClickListener { startActivity(Intent(this, AuthenticatorSetupActivity::class.java)) }
+        switchAccessibilityLock?.setOnCheckedChangeListener { _, isChecked ->
+            settings.isAccessibilityLockEnabled = isChecked
+        }
+
+        switchTetheringLock?.setOnCheckedChangeListener { _, isChecked ->
+            settings.isTetheringLockEnabled = isChecked
+        }
+
+        switchUninstallLock?.setOnCheckedChangeListener { _, isChecked ->
+            settings.setUninstallLockEnabled(isChecked)
+        }
+
+        // PIN変更
+        buttonChangePin.setOnClickListener {
+            promptPinAndDo(
+                title = getString(R.string.admin_enter_pin_title),
+                onSuccess = { promptSetNewPin() },
+                onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }
+            )
+        }
+
+        // 認証アプリ
+        buttonSetupAuthenticator?.setOnClickListener {
+            startActivity(Intent(this, AuthenticatorSetupActivity::class.java))
+        }
     }
 
     private fun promptPinAndDo(title: String, onSuccess: () -> Unit, onFailure: (() -> Unit)? = null, onCancel: (() -> Unit)? = null) {
