@@ -105,8 +105,14 @@ class AnswerRegistrationUseCase(private val context: Context) {
                 mode = currentMode,
                 level = newLevel,
                 nextDueAtSec = nextDueAtSec,
-                lastAnsweredAt = System.currentTimeMillis(),
-                studyCount = (current?.studyCount ?: 0) + 1
+                lastAnsweredAt = System.currentTimeMillis() / 1000,
+                studyCount = (current?.studyCount ?: 0) + 1,
+                lastResult = isCorrect,
+                wrongCount = if (isCorrect) {
+                    maxOf(0, (current?.wrongCount ?: 0) - 1)
+                } else {
+                    (current?.wrongCount ?: 0) + 1
+                }
             )
         )
 

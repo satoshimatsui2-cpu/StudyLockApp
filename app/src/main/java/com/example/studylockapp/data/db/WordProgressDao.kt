@@ -22,6 +22,9 @@ interface WordProgressDao {
     @Query("SELECT * FROM word_progress WHERE wordId = :wordId AND mode = :mode LIMIT 1")
     suspend fun getProgress(wordId: Int, mode: String): WordProgressEntity?
 
+    @Query("SELECT * FROM word_progress WHERE wordId IN (:ids) AND mode = :mode")
+    suspend fun getProgressByIds(ids: List<Int>, mode: String): List<WordProgressEntity>
+
     /**
      * ★期限到来（nextDueAtSec <= nowSec）の wordId を古い順で返す
      * 出題優先順位 1 に使う

@@ -37,6 +37,7 @@ import com.example.studylockapp.learning.AnswerResult
 import com.example.studylockapp.learning.QuestionUiState
 import com.example.studylockapp.learning.LegacyQuestionRenderer
 import com.example.studylockapp.learning.AnswerRegistrationUseCase
+import com.example.studylockapp.learning.LearningLogic.prioritizeWeakWords
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
@@ -1342,14 +1343,21 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // A. 復習（最優先）
         val dueIdsOrdered = progressDao.getDueWordIdsOrdered(currentMode, nowSec)
 
-        for (id in dueIdsOrdered) {
+        // 👇 追加：苦手優先ソート
+        val prioritizedIds = prioritizeWeakWords(
+            context = this,
+            dueIds = dueIdsOrdered,
+            mode = currentMode
+        )
+
+        // 👇 変更：順番を入れ替えたリストを使う
+        for (id in prioritizedIds) {
             val word = reviewWordsPool[id]
             if (word != null) return word
         }
 
         // B. 新規
         val progressedIds = progressDao.getProgressIds(currentMode).toSet()
-
         val newWords = allWords.filter { it.no !in progressedIds }
 
         return newWords.randomOrNull()

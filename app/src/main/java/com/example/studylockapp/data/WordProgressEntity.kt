@@ -12,5 +12,7 @@ data class WordProgressEntity(
     val level: Int,
     val nextDueAtSec: Long,
     val lastAnsweredAt: Long,
-    val studyCount: Int = 0   // ←追加：学習回数（初期値0）
+    val studyCount: Int = 0,
+    val lastResult: Boolean = true, // 追加：直近の回答結果（true:正解, false:不正解）
+    val wrongCount: Int = 0         // 追加：累計不正解回数
 )
