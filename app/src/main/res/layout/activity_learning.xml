@@ -1,636 +1,290 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_pattern_tile_repeat">
+    android:background="@color/md_surface"
+    android:padding="16dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- ① 進捗バー（最上部）: trackCornerRadius で角丸を実現 -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_horizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:indicatorColor="@color/md_primary"
+        app:layout_constraintEnd_toStartOf="@+id/text_progress_percent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:trackColor="@color/md_outline"
+        app:trackCornerRadius="8dp"
+        app:trackThickness="8dp"
+        tools:progress="40" />
+
+    <TextView
+        android:id="@+id/text_progress_percent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/md_onSurface_muted"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/progress_horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/progress_horizontal"
+        tools:text="40%" />
+
+    <!-- 上部: モード / レベル / ポイント -->
+    <LinearLayout
+        android:id="@+id/layout_header"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:paddingVertical="8dp"
+        app:layout_constraintTop_toBottomOf="@id/progress_horizontal">
 
-        <androidx.core.widget.NestedScrollView
+        <TextView
+            android:id="@+id/text_current_mode"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:fillViewport="true"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
-            android:paddingBottom="4dp"
-            android:paddingTop="0dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="モード: -"
+            android:textColor="@color/md_onSurface"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <LinearLayout
+        <TextView
+            android:id="@+id/text_current_grade"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="レベル: -"
+            android:textColor="@color/md_onSurface"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_points"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="0 pt"
+            android:textColor="@color/md_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- クイズカード -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_question"
+        style="@style/Widget.Material3.CardView.Elevated"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:minHeight="320dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="2dp"
+        app:layout_constraintBottom_toTopOf="@id/layout_bottom_actions"
+        app:layout_constraintTop_toBottomOf="@id/layout_header"
+        app:layout_constraintVertical_bias="0.3"
+        app:strokeWidth="0dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="20dp">
+
+            <!-- ② 習得度表示 -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_mastery"
+                style="@style/Widget.Material3.Chip.Assist.Elevated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_mastery_learning"
+                android:textColor="@color/mastery_text_learning"
+                android:textSize="11sp"
+                app:chipBackgroundColor="@color/mastery_bg_learning"
+                app:chipCornerRadius="12dp"
+                app:chipStrokeWidth="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="習得済み" />
+
+            <!-- 中央: 問題テキスト -->
+            <TextView
+                android:id="@+id/text_question_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/chip_mastery"
+                tools:text="@string/question_title_meaning" />
+
+            <TextView
+                android:id="@+id/text_question_body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:textColor="@color/md_onSurface"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                app:layout_constraintTop_toBottomOf="@id/text_question_title"
+                tools:text="Apple" />
 
-                <!-- 1. 最上部ヘッダー (比率指定: 24 / 50 / 13 / 13) -->
+            <!-- 中部: FrameLayout -->
+            <FrameLayout
+                android:id="@+id/quiz_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/text_question_body">
+
                 <LinearLayout
+                    android:id="@+id/choices_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:weightSum="100"
-                    android:layout_marginTop="4dp">
+                    android:layout_gravity="center"
+                    android:orientation="vertical">
 
-                    <!-- グレード (24%) -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_1"
+                        style="@style/Widget.StudyLock.ChoiceButton"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="24"
-                        app:cardUseCompatPadding="true"
-                        app:strokeWidth="1dp"
-                        app:strokeColor="@color/outline">
-                        <TextView
-                            android:id="@+id/text_current_grade"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="8dp"
-                            android:text=""
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center"
-                            tools:text="5級"/>
-                    </com.google.android.material.card.MaterialCardView>
+                        android:layout_marginBottom="12dp"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:lineSpacingExtra="2dp"
+                        tools:text="リンゴ" />
 
-                    <!-- ポイント (50%) -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_2"
+                        style="@style/Widget.StudyLock.ChoiceButton"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="50"
-                        app:cardUseCompatPadding="true"
-                        app:strokeWidth="1dp"
-                        app:strokeColor="@color/outline">
-                        <TextView
-                            android:id="@+id/text_points"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="8dp"
-                            android:text="@string/label_points_format"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center"
-                            tools:text="保有: 1200pt"/>
-                    </com.google.android.material.card.MaterialCardView>
+                        android:layout_marginBottom="12dp"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:lineSpacingExtra="2dp"
+                        tools:text="バナナ" />
 
-                    <!-- 自動再生トングル (10%) -->
-                    <ImageButton
-                        android:id="@+id/button_toggle_auto_play"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="13"
-                        android:scaleType="fitCenter"
-                        android:padding="8dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_volume_up_24"
-                        app:tint="?attr/colorOnSurface"
-                        android:contentDescription="自動再生" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_3"
+                        style="@style/Widget.StudyLock.ChoiceButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:lineSpacingExtra="2dp"
+                        tools:text="ミカン" />
 
-                    <!-- 設定ボタン (10%) -->
-                    <ImageButton
-                        android:id="@+id/button_sound_settings"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="13"
-                        android:scaleType="fitCenter"
-                        android:padding="8dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_settings"
-                        app:tint="?attr/colorOnSurface"
-                        android:contentDescription="設定" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_choice_4"
+                        style="@style/Widget.StudyLock.ChoiceButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:lineSpacingExtra="2dp"
+                        tools:text="ブドウ" />
                 </LinearLayout>
 
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardUseCompatPadding="true"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/outline">
+                <ImageView
+                    android:id="@+id/icon_tts"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_round_play_circle_outline_24"
+                    android:visibility="gone"
+                    app:tint="@color/md_primary" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <androidx.constraintlayout.widget.ConstraintLayout
-                            android:id="@+id/layout_mode_selector"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_outlined_selector"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="8dp"
-                            android:paddingTop="12dp"
-                            android:paddingBottom="12dp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:layout_marginBottom="8dp">
-
-                            <ImageView
-                                android:id="@+id/selector_icon_mode"
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:src="@drawable/ic_flash_cards_24"
-                                app:tint="@color/text_link"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="parent" />
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:layout_marginStart="14dp"
-                                app:layout_constraintStart_toEndOf="@id/selector_icon_mode"
-                                app:layout_constraintEnd_toStartOf="@id/selector_icon_arrow"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="parent">
-
-                                <TextView
-                                    android:id="@+id/selector_text_title"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/label_mode_meaning"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/text_link"
-                                    android:singleLine="true"
-                                    android:ellipsize="end"/>
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:layout_marginTop="6dp"
-                                    android:gravity="center_vertical">
-
-                                    <ImageView
-                                        android:layout_width="18dp"
-                                        android:layout_height="18dp"
-                                        android:src="@drawable/ic_review_24"
-                                        app:tint="@color/badge_review"/>
-                                    <TextView
-                                        android:id="@+id/selector_text_review"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="0"
-                                        android:textSize="14sp"
-                                        android:textColor="@color/badge_review"
-                                        android:textStyle="bold"
-                                        android:layout_marginStart="4dp"
-                                        android:layout_marginEnd="12dp"/>
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="@string/label_new"
-                                        android:textSize="10sp"
-                                        android:textStyle="bold"
-                                        android:textColor="@android:color/white"
-                                        android:background="@drawable/bg_new_badge"
-                                        android:paddingStart="4dp"
-                                        android:paddingEnd="4dp"
-                                        android:paddingTop="1dp"
-                                        android:paddingBottom="1dp"
-                                        android:gravity="center"/>
-                                    <TextView
-                                        android:id="@+id/selector_text_new"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="0"
-                                        android:textSize="14sp"
-                                        android:textColor="@color/badge_new"
-                                        android:textStyle="bold"
-                                        android:layout_marginStart="4dp"/>
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:layout_marginTop="4dp"
-                                    android:gravity="center_vertical">
-
-                                    <ImageView
-                                        android:id="@+id/icon_master_bronze"
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
-                                        android:src="@drawable/ic_emoji_events_24"
-                                        app:tint="#8D6E63"/>
-                                    <TextView
-                                        android:id="@+id/text_master_bronze"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="0%"
-                                        android:textSize="12sp"
-                                        android:textColor="#8D6E63"
-                                        android:textStyle="bold"
-                                        android:layout_marginStart="1dp"
-                                        android:layout_weight="1"/>
-
-                                    <ImageView
-                                        android:id="@+id/icon_master_silver"
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
-                                        android:src="@drawable/ic_emoji_events_24"
-                                        app:tint="#9E9E9E"/>
-                                    <TextView
-                                        android:id="@+id/text_master_silver"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="0%"
-                                        android:textSize="12sp"
-                                        android:textColor="#9E9E9E"
-                                        android:textStyle="bold"
-                                        android:layout_marginStart="1dp"
-                                        android:layout_weight="1"/>
-
-                                    <ImageView
-                                        android:id="@+id/icon_master_gold"
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
-                                        android:src="@drawable/ic_emoji_events_24"
-                                        app:tint="#FFCA28"/>
-                                    <TextView
-                                        android:id="@+id/text_master_gold"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="0%"
-                                        android:textSize="12sp"
-                                        android:textColor="#FFCA28"
-                                        android:textStyle="bold"
-                                        android:layout_marginStart="1dp"
-                                        android:layout_weight="1"/>
-
-                                    <ImageView
-                                        android:id="@+id/icon_master_crystal"
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
-                                        android:src="@drawable/ic_emoji_events_24"
-                                        app:tint="#4DD0E1"/>
-                                    <TextView
-                                        android:id="@+id/text_master_crystal"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="0%"
-                                        android:textSize="12sp"
-                                        android:textColor="#4DD0E1"
-                                        android:textStyle="bold"
-                                        android:layout_marginStart="1dp"
-                                        android:layout_weight="1"/>
-
-                                    <ImageView
-                                        android:id="@+id/icon_master_purple"
-                                        android:layout_width="16dp"
-                                        android:layout_height="16dp"
-                                        android:src="@drawable/ic_emoji_events_24"
-                                        app:tint="#9C27B0"/>
-                                    <TextView
-                                        android:id="@+id/text_master_purple"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="0%"
-                                        android:textSize="12sp"
-                                        android:textColor="#9C27B0"
-                                        android:textStyle="bold"
-                                        android:layout_marginStart="1dp"
-                                        android:layout_weight="1"/>
-                                </LinearLayout>
-                            </LinearLayout>
-
-                            <ImageView
-                                android:id="@+id/selector_icon_arrow"
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:src="@drawable/ic_expand_more_24"
-                                app:tint="#BDBDBD"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="parent"/>
-
-                        </androidx.constraintlayout.widget.ConstraintLayout>
-
-                        <!-- チェック列 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginTop="0dp">
-
-                            <com.google.android.material.checkbox.MaterialCheckBox
-                                android:id="@+id/checkbox_include_other_grades"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="13sp"
-                                android:text="@string/label_include_other_grades"
-                                android:textColor="?attr/colorOnSurface"/>
-
-                            <com.google.android.material.checkbox.MaterialCheckBox
-                                android:id="@+id/checkbox_hide_choices"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="16dp"
-                                android:textSize="13sp"
-                                android:text="回答隠す"
-                                android:textColor="?attr/colorOnSurface"/>
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/text_question_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:text="@string/dummy_question_title"
-                            android:textSize="13sp"
-                            android:textColor="@color/text_secondary"
-                            android:textAlignment="center"/>
-
-                        <LinearLayout
-                            android:id="@+id/question_row"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:gravity="center"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/text_question_body"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="26sp"
-                                android:textStyle="bold"
-                                android:textColor="?attr/colorOnSurface"
-                                android:gravity="center"
-                                android:paddingTop="4dp"
-                                android:paddingBottom="4dp"/>
-
-                            <ImageView
-                                android:id="@+id/icon_tts"
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:layout_marginStart="6dp"
-                                android:src="@drawable/ic_round_play_circle_outline_24"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:visibility="gone"/>
-                        </LinearLayout>
-
-                        <!-- 例文セクション -->
-                        <LinearLayout
-                            android:id="@+id/example_sentence_row"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:gravity="center"
-                            android:orientation="horizontal"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:id="@+id/text_example_sentence"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textSize="18sp"
-                                android:textStyle="italic"
-                                android:textColor="?attr/colorOnSurface"
-                                android:gravity="center"
-                                android:padding="4dp"/>
-
-                            <ImageView
-                                android:id="@+id/icon_example_tts"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_marginStart="6dp"
-                                android:src="@drawable/ic_round_play_circle_outline_24"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:clickable="true"
-                                android:focusable="true"/>
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/text_example_japanese"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_secondary"
-                            android:textAlignment="center"
-                            android:visibility="gone"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginTop="6dp">
-
-                            <TextView
-                                android:id="@+id/text_script_display"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text=""
-                                android:textSize="14sp"
-                                android:textColor="#374151"
-                                android:background="#F3F4F6"
-                                android:padding="8dp"
-                                android:layout_marginBottom="8dp"
-                                android:visibility="gone" />
-
-                            <TextView
-                                android:id="@+id/text_feedback"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text=""
-                                android:textSize="14sp"
-                                android:textColor="@color/text_primary"
-                                android:visibility="gone"/>
-
-                            <LinearLayout
-                                android:id="@+id/layout_action_buttons"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center"
-                                android:visibility="gone"
-                                android:layout_marginTop="16dp">
-
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/button_replay_audio"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:layout_marginEnd="8dp"
-                                    android:text="@string/action_play_audio"
-                                    app:icon="@drawable/ic_headphones_24"
-                                    app:iconGravity="textStart"/>
-
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/button_next_question"
-                                    style="@style/Widget.Material3.Button"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:text="@string/action_next_question"
-                                    app:icon="@drawable/ic_arrow_forward_24"
-                                    app:iconGravity="textEnd"/>
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- 選択肢ブロック -->
-                <FrameLayout
-                    android:id="@+id/choices_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp">
-
-                    <LinearLayout
-                        android:id="@+id/choices_container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:baselineAligned="false">
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_choice_1"
-                                style="@style/ChoiceButtonStyle"
-                                android:text="@string/dummy_choice" />
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_choice_2"
-                                style="@style/ChoiceButtonStyle"
-                                android:text="@string/dummy_choice" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:baselineAligned="false">
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_choice_3"
-                                style="@style/ChoiceButtonStyle"
-                                android:text="@string/dummy_choice" />
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_choice_4"
-                                style="@style/ChoiceButtonStyle"
-                                android:text="@string/dummy_choice" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:baselineAligned="false">
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_choice_5"
-                                style="@style/ChoiceButtonStyle"
-                                android:text="@string/dummy_choice" />
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_choice_6"
-                                style="@style/ChoiceButtonStyle"
-                                android:text="@string/dummy_choice" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- カバー -->
-                    <FrameLayout
-                        android:id="@+id/cover_layout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_cover_navy_rounded"
-                        android:padding="14dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:visibility="gone">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:paddingTop="48dp"
-                            android:paddingBottom="60dp">
-
-                            <TextView
-                                android:id="@+id/text_cover_title"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="まずは思い出してみよう"
-                                android:textSize="14sp"
-                                android:textColor="#F1F5F9"
-                                android:letterSpacing="0.02"
-                                android:paddingBottom="24dp" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center">
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/button_show_choices"
-                                    style="@style/Widget.Material3.Button"
-                                    android:layout_width="0dp"
-                                    android:layout_height="96dp"
-                                    android:layout_weight="1"
-                                    android:text="回答する"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:insetTop="0dp"
-                                    android:insetBottom="0dp"
-                                    android:paddingStart="18dp"
-                                    android:paddingEnd="18dp"
-                                    app:cornerRadius="24dp"
-                                    android:backgroundTint="#F8FAFC"
-                                    android:textColor="#0D1B3D" />
-                                <Space
-                                    android:layout_width="12dp"
-                                    android:layout_height="1dp" />
-                                <com.google.android.material.button.MaterialButton
-                                    android:id="@+id/button_dont_know"
-                                    style="@style/Widget.Material3.Button.OutlinedButton"
-                                    android:layout_width="0dp"
-                                    android:layout_height="96dp"
-                                    android:layout_weight="1"
-                                    android:text="分からない"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:insetTop="0dp"
-                                    android:insetBottom="0dp"
-                                    android:paddingStart="18dp"
-                                    android:paddingEnd="18dp"
-                                    app:cornerRadius="24dp"
-                                    app:strokeWidth="1dp"
-                                    app:strokeColor="#E2E8F0"
-                                    android:textColor="#F8FAFC" />
-                            </LinearLayout>
-                        </LinearLayout>
-                    </FrameLayout>
-                </FrameLayout>
-
-                <!-- 並び替えUI -->
                 <include
                     android:id="@+id/sort_question_layout"
                     layout="@layout/layout_mode_sort"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:visibility="visible" />
+                    android:visibility="gone" />
 
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+            </FrameLayout>
+
+            <!-- ③ 報酬表示（ポップアップ用） -->
+            <TextView
+                android:id="@+id/text_reward_popup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0"
+                android:elevation="8dp"
+                android:shadowColor="#40000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:textColor="@color/reward_gold"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.3"
+                tools:alpha="1"
+                tools:text="+10 ⭐" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 下部: 音声ボタン / 設定ボタン -->
+    <LinearLayout
+        android:id="@+id/layout_bottom_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/button_toggle_auto_play"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/label_auto_play_audio"
+            android:src="@drawable/ic_volume_up_24"
+            app:tint="@color/md_onSurface_muted" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_auto_play_audio"
+            android:textColor="@color/md_onSurface_muted"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_admin_settings"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/action_admin_settings"
+            android:textColor="@color/md_onSurface_muted"
+            app:icon="@drawable/ic_settings"
+            app:iconTint="@color/md_onSurface_muted" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

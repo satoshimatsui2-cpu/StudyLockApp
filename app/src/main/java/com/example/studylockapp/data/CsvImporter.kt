@@ -3,133 +3,69 @@ package com.example.studylockapp.data
 import android.content.Context
 import android.util.Log
 import com.example.studylockapp.R
+import com.example.studylockapp.data.db.WordDao
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 object CsvImporter {
 
     /**
-     * 互換用: 全件インポート（DB が空のときのみ）
+     * res/raw/words.tsv からデータをインポートする
      */
-    suspend fun importIfNeeded(context: Context) {
-        val db = AppDatabase.getInstance(context)
-        val dao = db.wordDao()
+    suspend fun import(context: Context, dao: WordDao) {
+        try {
+            val input = context.resources.openRawResource(R.raw.words)
+            val reader = BufferedReader(InputStreamReader(input))
 
-        // 空でなければスキップ
-        val existing = dao.getAll().size
-        if (existing > 0) {
-            Log.d("CSV_IMPORT", "already imported ($existing rows), skip")
-            return
-        }
+            Log.d("DEBUG", "IMPORT START")
+            val header = reader.readLine() // ヘッダー飛ばす
+            Log.d("DEBUG", "header = $header")
 
-        val list = readCsv(context)
-        dao.insertAll(list)
-        Log.d("CSV_IMPORT", "Imported ${list.size} rows from CSV (all grades)")
-    }
+            val list = mutableListOf<WordEntity>()
 
-    /**
-     * 指定グレードの行をまとめて挿入（既にある場合は PK=word で無視される想定）
-     * @return 追加で挿入を試みた件数（重複は無視される可能性あり）
-     */
-    suspend fun importGradeIfNeeded(context: Context, grade: String): Int {
-        if (grade == "All") return 0
-        val db = AppDatabase.getInstance(context)
-        val dao = db.wordDao()
+            reader.forEachLine { line ->
+                Log.d("DEBUG", "line = $line")
+                val parts = line.split("\t").map { it.trim() }
+                Log.d("DEBUG", "parts size = ${parts.size}")
 
-        val csvRows = readCsv(context).filter { it.grade == grade }
-        if (csvRows.isEmpty()) {
-            Log.w("CSV_IMPORT", "grade=$grade に該当する行が CSV にありません")
-            return 0
-        }
+                // 原因特定のため一時的にチェックを外す、またはログを残す
+                if (parts.size < 10) {
+                    Log.d("DEBUG", "skip row (size < 10): $parts")
+                    return@forEachLine
+                }
 
-        dao.insertAll(csvRows)
-        Log.d("CSV_IMPORT", "grade=$grade inserted ${csvRows.size} rows (duplicates ignored by PK)")
-        return csvRows.size
-    }
-
-    /**
-     * CSV 全件読み込み（ヘッダ1行スキップ）
-     */
-    private fun readCsv(context: Context): List<WordEntity> {
-        val list = mutableListOf<WordEntity>()
-        context.resources.openRawResource(R.raw.words).use { input ->
-            BufferedReader(InputStreamReader(input)).use { reader ->
-                var line: String?
-                var isFirst = true
-                while (reader.readLine().also { line = it } != null) {
-                    val row = line!!.trim()
-                    if (row.isEmpty()) continue
-
-                    // ヘッダスキップ
-                    if (isFirst) {
-                        isFirst = false
-                        continue
-                    }
-
-                    val cols = parseCsvLine(row)
-                    // no,grade,word,japanese,description,small_topic_id,medium_category_id
-                    if (cols.size < 7) {
-                        Log.w("CSV_IMPORT", "skip row (col size < 7): size=${cols.size} row=$row")
-                        continue
-                    }
-
-                    try {
-                        list.add(
-                            WordEntity(
-                                no = cols[0].toInt(),
-                                grade = cols[1],
-                                word = cols[2],
-                                japanese = cols[3],
-                                description = cols[4],
-                                smallTopicId = cols[5],
-                                mediumCategoryId = cols[6]
-                            )
-                        )
-                    } catch (e: Exception) {
-                        Log.w("CSV_IMPORT", "skip row (parse error): row=$row", e)
-                    }
+                try {
+                    val entity = WordEntity(
+                        no = parts[0].toInt(),
+                        grade = parts[1].toInt(),
+                        word = parts[2],
+                        japanese = parts[3],
+                        description = parts[4],
+                        sentence = parts[5],
+                        japaneseSentence = parts[6],
+                        phonetic = parts[7],
+                        type = parts[8],
+                        pos = parts[9],
+                        difficulty = parts.getOrNull(10)?.toIntOrNull() ?: 1,
+                        frequency = parts.getOrNull(11)?.toIntOrNull() ?: 1,
+                        related = emptyList(),   // とりあえずOK
+                        confusion = emptyList() // とりあえずOK
+                    )
+                    list.add(entity)
+                } catch (e: Exception) {
+                    Log.e("DEBUG", "Line parse error: $line", e)
                 }
             }
-        }
-        return list
-    }
 
-    /**
-     * ダブルクォート対応の簡易CSVパーサ
-     * - "..." で囲まれた中のカンマは区切りとして扱わない
-     * - "" は " を意味する
-     */
-    private fun parseCsvLine(line: String): List<String> {
-        val out = ArrayList<String>()
-        val sb = StringBuilder()
-        var inQuotes = false
-        var i = 0
-
-        while (i < line.length) {
-            val c = line[i]
-            when (c) {
-                '"' -> {
-                    // "" は " を表す
-                    if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
-                        sb.append('"')
-                        i++
-                    } else {
-                        inQuotes = !inQuotes
-                    }
-                }
-                ',' -> {
-                    if (inQuotes) {
-                        sb.append(c)
-                    } else {
-                        out.add(sb.toString().trim())
-                        sb.setLength(0)
-                    }
-                }
-                else -> sb.append(c)
+            if (list.isNotEmpty()) {
+                dao.insertAll(list)
+                Log.d("DEBUG", "Imported ${list.size} words successfully")
+            } else {
+                Log.w("DEBUG", "No words were parsed from TSV")
             }
-            i++
+
+        } catch (e: Exception) {
+            Log.e("DEBUG", "TSV Import failed", e)
         }
-        out.add(sb.toString().trim())
-        return out
     }
 }

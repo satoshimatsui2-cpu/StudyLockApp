@@ -134,7 +134,6 @@
     <string name="mode_test_sort">並べ替えテスト</string>
     <string name="mode_test_fill_blank">穴埋めテスト</string>
     <string name="mode_test_listen_q1">リスニング質問テスト</string>
-
     <string name="admin_accessibility_lock_title">アクセシビリティ設定画面アクセス禁止</string>
     <string name="admin_accessibility_lock_desc">「設定」＞「ユーザー補助」画面へのアクセス禁止（この画面でこのアプリのフルコントロールの解除をすると他アプリへのロックが無効化されます。）</string>
     <string name="admin_tethering_lock_title">テザリング設定画面へのアクセス禁止</string>
@@ -215,4 +214,17 @@
     <string name="question_title_ja_to_en">この日本語に対応する英単語は？</string>
     <string name="question_title_en_en_1">この単語の意味(定義)は？</string>
     <string name="question_title_en_en_2">この意味(定義)に対応する単語は？</string>
+
+    <!-- 学習画面追加要素 -->
+    <string name="label_progress_percent">%1$d%%</string>
+    <string name="label_mastery_learning">学習中</string>
+    <string name="label_reward_star">+%1$d ⭐</string>
+    <string name="label_points_value">%1$d pt</string>
+    <string name="label_combo_value">Combo: %1$d</string>
+    <string name="label_progress_step">%1$d / %2$d</string>
+    <string name="label_current_mode">モード: %1$s</string>
+    <string name="message_session_finished">セッション終了！</string>
+    <string name="question_title_en_to_jp">この単語の正しい意味は？</string>
+    <string name="label_listen_placeholder">（音声を聞いてください）</string>
+    <string name="action_repeat_audio">もう一度聞く</string>
 </resources>

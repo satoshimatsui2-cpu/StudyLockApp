@@ -14,6 +14,8 @@
     <!-- Accent -->
     <color name="md_primary">#E27447</color>
     <color name="md_onPrimary">#FFFFFF</color>
+    <color name="md_primaryContainer">#FFDBCB</color>
+    <color name="md_onPrimaryContainer">#341100</color>
 
     <!-- Secondary（主張しすぎない濃色。テキスト色に寄せる） -->
     <color name="md_secondary">#443D3A</color>
@@ -65,5 +67,15 @@
     <color name="badge_master">#F59E0B</color>
     <color name="badge_new">#10B981</color>
     <color name="sort_question_navy">#0D1B3D</color>
+
+    <!-- 追加: 報酬・習得度用 -->
+    <color name="reward_gold">#FFB300</color>
+    <color name="mastery_star">#FFD700</color>
+    <color name="mastery_bg_learning">#E3F2FD</color>
+    <color name="mastery_text_learning">#1976D2</color>
+
+    <!-- 新しい選択肢ボタン用カラー -->
+    <color name="choice_button_bg">#E8F0FE</color>
+    <color name="choice_button_text">#0F172A</color>
 
 </resources>

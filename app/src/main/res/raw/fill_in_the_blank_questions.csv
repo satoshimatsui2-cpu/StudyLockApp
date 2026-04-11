@@ -1,5 +1,4 @@
 no,grade,unit,question,choice1,choice2,choice3,choice4,correct_option,explanation
-no,grade,unit,question,choice1,choice2,choice3,choice4,correct_option,explanation
 250001,5,1,"A : What is Emma doing now? \nB : She is _____ her dog in the garden.",washing,reading,sleeping,drinking,1,"「犬を庭で洗っている」なので washing が自然です。進行形（is + -ing）にも合います。"
 250002,5,1,"A : It’s very cold today. _____ a coat. \nB : OK.",Wear,Watch,Open,Take,1,"寒い日は「コートを着る」＝Wear が正解。命令文の形です。"
 250003,5,1,"A : I can’t find my photo _____. \nB : It’s on the desk.",album,team,gym,window,1,"家族写真を入れておくのは photo album（アルバム）です。"

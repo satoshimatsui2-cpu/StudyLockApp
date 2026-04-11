@@ -29,6 +29,24 @@
         <item name="autoSizeMaxTextSize">18sp</item>
         <item name="autoSizeStepGranularity">1sp</item>
     </style>
+
+    <!-- 新しい学習画面用の選択肢ボタンスタイル -->
+    <style name="Widget.StudyLock.ChoiceButton" parent="Widget.Material3.Button">
+        <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/choice_button_text</item>
+        <item name="backgroundTint">@color/choice_button_bg</item>
+        <item name="cornerRadius">18dp</item>
+        <item name="android:minHeight">72dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:gravity">center_vertical|start</item>
+    </style>
+
     <!-- ダイアログの文字色を強制的に見えるようにする -->
     <style name="ThemeOverlay.MyDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <!-- ダイアログの本文・タイトルの文字色 -->
