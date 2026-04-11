@@ -1,6 +1,14 @@
 package com.example.studylockapp.learning
 
 /**
+ * 警告表示のUIモデル
+ */
+data class AudioWarningState(
+    val message: String,
+    val isCritical: Boolean // true: 必須モードでの警告, false: 推奨モードでの通知
+)
+
+/**
  * 学習画面のUI状態を管理するデータクラス
  */
 data class LearningUiState(
@@ -12,7 +20,9 @@ data class LearningUiState(
     val progress: Int = 0,      // 進捗率 (0〜100)
     val isLoading: Boolean = false,
     val isFinished: Boolean = false,
-    val isAnswering: Boolean = false
+    val isAnswering: Boolean = false,
+    val isAutoPlayEnabled: Boolean = true, // 自動再生のON/OFF状態
+    val audioWarning: AudioWarningState? = null // 無音リスク警告状態
 )
 
 /**

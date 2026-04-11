@@ -2,8 +2,8 @@ package com.example.studylockapp
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
@@ -21,17 +21,16 @@ import com.example.studylockapp.learning.*
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 /**
  * 学習画面のActivity
  */
-class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizUiProvider {
+class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
     private lateinit var binding: ActivityLearningBinding
     private lateinit var animationManager: AnimationManager
     private lateinit var soundEffectManager: SoundEffectManager
-    private var tts: TextToSpeech? = null
+    private lateinit var ttsController: LearningTtsController
     
     // クイズの切り替わり判定用
     private var currentQuizId: String? = null
@@ -64,7 +63,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizU
 
         animationManager = AnimationManager(binding)
         soundEffectManager = SoundEffectManager(this)
-        tts = TextToSpeech(this, this)
+        ttsController = LearningTtsController(this)
 
         observeViewModel()
 
@@ -72,7 +71,17 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizU
             viewModel.loadNextQuiz()
         }
 
-        // 音声アイコンのクリックイベントを ViewModel に通知
+        // 自動再生トグルの設定
+        binding.buttonToggleAutoPlay.setOnClickListener {
+            viewModel.toggleAutoPlay()
+        }
+
+        // 聞き直しボタンの設定
+        binding.buttonRepeatAudio.setOnClickListener {
+            viewModel.requestAudioPlayback()
+        }
+
+        // 旧音声アイコンも一応機能させておく
         binding.iconTts.setOnClickListener {
             viewModel.requestAudioPlayback()
         }
@@ -87,7 +96,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizU
                         updateUi(state)
                     }
                 }
-                // 一回性演出イベントの監視 (Channel由来のFlow)
+                // 一回性演出イベントの監視
                 launch {
                     viewModel.uiEvent.collect { event ->
                         handleEvent(event)
@@ -102,11 +111,30 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizU
         binding.textPoints.text = getString(R.string.label_points_value, state.sessionPoints)
         binding.textCurrentGrade.text = getString(R.string.label_combo_value, state.comboCount)
         
-        // 進捗表示 (プログレスバーと "x / 10" のテキスト)
+        // 進捗表示
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
-        // クイズコンテンツの描画 (IDが変更された場合のみ Renderer を実行)
+        // 自動再生ボタンの状態反映
+        val autoPlayIcon = if (state.isAutoPlayEnabled) R.drawable.ic_volume_up_24 else R.drawable.outline_volume_off_24
+        binding.buttonToggleAutoPlay.setImageResource(autoPlayIcon)
+        val tint = if (state.isAutoPlayEnabled) R.color.md_primary else R.color.md_onSurface_muted
+        binding.buttonToggleAutoPlay.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, tint))
+
+        // 無音リスク警告の表示
+        if (state.audioWarning != null) {
+            binding.layoutAudioWarning.visibility = View.VISIBLE
+            binding.textAudioWarning.text = state.audioWarning.message
+            binding.layoutAudioWarning.setBackgroundColor(Color.parseColor(if (state.audioWarning.isCritical) "#FFF3E0" else "#F5F5F5"))
+        } else {
+            binding.layoutAudioWarning.visibility = View.GONE
+        }
+
+        // 聞き直しボタンの制御
+        val importance = state.quiz?.mode?.getAudioImportance() ?: QuizMode.AudioImportance.NONE
+        binding.buttonRepeatAudio.visibility = if (importance != QuizMode.AudioImportance.NONE) View.VISIBLE else View.GONE
+
+        // クイズコンテンツの描画
         state.quiz?.let { quiz ->
             if (currentQuizId != quiz.id) {
                 currentQuizId = quiz.id
@@ -140,7 +168,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizU
                 }, 1500)
             }
             is LearningUiEvent.PlayAudio -> {
-                playAudio(event.text)
+                ttsController.speak(event.text)
             }
             is LearningUiEvent.QuizFinished -> {
                 Toast.makeText(this, R.string.message_session_finished, Toast.LENGTH_SHORT).show()
@@ -157,9 +185,7 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizU
         binding.choicesContainer.visibility = View.VISIBLE
         binding.sortQuestionLayout.root.visibility = View.GONE
         
-        // リスニングモードなら音声アイコンを表示
-        val isAudioMode = viewModel.uiState.value.quiz?.mode == QuizMode.LISTEN_EN
-        binding.iconTts.visibility = if (isAudioMode) View.VISIBLE else View.GONE
+        binding.iconTts.visibility = View.GONE
 
         choiceButtons.forEachIndexed { i, btn ->
             resetChoiceButton(btn)
@@ -200,18 +226,11 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener, QuizU
     }
 
     override fun playAudio(text: String) {
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-    }
-
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            tts?.language = Locale.US
-        }
+        ttsController.speak(text)
     }
 
     override fun onDestroy() {
-        tts?.stop()
-        tts?.shutdown()
+        ttsController.release()
         soundEffectManager.release()
         super.onDestroy()
     }

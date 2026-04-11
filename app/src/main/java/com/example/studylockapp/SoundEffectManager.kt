@@ -5,7 +5,8 @@ import android.media.AudioAttributes
 import android.media.SoundPool
 
 /**
- * 正解・不正解の効果音（SE）を管理するクラス
+ * 正解・不正解の効果音（SE）を管理するクラス。
+ * 音声ポリシーを TTS と統一し、メディアストリームで再生します。
  */
 class SoundEffectManager(private val context: Context) {
 
@@ -14,9 +15,10 @@ class SoundEffectManager(private val context: Context) {
     private var seWrongId: Int = 0
 
     init {
-        // SoundPoolの初期化
+        // マナーモード時もメディア音量に従うよう USAGE_MEDIA を設定。
+        // 役割に合わせて CONTENT_TYPE_SONIFICATION を使用。
         val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         
@@ -49,7 +51,7 @@ class SoundEffectManager(private val context: Context) {
     }
 
     /**
-     * リソースの解放（画面を閉じるときに呼ぶ）
+     * リソースの解放
      */
     fun release() {
         soundPool?.release()

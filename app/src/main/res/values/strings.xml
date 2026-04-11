@@ -227,4 +227,6 @@
     <string name="question_title_en_to_jp">この単語の正しい意味は？</string>
     <string name="label_listen_placeholder">（音声を聞いてください）</string>
     <string name="action_repeat_audio">もう一度聞く</string>
+    <string name="warning_audio_required">音声が必須のモードです。音量を確認してください。</string>
+    <string name="warning_audio_optional">音声が聞こえない可能性があります（自動再生中）。</string>
 </resources>

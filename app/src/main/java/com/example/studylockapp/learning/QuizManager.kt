@@ -54,12 +54,15 @@ class QuizManager(
 
     /**
      * 習熟度に応じてモードを選択。
-     * テストしやすいように閾値を緩めています。
      */
     private fun selectMode(state: LearningState?): QuizMode {
         return when {
-            state == null || state.correctCount < 1 -> QuizMode.JP_TO_EN
+            // 初見 or 正解1回未満 -> 日本語から意味を選ぶ
+            //state == null || state.correctCount < 1 -> QuizMode.JP_TO_EN
+            state == null || state.correctCount < 1 -> QuizMode.LISTEN_EN
+            // 正解1回 -> 英語から日本語を選ぶ
             state.correctCount < 2 -> QuizMode.EN_TO_JP
+            // それ以降はリスニング主体のランダム
             else -> if (Random().nextBoolean()) QuizMode.LISTEN_EN else QuizMode.EN_TO_JP
         }
     }

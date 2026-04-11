@@ -14,7 +14,10 @@ import kotlinx.coroutines.withContext
 
 class LearningViewModel(
     private val quizManager: QuizManager,
-    private val pointManager: PointManager
+    private val pointManager: PointManager,
+    private val audioChecker: LearningAudioStateChecker,
+    private val requiredWarningText: String,
+    private val optionalWarningText: String
 ) : ViewModel() {
 
     private val totalCount = 10
@@ -37,22 +40,62 @@ class LearningViewModel(
             
             val quiz = quizManager.nextQuiz()
             if (quiz != null) {
+                // 音声状態のチェックと警告モデルの生成
+                val importance = quiz.mode.getAudioImportance()
+                val hasRisk = audioChecker.isSilenceRisk()
+                val autoPlayEnabled = _uiState.value.isAutoPlayEnabled
+                
+                // 警告を出すかどうかの判定
+                val shouldShowWarning = when (importance) {
+                    QuizMode.AudioImportance.REQUIRED -> hasRisk
+                    QuizMode.AudioImportance.OPTIONAL -> hasRisk && autoPlayEnabled
+                    QuizMode.AudioImportance.NONE -> false
+                }
+
+                val warning = if (shouldShowWarning) {
+                    AudioWarningState(
+                        message = if (importance == QuizMode.AudioImportance.REQUIRED) requiredWarningText else optionalWarningText,
+                        isCritical = (importance == QuizMode.AudioImportance.REQUIRED)
+                    )
+                } else null
+
                 _uiState.update { 
                     it.copy(
                         quiz = quiz, 
                         isLoading = false,
                         currentStep = solvedInSession + 1,
-                        progress = (solvedInSession * 100) / totalCount
+                        progress = (solvedInSession * 100) / totalCount,
+                        audioWarning = warning
                     ) 
                 }
-                // 自動再生
-                if (quiz.mode == QuizMode.LISTEN_EN) {
+                
+                // 自動再生判定: 設定が有効な場合のみ自動再生を行う
+                val shouldAutoPlay = if (autoPlayEnabled) {
+                    when (importance) {
+                        QuizMode.AudioImportance.REQUIRED -> true
+                        QuizMode.AudioImportance.OPTIONAL -> true
+                        else -> false
+                    }
+                } else {
+                    false
+                }
+
+                if (shouldAutoPlay) {
                     requestAudioPlayback()
                 }
             } else {
                 finishSession()
             }
         }
+    }
+
+    /**
+     * 自動再生設定のトグル
+     */
+    fun toggleAutoPlay() {
+        _uiState.update { it.copy(isAutoPlayEnabled = !it.isAutoPlayEnabled) }
+        // トグル直後に現在のクイズの警告状態を再評価することも可能だが、
+        // 今回は「次の問題ロード時」の評価に合わせる最小修正とする。
     }
 
     /**
@@ -68,36 +111,29 @@ class LearningViewModel(
     fun submitAnswer(selectedAnswer: String) {
         val currentQuiz = _uiState.value.quiz ?: return
         if (_uiState.value.isAnswering) return
-
         _uiState.update { it.copy(isAnswering = true) }
-        val isCorrect = selectedAnswer == currentQuiz.answer
-
-        quizManager.submitAnswer(currentQuiz.word, isCorrect)
+        
+        quizManager.submitAnswer(currentQuiz.word, selectedAnswer == currentQuiz.answer)
 
         viewModelScope.launch {
             solvedInSession++
-            val newProgress = (solvedInSession * 100) / totalCount
-
+            val isCorrect = selectedAnswer == currentQuiz.answer
             if (isCorrect) {
-                val gain = 10
-                withContext(Dispatchers.IO) {
-                    pointManager.add(gain)
-                }
-
+                withContext(Dispatchers.IO) { pointManager.add(10) }
                 _uiState.update { 
                     it.copy(
-                        comboCount = it.comboCount + 1,
-                        sessionPoints = it.sessionPoints + gain,
-                        progress = newProgress
+                        comboCount = it.comboCount + 1, 
+                        sessionPoints = it.sessionPoints + 10,
+                        progress = (solvedInSession * 100) / totalCount
                     ) 
                 }
-                _uiEvent.send(LearningUiEvent.ShowCorrect(gain, currentQuiz.answer))
+                _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer))
             } else {
                 _uiState.update { 
                     it.copy(
                         comboCount = 0, 
-                        progress = newProgress
-                    )
+                        progress = (solvedInSession * 100) / totalCount
+                    ) 
                 }
                 _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer))
             }
@@ -106,8 +142,6 @@ class LearningViewModel(
 
     private fun finishSession() {
         _uiState.update { it.copy(isFinished = true, progress = 100) }
-        viewModelScope.launch {
-            _uiEvent.send(LearningUiEvent.QuizFinished)
-        }
+        viewModelScope.launch { _uiEvent.send(LearningUiEvent.QuizFinished) }
     }
 }

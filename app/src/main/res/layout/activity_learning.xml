@@ -8,7 +8,7 @@
     android:background="@color/md_surface"
     android:padding="16dp">
 
-    <!-- ① 進捗バー（最上部）: trackCornerRadius で角丸を実現 -->
+    <!-- 進捗バー -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_horizontal"
         android:layout_width="0dp"
@@ -21,8 +21,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:trackColor="@color/md_outline"
         app:trackCornerRadius="8dp"
-        app:trackThickness="8dp"
-        tools:progress="40" />
+        app:trackThickness="8dp" />
 
     <TextView
         android:id="@+id/text_progress_percent"
@@ -34,9 +33,9 @@
         app:layout_constraintBottom_toBottomOf="@+id/progress_horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/progress_horizontal"
-        tools:text="40%" />
+        tools:text="4 / 10" />
 
-    <!-- 上部: モード / レベル / ポイント -->
+    <!-- ヘッダー情報 -->
     <LinearLayout
         android:id="@+id/layout_header"
         android:layout_width="match_parent"
@@ -51,7 +50,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="モード: -"
             android:textColor="@color/md_onSurface"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -61,7 +59,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="レベル: -"
             android:textColor="@color/md_onSurface"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -72,7 +69,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="end"
-            android:text="0 pt"
             android:textColor="@color/md_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -83,7 +79,7 @@
         android:id="@+id/card_question"
         style="@style/Widget.Material3.CardView.Elevated"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:minHeight="320dp"
@@ -92,7 +88,6 @@
         app:cardElevation="2dp"
         app:layout_constraintBottom_toTopOf="@id/layout_bottom_actions"
         app:layout_constraintTop_toBottomOf="@id/layout_header"
-        app:layout_constraintVertical_bias="0.3"
         app:strokeWidth="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -100,7 +95,6 @@
             android:layout_height="match_parent"
             android:padding="20dp">
 
-            <!-- ② 習得度表示 -->
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_mastery"
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
@@ -111,12 +105,40 @@
                 android:textSize="11sp"
                 app:chipBackgroundColor="@color/mastery_bg_learning"
                 app:chipCornerRadius="12dp"
-                app:chipStrokeWidth="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="習得済み" />
+                app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- 中央: 問題テキスト -->
+            <!-- 無音リスク警告バー -->
+            <LinearLayout
+                android:id="@+id/layout_audio_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="#FFF3E0"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/chip_mastery"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/image_warning_icon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_volume_up_24"
+                    app:tint="#E65100" />
+
+                <TextView
+                    android:id="@+id/text_audio_warning"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#E65100"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/text_question_title"
                 android:layout_width="wrap_content"
@@ -126,8 +148,7 @@
                 android:textSize="18sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chip_mastery"
-                tools:text="@string/question_title_meaning" />
+                app:layout_constraintTop_toBottomOf="@id/layout_audio_warning" />
 
             <TextView
                 android:id="@+id/text_question_body"
@@ -138,23 +159,33 @@
                 android:textColor="@color/md_onSurface"
                 android:textSize="36sp"
                 android:textStyle="bold"
-                app:layout_constraintTop_toBottomOf="@id/text_question_title"
-                tools:text="Apple" />
+                app:layout_constraintTop_toBottomOf="@id/text_question_title" />
 
-            <!-- 中部: FrameLayout -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_repeat_audio"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/action_repeat_audio"
+                android:visibility="gone"
+                app:icon="@drawable/ic_volume_up_24"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/text_question_body" />
+
             <FrameLayout
                 android:id="@+id/quiz_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/text_question_body">
+                app:layout_constraintTop_toBottomOf="@id/button_repeat_audio">
 
                 <LinearLayout
                     android:id="@+id/choices_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
                     android:orientation="vertical">
 
                     <com.google.android.material.button.MaterialButton
@@ -162,43 +193,27 @@
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:lineSpacingExtra="2dp"
-                        tools:text="リンゴ" />
+                        android:layout_marginBottom="12dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_2"
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:lineSpacingExtra="2dp"
-                        tools:text="バナナ" />
+                        android:layout_marginBottom="12dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_3"
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:lineSpacingExtra="2dp"
-                        tools:text="ミカン" />
+                        android:layout_marginBottom="12dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_4"
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:lineSpacingExtra="2dp"
-                        tools:text="ブドウ" />
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <ImageView
@@ -216,20 +231,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone" />
-
             </FrameLayout>
 
-            <!-- ③ 報酬表示（ポップアップ用） -->
             <TextView
                 android:id="@+id/text_reward_popup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0"
                 android:elevation="8dp"
-                android:shadowColor="#40000000"
-                android:shadowDx="2"
-                android:shadowDy="2"
-                android:shadowRadius="4"
                 android:textColor="@color/reward_gold"
                 android:textSize="28sp"
                 android:textStyle="bold"
@@ -238,14 +247,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.3"
-                tools:alpha="1"
                 tools:text="+10 ⭐" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- 下部: 音声ボタン / 設定ボタン -->
+    <!-- 下部アクション -->
     <LinearLayout
         android:id="@+id/layout_bottom_actions"
         android:layout_width="match_parent"
@@ -259,9 +266,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/label_auto_play_audio"
-            android:src="@drawable/ic_volume_up_24"
-            app:tint="@color/md_onSurface_muted" />
+            android:src="@drawable/ic_volume_up_24" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -282,8 +287,7 @@
             android:layout_height="wrap_content"
             android:text="@string/action_admin_settings"
             android:textColor="@color/md_onSurface_muted"
-            app:icon="@drawable/ic_settings"
-            app:iconTint="@color/md_onSurface_muted" />
+            app:icon="@drawable/ic_settings" />
 
     </LinearLayout>
 
