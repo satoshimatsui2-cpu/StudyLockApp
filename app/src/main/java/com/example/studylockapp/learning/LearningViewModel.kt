@@ -28,6 +28,11 @@ class LearningViewModel(
 
     private val totalCount = 10
     private var solvedInSession = 0
+    
+    // セッション成果の蓄積
+    private var levelUpsInSession = 0
+    private var basicMastersInSession = 0
+    private var longTermMastersInSession = 0
 
     private val _uiState = MutableStateFlow(LearningUiState(totalSteps = totalCount))
     val uiState = _uiState.asStateFlow()
@@ -36,7 +41,6 @@ class LearningViewModel(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     init {
-        // 起動時に初期データ投入を確認
         viewModelScope.launch(Dispatchers.IO) {
             CsvImporter.seedIfNeeded(context, wordDao)
         }
@@ -92,7 +96,11 @@ class LearningViewModel(
                         audioWarning = warning,
                         basicMasterCount = basicCount,
                         longTermMasterCount = longTermCount,
-                        currentTier = MasteryScheduler.getTier(currentLevel)
+                        currentTier = MasteryScheduler.getTier(currentLevel),
+                        currentLevel = currentLevel,
+                        isLevelJustIncreased = false,
+                        isBasicMasteredJustNow = false,
+                        isLongTermMasteredJustNow = false
                     ) 
                 }
                 
@@ -105,12 +113,8 @@ class LearningViewModel(
                     if (shouldAutoPlay) requestAudioPlayback()
                 }
             } else {
-                // クイズが取得できない理由をログ出力
                 val count = withContext(Dispatchers.IO) { wordDao.countAllWords() }
-                Log.e("QuizFlow", "quizManager.nextQuiz() returned null. Total words in DB: $count")
-                if (count == 0) {
-                    Log.e("QuizFlow", "CRITICAL: Database is empty. Seed might have failed.")
-                }
+                Log.e("QuizFlow", "quizManager.nextQuiz() returned null. Total words: $count")
                 finishSession()
             }
         }
@@ -141,7 +145,14 @@ class LearningViewModel(
 
             val newLevel = quizManager.getMasteryLevel(wordId)
             val newTier = MasteryScheduler.getTier(newLevel)
-            val tierChanged = (oldTier != newTier)
+            
+            val isLevelUp = newLevel > oldLevel
+            val isBasicJustNow = oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER
+            val isLongTermJustNow = oldTier != MasteryTier.LONG_TERM_MASTER && newTier == MasteryTier.LONG_TERM_MASTER
+
+            if (isLevelUp) levelUpsInSession++
+            if (isBasicJustNow) basicMastersInSession++
+            if (isLongTermJustNow) longTermMastersInSession++
 
             solvedInSession++
             val isCorrect = selectedAnswer == currentQuiz.answer
@@ -152,16 +163,26 @@ class LearningViewModel(
                         comboCount = it.comboCount + 1, 
                         sessionPoints = it.sessionPoints + 10,
                         progress = (solvedInSession * 100) / totalCount,
-                        currentTier = newTier
+                        currentTier = newTier,
+                        currentLevel = newLevel,
+                        isLevelJustIncreased = isLevelUp,
+                        isBasicMasteredJustNow = isBasicJustNow,
+                        isLongTermMasteredJustNow = isLongTermJustNow
                     ) 
                 }
-                _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, tierChanged))
+                _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, oldTier != newTier))
+                
+                if (isBasicJustNow || isLongTermJustNow) {
+                    _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
+                }
             } else {
                 _uiState.update { 
                     it.copy(
                         comboCount = 0, 
                         progress = (solvedInSession * 100) / totalCount,
-                        currentTier = newTier
+                        currentTier = newTier,
+                        currentLevel = newLevel,
+                        isLevelJustIncreased = false
                     ) 
                 }
                 _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer))
@@ -170,7 +191,15 @@ class LearningViewModel(
     }
 
     private fun finishSession() {
-        _uiState.update { it.copy(isFinished = true, progress = 100) }
+        _uiState.update { 
+            it.copy(
+                isFinished = true, 
+                progress = 100,
+                sessionLevelUpCount = levelUpsInSession,
+                sessionBasicMasterGained = basicMastersInSession,
+                sessionLongTermMasterGained = longTermMastersInSession
+            ) 
+        }
         viewModelScope.launch { 
             _uiEvent.send(LearningUiEvent.QuizFinished) 
         }

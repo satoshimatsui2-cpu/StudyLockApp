@@ -5,11 +5,11 @@ package com.example.studylockapp.learning
  */
 data class AudioWarningState(
     val message: String,
-    val isCritical: Boolean // true: 必須モードでの警告, false: 推奨モードでの通知
+    val isCritical: Boolean
 )
 
 /**
- * 学習画面のUI状態を管理するデータクラス
+ * 学習画面のUI状態
  */
 data class LearningUiState(
     val quiz: QuizData? = null,
@@ -25,10 +25,21 @@ data class LearningUiState(
     val audioStudyMode: QuizManager.AudioStudyMode = QuizManager.AudioStudyMode.NORMAL,
     val audioWarning: AudioWarningState? = null,
     
-    // マスター件数
+    // マスター統計
     val basicMasterCount: Int = 0,
     val longTermMasterCount: Int = 0,
-    val currentTier: MasteryTier = MasteryTier.LEARNING
+    val currentTier: MasteryTier = MasteryTier.LEARNING,
+    
+    // 進捗レール用データ
+    val currentLevel: Int = 0,
+    val isLevelJustIncreased: Boolean = false,
+    val isBasicMasteredJustNow: Boolean = false,
+    val isLongTermMasteredJustNow: Boolean = false,
+    
+    // セッション成果（終了画面用）
+    val sessionLevelUpCount: Int = 0,
+    val sessionBasicMasterGained: Int = 0,
+    val sessionLongTermMasterGained: Int = 0
 )
 
 /**
@@ -39,4 +50,7 @@ sealed class LearningUiEvent {
     data class ShowWrong(val selected: String, val correct: String) : LearningUiEvent()
     data class PlayAudio(val text: String) : LearningUiEvent()
     object QuizFinished : LearningUiEvent()
+    
+    // 節目演出用
+    data class ShowMasteryBadge(val tier: MasteryTier) : LearningUiEvent()
 }

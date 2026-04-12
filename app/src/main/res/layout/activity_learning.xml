@@ -8,27 +8,33 @@
     android:background="@color/md_surface"
     android:padding="16dp">
 
-    <!-- 進捗バー -->
+    <!-- 上部: 進捗レールと進捗バー -->
+    <com.example.studylockapp.learning.MasteryProgressView
+        android:id="@+id/mastery_progress_rail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_horizontal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="8dp"
         app:indicatorColor="@color/md_primary"
         app:layout_constraintEnd_toStartOf="@+id/text_progress_percent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mastery_progress_rail"
         app:trackColor="@color/md_outline"
         app:trackCornerRadius="8dp"
-        app:trackThickness="8dp" />
+        app:trackThickness="4dp" />
 
     <TextView
         android:id="@+id/text_progress_percent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/md_onSurface_muted"
-        android:textSize="14sp"
+        android:textSize="12sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/progress_horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,9 +46,9 @@
         android:id="@+id/layout_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:orientation="horizontal"
-        android:paddingVertical="8dp"
+        android:paddingVertical="4dp"
         app:layout_constraintTop_toBottomOf="@id/progress_horizontal">
 
         <TextView
@@ -51,16 +57,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textColor="@color/md_onSurface"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/text_current_grade"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="1.2"
             android:textColor="@color/md_onSurface"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textStyle="bold"
             tools:text="基礎:12 / 長期:5" />
 
@@ -71,7 +77,7 @@
             android:layout_weight="0.8"
             android:gravity="end"
             android:textColor="@color/md_primary"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -284,7 +290,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:text="通常"
+            android:text="@string/label_audio_mode_normal"
             android:textColor="@color/md_onSurface_muted"
             android:textSize="12sp" />
 

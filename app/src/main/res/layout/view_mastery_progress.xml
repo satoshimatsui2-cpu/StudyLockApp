@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="8dp">
+
+        <!-- LV1/6 -->
+        <View
+            android:id="@+id/node1"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/shape_mastery_node" />
+
+        <View
+            android:id="@+id/line1"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_weight="1"
+            android:background="@color/md_outline" />
+
+        <!-- LV2/7 -->
+        <View
+            android:id="@+id/node2"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/shape_mastery_node" />
+
+        <View
+            android:id="@+id/line2"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_weight="1"
+            android:background="@color/md_outline" />
+
+        <!-- LV3/8 -->
+        <View
+            android:id="@+id/node3"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/shape_mastery_node" />
+
+        <View
+            android:id="@+id/line3"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_weight="1"
+            android:background="@color/md_outline" />
+
+        <!-- LV4/9 -->
+        <View
+            android:id="@+id/node4"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/shape_mastery_node" />
+
+        <View
+            android:id="@+id/line4"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_weight="1"
+            android:background="@color/md_outline" />
+
+        <!-- LV5/10 Goal -->
+        <FrameLayout
+            android:layout_width="28dp"
+            android:layout_height="28dp">
+            <ImageView
+                android:id="@+id/node_goal"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_round_stars_24"
+                app:tint="@color/md_outline"
+                android:contentDescription="Goal" />
+        </FrameLayout>
+
+    </LinearLayout>
+</merge>
