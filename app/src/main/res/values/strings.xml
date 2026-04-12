@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">EikenForSlacker</string>
 
-    <!-- 共通文言（Lint: Hardcoded text 対策） -->
+    <!-- 共通文言 -->
     <string name="hint_select_grade">級を選択</string>
     <string name="grade_stats_default">復習 0 • 新規 0/0</string>
     <string name="label_grade_all">全級</string>
@@ -35,23 +35,19 @@
     <string name="block_invalid_points">有効なポイント数を入力してください</string>
     <string name="block_points_info">所持: %1$dpt / 使用: %2$dpt（%3$.1f分解放, 10pt=%4$d分）</string>
     <string name="block_unlocked_message">%1$.1f分 開放</string>
-    <string name="app_lock_accessibility_message">このアプリは、あなたが設定した“利用制限（対象アプリ）”を実行するために、アクセシビリティ権限を使用します。\nこの権限により、現在表示されているアプリを検知し、制限対象のアプリが開かれた場合に制限画面へ切り替えます。\n※キーボード入力内容（パスワード等）を読み取ったり、個人のメッセージ内容を収集したりはしません。\n同意しない場合でも、学習機能（単語・テスト等）は利用できますが、利用制限機能は動作しません。</string>
+    <string name="app_lock_accessibility_message">このアプリは、あなたが設定した“利用制限（対象アプリ）”を実行するために、アクセシビリティ権限を使用します。</string>
     <string name="app_lock_accessibility_go_settings">同意して次へ</string>
     <string name="app_lock_accessibility_disable_all">同意しない（後で）</string>
     <string name="app_lock_accessibility_title">アクセシビリティ権限のお願い</string>
     <string name="privacy_policy">プライバシーポリシー</string>
-    <string name="app_lock_accessibility_intro">アプリロック機能を利用するにはアクセシビリティサービスを許可する必要があります。設定へ進み許可してください。不要な場合は後から設定画面で解除も出来ます。</string>
+    <string name="app_lock_accessibility_intro">アプリロック機能を利用するにはアクセシビリティサービスを許可する必要があります。</string>
     <string name="go_to_settings">設定へ</string>
     <string name="not_now">今は設定しない</string>
-    <!-- App Lock Settings -->
     <string name="app_lock_enable">アプリロックを有効にする</string>
     <string name="app_lock_hint">ロック対象にしたいアプリを選んでください</string>
-    <!-- Time zone setup -->
-    <!-- Time zone setup label -->
     <string name="time_zone_setup_label">タイムゾーンを選択</string>
-    <string name="time_zone_setup_description">タイムゾーンを選択してください（翌日判定・日次ポイント集計に使用します）後で設定からも変更できます。</string>
+    <string name="time_zone_setup_description">タイムゾーンを選択してください</string>
     <string name="time_zone_setup_decide">決定</string>
-    <!-- Sound settings labels -->
     <string name="sound_settings_tts_speed">発音再生スピード: %1$.2fx</string>
     <string name="sound_settings_tts_pitch">発音ピッチ（声の高さ）: %1$.2f</string>
     <string name="sound_settings_se_correct">正解サウンド音量: %1$d%%</string>
@@ -61,10 +57,8 @@
     <string name="sound_settings_ad_mute_on">広告ミュート: ON</string>
     <string name="sound_settings_ad_mute_off">広告ミュート: OFF</string>
     <string name="sound_settings_init_failed">画面初期化に失敗: %1$s</string>
-    <!-- Sound Settings -->
     <string name="sound_settings_title">サウンド設定</string>
     <string name="sound_settings_save">保存して戻る</string>
-    <!-- ロック画面 -->
     <string name="block_points_default">所持: 0 pt / コスト: 0 pt</string>
     <string name="block_unlock_time_default">開放まで --分</string>
     <string name="block_clear">クリア</string>
@@ -80,7 +74,7 @@
     <string name="admin_lock_desc">毎回PINを要求します</string>
     <string name="admin_lock_enabled">管理者画面のロックを有効にしました</string>
     <string name="admin_lock_disabled">管理者画面のロックを無効にしました</string>
-    <string name="admin_hide_button_enabled">管理者設定ボタンを隠しました（タイトル長押しで入れます）</string>
+    <string name="admin_hide_button_enabled">管理者設定ボタンを隠しました</string>
     <string name="admin_hide_button_disabled">管理者設定ボタンを表示します</string>
 
     <string name="admin_change_pin">PINを変更する</string>
@@ -105,23 +99,21 @@
     <string name="admin_app_lock_required_desc">アクセシビリティを許可しないと利用できない</string>
     <string name="admin_app_lock_required_on">アプリロック必須をONにしました</string>
 
-    <!-- Admin Settings Layout Strings -->
     <string name="admin_settings_title">管理者設定</string>
     <string name="admin_save_and_return">保存して戻る</string>
     <string name="admin_select_lock_apps">ロックするアプリを選択する</string>
     <string name="admin_open_timezone_settings">タイムゾーン設定を開く</string>
     
-    <!-- TOTP -->
     <string name="admin_setup_authenticator">Authenticator設定</string>
     <string name="admin_setup_authenticator_desc">PINを忘れた場合のリセット手段</string>
     <string name="totp_setup_title">Authenticator設定</string>
-    <string name="totp_setup_desc">Google Authenticator等のアプリでQRコードをスキャンし、表示される6桁のコードを入力してください。</string>
+    <string name="totp_setup_desc">Google Authenticator等のアプリでQRコードをスキャンしてください。</string>
     <string name="totp_verify_hint">6桁のコード</string>
     <string name="totp_verify_btn">確認して有効化</string>
     <string name="totp_incorrect">コードが違います</string>
     <string name="totp_setup_complete">Authenticatorを設定しました</string>
     <string name="totp_enter_code_title">認証コード入力</string>
-    <string name="totp_reset_pin_success">認証成功: PINをリセットしました。再度設定してください。</string>
+    <string name="totp_reset_pin_success">認証成功: PINをリセットしました。</string>
 
     <!-- Learning Modes -->
     <string name="mode_meaning">英単語→日本語</string>
@@ -135,12 +127,11 @@
     <string name="mode_test_fill_blank">穴埋めテスト</string>
     <string name="mode_test_listen_q1">リスニング質問テスト</string>
     <string name="admin_accessibility_lock_title">アクセシビリティ設定画面アクセス禁止</string>
-    <string name="admin_accessibility_lock_desc">「設定」＞「ユーザー補助」画面へのアクセス禁止（この画面でこのアプリのフルコントロールの解除をすると他アプリへのロックが無効化されます。）</string>
+    <string name="admin_accessibility_lock_desc">「設定」＞「ユーザー補助」画面へのアクセス禁止</string>
     <string name="admin_tethering_lock_title">テザリング設定画面へのアクセス禁止</string>
-    <string name="admin_tethering_lock_desc">１．「設定」＞「ネットワークとインターネット」へのアクセス禁止　２．「クイック設定パネル」の編集禁止（＊すでにテザリングパネルが追加されている場合は、上部スライドの通知画面自体が開けなくなります。事前にテザリングパネルを削除してからONにしてください。）</string>
+    <string name="admin_tethering_lock_desc">１．「設定」＞「ネットワークとインターネット」へのアクセス禁止</string>
     <string name="restricted_access_icon_desc">Restricted Access Icon</string>
 
-    <!-- Pairing related strings -->
     <string name="pairing_parent_device">親端末: 接続済み (%1$d)</string>
     <string name="pairing_parent_none">親端末: なし</string>
     <string name="pairing_parent_error">親端末: 取得エラー</string>
@@ -156,31 +147,6 @@
     <string name="pairing_delete_btn">削除</string>
     <string name="pairing_register_failure">登録失敗</string>
 
-
-    <!-- TOPで表示する級の選択肢（※現在はMainActivityでDB集計して動的に入れているなら未使用でもOK） -->
-    <string-array name="grade_display_items">
-        <item>選択してください</item>
-        <item>5級</item>
-        <item>4級</item>
-        <item>3級</item>
-        <item>準2級</item>
-        <item>2級</item>
-        <item>準1級</item>
-        <item>1級</item>
-    </string-array>
-
-    <!-- 一覧用のフィルタ選択肢（Allは残してOK） -->
-    <string-array name="grade_filter_items">
-        <item>5</item>
-        <item>4</item>
-        <item>3</item>
-        <item>2.5</item>
-        <item>2</item>
-        <item>1.5</item>
-        <item>1</item>
-    </string-array>
-
-    <!-- Grade picker labels -->
     <string name="grade_5">5級</string>
     <string name="grade_4">4級</string>
     <string name="grade_3">3級</string>
@@ -188,17 +154,6 @@
     <string name="grade_2">2級</string>
     <string name="grade_15">準1級</string>
     <string name="grade_1">1級</string>
-
-    <!-- ソート項目（一覧で使用） -->
-    <string-array name="sort_items">
-        <item>並び替えなし</item>
-        <item>Word</item>
-        <item>Grade</item>
-        <item>M-Level</item>
-        <item>L-Level</item>
-        <item>M-NextDue</item>
-        <item>L-NextDue</item>
-    </string-array>
 
     <string name="label_points_format">保有ポイント: 0</string>
     <string name="label_mode_meaning">英単語の意味</string>
@@ -215,7 +170,6 @@
     <string name="question_title_en_en_1">この単語の意味(定義)は？</string>
     <string name="question_title_en_en_2">この意味(定義)に対応する単語は？</string>
 
-    <!-- 学習画面追加要素 -->
     <string name="label_progress_percent">%1$d%%</string>
     <string name="label_mastery_learning">学習中</string>
     <string name="label_reward_star">+%1$d ⭐</string>
@@ -229,4 +183,10 @@
     <string name="action_repeat_audio">もう一度聞く</string>
     <string name="warning_audio_required">音声が必須のモードです。音量を確認してください。</string>
     <string name="warning_audio_optional">音声が聞こえない可能性があります（自動再生中）。</string>
+
+    <!-- 追加分 -->
+    <string name="label_audio_mode_normal">通常</string>
+    <string name="label_audio_mode_restricted">音声なし</string>
+    <string name="toast_tier_up">ランクアップ！ %1$s</string>
+    <string name="label_mastery_stats">基礎:%1$d / 長期:%2$d</string>
 </resources>

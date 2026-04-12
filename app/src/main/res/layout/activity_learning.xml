@@ -60,14 +60,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textColor="@color/md_onSurface"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="基礎:12 / 長期:5" />
 
         <TextView
             android:id="@+id/text_points"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.8"
             android:gravity="end"
             android:textColor="@color/md_primary"
             android:textSize="16sp"
@@ -100,6 +101,8 @@
                 style="@style/Widget.Material3.Chip.Assist.Elevated"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:clickable="false"
+                android:focusable="false"
                 android:text="@string/label_mastery_learning"
                 android:textColor="@color/mastery_text_learning"
                 android:textSize="11sp"
@@ -268,12 +271,22 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_volume_up_24" />
 
+        <ImageButton
+            android:id="@+id/button_toggle_audio_mode"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_volume_up_24" />
+
         <TextView
+            android:id="@+id/text_audio_mode_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/label_auto_play_audio"
+            android:layout_marginStart="4dp"
+            android:text="通常"
             android:textColor="@color/md_onSurface_muted"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
 
         <View
             android:layout_width="0dp"

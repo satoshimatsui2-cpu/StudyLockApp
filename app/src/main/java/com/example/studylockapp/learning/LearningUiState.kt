@@ -14,22 +14,28 @@ data class AudioWarningState(
 data class LearningUiState(
     val quiz: QuizData? = null,
     val comboCount: Int = 0,
-    val sessionPoints: Int = 0, // セッション内で獲得した合計ポイント
-    val currentStep: Int = 0,    // 現在の問題番号 (1〜10)
-    val totalSteps: Int = 10,   // セッションの総問題数
-    val progress: Int = 0,      // 進捗率 (0〜100)
+    val sessionPoints: Int = 0,
+    val currentStep: Int = 0,
+    val totalSteps: Int = 10,
+    val progress: Int = 0,
     val isLoading: Boolean = false,
     val isFinished: Boolean = false,
     val isAnswering: Boolean = false,
-    val isAutoPlayEnabled: Boolean = true, // 自動再生のON/OFF状態
-    val audioWarning: AudioWarningState? = null // 無音リスク警告状態
+    val isAutoPlayEnabled: Boolean = true,
+    val audioStudyMode: QuizManager.AudioStudyMode = QuizManager.AudioStudyMode.NORMAL,
+    val audioWarning: AudioWarningState? = null,
+    
+    // マスター件数
+    val basicMasterCount: Int = 0,
+    val longTermMasterCount: Int = 0,
+    val currentTier: MasteryTier = MasteryTier.LEARNING
 )
 
 /**
- * UIへの一回限りの演出通知イベント（Channelで配信）
+ * UIへの一回限りの演出通知イベント
  */
 sealed class LearningUiEvent {
-    data class ShowCorrect(val gainedPoints: Int, val answer: String) : LearningUiEvent()
+    data class ShowCorrect(val gainedPoints: Int, val answer: String, val tierChanged: Boolean = false) : LearningUiEvent()
     data class ShowWrong(val selected: String, val correct: String) : LearningUiEvent()
     data class PlayAudio(val text: String) : LearningUiEvent()
     object QuizFinished : LearningUiEvent()

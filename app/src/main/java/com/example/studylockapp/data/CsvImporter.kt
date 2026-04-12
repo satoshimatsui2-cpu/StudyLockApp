@@ -9,63 +9,64 @@ import java.io.InputStreamReader
 
 object CsvImporter {
 
+    private const val TAG = "QuizFlow"
+
     /**
-     * res/raw/words.tsv からデータをインポートする
+     * 単語テーブルが空の場合に初期データを投入する
      */
-    suspend fun import(context: Context, dao: WordDao) {
+    suspend fun seedIfNeeded(context: Context, dao: WordDao) {
+        val countBefore = dao.countAllWords()
+        if (countBefore > 0) {
+            Log.e(TAG, "[Seed] Already has $countBefore words. Skipping.")
+            return
+        }
+
+        Log.e(TAG, "[Seed] seed started. countBefore=$countBefore")
+        
         try {
             val input = context.resources.openRawResource(R.raw.words)
             val reader = BufferedReader(InputStreamReader(input))
 
-            Log.d("DEBUG", "IMPORT START")
-            val header = reader.readLine() // ヘッダー飛ばす
-            Log.d("DEBUG", "header = $header")
+            reader.readLine() // skip header
 
             val list = mutableListOf<WordEntity>()
-
             reader.forEachLine { line ->
-                Log.d("DEBUG", "line = $line")
                 val parts = line.split("\t").map { it.trim() }
-                Log.d("DEBUG", "parts size = ${parts.size}")
-
-                // 原因特定のため一時的にチェックを外す、またはログを残す
-                if (parts.size < 10) {
-                    Log.d("DEBUG", "skip row (size < 10): $parts")
-                    return@forEachLine
-                }
-
-                try {
-                    val entity = WordEntity(
-                        no = parts[0].toInt(),
-                        grade = parts[1].toInt(),
-                        word = parts[2],
-                        japanese = parts[3],
-                        description = parts[4],
-                        sentence = parts[5],
-                        japaneseSentence = parts[6],
-                        phonetic = parts[7],
-                        type = parts[8],
-                        pos = parts[9],
-                        difficulty = parts.getOrNull(10)?.toIntOrNull() ?: 1,
-                        frequency = parts.getOrNull(11)?.toIntOrNull() ?: 1,
-                        related = emptyList(),   // とりあえずOK
-                        confusion = emptyList() // とりあえずOK
-                    )
-                    list.add(entity)
-                } catch (e: Exception) {
-                    Log.e("DEBUG", "Line parse error: $line", e)
+                if (parts.size >= 10) {
+                    try {
+                        val entity = WordEntity(
+                            no = parts[0].toInt(),
+                            grade = parts[1].toInt(),
+                            word = parts[2],
+                            japanese = parts[3],
+                            description = parts[4],
+                            sentence = parts[5],
+                            japaneseSentence = parts[6],
+                            phonetic = parts[7],
+                            type = parts[8],
+                            pos = parts[9],
+                            difficulty = parts.getOrNull(10)?.toIntOrNull() ?: 1,
+                            frequency = parts.getOrNull(11)?.toIntOrNull() ?: 1,
+                            related = emptyList(),
+                            confusion = emptyList()
+                        )
+                        list.add(entity)
+                    } catch (e: Exception) {
+                        // ignore malformed lines
+                    }
                 }
             }
 
             if (list.isNotEmpty()) {
                 dao.insertAll(list)
-                Log.d("DEBUG", "Imported ${list.size} words successfully")
+                val countAfter = dao.countAllWords()
+                Log.e(TAG, "[Seed] seed finished. insertedCount=${list.size}, countAfter=$countAfter")
             } else {
-                Log.w("DEBUG", "No words were parsed from TSV")
+                Log.e(TAG, "[Seed] FAILED: No words were parsed from raw resource.")
             }
 
         } catch (e: Exception) {
-            Log.e("DEBUG", "TSV Import failed", e)
+            Log.e(TAG, "[Seed] ERROR: Seed failed", e)
         }
     }
 }

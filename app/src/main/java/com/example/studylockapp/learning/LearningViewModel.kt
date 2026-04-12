@@ -1,8 +1,12 @@
 package com.example.studylockapp.learning
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.db.WordDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +17,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LearningViewModel(
+    private val context: Context,
+    private val wordDao: WordDao,
     private val quizManager: QuizManager,
     private val pointManager: PointManager,
     private val audioChecker: LearningAudioStateChecker,
@@ -29,7 +35,23 @@ class LearningViewModel(
     private val _uiEvent = Channel<LearningUiEvent>(Channel.BUFFERED)
     val uiEvent = _uiEvent.receiveAsFlow()
 
+    init {
+        // 起動時に初期データ投入を確認
+        viewModelScope.launch(Dispatchers.IO) {
+            CsvImporter.seedIfNeeded(context, wordDao)
+        }
+    }
+
+    fun setAudioStudyMode(mode: QuizManager.AudioStudyMode) {
+        quizManager.audioStudyMode = mode
+        _uiState.update { it.copy(audioStudyMode = mode) }
+    }
+
     fun loadNextQuiz() {
+        if (solvedInSession == 0) {
+            quizManager.resetSessionStats()
+        }
+
         if (solvedInSession >= totalCount) {
             finishSession()
             return
@@ -40,12 +62,10 @@ class LearningViewModel(
             
             val quiz = quizManager.nextQuiz()
             if (quiz != null) {
-                // 音声状態のチェックと警告モデルの生成
                 val importance = quiz.mode.getAudioImportance()
                 val hasRisk = audioChecker.isSilenceRisk()
                 val autoPlayEnabled = _uiState.value.isAutoPlayEnabled
                 
-                // 警告を出すかどうかの判定
                 val shouldShowWarning = when (importance) {
                     QuizMode.AudioImportance.REQUIRED -> hasRisk
                     QuizMode.AudioImportance.OPTIONAL -> hasRisk && autoPlayEnabled
@@ -59,48 +79,47 @@ class LearningViewModel(
                     )
                 } else null
 
+                val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
+                val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
+                val currentLevel = quizManager.getMasteryLevel(quiz.word.no)
+
                 _uiState.update { 
                     it.copy(
                         quiz = quiz, 
                         isLoading = false,
                         currentStep = solvedInSession + 1,
                         progress = (solvedInSession * 100) / totalCount,
-                        audioWarning = warning
+                        audioWarning = warning,
+                        basicMasterCount = basicCount,
+                        longTermMasterCount = longTermCount,
+                        currentTier = MasteryScheduler.getTier(currentLevel)
                     ) 
                 }
                 
-                // 自動再生判定: 設定が有効な場合のみ自動再生を行う
-                val shouldAutoPlay = if (autoPlayEnabled) {
-                    when (importance) {
+                if (autoPlayEnabled) {
+                    val shouldAutoPlay = when (importance) {
                         QuizMode.AudioImportance.REQUIRED -> true
                         QuizMode.AudioImportance.OPTIONAL -> true
                         else -> false
                     }
-                } else {
-                    false
-                }
-
-                if (shouldAutoPlay) {
-                    requestAudioPlayback()
+                    if (shouldAutoPlay) requestAudioPlayback()
                 }
             } else {
+                // クイズが取得できない理由をログ出力
+                val count = withContext(Dispatchers.IO) { wordDao.countAllWords() }
+                Log.e("QuizFlow", "quizManager.nextQuiz() returned null. Total words in DB: $count")
+                if (count == 0) {
+                    Log.e("QuizFlow", "CRITICAL: Database is empty. Seed might have failed.")
+                }
                 finishSession()
             }
         }
     }
 
-    /**
-     * 自動再生設定のトグル
-     */
     fun toggleAutoPlay() {
         _uiState.update { it.copy(isAutoPlayEnabled = !it.isAutoPlayEnabled) }
-        // トグル直後に現在のクイズの警告状態を再評価することも可能だが、
-        // 今回は「次の問題ロード時」の評価に合わせる最小修正とする。
     }
 
-    /**
-     * 音声再生をリクエスト。手動（聞き直し）時もこれを使う。
-     */
     fun requestAudioPlayback() {
         val text = _uiState.value.quiz?.word?.word ?: return
         viewModelScope.launch {
@@ -113,9 +132,17 @@ class LearningViewModel(
         if (_uiState.value.isAnswering) return
         _uiState.update { it.copy(isAnswering = true) }
         
-        quizManager.submitAnswer(currentQuiz.word, selectedAnswer == currentQuiz.answer)
-
         viewModelScope.launch {
+            val wordId = currentQuiz.word.no
+            val oldLevel = quizManager.getMasteryLevel(wordId)
+            val oldTier = MasteryScheduler.getTier(oldLevel)
+
+            quizManager.submitAnswer(currentQuiz.word, selectedAnswer == currentQuiz.answer)
+
+            val newLevel = quizManager.getMasteryLevel(wordId)
+            val newTier = MasteryScheduler.getTier(newLevel)
+            val tierChanged = (oldTier != newTier)
+
             solvedInSession++
             val isCorrect = selectedAnswer == currentQuiz.answer
             if (isCorrect) {
@@ -124,15 +151,17 @@ class LearningViewModel(
                     it.copy(
                         comboCount = it.comboCount + 1, 
                         sessionPoints = it.sessionPoints + 10,
-                        progress = (solvedInSession * 100) / totalCount
+                        progress = (solvedInSession * 100) / totalCount,
+                        currentTier = newTier
                     ) 
                 }
-                _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer))
+                _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, tierChanged))
             } else {
                 _uiState.update { 
                     it.copy(
                         comboCount = 0, 
-                        progress = (solvedInSession * 100) / totalCount
+                        progress = (solvedInSession * 100) / totalCount,
+                        currentTier = newTier
                     ) 
                 }
                 _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer))
@@ -142,6 +171,8 @@ class LearningViewModel(
 
     private fun finishSession() {
         _uiState.update { it.copy(isFinished = true, progress = 100) }
-        viewModelScope.launch { _uiEvent.send(LearningUiEvent.QuizFinished) }
+        viewModelScope.launch { 
+            _uiEvent.send(LearningUiEvent.QuizFinished) 
+        }
     }
 }

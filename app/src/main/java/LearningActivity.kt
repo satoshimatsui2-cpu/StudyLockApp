@@ -2,7 +2,6 @@ package com.example.studylockapp
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -23,7 +22,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 学習画面のActivity
+ * 学習画面のActivity (Mastery Logic & Audio Study Mode 完全復旧・修復版)
  */
 class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
@@ -32,7 +31,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private lateinit var soundEffectManager: SoundEffectManager
     private lateinit var ttsController: LearningTtsController
     
-    // クイズの切り替わり判定用
     private var currentQuizId: String? = null
 
     private val viewModel: LearningViewModel by viewModels {
@@ -71,32 +69,35 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             viewModel.loadNextQuiz()
         }
 
-        // 自動再生トグルの設定
+        setupListeners()
+    }
+
+    private fun setupListeners() {
         binding.buttonToggleAutoPlay.setOnClickListener {
             viewModel.toggleAutoPlay()
         }
 
-        // 聞き直しボタンの設定
         binding.buttonRepeatAudio.setOnClickListener {
             viewModel.requestAudioPlayback()
         }
 
-        // 旧音声アイコンも一応機能させておく
-        binding.iconTts.setOnClickListener {
-            viewModel.requestAudioPlayback()
+        // 音声モード切替（専用アイコンボタン）
+        binding.buttonToggleAudioMode.setOnClickListener {
+            val current = viewModel.uiState.value.audioStudyMode
+            val next = if (current == QuizManager.AudioStudyMode.NORMAL) 
+                QuizManager.AudioStudyMode.AUDIO_RESTRICTED else QuizManager.AudioStudyMode.NORMAL
+            viewModel.setAudioStudyMode(next)
         }
     }
 
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // UI状態の監視
                 launch {
                     viewModel.uiState.collectLatest { state ->
                         updateUi(state)
                     }
                 }
-                // 一回性演出イベントの監視
                 launch {
                     viewModel.uiEvent.collect { event ->
                         handleEvent(event)
@@ -107,55 +108,91 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun updateUi(state: LearningUiState) {
-        // ポイント・コンボの数値表示
+        // マスター件数とポイント
         binding.textPoints.text = getString(R.string.label_points_value, state.sessionPoints)
-        binding.textCurrentGrade.text = getString(R.string.label_combo_value, state.comboCount)
+        binding.textCurrentGrade.text = getString(R.string.label_mastery_stats, state.basicMasterCount, state.longTermMasterCount)
         
-        // 進捗表示
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
-        // 自動再生ボタンの状態反映
+        // 自動再生アイコン
         val autoPlayIcon = if (state.isAutoPlayEnabled) R.drawable.ic_volume_up_24 else R.drawable.outline_volume_off_24
         binding.buttonToggleAutoPlay.setImageResource(autoPlayIcon)
-        val tint = if (state.isAutoPlayEnabled) R.color.md_primary else R.color.md_onSurface_muted
-        binding.buttonToggleAutoPlay.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, tint))
+        
+        // 習得ティア（称号）の色設定
+        updateTierUi(state.currentTier)
 
-        // 無音リスク警告の表示
+        // 音声制限モードの反映
+        val isRestricted = (state.audioStudyMode == QuizManager.AudioStudyMode.AUDIO_RESTRICTED)
+        binding.textAudioModeLabel.text = if (isRestricted) getString(R.string.label_audio_mode_restricted) else getString(R.string.label_audio_mode_normal)
+        binding.buttonToggleAudioMode.setImageResource(if (isRestricted) R.drawable.outline_volume_off_24 else R.drawable.ic_volume_up_24)
+        
+        // 視覚的な制限中フィードバック
+        binding.cardQuestion.strokeWidth = if (isRestricted) 4 else 0
+        binding.cardQuestion.strokeColor = ContextCompat.getColor(this, R.color.md_outline_variant)
+
         if (state.audioWarning != null) {
             binding.layoutAudioWarning.visibility = View.VISIBLE
             binding.textAudioWarning.text = state.audioWarning.message
-            binding.layoutAudioWarning.setBackgroundColor(Color.parseColor(if (state.audioWarning.isCritical) "#FFF3E0" else "#F5F5F5"))
         } else {
             binding.layoutAudioWarning.visibility = View.GONE
         }
 
-        // 聞き直しボタンの制御
         val importance = state.quiz?.mode?.getAudioImportance() ?: QuizMode.AudioImportance.NONE
-        binding.buttonRepeatAudio.visibility = if (importance != QuizMode.AudioImportance.NONE) View.VISIBLE else View.GONE
+        binding.buttonRepeatAudio.visibility = if (importance != QuizMode.AudioImportance.NONE && !isRestricted) View.VISIBLE else View.GONE
 
-        // クイズコンテンツの描画
         state.quiz?.let { quiz ->
             if (currentQuizId != quiz.id) {
                 currentQuizId = quiz.id
-                binding.textCurrentMode.text = getString(R.string.label_current_mode, quiz.mode.toString())
+                binding.textCurrentMode.text = quiz.mode.name
                 RendererFactory.getRenderer(quiz.mode).render(this, quiz)
             }
         }
     }
 
+    /**
+     * 習得ティア（称号）の表示を更新
+     */
+    private fun updateTierUi(tier: MasteryTier) {
+        binding.chipMastery.text = tier.label
+        
+        // エラー回避のため Pair を明示的に使用
+        val tierColors: Map<MasteryTier, Pair<Int, Int>> = mapOf(
+            MasteryTier.LEARNING to Pair(R.color.mastery_bg_learning, R.color.mastery_text_learning),
+            MasteryTier.BASIC_MASTER to Pair(R.color.mastery_bg_basic, R.color.mastery_text_basic),
+            MasteryTier.LONG_TERM_MASTER to Pair(R.color.mastery_bg_longterm, R.color.mastery_text_longterm)
+        )
+
+        val colorPair = tierColors[tier] ?: Pair(R.color.mastery_bg_learning, R.color.mastery_text_learning)
+        val bgColorRes = colorPair.first
+        val textColorRes = colorPair.second
+
+        binding.chipMastery.chipBackgroundColor = ColorStateList.valueOf(ContextCompat.getColor(this, bgColorRes))
+        binding.chipMastery.setTextColor(ContextCompat.getColor(this, textColorRes))
+    }
+
     private fun handleEvent(event: LearningUiEvent) {
         when (event) {
             is LearningUiEvent.ShowCorrect -> {
-                soundEffectManager.playCorrect(1.0f)
+                if (viewModel.uiState.value.isAutoPlayEnabled && viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+                    soundEffectManager.playCorrect(1.0f)
+                }
+                
+                if (event.tierChanged) {
+                    val label = viewModel.uiState.value.currentTier.label
+                    Toast.makeText(this, getString(R.string.toast_tier_up, label), Toast.LENGTH_SHORT).show()
+                }
+
                 choiceButtons.find { it.text == event.answer }?.let {
-                    animationManager.playCorrectSequence(it, event.gainedPoints) {
+                    animationManager.playCorrectSequence(it, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
                         viewModel.loadNextQuiz()
                     }
                 }
             }
             is LearningUiEvent.ShowWrong -> {
-                soundEffectManager.playWrong(1.0f)
+                if (viewModel.uiState.value.isAutoPlayEnabled && viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+                    soundEffectManager.playWrong(1.0f)
+                }
                 val selectedBtn = choiceButtons.find { it.text == event.selected }
                 val correctBtn = choiceButtons.find { it.text == event.correct }
                 
@@ -168,10 +205,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }, 1500)
             }
             is LearningUiEvent.PlayAudio -> {
-                ttsController.speak(event.text)
+                if (viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+                    ttsController.speak(event.text)
+                }
             }
             is LearningUiEvent.QuizFinished -> {
-                Toast.makeText(this, R.string.message_session_finished, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.message_session_finished), Toast.LENGTH_SHORT).show()
                 finish()
             }
         }
@@ -181,36 +220,27 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
         binding.textQuestionTitle.text = title
         binding.textQuestionBody.text = body
-
         binding.choicesContainer.visibility = View.VISIBLE
         binding.sortQuestionLayout.root.visibility = View.GONE
-        
         binding.iconTts.visibility = View.GONE
 
         choiceButtons.forEachIndexed { i, btn ->
             resetChoiceButton(btn)
-
             if (i < choices.size) {
                 btn.text = choices[i]
                 btn.visibility = View.VISIBLE
-
-                btn.setOnTouchListener { v, event ->
+                btn.setOnTouchListener { v, motionEvent ->
                     if (viewModel.uiState.value.isAnswering) return@setOnTouchListener false
-                    when (event.action) {
-                        MotionEvent.ACTION_DOWN -> animationManager.pressDown(v)
-                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> animationManager.release(v)
-                    }
+                    if (motionEvent.action == MotionEvent.ACTION_DOWN) animationManager.pressDown(v)
+                    else if (motionEvent.action == MotionEvent.ACTION_UP || motionEvent.action == MotionEvent.ACTION_CANCEL) animationManager.release(v)
                     false
                 }
-
                 btn.setOnClickListener {
                     if (viewModel.uiState.value.isAnswering) return@setOnClickListener
                     viewModel.submitAnswer(btn.text.toString())
                 }
             } else {
                 btn.visibility = View.GONE
-                btn.setOnTouchListener(null)
-                btn.setOnClickListener(null)
             }
         }
     }
@@ -220,13 +250,14 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         btn.scaleY = 1f
         btn.translationX = 0f
         btn.alpha = 1f
-        btn.backgroundTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_button_bg))
+        btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_button_bg))
         btn.setTextColor(ContextCompat.getColor(this, R.color.choice_button_text))
     }
 
     override fun playAudio(text: String) {
-        ttsController.speak(text)
+        if (viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+            ttsController.speak(text)
+        }
     }
 
     override fun onDestroy() {

@@ -13,7 +13,7 @@ interface WordDao {
     suspend fun insertAll(words: List<WordEntity>)
 
     @Query("SELECT COUNT(*) FROM words")
-    suspend fun countAll(): Int
+    suspend fun countAllWords(): Int
 
     @Query("SELECT * FROM words")
     suspend fun getAll(): List<WordEntity>
@@ -29,11 +29,40 @@ interface WordDao {
 
     @Query("""
         SELECT * FROM words 
-        WHERE difficulty <= :level 
+        WHERE grade = :level 
         ORDER BY RANDOM() 
         LIMIT 1
     """)
     suspend fun getRandomWordByLevel(level: Int): WordEntity?
+
+    @Query("SELECT * FROM words ORDER BY RANDOM() LIMIT 1")
+    suspend fun getAnyRandomWord(): WordEntity?
+
+    @Query("""
+        SELECT word FROM words 
+        WHERE word != :excludeWord AND grade = :grade AND word LIKE :prefix || '%'
+        ORDER BY RANDOM() 
+        LIMIT :limit
+    """)
+    suspend fun getWordsByPrefix(excludeWord: String, grade: Int, prefix: String, limit: Int): List<String>
+
+    @Query("""
+        SELECT word FROM words 
+        WHERE word != :excludeWord AND grade = :grade 
+        AND length(word) BETWEEN :minLen AND :maxLen
+        ORDER BY RANDOM() 
+        LIMIT :limit
+    """)
+    suspend fun getWordsByLengthRange(excludeWord: String, grade: Int, minLen: Int, maxLen: Int, limit: Int): List<String>
+
+    @Query("""
+        SELECT word FROM words 
+        WHERE word != :excludeWord AND grade = :grade AND type = :type 
+        AND length(word) BETWEEN :minLen AND :maxLen
+        ORDER BY RANDOM() 
+        LIMIT :limit
+    """)
+    suspend fun getWordsByLengthRangeAndType(excludeWord: String, grade: Int, type: String, minLen: Int, maxLen: Int, limit: Int): List<String>
 
     @Query("""
         SELECT word FROM words 
@@ -49,14 +78,28 @@ interface WordDao {
 
     @Query("""
         SELECT word FROM words 
-        WHERE word != :excludeWord AND grade = :grade AND pos = :pos
+        WHERE word != :excludeWord AND grade = :grade AND type = :type
         ORDER BY RANDOM() 
         LIMIT :limit
     """)
-    suspend fun getRandomDistractorsByPos(
+    suspend fun getRandomDistractorsByType(
+        excludeWord: String,
+        grade: Int,
+        type: String,
+        limit: Int
+    ): List<String>
+
+    @Query("""
+        SELECT word FROM words 
+        WHERE word != :excludeWord AND grade = :grade AND pos = :pos AND type = :type
+        ORDER BY RANDOM() 
+        LIMIT :limit
+    """)
+    suspend fun getRandomDistractorsByPosAndType(
         excludeWord: String,
         grade: Int,
         pos: String,
+        type: String,
         limit: Int
     ): List<String>
 
@@ -77,14 +120,28 @@ interface WordDao {
 
     @Query("""
         SELECT japanese FROM words 
-        WHERE japanese != :excludeJp AND grade = :grade AND pos = :pos
+        WHERE japanese != :excludeJp AND grade = :grade AND type = :type
         ORDER BY RANDOM() 
         LIMIT :limit
     """)
-    suspend fun getRandomJapaneseDistractorsByPos(
+    suspend fun getRandomJapaneseDistractorsByType(
+        excludeJp: String,
+        grade: Int,
+        type: String,
+        limit: Int
+    ): List<String>
+
+    @Query("""
+        SELECT japanese FROM words 
+        WHERE japanese != :excludeJp AND grade = :grade AND pos = :pos AND type = :type
+        ORDER BY RANDOM() 
+        LIMIT :limit
+    """)
+    suspend fun getRandomJapaneseDistractorsByPosAndType(
         excludeJp: String,
         grade: Int,
         pos: String,
+        type: String,
         limit: Int
     ): List<String>
 }
