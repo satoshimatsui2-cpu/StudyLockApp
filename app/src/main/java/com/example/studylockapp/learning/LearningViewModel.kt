@@ -62,7 +62,7 @@ class LearningViewModel(
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isAnswering = false) }
+            _uiState.update { it.copy(isLoading = true, isAnswering = false, isReviewing = false) }
             
             val quiz = quizManager.nextQuiz()
             if (quiz != null) {
@@ -99,8 +99,7 @@ class LearningViewModel(
                         currentTier = MasteryScheduler.getTier(currentLevel),
                         currentLevel = currentLevel,
                         isLevelJustIncreased = false,
-                        isBasicMasteredJustNow = false,
-                        isLongTermMasteredJustNow = false
+                        currentWord = quiz.word // レビュー用に保持
                     ) 
                 }
                 
@@ -113,27 +112,33 @@ class LearningViewModel(
                     if (shouldAutoPlay) requestAudioPlayback()
                 }
             } else {
-                val count = withContext(Dispatchers.IO) { wordDao.countAllWords() }
-                Log.e("QuizFlow", "quizManager.nextQuiz() returned null. Total words: $count")
                 finishSession()
             }
         }
+    }
+
+    /**
+     * レビューを終えて次の問題へ進む
+     */
+    fun onNextAfterReview() {
+        if (_uiState.value.isFinished) return
+        loadNextQuiz()
     }
 
     fun toggleAutoPlay() {
         _uiState.update { it.copy(isAutoPlayEnabled = !it.isAutoPlayEnabled) }
     }
 
-    fun requestAudioPlayback() {
-        val text = _uiState.value.quiz?.word?.word ?: return
+    fun requestAudioPlayback(text: String? = null) {
+        val playText = text ?: _uiState.value.quiz?.word?.word ?: return
         viewModelScope.launch {
-            _uiEvent.send(LearningUiEvent.PlayAudio(text))
+            _uiEvent.send(LearningUiEvent.PlayAudio(playText))
         }
     }
 
     fun submitAnswer(selectedAnswer: String) {
         val currentQuiz = _uiState.value.quiz ?: return
-        if (_uiState.value.isAnswering) return
+        if (_uiState.value.isAnswering || _uiState.value.isReviewing) return
         _uiState.update { it.copy(isAnswering = true) }
         
         viewModelScope.launch {
@@ -156,6 +161,8 @@ class LearningViewModel(
 
             solvedInSession++
             val isCorrect = selectedAnswer == currentQuiz.answer
+            
+            // 状態を「レビュー中」へ移行。UI側で遅延させて表示する想定。
             if (isCorrect) {
                 withContext(Dispatchers.IO) { pointManager.add(10) }
                 _uiState.update { 
@@ -165,9 +172,7 @@ class LearningViewModel(
                         progress = (solvedInSession * 100) / totalCount,
                         currentTier = newTier,
                         currentLevel = newLevel,
-                        isLevelJustIncreased = isLevelUp,
-                        isBasicMasteredJustNow = isBasicJustNow,
-                        isLongTermMasteredJustNow = isLongTermJustNow
+                        isLevelJustIncreased = isLevelUp
                     ) 
                 }
                 _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, oldTier != newTier))
@@ -188,6 +193,13 @@ class LearningViewModel(
                 _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer))
             }
         }
+    }
+
+    /**
+     * Activity側のアニメーション終了後にレビューを表示させるためのトリガー
+     */
+    fun startReview() {
+        _uiState.update { it.copy(isReviewing = true, isAnswering = false) }
     }
 
     private fun finishSession() {

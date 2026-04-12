@@ -189,11 +189,18 @@
     <string name="toast_tier_up">ランクアップ！ %1$s</string>
     <string name="label_mastery_stats">基礎:%1$d / 長期:%2$d</string>
 
-    <!-- 追加分 -->
     <string name="label_goal">Goal</string>
     <string name="session_summary_title">セッション完了！</string>
     <string name="session_summary_level_up">%1$d 語が進捗アップ</string>
     <string name="session_summary_basic_master">基礎マスター + %1$d</string>
     <string name="session_summary_long_term_master">長期マスター + %1$d</string>
     <string name="action_close">閉じる</string>
+
+    <!-- 追加: Mastery Journey & Review Card -->
+    <string name="label_until_basic_master">基礎マスターまで</string>
+    <string name="label_until_long_term_master">長期マスターまで</string>
+    <string name="label_level_n">LV%1$d</string>
+    <string name="label_next_step_hint">あと%1$d段階で昇格</string>
+    <string name="action_play_example">例文を再生</string>
+    <string name="action_go_next">次へ進む</string>
 </resources>

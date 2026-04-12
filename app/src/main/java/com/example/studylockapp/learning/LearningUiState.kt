@@ -1,5 +1,7 @@
 package com.example.studylockapp.learning
 
+import com.example.studylockapp.data.WordEntity
+
 /**
  * 警告表示のUIモデル
  */
@@ -30,13 +32,19 @@ data class LearningUiState(
     val longTermMasterCount: Int = 0,
     val currentTier: MasteryTier = MasteryTier.LEARNING,
     
-    // 進捗レール用データ
+    // 進捗データ
     val currentLevel: Int = 0,
     val isLevelJustIncreased: Boolean = false,
-    val isBasicMasteredJustNow: Boolean = false,
-    val isLongTermMasteredJustNow: Boolean = false,
     
-    // セッション成果（終了画面用）
+    // 目標・現在単語レベル表示用
+    val targetLevel: Int = 4, // デフォルト準2級(ランク4)
+    val wordGrade: Int = 0,   // 現在の単語の級ランク
+    
+    // レビュー状態
+    val isReviewing: Boolean = false,
+    val currentWord: WordEntity? = null,
+    
+    // セッション成果
     val sessionLevelUpCount: Int = 0,
     val sessionBasicMasterGained: Int = 0,
     val sessionLongTermMasterGained: Int = 0
@@ -50,7 +58,5 @@ sealed class LearningUiEvent {
     data class ShowWrong(val selected: String, val correct: String) : LearningUiEvent()
     data class PlayAudio(val text: String) : LearningUiEvent()
     object QuizFinished : LearningUiEvent()
-    
-    // 節目演出用
     data class ShowMasteryBadge(val tier: MasteryTier) : LearningUiEvent()
 }
