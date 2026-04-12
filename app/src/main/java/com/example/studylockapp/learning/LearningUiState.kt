@@ -35,14 +35,15 @@ data class LearningUiState(
     // 進捗データ
     val currentLevel: Int = 0,
     val isLevelJustIncreased: Boolean = false,
+    val targetLevel: Int = 4,
+    val wordGrade: Int = 0,
     
-    // 目標・現在単語レベル表示用
-    val targetLevel: Int = 4, // デフォルト準2級(ランク4)
-    val wordGrade: Int = 0,   // 現在の単語の級ランク
-    
-    // レビュー状態
+    // --- レビュー状態 (次のクイズロードまで保持) ---
     val isReviewing: Boolean = false,
     val currentWord: WordEntity? = null,
+    val lastUserAnswer: String? = null,
+    val correctAnswerText: String? = null,
+    val isLastAnswerCorrect: Boolean = true,
     
     // セッション成果
     val sessionLevelUpCount: Int = 0,

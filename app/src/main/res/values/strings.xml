@@ -173,7 +173,7 @@
     <string name="label_progress_percent">%1$d%%</string>
     <string name="label_mastery_learning">学習中</string>
     <string name="label_reward_star">+%1$d ⭐</string>
-    <string name="label_points_value">%1$d pt</string>
+    <string name="label_points_value">%1$d PT</string>
     <string name="label_combo_value">Combo: %1$d</string>
     <string name="label_progress_step">%1$d / %2$d</string>
     <string name="label_current_mode">モード: %1$s</string>
@@ -199,8 +199,13 @@
     <!-- 追加: Mastery Journey & Review Card -->
     <string name="label_until_basic_master">基礎マスターまで</string>
     <string name="label_until_long_term_master">長期マスターまで</string>
-    <string name="label_level_n">LV%1$d</string>
-    <string name="label_next_step_hint">あと%1$d段階で昇格</string>
+    <string name="label_level_n">LV %1$d</string>
+    <string name="label_next_step_hint">あと %1$d 段階で昇格</string>
     <string name="action_play_example">例文を再生</string>
     <string name="action_go_next">次へ進む</string>
+
+    <!-- 答え合わせ表示用 -->
+    <string name="review_label_correct_word">○ 正解: %1$s</string>
+    <string name="review_label_wrong_answer">× あなたの回答: %1$s</string>
+    <string name="review_label_learning_word">%1$s を学習中</string>
 </resources>

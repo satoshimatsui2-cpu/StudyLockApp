@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -20,7 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 学習画面のActivity (UI優先順位整理 & データソース修正版)
+ * 学習画面のActivity (UX刷新 & Safety Fallback版)
  */
 class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
@@ -116,25 +117,22 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun updateUi(state: LearningUiState) {
-        // 1. Mastery Journey Card (優先順位に基づく整理)
-        
-        // 補助情報
-        binding.textTargetLevel.text = "目標: ${GradeLabelFormatter.format(state.targetLevel)}"
-        binding.textSessionPointsSummary.text = "${state.sessionPoints} PT"
-        
-        // 主役: 現在の単語レベル (quiz.word.grade を使用)
-        state.quiz?.word?.let { word ->
-            val gradeLabel = GradeLabelFormatter.format(word.grade)
-            binding.textWordGradeLabel.text = "${gradeLabel} を学習中"
-        }
-
-        // 習得LV (進捗バーとチップ)
+        // 1. Mastery Journey Card
         val isLongTerm = state.currentLevel > 5
         binding.textJourneyTitle.text = if (isLongTerm) {
             getString(R.string.label_until_long_term_master)
         } else {
             getString(R.string.label_until_basic_master)
         }
+        
+        binding.textTargetLevel.text = "目標: ${GradeLabelFormatter.format(state.targetLevel)}"
+        binding.textSessionPointsSummary.text = "${state.sessionPoints} PT"
+        
+        state.quiz?.word?.let { word ->
+            val gradeLabel = GradeLabelFormatter.format(word.grade)
+            binding.textWordGradeLabel.text = "${gradeLabel} を学習中"
+        }
+
         binding.chipCurrentLevel.text = "LV ${state.currentLevel}"
         
         val relativeLevel = if (isLongTerm) state.currentLevel - 5 else state.currentLevel
@@ -144,18 +142,31 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.textJourneySubtitle.text = getString(R.string.label_next_step_hint, stepsToNext)
         binding.textMasteryStatsSummary.text = getString(R.string.label_mastery_stats, state.basicMasterCount, state.longTermMasterCount)
 
-        // 2. セッション進捗 (薄いバー)
+        // 2. セッション進捗
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
-        // 3. レビューカード
+        // 3. レビューカードの表示制御
         if (state.isReviewing && state.currentWord != null) {
-            showReviewCard(state.currentWord)
+            binding.cardAnswerReview.visibility = View.VISIBLE
+            binding.textReviewWord.text = state.currentWord.word
+            binding.textReviewPhonetic.text = state.currentWord.phonetic ?: ""
+            binding.textReviewSentence.text = state.currentWord.sentence ?: ""
+            binding.textReviewSentenceJp.text = state.currentWord.japaneseSentence ?: ""
+            
+            // 答え合わせ表示
+            binding.textReviewAnswerCorrect.text = getString(R.string.review_label_correct_word, state.correctAnswerText)
+            if (!state.isLastAnswerCorrect) {
+                binding.textReviewAnswerWrong.visibility = View.VISIBLE
+                binding.textReviewAnswerWrong.text = getString(R.string.review_label_wrong_answer, state.lastUserAnswer)
+            } else {
+                binding.textReviewAnswerWrong.visibility = View.GONE
+            }
         } else {
             binding.cardAnswerReview.visibility = View.GONE
         }
 
-        // 4. サウンドUI (テキストチップ化)
+        // 4. サウンドUI
         binding.buttonToggleAutoPlay.text = if (state.isAutoPlayEnabled) "自動再生 ON" else "自動再生 OFF"
         
         val isRestricted = (state.audioStudyMode == QuizManager.AudioStudyMode.AUDIO_RESTRICTED)
@@ -170,25 +181,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         }
     }
 
-    private fun showReviewCard(word: com.example.studylockapp.data.WordEntity) {
-        binding.cardAnswerReview.visibility = View.VISIBLE
-        binding.textReviewWord.text = word.word
-        binding.textReviewPhonetic.text = word.phonetic ?: ""
-        binding.textReviewSentence.text = word.sentence ?: ""
-        binding.textReviewSentenceJp.text = word.japaneseSentence ?: ""
-        binding.buttonPlayReviewSentence.visibility = if (word.sentence.isNullOrBlank()) View.GONE else View.VISIBLE
-    }
-
     private fun handleEvent(event: LearningUiEvent) {
         when (event) {
             is LearningUiEvent.ShowCorrect -> {
                 if (viewModel.uiState.value.isAutoPlayEnabled && viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
                     soundEffectManager.playCorrect(1.0f)
                 }
-                choiceButtons.find { it.text == event.answer }?.let {
-                    animationManager.playCorrectSequence(it, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
+                
+                val correctBtn = choiceButtons.find { it.text == event.answer }
+                if (correctBtn != null) {
+                    animationManager.playCorrectSequence(correctBtn, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
                         viewModel.startReview()
                     }
+                } else {
+                    // フォールバック: ボタンが見つからない場合もレビューへ進む
+                    binding.rootLayout.postDelayed({ viewModel.startReview() }, AnimationManager.DURATION_CORRECT)
                 }
             }
             is LearningUiEvent.ShowWrong -> {
@@ -197,10 +204,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
                 val selectedBtn = choiceButtons.find { it.text == event.selected }
                 val correctBtn = choiceButtons.find { it.text == event.correct }
-                if (selectedBtn != null && correctBtn != null) {
-                    animationManager.showWrong(selectedBtn, correctBtn)
+                
+                // nullable対応された AnimationManager を呼び出す
+                animationManager.playWrongSequence(selectedBtn, correctBtn) {
+                    viewModel.startReview()
                 }
-                binding.rootLayout.postDelayed({ viewModel.startReview() }, 1500)
             }
             is LearningUiEvent.PlayAudio -> {
                 if (viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {

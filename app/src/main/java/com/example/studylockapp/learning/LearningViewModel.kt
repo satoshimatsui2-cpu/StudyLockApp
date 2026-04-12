@@ -29,7 +29,6 @@ class LearningViewModel(
     private val totalCount = 10
     private var solvedInSession = 0
     
-    // セッション成果の蓄積
     private var levelUpsInSession = 0
     private var basicMastersInSession = 0
     private var longTermMastersInSession = 0
@@ -70,13 +69,7 @@ class LearningViewModel(
                 val hasRisk = audioChecker.isSilenceRisk()
                 val autoPlayEnabled = _uiState.value.isAutoPlayEnabled
                 
-                val shouldShowWarning = when (importance) {
-                    QuizMode.AudioImportance.REQUIRED -> hasRisk
-                    QuizMode.AudioImportance.OPTIONAL -> hasRisk && autoPlayEnabled
-                    QuizMode.AudioImportance.NONE -> false
-                }
-
-                val warning = if (shouldShowWarning) {
+                val warning = if (hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || (importance == QuizMode.AudioImportance.OPTIONAL && autoPlayEnabled))) {
                     AudioWarningState(
                         message = if (importance == QuizMode.AudioImportance.REQUIRED) requiredWarningText else optionalWarningText,
                         isCritical = (importance == QuizMode.AudioImportance.REQUIRED)
@@ -99,7 +92,8 @@ class LearningViewModel(
                         currentTier = MasteryScheduler.getTier(currentLevel),
                         currentLevel = currentLevel,
                         isLevelJustIncreased = false,
-                        currentWord = quiz.word // レビュー用に保持
+                        currentWord = quiz.word,
+                        wordGrade = quiz.word.grade
                     ) 
                 }
                 
@@ -117,9 +111,6 @@ class LearningViewModel(
         }
     }
 
-    /**
-     * レビューを終えて次の問題へ進む
-     */
     fun onNextAfterReview() {
         if (_uiState.value.isFinished) return
         loadNextQuiz()
@@ -162,42 +153,39 @@ class LearningViewModel(
             solvedInSession++
             val isCorrect = selectedAnswer == currentQuiz.answer
             
-            // 状態を「レビュー中」へ移行。UI側で遅延させて表示する想定。
+            // モードに応じたレビュー用表示テキストの確定 (NULL回避)
+            val reviewCorrectText = when (currentQuiz.mode) {
+                QuizMode.EN_TO_JP -> currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
+                QuizMode.JP_TO_EN, QuizMode.LISTEN_EN -> currentQuiz.word.word.takeIf { it.isNotBlank() } ?: currentQuiz.answer
+                else -> currentQuiz.answer
+            }
+
+            _uiState.update { 
+                it.copy(
+                    comboCount = if (isCorrect) it.comboCount + 1 else 0, 
+                    sessionPoints = if (isCorrect) it.sessionPoints + 10 else it.sessionPoints,
+                    progress = (solvedInSession * 100) / totalCount,
+                    currentTier = newTier,
+                    currentLevel = newLevel,
+                    isLevelJustIncreased = isLevelUp,
+                    lastUserAnswer = selectedAnswer,
+                    correctAnswerText = reviewCorrectText,
+                    isLastAnswerCorrect = isCorrect
+                ) 
+            }
+
             if (isCorrect) {
                 withContext(Dispatchers.IO) { pointManager.add(10) }
-                _uiState.update { 
-                    it.copy(
-                        comboCount = it.comboCount + 1, 
-                        sessionPoints = it.sessionPoints + 10,
-                        progress = (solvedInSession * 100) / totalCount,
-                        currentTier = newTier,
-                        currentLevel = newLevel,
-                        isLevelJustIncreased = isLevelUp
-                    ) 
-                }
                 _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, oldTier != newTier))
-                
                 if (isBasicJustNow || isLongTermJustNow) {
                     _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
                 }
             } else {
-                _uiState.update { 
-                    it.copy(
-                        comboCount = 0, 
-                        progress = (solvedInSession * 100) / totalCount,
-                        currentTier = newTier,
-                        currentLevel = newLevel,
-                        isLevelJustIncreased = false
-                    ) 
-                }
                 _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer))
             }
         }
     }
 
-    /**
-     * Activity側のアニメーション終了後にレビューを表示させるためのトリガー
-     */
     fun startReview() {
         _uiState.update { it.copy(isReviewing = true, isAnswering = false) }
     }
