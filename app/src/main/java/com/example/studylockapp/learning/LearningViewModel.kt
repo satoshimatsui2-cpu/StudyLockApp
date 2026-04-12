@@ -1,12 +1,12 @@
 package com.example.studylockapp.learning
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.db.WordDao
+import com.example.studylockapp.data.WordEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -143,21 +143,34 @@ class LearningViewModel(
             val newTier = MasteryScheduler.getTier(newLevel)
             
             val isLevelUp = newLevel > oldLevel
-            val isBasicJustNow = oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER
-            val isLongTermJustNow = oldTier != MasteryTier.LONG_TERM_MASTER && newTier == MasteryTier.LONG_TERM_MASTER
-
             if (isLevelUp) levelUpsInSession++
-            if (isBasicJustNow) basicMastersInSession++
-            if (isLongTermJustNow) longTermMastersInSession++
+            if (oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER) basicMastersInSession++
+            if (oldTier != MasteryTier.LONG_TERM_MASTER && newTier == MasteryTier.LONG_TERM_MASTER) longTermMastersInSession++
 
             solvedInSession++
-            val isCorrect = selectedAnswer == currentQuiz.answer
+            val isCorrect = (selectedAnswer == currentQuiz.answer)
             
-            // モードに応じたレビュー用表示テキストの確定 (NULL回避)
-            val reviewCorrectText = when (currentQuiz.mode) {
-                QuizMode.EN_TO_JP -> currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
-                QuizMode.JP_TO_EN, QuizMode.LISTEN_EN -> currentQuiz.word.word.takeIf { it.isNotBlank() } ?: currentQuiz.answer
-                else -> currentQuiz.answer
+            // 答え合わせ用テキスト確定
+            val modeLabel = when (currentQuiz.mode) {
+                QuizMode.EN_TO_JP -> "英語 → 日本語"
+                QuizMode.JP_TO_EN -> "日本語 → 英語"
+                QuizMode.LISTEN_EN -> "リスニング"
+                else -> currentQuiz.mode.name
+            }
+            val questionText = if (currentQuiz.mode == QuizMode.LISTEN_EN) "聞こえた英単語" else currentQuiz.question
+            
+            // 正解表示用のテキスト
+            val correctDisplay = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
+                currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
+            } else {
+                currentQuiz.word.word
+            }
+
+            var wrongWordEntity: WordEntity? = null
+            if (currentQuiz.mode == QuizMode.LISTEN_EN && !isCorrect) {
+                wrongWordEntity = withContext(Dispatchers.IO) {
+                    wordDao.getWordBySpelling(selectedAnswer)
+                }
             }
 
             _uiState.update { 
@@ -168,16 +181,20 @@ class LearningViewModel(
                     currentTier = newTier,
                     currentLevel = newLevel,
                     isLevelJustIncreased = isLevelUp,
-                    lastUserAnswer = selectedAnswer,
-                    correctAnswerText = reviewCorrectText,
-                    isLastAnswerCorrect = isCorrect
+                    isLastAnswerCorrect = isCorrect,
+                    reviewModeLabel = modeLabel,
+                    reviewQuestionText = questionText,
+                    reviewUserAnswerText = selectedAnswer,
+                    reviewCorrectAnswerText = correctDisplay,
+                    showListeningCompare = (currentQuiz.mode == QuizMode.LISTEN_EN && !isCorrect),
+                    wrongWord = wrongWordEntity
                 ) 
             }
 
             if (isCorrect) {
                 withContext(Dispatchers.IO) { pointManager.add(10) }
                 _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, oldTier != newTier))
-                if (isBasicJustNow || isLongTermJustNow) {
+                if (oldTier != newTier) {
                     _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
                 }
             } else {

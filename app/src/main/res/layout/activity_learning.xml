@@ -122,24 +122,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- 2. 報酬ポップアップ (オーバーレイ表示: Journey Card の右上付近に配置) -->
-    <TextView
-        android:id="@+id/text_reward_popup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:alpha="0"
-        android:background="@drawable/shape_reward_pill"
-        android:elevation="10dp"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="6dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="@id/card_mastery_journey"
-        app:layout_constraintTop_toTopOf="@id/card_mastery_journey" />
-
-    <!-- 3. セッション進捗バー (薄い) -->
+    <!-- 2. セッション進捗バー -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_horizontal"
         android:layout_width="0dp"
@@ -164,7 +147,7 @@
         app:layout_constraintTop_toTopOf="@+id/progress_horizontal"
         tools:text="4 / 10" />
 
-    <!-- 4. クイズ / レビュー コンテナ -->
+    <!-- 3. メインコンテナ -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -263,98 +246,209 @@
                 android:layout_height="match_parent"
                 android:padding="20dp">
 
+                <!-- 1. モードと問題 -->
                 <TextView
-                    android:id="@+id/text_review_answer_correct"
-                    android:layout_width="match_parent"
+                    android:id="@+id/text_review_mode_label"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/choice_correct"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
+                    android:textColor="@color/md_onSurface_muted"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:text="○ 正解: 持続する" />
+                    tools:text="英語 → 日本語" />
 
+                <TextView
+                    android:id="@+id/text_review_question_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/md_onSurface"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/text_review_mode_label"
+                    tools:text="persistent" />
+
+                <!-- 2. 答え合わせ -->
                 <TextView
                     android:id="@+id/text_review_answer_wrong"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="12dp"
                     android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    app:layout_constraintTop_toBottomOf="@id/text_review_answer_correct"
-                    tools:text="× あなたの回答: 永続的な" />
+                    android:textSize="15sp"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toBottomOf="@id/text_review_question_text"
+                    tools:text="✕ あなたの回答: 永続的な"
+                    tools:visibility="visible" />
 
                 <TextView
-                    android:id="@+id/text_review_word"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/text_review_answer_correct"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/choice_correct"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/text_review_answer_wrong"
+                    tools:text="○ 正解: 持続する" />
+
+                <!-- 3. 聞き比べセクション (LISTEN_EN 不正解時) -->
+                <LinearLayout
+                    android:id="@+id/layout_listening_compare"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:textColor="@color/md_onSurface"
-                    android:textSize="28sp"
-                    android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/text_review_answer_wrong"
-                    tools:text="persistent" />
+                    android:background="@color/md_surface"
+                    android:orientation="vertical"
+                    android:padding="12dp"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toBottomOf="@id/text_review_answer_correct"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="聞き比べ"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <!-- 誤答 -->
+                        <LinearLayout
+                            android:id="@+id/layout_wrong_word_detail"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:id="@+id/text_compare_wrong_word"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/md_onSurface"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                tools:text="assistant" />
+                            <TextView
+                                android:id="@+id/text_compare_wrong_phonetic"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp"
+                                tools:text="/əˈsɪstənt/" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/button_play_compare_wrong"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:minWidth="0dp"
+                                android:padding="0dp"
+                                app:icon="@drawable/ic_volume_up_24" />
+                        </LinearLayout>
+
+                        <!-- 正答 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:id="@+id/text_compare_correct_word"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/md_onSurface"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                tools:text="persistent" />
+                            <TextView
+                                android:id="@+id/text_compare_correct_phonetic"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp"
+                                tools:text="/pərˈsɪstənt/" />
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/button_play_compare_correct"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:minWidth="0dp"
+                                android:padding="0dp"
+                                app:icon="@drawable/ic_volume_up_24" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 4. 詳細 (発音・例文) -->
+                <View
+                    android:id="@+id/divider_review"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@color/md_outline"
+                    app:layout_constraintTop_toBottomOf="@id/layout_listening_compare" />
 
                 <TextView
                     android:id="@+id/text_review_phonetic"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
                     android:textColor="@color/text_secondary"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="@id/text_review_word"
-                    app:layout_constraintStart_toEndOf="@id/text_review_word"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/divider_review"
                     tools:text="/pərˈsɪstənt/" />
 
                 <ImageButton
                     android:id="@+id/button_play_review_word"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_volume_up_24"
                     android:contentDescription="発音を再生"
+                    android:src="@drawable/ic_volume_up_24"
+                    app:layout_constraintBottom_toBottomOf="@id/text_review_phonetic"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/text_review_word" />
-
-                <View
-                    android:id="@+id/divider_review"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="12dp"
-                    android:background="@color/md_outline"
-                    app:layout_constraintTop_toBottomOf="@id/text_review_word" />
+                    app:layout_constraintTop_toTopOf="@id/text_review_phonetic" />
 
                 <TextView
                     android:id="@+id/text_review_sentence"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:lineSpacingExtra="4dp"
                     android:textColor="@color/md_onSurface"
-                    android:textSize="16sp"
-                    app:layout_constraintTop_toBottomOf="@id/divider_review"
-                    tools:text="She was persistent in her efforts." />
+                    android:textSize="15sp"
+                    app:layout_constraintTop_toBottomOf="@id/text_review_phonetic"
+                    tools:text="She was persistent in her efforts to learn English." />
 
                 <TextView
                     android:id="@+id/text_review_sentence_jp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="6dp"
                     android:textColor="@color/md_onSurface_muted"
-                    android:textSize="14sp"
-                    app:layout_constraintTop_toBottomOf="@id/text_review_sentence" />
+                    android:textSize="13sp"
+                    app:layout_constraintTop_toBottomOf="@id/text_review_sentence"
+                    tools:text="彼女は英語を学ぶために粘り強く努力した。" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_play_review_sentence"
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="4dp"
                     android:text="@string/action_play_example"
                     app:icon="@drawable/ic_volume_up_24"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/text_review_sentence_jp" />
 
+                <!-- 5. 次へ -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_next_question"
                     style="@style/Widget.Material3.Button.TonalButton"
@@ -364,11 +458,29 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
 
-    <!-- 5. 下部アクション -->
+    <!-- 5. 報酬ポップアップ -->
+    <TextView
+        android:id="@+id/text_reward_popup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:alpha="0"
+        android:background="@drawable/shape_reward_pill"
+        android:elevation="10dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@id/card_mastery_journey"
+        app:layout_constraintTop_toTopOf="@id/card_mastery_journey" />
+
+    <!-- 6. 下部アクション -->
     <LinearLayout
         android:id="@+id/layout_bottom_actions"
         android:layout_width="match_parent"

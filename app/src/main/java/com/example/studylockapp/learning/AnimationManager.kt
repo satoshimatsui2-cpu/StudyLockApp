@@ -8,7 +8,7 @@ import com.example.studylockapp.R
 import com.example.studylockapp.databinding.ActivityLearningBinding
 
 /**
- * 学習画面のアニメーションを一括管理するクラス (演出時間集約版)
+ * 学習画面のアニメーションを一括管理するクラス (演出時間集約 & 堅牢版)
  */
 class AnimationManager(private val binding: ActivityLearningBinding) {
 
@@ -19,17 +19,20 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
 
     /**
      * 正解シーケンスの実行
-     * 演出終了後、onEnd (レビュー開始) を呼び出す
      */
-    fun playCorrectSequence(button: View, point: Int, tierChanged: Boolean, tierLabel: String, onEnd: () -> Unit) {
-        showCorrect(button)
-        button.postDelayed({
+    fun playCorrectSequence(button: View?, point: Int, tierChanged: Boolean, tierLabel: String, onEnd: () -> Unit) {
+        if (button != null) {
+            showCorrect(button)
+            button.postDelayed({
+                showReward(point)
+                if (tierChanged) playTierUpAnimation(tierLabel)
+            }, 120)
+        } else {
             showReward(point)
-            if (tierChanged) playTierUpAnimation(tierLabel)
-        }, 120)
+        }
 
-        // 指定時間後にレビュー開始へ (フォールバック)
-        button.postDelayed({ onEnd() }, DURATION_CORRECT)
+        // 1か所で時間管理。ボタン参照がなくても確実に次へ。
+        binding.rootLayout.postDelayed({ onEnd() }, DURATION_CORRECT)
     }
 
     /**
@@ -40,7 +43,7 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
             showWrong(selected, correct)
         }
         
-        // ボタンが取れても取れなくても、指定時間後にレビュー開始へ
+        // 1か所で時間管理。確実にレビュー開始へ。
         binding.rootLayout.postDelayed({ onEnd() }, DURATION_WRONG)
     }
 

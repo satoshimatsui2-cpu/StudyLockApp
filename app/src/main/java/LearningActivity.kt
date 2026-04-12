@@ -1,14 +1,11 @@
 package com.example.studylockapp
 
 import android.annotation.SuppressLint
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -16,12 +13,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.studylockapp.databinding.ActivityLearningBinding
 import com.example.studylockapp.learning.*
-import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 学習画面のActivity (UX刷新 & Safety Fallback版)
+ * 学習画面のActivity
  */
 class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
@@ -77,8 +73,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         }
 
         binding.buttonToggleAudioMode.setOnClickListener {
-            val current = viewModel.uiState.value.audioStudyMode
-            val next = if (current == QuizManager.AudioStudyMode.NORMAL) 
+            val next = if (viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) 
                 QuizManager.AudioStudyMode.AUDIO_RESTRICTED else QuizManager.AudioStudyMode.NORMAL
             viewModel.setAudioStudyMode(next)
         }
@@ -92,9 +87,20 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         }
 
         binding.buttonPlayReviewSentence.setOnClickListener {
-            val sentence = viewModel.uiState.value.currentWord?.sentence
-            if (!sentence.isNullOrBlank()) {
-                viewModel.requestAudioPlayback(sentence)
+            viewModel.uiState.value.currentWord?.sentence?.let { 
+                viewModel.requestAudioPlayback(it) 
+            }
+        }
+
+        binding.buttonPlayCompareWrong.setOnClickListener {
+            viewModel.uiState.value.reviewUserAnswerText.let {
+                if (it.isNotEmpty()) viewModel.requestAudioPlayback(it)
+            }
+        }
+
+        binding.buttonPlayCompareCorrect.setOnClickListener {
+            viewModel.uiState.value.reviewCorrectAnswerText.let {
+                if (it.isNotEmpty()) viewModel.requestAudioPlayback(it)
             }
         }
     }
@@ -130,7 +136,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         
         state.quiz?.word?.let { word ->
             val gradeLabel = GradeLabelFormatter.format(word.grade)
-            binding.textWordGradeLabel.text = "${gradeLabel} を学習中"
+            binding.textWordGradeLabel.text = getString(R.string.review_label_learning_word, gradeLabel)
         }
 
         binding.chipCurrentLevel.text = "LV ${state.currentLevel}"
@@ -146,29 +152,42 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
-        // 3. レビューカードの表示制御
+        // 3. レビューカード表示
         if (state.isReviewing && state.currentWord != null) {
             binding.cardAnswerReview.visibility = View.VISIBLE
-            binding.textReviewWord.text = state.currentWord.word
+            
+            binding.textReviewModeLabel.text = state.reviewModeLabel
+            binding.textReviewQuestionText.text = state.reviewQuestionText
+            
+            binding.textReviewAnswerCorrect.text = getString(R.string.review_label_correct_word, state.reviewCorrectAnswerText)
+            if (!state.isLastAnswerCorrect) {
+                binding.textReviewAnswerWrong.visibility = View.VISIBLE
+                binding.textReviewAnswerWrong.text = getString(R.string.review_label_wrong_answer, state.reviewUserAnswerText)
+            } else {
+                binding.textReviewAnswerWrong.visibility = View.GONE
+            }
+
+            // 聞き比べ表示
+            if (state.showListeningCompare) {
+                binding.layoutListeningCompare.visibility = View.VISIBLE
+                binding.textCompareWrongWord.text = state.reviewUserAnswerText
+                binding.textCompareWrongPhonetic.text = state.wrongWord?.phonetic ?: ""
+                binding.textCompareCorrectWord.text = state.reviewCorrectAnswerText
+                binding.textCompareCorrectPhonetic.text = state.currentWord.phonetic ?: ""
+            } else {
+                binding.layoutListeningCompare.visibility = View.GONE
+            }
+
             binding.textReviewPhonetic.text = state.currentWord.phonetic ?: ""
             binding.textReviewSentence.text = state.currentWord.sentence ?: ""
             binding.textReviewSentenceJp.text = state.currentWord.japaneseSentence ?: ""
             
-            // 答え合わせ表示
-            binding.textReviewAnswerCorrect.text = getString(R.string.review_label_correct_word, state.correctAnswerText)
-            if (!state.isLastAnswerCorrect) {
-                binding.textReviewAnswerWrong.visibility = View.VISIBLE
-                binding.textReviewAnswerWrong.text = getString(R.string.review_label_wrong_answer, state.lastUserAnswer)
-            } else {
-                binding.textReviewAnswerWrong.visibility = View.GONE
-            }
         } else {
             binding.cardAnswerReview.visibility = View.GONE
         }
 
         // 4. サウンドUI
         binding.buttonToggleAutoPlay.text = if (state.isAutoPlayEnabled) "自動再生 ON" else "自動再生 OFF"
-        
         val isRestricted = (state.audioStudyMode == QuizManager.AudioStudyMode.AUDIO_RESTRICTED)
         binding.buttonToggleAudioMode.setImageResource(if (isRestricted) R.drawable.outline_volume_off_24 else R.drawable.ic_volume_up_24)
         binding.textAudioModeLabel.text = if (isRestricted) getString(R.string.label_audio_mode_restricted) else getString(R.string.label_audio_mode_normal)
@@ -187,15 +206,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 if (viewModel.uiState.value.isAutoPlayEnabled && viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
                     soundEffectManager.playCorrect(1.0f)
                 }
-                
                 val correctBtn = choiceButtons.find { it.text == event.answer }
-                if (correctBtn != null) {
-                    animationManager.playCorrectSequence(correctBtn, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
-                        viewModel.startReview()
-                    }
-                } else {
-                    // フォールバック: ボタンが見つからない場合もレビューへ進む
-                    binding.rootLayout.postDelayed({ viewModel.startReview() }, AnimationManager.DURATION_CORRECT)
+                animationManager.playCorrectSequence(correctBtn, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
+                    viewModel.startReview()
                 }
             }
             is LearningUiEvent.ShowWrong -> {
@@ -204,8 +217,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
                 val selectedBtn = choiceButtons.find { it.text == event.selected }
                 val correctBtn = choiceButtons.find { it.text == event.correct }
-                
-                // nullable対応された AnimationManager を呼び出す
+
                 animationManager.playWrongSequence(selectedBtn, correctBtn) {
                     viewModel.startReview()
                 }
@@ -227,26 +239,18 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.choicesContainer.visibility = View.VISIBLE
 
         choiceButtons.forEachIndexed { i, btn ->
-            resetChoiceButton(btn)
             if (i < choices.size) {
                 btn.text = choices[i]
                 btn.visibility = View.VISIBLE
                 btn.setOnClickListener {
-                    if (viewModel.uiState.value.isAnswering || viewModel.uiState.value.isReviewing) return@setOnClickListener
-                    viewModel.submitAnswer(btn.text.toString())
+                    if (!viewModel.uiState.value.isAnswering && !viewModel.uiState.value.isReviewing) {
+                        viewModel.submitAnswer(btn.text.toString())
+                    }
                 }
             } else {
                 btn.visibility = View.GONE
             }
         }
-    }
-
-    private fun resetChoiceButton(btn: MaterialButton) {
-        btn.scaleX = 1f
-        btn.scaleY = 1f
-        btn.alpha = 1f
-        btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.choice_button_bg))
-        btn.setTextColor(ContextCompat.getColor(this, R.color.choice_button_text))
     }
 
     override fun playAudio(text: String) {
