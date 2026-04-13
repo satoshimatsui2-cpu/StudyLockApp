@@ -1,71 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 旧カラー -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- 旧カラー互換 (System用) -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- ===== Your palette ===== -->
-    <color name="md_primary">#E27447</color>
-    <color name="md_onPrimary">#FFFFFF</color>
-    <color name="md_primaryContainer">#FFDBCB</color>
-    <color name="md_onPrimaryContainer">#341100</color>
-    <color name="md_secondary">#443D3A</color>
-    <color name="md_onSecondary">#FFFFFF</color>
-    <color name="md_surface">#F8F8F8</color>
-    <color name="md_onSurface">#443D3A</color>
-    <color name="md_onSurface_muted">#6A5E59</color>
-    <color name="md_onAccent_strong">#1B1A18</color>
-    <color name="md_outline">#E6E0DD</color>
-    <color name="md_outline_variant">#CAC4D0</color>
+    <!-- ===== Navy × Mustard Palette ===== -->
+    <!-- 紺系 (Primary) -->
+    <color name="navy_primary">#163A70</color>
+    <color name="navy_dark">#10294F</color>
+    <color name="navy_soft">#D8E3F0</color>
 
-    <!-- 既存XML互換 -->
-    <color name="outline">@color/md_outline</color>
-    <color name="onSurface">@color/md_onSurface</color>
+    <!-- マスタード系 (Accent/Secondary) -->
+    <color name="mustard_accent">#D4A72C</color>
+    <color name="mustard_dark">#B88F1F</color>
+    <color name="mustard_soft">#F3E3A4</color>
+
+    <!-- 背景・補助 -->
+    <color name="app_background">#FBFAF5</color>
+    <color name="app_surface">#FFFFFF</color>
+    <color name="app_outline">#D8E0EC</color>
+
+    <!-- 文字 -->
+    <color name="text_main">#142033</color>
+    <color name="text_sub">#5B667A</color>
+
+    <!-- Material 3 Mapping -->
+    <color name="md_primary">@color/navy_primary</color>
+    <color name="md_onPrimary">@color/white</color>
+    <color name="md_primaryContainer">@color/navy_soft</color>
+    <color name="md_onPrimaryContainer">@color/navy_dark</color>
+
+    <color name="md_secondary">@color/mustard_accent</color>
+    <color name="md_onSecondary">@color/navy_dark</color>
+    <color name="md_secondaryContainer">@color/mustard_soft</color>
+    <color name="md_onSecondaryContainer">@color/mustard_dark</color>
+
+    <color name="md_surface">@color/app_background</color>
+    <color name="md_onSurface">@color/text_main</color>
+    <color name="md_onSurface_muted">@color/text_sub</color>
+    <color name="md_outline">@color/app_outline</color>
+
+    <!-- ===== 旧色名互換エイリアス (ビルドエラー解消用) ===== -->
+    <color name="text_primary">@color/text_main</color>
+    <color name="text_secondary">@color/text_sub</color>
+    <color name="text_link">@color/navy_primary</color>
+    <color name="sl_button_text">@color/text_main</color>
+    <color name="outline">@color/app_outline</color>
+    <color name="onSurface">@color/text_main</color>
+
+    <!-- 追加の互換エイリアス -->
+    <color name="sort_question_navy">@color/navy_primary</color>
+    <color name="sl_button_bg">@color/white</color>
+    <color name="sl_button_bg_pressed">@color/mustard_soft</color>
+    <color name="sl_button_stroke">@color/app_outline</color>
+    <color name="ic_launcher_background">@color/navy_primary</color>
 
     <!-- ===== 学習演出/状態色 ===== -->
     <color name="choice_correct">#2FA36B</color>
     <color name="choice_wrong">#D84C5A</color>
-    <color name="correct_flash">#FFE2D5</color>
-    <color name="snackbar_correct_bg">#2FA36B</color>
-    <color name="snackbar_wrong_bg">#D84C5A</color>
-    <color name="sl_button_bg">#D86C2F</color>
-    <color name="sl_button_bg_pressed">#C65E25</color>
-    <color name="sl_button_stroke">#2E3A46</color>
-    <color name="sl_button_text">#F7EBD9</color>
+    <color name="correct_flash">#E8F5E9</color>
 
-    <!-- 報酬・習得度用 -->
-    <color name="reward_gold">#FFB300</color>
-    <color name="mastery_star">#FFD700</color>
+    <!-- 報酬・バッジ用 -->
+    <color name="reward_bg">@color/mustard_accent</color>
+    <color name="reward_text">@color/navy_dark</color>
+    <color name="mastery_star">@color/mustard_accent</color>
 
     <!-- Mastery Tier Colors -->
-    <color name="mastery_bg_learning">#E3F2FD</color>
-    <color name="mastery_text_learning">#1976D2</color>
+    <color name="mastery_bg_learning">@color/navy_soft</color>
+    <color name="mastery_text_learning">@color/navy_primary</color>
     <color name="mastery_bg_basic">#E8F5E9</color>
     <color name="mastery_text_basic">#1B5E20</color>
-    <color name="mastery_bg_longterm">#FFF8E1</color>
-    <color name="mastery_text_longterm">#B26A00</color>
+    <color name="mastery_bg_longterm">@color/mustard_soft</color>
+    <color name="mastery_text_longterm">@color/mustard_dark</color>
 
-    <!-- 選択肢ボタン -->
-    <color name="choice_button_bg">#E8F0FE</color>
-    <color name="choice_button_text">#0F172A</color>
-
-    <color name="ic_launcher_background">#00A4B7</color>
-    <color name="mode_purple">#9C27B0</color>
-    <color name="mode_teal">#009688</color>
-    <color name="mode_indigo">#3F51B5</color>
-    <color name="mode_orange">#FF9800</color>
-    <color name="mode_pink">#E91E63</color>
-    <color name="mode_blue">#2196F3</color>
-    <color name="text_primary">#111827</color>
-    <color name="text_secondary">#6B7280</color>
-    <color name="text_link">#0D47A1</color>
-    <color name="badge_review">#EF4444</color>
-    <color name="badge_master">#F59E0B</color>
-    <color name="badge_new">#10B981</color>
-    <color name="sort_question_navy">#0D1B3D</color>
+    <!-- 選択肢ボタンデフォルト -->
+    <color name="choice_button_bg">@color/white</color>
+    <color name="choice_button_text">@color/text_main</color>
+    <color name="choice_button_background_default">@color/white</color>
+    <color name="choice_button_text_default">@color/text_main</color>
+    <color name="choice_button_stroke_default">@color/app_outline</color>
 </resources>

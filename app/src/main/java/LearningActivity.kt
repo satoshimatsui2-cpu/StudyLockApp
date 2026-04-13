@@ -1,11 +1,13 @@
 package com.example.studylockapp
 
 import android.annotation.SuppressLint
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -13,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.studylockapp.databinding.ActivityLearningBinding
 import com.example.studylockapp.learning.*
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -195,6 +198,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         state.quiz?.let { quiz ->
             if (currentQuizId != quiz.id) {
                 currentQuizId = quiz.id
+                resetAllChoiceButtons()
                 RendererFactory.getRenderer(quiz.mode).render(this, quiz)
             }
         }
@@ -232,8 +236,42 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         }
     }
 
+    private fun resetChoiceButton(btn: MaterialButton) {
+        btn.apply {
+            // 背景色とテキスト色のリセット
+            backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.choice_button_background_default))
+            setTextColor(ContextCompat.getColor(context, R.color.choice_button_text_default))
+            
+            // 枠線のリセット
+            strokeColor = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.choice_button_stroke_default))
+            strokeWidth = resources.getDimensionPixelSize(R.dimen.choice_button_stroke_width_default)
+            
+            // 透過度とスケールのリセット
+            alpha = 1.0f
+            scaleX = 1.0f
+            scaleY = 1.0f
+            
+            // 座標のリセット
+            translationX = 0f
+            translationY = 0f
+            
+            // 状態のリセット
+            isEnabled = true
+            isClickable = true
+            
+            // アニメーションの停止
+            clearAnimation()
+        }
+    }
+
+    private fun resetAllChoiceButtons() {
+        choiceButtons.forEach { resetChoiceButton(it) }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
+        resetAllChoiceButtons()
+
         binding.textQuestionTitle.text = title
         binding.textQuestionBody.text = body
         binding.choicesContainer.visibility = View.VISIBLE
