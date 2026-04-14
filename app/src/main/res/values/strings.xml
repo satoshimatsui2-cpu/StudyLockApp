@@ -208,4 +208,14 @@
     <string name="review_label_correct_word">○ 正解: %1$s</string>
     <string name="review_label_wrong_answer">× あなたの回答: %1$s</string>
     <string name="review_label_learning_word">%1$s を学習中</string>
+
+    <!-- 学習音声設定 (旧サイレントモード) -->
+    <string name="label_learning_audio">学習音声</string>
+    <string name="audio_mode_normal">通常</string>
+    <string name="audio_mode_silent">サイレント</string>
+    <string name="audio_mode_status_normal">学習音声: 通常</string>
+    <string name="audio_mode_status_silent">学習音声: サイレント</string>
+    <string name="silent_mode_explanation_title">サイレントモードについて</string>
+    <string name="silent_mode_explanation_body">・音を出さずに学習できます\n・リスニング問題は出題されません\n・音声確認が必要なため、このモード中だけではマスター（習得）扱いになりません\n・通常モードに戻した際、後で音声復習が出題されます</string>
+    <string name="action_dont_show_again">今後表示しない</string>
 </resources>

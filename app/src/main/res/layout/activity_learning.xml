@@ -5,7 +5,7 @@
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/md_surface"
+    android:background="@color/app_background"
     android:padding="16dp">
 
     <!-- 1. Mastery Journey Card -->
@@ -29,7 +29,7 @@
                 android:id="@+id/text_target_level"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/md_onSurface_muted"
+                android:textColor="@color/text_sub"
                 android:textSize="11sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -39,7 +39,7 @@
                 android:id="@+id/text_session_points_summary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/md_primary"
+                android:textColor="@color/navy_primary"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -51,7 +51,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:textColor="@color/md_onSurface"
+                android:textColor="@color/text_main"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -64,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/navy_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -76,10 +76,10 @@
                 style="@style/Widget.Material3.Chip.Assist"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
-                android:textColor="@color/md_onSurface"
+                android:textColor="@color/text_main"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/mastery_bg_learning"
+                app:chipBackgroundColor="@color/navy_soft"
                 app:chipCornerRadius="16dp"
                 app:chipStrokeWidth="0dp"
                 app:layout_constraintBottom_toBottomOf="@id/text_journey_title"
@@ -92,9 +92,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:indicatorColor="@color/md_primary"
+                app:indicatorColor="@color/mustard_accent"
                 app:layout_constraintTop_toBottomOf="@id/text_journey_title"
-                app:trackColor="@color/md_outline"
+                app:trackColor="@color/navy_soft"
                 app:trackCornerRadius="5dp"
                 app:trackThickness="10dp" />
 
@@ -103,7 +103,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textColor="@color/md_onSurface_muted"
+                android:textColor="@color/text_sub"
                 android:textSize="11sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/progress_mastery_rail"
@@ -113,7 +113,7 @@
                 android:id="@+id/text_mastery_stats_summary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/md_onSurface_muted"
+                android:textColor="@color/text_sub"
                 android:textSize="10sp"
                 app:layout_constraintBottom_toBottomOf="@id/text_journey_subtitle"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -128,11 +128,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        app:indicatorColor="@color/md_secondary"
+        app:indicatorColor="@color/text_sub"
         app:layout_constraintEnd_toStartOf="@+id/text_progress_percent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/card_mastery_journey"
-        app:trackColor="@color/md_outline"
+        app:trackColor="@color/app_outline"
         app:trackThickness="2dp" />
 
     <TextView
@@ -140,7 +140,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:textColor="@color/md_onSurface_muted"
+        android:textColor="@color/text_sub"
         android:textSize="11sp"
         app:layout_constraintBottom_toBottomOf="@+id/progress_horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -176,7 +176,7 @@
                     android:id="@+id/text_question_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/text_sub"
                     android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -188,7 +188,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:gravity="center"
-                    android:textColor="@color/md_onSurface"
+                    android:textColor="@color/text_main"
                     android:textSize="32sp"
                     android:textStyle="bold"
                     app:layout_constraintTop_toBottomOf="@id/text_question_title" />
@@ -251,7 +251,7 @@
                     android:id="@+id/text_review_mode_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/md_onSurface_muted"
+                    android:textColor="@color/text_sub"
                     android:textSize="12sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -262,7 +262,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textColor="@color/md_onSurface"
+                    android:textColor="@color/text_main"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
@@ -275,7 +275,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/text_sub"
                     android:textSize="15sp"
                     android:visibility="gone"
                     app:layout_constraintTop_toBottomOf="@id/text_review_question_text"
@@ -299,7 +299,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@color/md_surface"
+                    android:background="@color/app_background"
                     android:orientation="vertical"
                     android:padding="12dp"
                     android:visibility="gone"
@@ -310,7 +310,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="聞き比べ"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_sub"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -331,7 +331,7 @@
                                 android:id="@+id/text_compare_wrong_word"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="@color/md_onSurface"
+                                android:textColor="@color/text_main"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 tools:text="assistant" />
@@ -339,7 +339,7 @@
                                 android:id="@+id/text_compare_wrong_phonetic"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="@color/text_secondary"
+                                android:textColor="@color/text_sub"
                                 android:textSize="11sp"
                                 tools:text="/əˈsɪstənt/" />
                             <com.google.android.material.button.MaterialButton
@@ -362,7 +362,7 @@
                                 android:id="@+id/text_compare_correct_word"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="@color/md_onSurface"
+                                android:textColor="@color/text_main"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 tools:text="persistent" />
@@ -370,7 +370,7 @@
                                 android:id="@+id/text_compare_correct_phonetic"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="@color/text_secondary"
+                                android:textColor="@color/text_sub"
                                 android:textSize="11sp"
                                 tools:text="/pərˈsɪstənt/" />
                             <com.google.android.material.button.MaterialButton
@@ -391,7 +391,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="16dp"
-                    android:background="@color/md_outline"
+                    android:background="@color/app_outline"
                     app:layout_constraintTop_toBottomOf="@id/layout_listening_compare" />
 
                 <TextView
@@ -399,7 +399,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/text_sub"
                     android:textSize="14sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/divider_review"
@@ -422,7 +422,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:lineSpacingExtra="4dp"
-                    android:textColor="@color/md_onSurface"
+                    android:textColor="@color/text_main"
                     android:textSize="15sp"
                     app:layout_constraintTop_toBottomOf="@id/text_review_phonetic"
                     tools:text="She was persistent in her efforts to learn English." />
@@ -432,7 +432,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:textColor="@color/md_onSurface_muted"
+                    android:textColor="@color/text_sub"
                     android:textSize="13sp"
                     app:layout_constraintTop_toBottomOf="@id/text_review_sentence"
                     tools:text="彼女は英語を学ぶために粘り強く努力した。" />
@@ -474,7 +474,7 @@
         android:elevation="10dp"
         android:paddingHorizontal="16dp"
         android:paddingVertical="6dp"
-        android:textColor="@color/white"
+        android:textColor="@color/navy_dark"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@id/card_mastery_journey"
@@ -489,32 +489,18 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent">
 
+        <!-- 統合されたサイレントモード切替 -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_toggle_auto_play"
+            android:id="@+id/button_toggle_silent_mode"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="12dp"
-            android:textColor="@color/md_onSurface_muted"
+            android:textColor="@color/text_sub"
             android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/button_toggle_audio_mode"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="音声モード切替"
-            android:src="@drawable/ic_volume_up_24" />
-
-        <TextView
-            android:id="@+id/text_audio_mode_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:textColor="@color/md_onSurface_muted"
-            android:textSize="12sp" />
+            android:textStyle="bold"
+            app:icon="@drawable/ic_volume_up_24"
+            tools:text="サイレントモード: OFF" />
 
         <View
             android:layout_width="0dp"
@@ -527,7 +513,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/action_admin_settings"
-            android:textColor="@color/md_onSurface_muted"
+            android:textColor="@color/text_sub"
             app:icon="@drawable/ic_settings" />
     </LinearLayout>
 

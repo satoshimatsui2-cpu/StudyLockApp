@@ -1,6 +1,7 @@
 package com.example.studylockapp.learning
 
 import com.example.studylockapp.data.WordEntity
+import com.example.studylockapp.data.SilentMode
 
 data class LearningUiState(
     val isLoading: Boolean = false,
@@ -14,13 +15,15 @@ data class LearningUiState(
     val progress: Int = 0,
     val sessionPoints: Int = 0,
     val comboCount: Int = 0,
-    val isAutoPlayEnabled: Boolean = true,
-    val audioStudyMode: QuizManager.AudioStudyMode = QuizManager.AudioStudyMode.NORMAL,
+    
+    // 学習音声 (通常 / サイレント)
+    val silentMode: SilentMode = SilentMode.OFF,
+    
     val audioWarning: AudioWarningState? = null,
     
     // Mastery Info
     val basicMasterCount: Int = 0,
-    val longTermMasterCount: Int = 0,
+    val longTermMasterCount: Int = 0, // ViewModel と完全に一致させる
     val currentTier: MasteryTier = MasteryTier.LEARNING,
     val currentLevel: Int = 0,
     val targetLevel: Int = 5,

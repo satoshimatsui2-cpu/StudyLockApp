@@ -1,13 +1,12 @@
 package com.example.studylockapp
 
 import android.annotation.SuppressLint
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -15,12 +14,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.studylockapp.databinding.ActivityLearningBinding
 import com.example.studylockapp.learning.*
+import com.example.studylockapp.data.SilentMode
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 学習画面のActivity
+ * 学習画面のActivity (一本化・最終版)
  */
 class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
@@ -71,14 +71,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun setupListeners() {
-        binding.buttonToggleAutoPlay.setOnClickListener {
-            viewModel.toggleAutoPlay()
-        }
-
-        binding.buttonToggleAudioMode.setOnClickListener {
-            val next = if (viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) 
-                QuizManager.AudioStudyMode.AUDIO_RESTRICTED else QuizManager.AudioStudyMode.NORMAL
-            viewModel.setAudioStudyMode(next)
+        // 学習音声設定の切り替え (通常 / サイレント)
+        binding.buttonToggleSilentMode.setOnClickListener {
+            viewModel.toggleSilentMode()
         }
 
         binding.buttonNextQuestion.setOnClickListener {
@@ -126,29 +121,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun updateUi(state: LearningUiState) {
+        val isSilent = state.silentMode == SilentMode.ON
+
         // 1. Mastery Journey Card
-        val isLongTerm = state.currentLevel > 5
-        binding.textJourneyTitle.text = if (isLongTerm) {
-            getString(R.string.label_until_long_term_master)
-        } else {
-            getString(R.string.label_until_basic_master)
-        }
-        
-        binding.textTargetLevel.text = "目標: ${GradeLabelFormatter.format(state.targetLevel)}"
-        binding.textSessionPointsSummary.text = "${state.sessionPoints} PT"
+        binding.textJourneyTitle.text = if (state.currentLevel > 5) getString(R.string.label_until_long_term_master) else getString(R.string.label_until_basic_master)
+        binding.textTargetLevel.text = getString(R.string.label_goal) + ": " + GradeLabelFormatter.format(state.targetLevel)
+        binding.textSessionPointsSummary.text = state.sessionPoints.toString() + " PT"
         
         state.quiz?.word?.let { word ->
-            val gradeLabel = GradeLabelFormatter.format(word.grade)
-            binding.textWordGradeLabel.text = getString(R.string.review_label_learning_word, gradeLabel)
+            binding.textWordGradeLabel.text = getString(R.string.review_label_learning_word, GradeLabelFormatter.format(word.grade))
         }
 
-        binding.chipCurrentLevel.text = "LV ${state.currentLevel}"
-        
-        val relativeLevel = if (isLongTerm) state.currentLevel - 5 else state.currentLevel
+        binding.chipCurrentLevel.text = "LV " + state.currentLevel
+        val relativeLevel = if (state.currentLevel > 5) state.currentLevel - 5 else state.currentLevel
         binding.progressMasteryRail.progress = (relativeLevel * 100) / 5
-        
-        val stepsToNext = (5 - relativeLevel).coerceAtLeast(0)
-        binding.textJourneySubtitle.text = getString(R.string.label_next_step_hint, stepsToNext)
+        binding.textJourneySubtitle.text = getString(R.string.label_next_step_hint, (5 - relativeLevel).coerceAtLeast(0))
         binding.textMasteryStatsSummary.text = getString(R.string.label_mastery_stats, state.basicMasterCount, state.longTermMasterCount)
 
         // 2. セッション進捗
@@ -158,19 +145,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         // 3. レビューカード表示
         if (state.isReviewing && state.currentWord != null) {
             binding.cardAnswerReview.visibility = View.VISIBLE
-            
             binding.textReviewModeLabel.text = state.reviewModeLabel
             binding.textReviewQuestionText.text = state.reviewQuestionText
-            
             binding.textReviewAnswerCorrect.text = getString(R.string.review_label_correct_word, state.reviewCorrectAnswerText)
-            if (!state.isLastAnswerCorrect) {
-                binding.textReviewAnswerWrong.visibility = View.VISIBLE
-                binding.textReviewAnswerWrong.text = getString(R.string.review_label_wrong_answer, state.reviewUserAnswerText)
-            } else {
-                binding.textReviewAnswerWrong.visibility = View.GONE
-            }
+            binding.textReviewAnswerWrong.visibility = if (!state.isLastAnswerCorrect) View.VISIBLE else View.GONE
+            binding.textReviewAnswerWrong.text = getString(R.string.review_label_wrong_answer, state.reviewUserAnswerText)
 
-            // 聞き比べ表示
             if (state.showListeningCompare) {
                 binding.layoutListeningCompare.visibility = View.VISIBLE
                 binding.textCompareWrongWord.text = state.reviewUserAnswerText
@@ -185,15 +165,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             binding.textReviewSentence.text = state.currentWord.sentence ?: ""
             binding.textReviewSentenceJp.text = state.currentWord.japaneseSentence ?: ""
             
+            // サイレント時はレビュー内の再生ボタンも無効化・半透明化
+            val playButtonsEnabled = !isSilent
+            listOf(binding.buttonPlayReviewWord, binding.buttonPlayReviewSentence, 
+                   binding.buttonPlayCompareWrong, binding.buttonPlayCompareCorrect).forEach {
+                it.isEnabled = playButtonsEnabled
+                it.alpha = if (playButtonsEnabled) 1.0f else 0.3f
+            }
+            
         } else {
             binding.cardAnswerReview.visibility = View.GONE
         }
 
-        // 4. サウンドUI
-        binding.buttonToggleAutoPlay.text = if (state.isAutoPlayEnabled) "自動再生 ON" else "自動再生 OFF"
-        val isRestricted = (state.audioStudyMode == QuizManager.AudioStudyMode.AUDIO_RESTRICTED)
-        binding.buttonToggleAudioMode.setImageResource(if (isRestricted) R.drawable.outline_volume_off_24 else R.drawable.ic_volume_up_24)
-        binding.textAudioModeLabel.text = if (isRestricted) getString(R.string.label_audio_mode_restricted) else getString(R.string.label_audio_mode_normal)
+        // 4. 学習音声UI (通常 / サイレント)
+        binding.buttonToggleSilentMode.text = if (isSilent) getString(R.string.audio_mode_status_silent) else getString(R.string.audio_mode_status_normal)
+        binding.buttonToggleSilentMode.setIconResource(if (isSilent) R.drawable.outline_volume_off_24 else R.drawable.ic_volume_up_24)
 
         state.quiz?.let { quiz ->
             if (currentQuizId != quiz.id) {
@@ -207,7 +193,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private fun handleEvent(event: LearningUiEvent) {
         when (event) {
             is LearningUiEvent.ShowCorrect -> {
-                if (viewModel.uiState.value.isAutoPlayEnabled && viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playCorrect(1.0f)
                 }
                 val correctBtn = choiceButtons.find { it.text == event.answer }
@@ -216,66 +202,62 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.ShowWrong -> {
-                if (viewModel.uiState.value.isAutoPlayEnabled && viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playWrong(1.0f)
                 }
                 val selectedBtn = choiceButtons.find { it.text == event.selected }
                 val correctBtn = choiceButtons.find { it.text == event.correct }
-
                 animationManager.playWrongSequence(selectedBtn, correctBtn) {
                     viewModel.startReview()
                 }
             }
             is LearningUiEvent.PlayAudio -> {
-                if (viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     ttsController.speak(event.text)
                 }
             }
             is LearningUiEvent.QuizFinished -> finish()
             is LearningUiEvent.ShowMasteryBadge -> animationManager.playTierUpAnimation(event.tier.label)
+            is LearningUiEvent.ShowSilentModeExplanation -> showSilentModeExplanationDialog()
         }
+    }
+
+    private fun showSilentModeExplanationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.silent_mode_explanation_title)
+            .setMessage(R.string.silent_mode_explanation_body)
+            .setPositiveButton(R.string.ok, null)
+            .setNeutralButton(R.string.action_dont_show_again) { _, _ ->
+                viewModel.markSilentExplanationShown()
+            }
+            .show()
     }
 
     private fun resetChoiceButton(btn: MaterialButton) {
         btn.apply {
-            // 背景色とテキスト色のリセット
-            backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.choice_button_background_default))
-            setTextColor(ContextCompat.getColor(context, R.color.choice_button_text_default))
-            
-            // 枠線のリセット
-            strokeColor = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.choice_button_stroke_default))
+            backgroundTintList = android.content.res.ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_background_default))
+            setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_text_default))
+            strokeColor = android.content.res.ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_stroke_default))
             strokeWidth = resources.getDimensionPixelSize(R.dimen.choice_button_stroke_width_default)
-            
-            // 透過度とスケールのリセット
             alpha = 1.0f
             scaleX = 1.0f
             scaleY = 1.0f
-            
-            // 座標のリセット
             translationX = 0f
             translationY = 0f
-            
-            // 状態のリセット
             isEnabled = true
             isClickable = true
-            
-            // アニメーションの停止
             clearAnimation()
         }
     }
 
-    private fun resetAllChoiceButtons() {
-        choiceButtons.forEach { resetChoiceButton(it) }
-    }
+    private fun resetAllChoiceButtons() { choiceButtons.forEach { resetChoiceButton(it) } }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
         resetAllChoiceButtons()
-
         binding.textQuestionTitle.text = title
         binding.textQuestionBody.text = body
         binding.choicesContainer.visibility = View.VISIBLE
-
         choiceButtons.forEachIndexed { i, btn ->
             if (i < choices.size) {
                 btn.text = choices[i]
@@ -292,7 +274,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     override fun playAudio(text: String) {
-        if (viewModel.uiState.value.audioStudyMode == QuizManager.AudioStudyMode.NORMAL) {
+        if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
             ttsController.speak(text)
         }
     }

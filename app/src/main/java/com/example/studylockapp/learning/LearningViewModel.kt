@@ -7,6 +7,8 @@ import com.example.studylockapp.data.CsvImporter
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.db.WordDao
 import com.example.studylockapp.data.WordEntity
+import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.SilentMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +25,8 @@ class LearningViewModel(
     private val pointManager: PointManager,
     private val audioChecker: LearningAudioStateChecker,
     private val requiredWarningText: String,
-    private val optionalWarningText: String
+    private val optionalWarningText: String,
+    private val appSettings: AppSettings
 ) : ViewModel() {
 
     private val totalCount = 10
@@ -40,14 +43,34 @@ class LearningViewModel(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     init {
+        // 設定の同期
+        val currentSilent = appSettings.silentMode
+        quizManager.silentMode = currentSilent
+        _uiState.update { state -> state.copy(silentMode = currentSilent) }
+
         viewModelScope.launch(Dispatchers.IO) {
             CsvImporter.seedIfNeeded(context, wordDao)
         }
     }
 
-    fun setAudioStudyMode(mode: QuizManager.AudioStudyMode) {
-        quizManager.audioStudyMode = mode
-        _uiState.update { it.copy(audioStudyMode = mode) }
+    // 学習音声設定の切り替え (通常 <-> サイレント)
+    fun toggleSilentMode() {
+        val nextMode = if (_uiState.value.silentMode == SilentMode.OFF) SilentMode.ON else SilentMode.OFF
+        appSettings.silentMode = nextMode
+        quizManager.silentMode = nextMode
+        _uiState.update { state -> state.copy(silentMode = nextMode) }
+
+        // サイレントにした時に説明未表示なら、説明イベントを飛ばす
+        if (nextMode == SilentMode.ON && !appSettings.hasShownSilentExplanation) {
+            viewModelScope.launch {
+                _uiEvent.send(LearningUiEvent.ShowSilentModeExplanation)
+            }
+        }
+    }
+
+    // 「今後表示しない」の保存
+    fun markSilentExplanationShown() {
+        appSettings.hasShownSilentExplanation = true
     }
 
     fun loadNextQuiz() {
@@ -61,15 +84,16 @@ class LearningViewModel(
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isAnswering = false, isReviewing = false) }
+            _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
             
             val quiz = quizManager.nextQuiz()
             if (quiz != null) {
                 val importance = quiz.mode.getAudioImportance()
                 val hasRisk = audioChecker.isSilenceRisk()
-                val autoPlayEnabled = _uiState.value.isAutoPlayEnabled
                 
-                val warning = if (hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || (importance == QuizMode.AudioImportance.OPTIONAL && autoPlayEnabled))) {
+                // サイレントモード時は警告を出さない
+                val isSilent = _uiState.value.silentMode == SilentMode.ON
+                val warning = if (!isSilent && hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || importance == QuizMode.AudioImportance.OPTIONAL)) {
                     AudioWarningState(
                         message = if (importance == QuizMode.AudioImportance.REQUIRED) requiredWarningText else optionalWarningText,
                         isCritical = (importance == QuizMode.AudioImportance.REQUIRED)
@@ -80,8 +104,8 @@ class LearningViewModel(
                 val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
                 val currentLevel = quizManager.getMasteryLevel(quiz.word.no)
 
-                _uiState.update { 
-                    it.copy(
+                _uiState.update { state -> 
+                    state.copy(
                         quiz = quiz, 
                         isLoading = false,
                         currentStep = solvedInSession + 1,
@@ -97,7 +121,8 @@ class LearningViewModel(
                     ) 
                 }
                 
-                if (autoPlayEnabled) {
+                // 通常モードなら自動再生
+                if (!isSilent) {
                     val shouldAutoPlay = when (importance) {
                         QuizMode.AudioImportance.REQUIRED -> true
                         QuizMode.AudioImportance.OPTIONAL -> true
@@ -116,11 +141,10 @@ class LearningViewModel(
         loadNextQuiz()
     }
 
-    fun toggleAutoPlay() {
-        _uiState.update { it.copy(isAutoPlayEnabled = !it.isAutoPlayEnabled) }
-    }
-
     fun requestAudioPlayback(text: String? = null) {
+        // サイレントモード時はリクエスト自体を無効化 (手動再生も音を出さない)
+        if (_uiState.value.silentMode == SilentMode.ON) return
+
         val playText = text ?: _uiState.value.quiz?.word?.word ?: return
         viewModelScope.launch {
             _uiEvent.send(LearningUiEvent.PlayAudio(playText))
@@ -130,7 +154,7 @@ class LearningViewModel(
     fun submitAnswer(selectedAnswer: String) {
         val currentQuiz = _uiState.value.quiz ?: return
         if (_uiState.value.isAnswering || _uiState.value.isReviewing) return
-        _uiState.update { it.copy(isAnswering = true) }
+        _uiState.update { state -> state.copy(isAnswering = true) }
         
         viewModelScope.launch {
             val wordId = currentQuiz.word.no
@@ -150,7 +174,6 @@ class LearningViewModel(
             solvedInSession++
             val isCorrect = (selectedAnswer == currentQuiz.answer)
             
-            // 答え合わせ用テキスト確定
             val modeLabel = when (currentQuiz.mode) {
                 QuizMode.EN_TO_JP -> "英語 → 日本語"
                 QuizMode.JP_TO_EN -> "日本語 → 英語"
@@ -158,8 +181,6 @@ class LearningViewModel(
                 else -> currentQuiz.mode.name
             }
             val questionText = if (currentQuiz.mode == QuizMode.LISTEN_EN) "聞こえた英単語" else currentQuiz.question
-            
-            // 正解表示用のテキスト
             val correctDisplay = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
                 currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
             } else {
@@ -173,10 +194,10 @@ class LearningViewModel(
                 }
             }
 
-            _uiState.update { 
-                it.copy(
-                    comboCount = if (isCorrect) it.comboCount + 1 else 0, 
-                    sessionPoints = if (isCorrect) it.sessionPoints + 10 else it.sessionPoints,
+            _uiState.update { state -> 
+                state.copy(
+                    comboCount = if (isCorrect) state.comboCount + 1 else 0, 
+                    sessionPoints = if (isCorrect) state.sessionPoints + 10 else state.sessionPoints,
                     progress = (solvedInSession * 100) / totalCount,
                     currentTier = newTier,
                     currentLevel = newLevel,
@@ -204,12 +225,12 @@ class LearningViewModel(
     }
 
     fun startReview() {
-        _uiState.update { it.copy(isReviewing = true, isAnswering = false) }
+        _uiState.update { state -> state.copy(isReviewing = true, isAnswering = false) }
     }
 
     private fun finishSession() {
-        _uiState.update { 
-            it.copy(
+        _uiState.update { state -> 
+            state.copy(
                 isFinished = true, 
                 progress = 100,
                 sessionLevelUpCount = levelUpsInSession,

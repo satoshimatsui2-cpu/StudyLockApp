@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.AppSettings
 
 class LearningViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -15,6 +16,7 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             val quizManager = QuizManager(db.wordDao(), db.wordMasteryDao())
             val pointManager = PointManager(context.applicationContext)
             val audioChecker = LearningAudioStateChecker(context.applicationContext)
+            val appSettings = AppSettings(context.applicationContext)
             
             val requiredWarningText = context.getString(R.string.warning_audio_required)
             val optionalWarningText = context.getString(R.string.warning_audio_optional)
@@ -26,7 +28,8 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
                 pointManager,
                 audioChecker,
                 requiredWarningText,
-                optionalWarningText
+                optionalWarningText,
+                appSettings
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

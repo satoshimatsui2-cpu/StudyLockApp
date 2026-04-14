@@ -21,4 +21,6 @@ sealed class LearningUiEvent {
     data class ShowMasteryBadge(
         val tier: MasteryTier
     ) : LearningUiEvent()
+
+    object ShowSilentModeExplanation : LearningUiEvent()
 }

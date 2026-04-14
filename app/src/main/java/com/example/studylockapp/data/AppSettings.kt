@@ -5,6 +5,11 @@ import androidx.core.content.edit
 import java.time.ZoneId
 import kotlin.math.roundToInt
 
+enum class SilentMode {
+    OFF, // 通常学習 (AutoPlay: ON, Listening: ON, SE: ON)
+    ON   // 音声なし学習 (AutoPlay: OFF, Listening: OFF, SE: OFF)
+}
+
 class AppSettings(context: Context) {
 
     private val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -13,7 +18,7 @@ class AppSettings(context: Context) {
         private const val KEY_ANSWER_INTERVAL_MS = "answer_interval_ms" // Long
 
         // 音量・TTS
-        private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume" // 0..100 または 0f..1f が混在し得る
+        private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume"
         private const val KEY_SE_WRONG_VOLUME = "se_wrong_volume"
         private const val KEY_TTS_VOLUME = "tts_volume"
         private const val KEY_TTS_SPEED = "tts_speed"   // Float 0.5..1.5
@@ -31,48 +36,49 @@ class AppSettings(context: Context) {
         // --- App Lock ---
         private const val KEY_APP_LOCK_ENABLED = "appLockEnabled"
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
-        private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt" // 10pt あたりの分数（1〜10）
+        private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt"
 
-        // ★追加: アンインストール防止機能用キー
+        // --- Settings ---
         private const val KEY_UNINSTALL_LOCK = "key_uninstall_lock"
-
-        // アクセシビリティ誘導を表示済みかどうか
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
-
-        // ★追加: アクセシビリティON通知済みフラグ
         private const val KEY_ACCESSIBILITY_ENABLED_NOTIFIED = "accessibility_enabled_notified"
 
-        // ベースポイント設定
         private const val KEY_BASE_POINT_PREFIX = "base_point_"
-
-        // 現在の学習グレードとポイント減少率
         private const val KEY_CURRENT_LEARNING_GRADE = "current_learning_grade"
         private const val KEY_POINT_REDUCTION_ONE_GRADE_DOWN = "point_reduction_one_grade_down"
         private const val KEY_POINT_REDUCTION_TWO_GRADES_DOWN = "point_reduction_two_grades_down"
 
-        // ▼▼▼ 追加: 親連携用ID ▼▼▼
         private const val KEY_PARENT_UID = "parent_uid"
         private const val KEY_LEARNING_MODE = "learning_mode"
         private const val KEY_INCLUDE_OTHER_GRADES = "learning_include_other_grades"
         private const val KEY_HIDE_CHOICES = "learning_hide_choices"
-        private const val KEY_AUTO_PLAY = "learning_auto_play"
+        
+        // 統合されたサイレントモード設定
+        private const val KEY_SILENT_MODE = "learning_silent_mode"
+        private const val KEY_HAS_SHOWN_SILENT_EXPLANATION = "has_shown_silent_explanation"
+
         private const val PREF_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec"
         private const val KEY_LAST_GRADE_FILTER = "learning_last_grade_filter"
         
-        // 追加: 外部から SharedPreferences を取得するためのヘルパー
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-
-
     }
+
+    // サイレントモード設定
+    var silentMode: SilentMode
+        get() = if (prefs.getBoolean(KEY_SILENT_MODE, false)) SilentMode.ON else SilentMode.OFF
+        set(value) = prefs.edit { putBoolean(KEY_SILENT_MODE, value == SilentMode.ON) }
+
+    var hasShownSilentExplanation: Boolean
+        get() = prefs.getBoolean(KEY_HAS_SHOWN_SILENT_EXPLANATION, false)
+        set(value) = prefs.edit { putBoolean(KEY_HAS_SHOWN_SILENT_EXPLANATION, value) }
 
     fun isEnableAdminLongPress(): Boolean = prefs.getBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, true)
     fun setEnableAdminLongPress(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, enabled) }
     }
 
-    // --- 共通ヘルパ: Float/Int 混在への対応 ---
     private fun readVolumePercent(key: String, defaultPercent: Int): Int {
         val v = prefs.all[key]
         return when (v) {
@@ -87,7 +93,6 @@ class AppSettings(context: Context) {
         prefs.edit { putInt(key, percent.coerceIn(0, 100)) }
     }
 
-    // 0.0〜1.0 で扱うプロパティ（内部保存は 0..100 の Int に統一）
     var seCorrectVolume: Float
         get() = readVolumePercent(KEY_SE_CORRECT_VOLUME, 20) / 100f
         set(value) = writeVolumePercent(KEY_SE_CORRECT_VOLUME, (value * 100f).roundToInt())
@@ -101,14 +106,13 @@ class AppSettings(context: Context) {
         set(value) = writeVolumePercent(KEY_TTS_VOLUME, (value * 100f).roundToInt())
 
     var adVolume: Float
-        get() = readVolumePercent(KEY_AD_VOLUME, 20) / 100f // デフォルト小さめ
+        get() = readVolumePercent(KEY_AD_VOLUME, 20) / 100f
         set(value) = writeVolumePercent(KEY_AD_VOLUME, (value * 100f).roundToInt())
 
     var adMuted: Boolean
         get() = prefs.getBoolean(KEY_AD_MUTED, false)
         set(value) = prefs.edit { putBoolean(KEY_AD_MUTED, value) }
 
-    // TTS スピード／ピッチ（0.5〜1.5）
     fun getTtsSpeed(): Float = prefs.getFloat(KEY_TTS_SPEED, 1.0f).coerceIn(0.5f, 1.5f)
     fun setTtsSpeed(value: Float) {
         prefs.edit { putFloat(KEY_TTS_SPEED, value.coerceIn(0.5f, 1.5f)) }
@@ -142,64 +146,27 @@ class AppSettings(context: Context) {
         get() = prefs.getLong(PREF_DONT_KNOW_RETRY_SEC, 10L)
         set(value) = prefs.edit().putLong(PREF_DONT_KNOW_RETRY_SEC, value).apply()
 
-    /**
-     * アプリ内で使う ZoneId を統一して取得する
-     *
-     * Phase 1: 挙動を端末タイムゾーンに統一するため、常に systemDefault を返す。
-     * 呼び出し側は変更しない。
-     */
     fun getAppZoneId(): ZoneId {
         return ZoneId.systemDefault()
     }
 
-    // --- App Lock ---
-    fun isAppLockEnabled(): Boolean =
-        prefs.getBoolean(KEY_APP_LOCK_ENABLED, false)
+    fun isAppLockEnabled(): Boolean = prefs.getBoolean(KEY_APP_LOCK_ENABLED, false)
+    fun setAppLockEnabled(enabled: Boolean) { prefs.edit { putBoolean(KEY_APP_LOCK_ENABLED, enabled) } }
 
-    fun setAppLockEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_APP_LOCK_ENABLED, enabled) }
-    }
+    fun isUninstallLockEnabled(): Boolean = prefs.getBoolean(KEY_UNINSTALL_LOCK, false)
+    fun setUninstallLockEnabled(enabled: Boolean) { prefs.edit { putBoolean(KEY_UNINSTALL_LOCK, enabled) } }
 
-    // ★追加: アンインストール防止機能用キー
-    fun isUninstallLockEnabled(): Boolean {
-        return prefs.getBoolean(KEY_UNINSTALL_LOCK, false)
-    }
+    fun getUnlockCostPoints10Min(): Int = prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
 
-    // ★追加: アンインストール防止機能の設定を変更
-    fun setUninstallLockEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_UNINSTALL_LOCK, enabled) }
-    }
+    fun getUnlockMinutesPer10Pt(): Int = prefs.getInt(KEY_UNLOCK_MIN_PER_10PT, 1).coerceIn(1, 10)
+    fun setUnlockMinutesPer10Pt(value: Int) { prefs.edit { putInt(KEY_UNLOCK_MIN_PER_10PT, value.coerceIn(1, 10)) } }
 
-    fun getUnlockCostPoints10Min(): Int =
-        prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
+    fun hasShownAccessibilityIntro(): Boolean = prefs.getBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, false)
+    fun setHasShownAccessibilityIntro(shown: Boolean) { prefs.edit { putBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, shown) } }
 
-    /**
-     * 10pt あたりの解放分数（1〜10分）
-     */
-    fun getUnlockMinutesPer10Pt(): Int =
-        prefs.getInt(KEY_UNLOCK_MIN_PER_10PT, 1).coerceIn(1, 10)
+    fun isAccessibilityEnabledNotified(): Boolean = prefs.getBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, false)
+    fun setAccessibilityEnabledNotified(notified: Boolean) { prefs.edit { putBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, notified) } }
 
-    fun setUnlockMinutesPer10Pt(value: Int) {
-        prefs.edit { putInt(KEY_UNLOCK_MIN_PER_10PT, value.coerceIn(1, 10)) }
-    }
-
-    // --- Accessibility Intro ---
-    fun hasShownAccessibilityIntro(): Boolean =
-        prefs.getBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, false)
-
-    fun setHasShownAccessibilityIntro(shown: Boolean) {
-        prefs.edit { putBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, shown) }
-    }
-
-    // --- Accessibility Notification Flag ---
-    fun isAccessibilityEnabledNotified(): Boolean =
-        prefs.getBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, false)
-
-    fun setAccessibilityEnabledNotified(notified: Boolean) {
-        prefs.edit { putBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, notified) }
-    }
-
-    // --- Base Points ---
     fun getBasePoint(mode: String): Int {
         val defaultPoint = when (mode) {
             "test_sort","test_listen_q2" -> 12
@@ -207,16 +174,13 @@ class AppSettings(context: Context) {
             "english_english_1", "english_english_2" -> 8
             "listening_jp" -> 4
             "meaning", "japanese_to_english", "listening" -> 4
-            else -> 4 // fallback for any other modes
+            else -> 4
         }
         return prefs.getInt(KEY_BASE_POINT_PREFIX + mode, defaultPoint).coerceIn(4, 32)
     }
 
-    fun setBasePoint(mode: String, value: Int) {
-        prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(4, 32)) }
-    }
+    fun setBasePoint(mode: String, value: Int) { prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(4, 32)) } }
 
-    // --- Grade-based Point Reduction ---
     var currentLearningGrade: String
         get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "") ?: ""
         set(value) = prefs.edit { putString(KEY_CURRENT_LEARNING_GRADE, value) }
@@ -232,26 +196,14 @@ class AppSettings(context: Context) {
         get() = prefs.getInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, 25)
         set(value) = prefs.edit { putInt(KEY_POINT_REDUCTION_TWO_GRADES_DOWN, value.coerceIn(0, 100)) }
 
-    // ▼▼▼ 追加: 親連携用ID ▼▼▼
-
-    // 親IDを保存する
     fun setParentUid(uid: String?) {
-        if (uid == null) {
-            prefs.edit { remove(KEY_PARENT_UID) }
-        } else {
-            prefs.edit { putString(KEY_PARENT_UID, uid) }
-        }
+        if (uid == null) prefs.edit { remove(KEY_PARENT_UID) }
+        else prefs.edit { putString(KEY_PARENT_UID, uid) }
     }
 
-    // 親IDを持っているか判定 (これが true なら監視対象)
-    fun hasParent(): Boolean {
-        return prefs.contains(KEY_PARENT_UID)
-    }
+    fun hasParent(): Boolean = prefs.contains(KEY_PARENT_UID)
+    fun getParentUid(): String? = prefs.getString(KEY_PARENT_UID, null)
 
-    // 必要ならIDを取り出す
-    fun getParentUid(): String? {
-        return prefs.getString(KEY_PARENT_UID, null)
-    }
     var learningMode: String
         get() = prefs.getString(KEY_LEARNING_MODE, "meaning") ?: "meaning"
         set(value) { prefs.edit().putString(KEY_LEARNING_MODE, value).apply() }
@@ -264,20 +216,14 @@ class AppSettings(context: Context) {
         get() = prefs.getBoolean(KEY_HIDE_CHOICES, false)
         set(value) { prefs.edit().putBoolean(KEY_HIDE_CHOICES, value).apply() }
 
-    var learningAutoPlay: Boolean
-        get() = prefs.getBoolean(KEY_AUTO_PLAY, true)
-        set(value) { prefs.edit().putBoolean(KEY_AUTO_PLAY, value).apply() }
-
     var lastGradeFilter: String
         get() = prefs.getString(KEY_LAST_GRADE_FILTER, "") ?: ""
         set(value) { prefs.edit().putString(KEY_LAST_GRADE_FILTER, value).apply() }
 
-    // --- Accessibility Lock ---
     var isAccessibilityLockEnabled: Boolean
         get() = prefs.getBoolean("accessibility_lock", false)
         set(value) = prefs.edit { putBoolean("accessibility_lock", value) }
 
-    // --- Tethering Lock ---
     var isTetheringLockEnabled: Boolean
         get() = prefs.getBoolean("tethering_lock", false)
         set(value) = prefs.edit { putBoolean("tethering_lock", value) }
