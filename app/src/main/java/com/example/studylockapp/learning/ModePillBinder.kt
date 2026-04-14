@@ -6,7 +6,6 @@ import com.example.studylockapp.databinding.LayoutModePillBinding
 
 /**
  * モード切替ピルの表示（バインド）を担当するクラス
- * 入力範囲を LayoutModePillBinding に限定
  */
 object ModePillBinder {
     fun bind(binding: LayoutModePillBinding, model: ModePillUiModel) {
@@ -19,7 +18,8 @@ object ModePillBinder {
         binding.imageModeIcon.imageTintList = ColorStateList.valueOf(accentColor)
         
         binding.textModeTitle.text = context.getString(model.titleRes)
-        binding.textModeSubtitle.text = context.getString(model.subtitleRes)
-        binding.textModeSubtitle.setTextColor(accentColor)
+        
+        // Chevronの色もアクセントに合わせる
+        binding.imageModeChevron.imageTintList = ColorStateList.valueOf(accentColor)
     }
 }

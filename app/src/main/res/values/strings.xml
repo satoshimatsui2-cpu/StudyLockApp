@@ -229,4 +229,7 @@
     <string name="review_label_your_answer">❌ あなた</string>
     <string name="review_label_correct_answer">✅ 正解</string>
     <string name="review_label_compare">聞き比べ</string>
+
+    <!-- 追加: ヘッダー用 -->
+    <string name="label_word_level_format">単語LV：%1$s</string>
 </resources>

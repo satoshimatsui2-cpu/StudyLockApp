@@ -46,22 +46,36 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="120 PT" />
 
-            <!-- モード切替ピル (部品化) -->
+            <!-- ヘッダー行: モードピル(左) + 単語LV(右) -->
             <include
                 android:id="@+id/layout_mode_pill"
                 layout="@layout/layout_mode_pill"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/text_target_level" />
+
+            <TextView
+                android:id="@+id/text_word_level_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_sub"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@id/layout_mode_pill"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/layout_mode_pill"
+                tools:text="単語LV：4級" />
 
             <TextView
                 android:id="@+id/text_word_grade_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:textColor="@color/text_sub"
                 android:textSize="11sp"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layout_mode_pill"
                 tools:text="4級" />
@@ -70,7 +84,7 @@
                 android:id="@+id/text_journey_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="12dp"
                 android:textColor="@color/navy_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
@@ -90,9 +104,7 @@
                 app:chipCornerRadius="16dp"
                 app:chipStrokeWidth="0dp"
                 app:layout_constraintBottom_toBottomOf="@id/text_journey_title"
-                app:layout_constraintEnd_toStartOf="@id/text_word_grade_label"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toEndOf="@id/text_journey_title"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/text_journey_title"
                 tools:text="LV 4" />
 

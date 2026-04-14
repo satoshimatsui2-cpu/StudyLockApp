@@ -66,7 +66,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         if (savedInstanceState == null) {
             viewModel.loadNextQuiz()
         }
-
         setupListeners()
     }
 
@@ -143,8 +142,10 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.textTargetLevel.text = getString(R.string.label_goal) + ": " + GradeLabelFormatter.format(state.targetLevel)
         binding.textSessionPointsSummary.text = state.sessionPoints.toString() + " PT"
         
+        // ヘッダー行の右側に単語LVを表示
         state.quiz?.word?.let { word ->
-            binding.textWordGradeLabel.text = GradeLabelFormatter.format(word.grade)
+            val gradeStr = GradeLabelFormatter.format(word.grade)
+            binding.textWordLevelHeader.text = getString(R.string.label_word_level_format, gradeStr)
         }
 
         binding.chipCurrentLevel.text = "LV " + state.currentLevel
@@ -170,7 +171,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private fun handleEvent(event: LearningUiEvent) {
         when (event) {
             is LearningUiEvent.ShowCorrect -> {
-                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
+                if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
                     soundEffectManager.playCorrect(1.0f)
                 }
                 val correctBtn = choiceButtons.find { it.text == event.answer }
@@ -179,7 +180,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.ShowWrong -> {
-                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
+                if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
                     soundEffectManager.playWrong(1.0f)
                 }
                 val selectedBtn = choiceButtons.find { it.text == event.selected }
@@ -189,7 +190,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.PlayAudio -> {
-                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
+                if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
                     ttsController.speak(event.text)
                 }
             }
@@ -251,7 +252,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     override fun playAudio(text: String) {
-        if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
+        if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
             ttsController.speak(text)
         }
     }
