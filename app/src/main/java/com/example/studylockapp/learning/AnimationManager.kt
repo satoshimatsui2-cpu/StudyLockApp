@@ -80,6 +80,24 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
             }.start()
     }
 
+    /**
+     * モードピルクリック時の軽いスケールアニメーション
+     */
+    fun playModeToggleClick(view: View) {
+        view.animate()
+            .scaleX(0.96f)
+            .scaleY(0.96f)
+            .setDuration(100)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
+    }
+
     private fun showCorrect(button: View) {
         button.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.choice_correct))
         button.animate().scaleX(1.05f).scaleY(1.05f).setDuration(150).withEndAction {

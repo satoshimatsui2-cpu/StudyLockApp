@@ -218,4 +218,15 @@
     <string name="silent_mode_explanation_title">サイレントモードについて</string>
     <string name="silent_mode_explanation_body">・音を出さずに学習できます\n・リスニング問題は出題されません\n・音声確認が必要なため、このモード中だけではマスター（習得）扱いになりません\n・通常モードに戻した際、後で音声復習が出題されます</string>
     <string name="action_dont_show_again">今後表示しない</string>
+
+    <!-- モード名称刷新 -->
+    <string name="mode_balance_title">バランスモード</string>
+    <string name="mode_balance_subtitle">おすすめ</string>
+    <string name="mode_silent_title">サイレントモード</string>
+    <string name="mode_silent_subtitle">音声なし</string>
+
+    <!-- レビューカード刷新用ラベル -->
+    <string name="review_label_your_answer">❌ あなた</string>
+    <string name="review_label_correct_answer">✅ 正解</string>
+    <string name="review_label_compare">聞き比べ</string>
 </resources>
