@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -20,7 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 学習画面のActivity (一本化・最終版)
+ * 学習画面のActivity (刷新版UI対応・LISTEN不正解排他制御版)
  */
 class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
@@ -71,7 +72,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun setupListeners() {
-        // 学習音声設定の切り替え (通常 / サイレント)
+        // 学習音声設定の切り替え
         binding.buttonToggleSilentMode.setOnClickListener {
             viewModel.toggleSilentMode()
         }
@@ -90,13 +91,14 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
         }
 
-        binding.buttonPlayCompareWrong.setOnClickListener {
+        // 聞き比べ再生ボタン (New Binding)
+        binding.includeWrong.buttonPlay.setOnClickListener {
             viewModel.uiState.value.reviewUserAnswerText.let {
                 if (it.isNotEmpty()) viewModel.requestAudioPlayback(it)
             }
         }
 
-        binding.buttonPlayCompareCorrect.setOnClickListener {
+        binding.includeCorrect.buttonPlay.setOnClickListener {
             viewModel.uiState.value.reviewCorrectAnswerText.let {
                 if (it.isNotEmpty()) viewModel.requestAudioPlayback(it)
             }
@@ -142,33 +144,72 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
-        // 3. レビューカード表示
+        // 3. レビューカード表示 (刷新版UI・排他表示)
         if (state.isReviewing && state.currentWord != null) {
             binding.cardAnswerReview.visibility = View.VISIBLE
-            binding.textReviewModeLabel.text = state.reviewModeLabel
-            binding.textReviewQuestionText.text = state.reviewQuestionText
-            binding.textReviewAnswerCorrect.text = getString(R.string.review_label_correct_word, state.reviewCorrectAnswerText)
-            binding.textReviewAnswerWrong.visibility = if (!state.isLastAnswerCorrect) View.VISIBLE else View.GONE
-            binding.textReviewAnswerWrong.text = getString(R.string.review_label_wrong_answer, state.reviewUserAnswerText)
+            
+            // モードチップの設定
+            val modeIcon = when (state.quiz?.mode) {
+                QuizMode.LISTEN_EN -> R.drawable.ic_hearing_24
+                QuizMode.EN_TO_JP, QuizMode.JP_TO_EN -> R.drawable.ic_translate_24
+                else -> R.drawable.ic_translate_24
+            }
+            binding.chipReviewMode.setChipIconResource(modeIcon)
+            binding.chipReviewMode.text = state.reviewModeLabel
 
-            if (state.showListeningCompare) {
+            binding.textReviewQuestionText.text = state.reviewQuestionText
+            
+            // 表示モードの判定: LISTEN_EN かつ 不正解 の時だけ特別比較モード
+            val isListenWrong = state.quiz?.mode == QuizMode.LISTEN_EN && !state.isLastAnswerCorrect && state.showListeningCompare
+
+            if (isListenWrong) {
+                // パターンA: 聞き比べを主役にする (LISTEN不正解)
+                binding.containerResults.visibility = View.GONE
+                binding.layoutReviewPhoneticRow.visibility = View.GONE
                 binding.layoutListeningCompare.visibility = View.VISIBLE
-                binding.textCompareWrongWord.text = state.reviewUserAnswerText
-                binding.textCompareWrongPhonetic.text = state.wrongWord?.phonetic ?: ""
-                binding.textCompareCorrectWord.text = state.reviewCorrectAnswerText
-                binding.textCompareCorrectPhonetic.text = state.currentWord.phonetic ?: ""
+                
+                // あなた側 (左)
+                binding.includeWrong.apply {
+                    labelCompare.text = "❌ あなた"
+                    labelCompare.setTextColor(ContextCompat.getColor(this@LearningActivity, R.color.choice_wrong))
+                    textWord.text = state.reviewUserAnswerText
+                    textPhonetic.text = state.wrongWord?.phonetic ?: ""
+                }
+                // 正解側 (右)
+                binding.includeCorrect.apply {
+                    labelCompare.text = "✅ 正解"
+                    labelCompare.setTextColor(ContextCompat.getColor(this@LearningActivity, R.color.choice_correct))
+                    textWord.text = state.reviewCorrectAnswerText
+                    textPhonetic.text = state.currentWord.phonetic ?: ""
+                }
             } else {
+                // パターンB: 通常の結果カードを表示 (LISTEN正解、または他モード)
+                binding.containerResults.visibility = View.VISIBLE
+                binding.layoutReviewPhoneticRow.visibility = View.VISIBLE
                 binding.layoutListeningCompare.visibility = View.GONE
+
+                if (state.isLastAnswerCorrect) {
+                    binding.layoutResultWrong.visibility = View.GONE
+                    binding.textReviewAnswerCorrect.text = state.reviewCorrectAnswerText
+                } else {
+                    binding.layoutResultWrong.visibility = View.VISIBLE
+                    binding.textReviewAnswerWrong.text = state.reviewUserAnswerText
+                    binding.textReviewAnswerCorrect.text = state.reviewCorrectAnswerText
+                }
             }
 
             binding.textReviewPhonetic.text = state.currentWord.phonetic ?: ""
             binding.textReviewSentence.text = state.currentWord.sentence ?: ""
             binding.textReviewSentenceJp.text = state.currentWord.japaneseSentence ?: ""
             
-            // サイレント時はレビュー内の再生ボタンも無効化・半透明化
+            // 再生ボタンの有効無効制御
             val playButtonsEnabled = !isSilent
-            listOf(binding.buttonPlayReviewWord, binding.buttonPlayReviewSentence, 
-                   binding.buttonPlayCompareWrong, binding.buttonPlayCompareCorrect).forEach {
+            listOf(
+                binding.buttonPlayReviewWord, 
+                binding.buttonPlayReviewSentence, 
+                binding.includeWrong.buttonPlay, 
+                binding.includeCorrect.buttonPlay
+            ).forEach {
                 it.isEnabled = playButtonsEnabled
                 it.alpha = if (playButtonsEnabled) 1.0f else 0.3f
             }
