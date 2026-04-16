@@ -6,22 +6,22 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.view.animation.BounceInterpolator
-import android.widget.LinearLayout
+import android.widget.FrameLayout
+import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import com.example.studylockapp.R
 import com.example.studylockapp.databinding.ViewMasteryProgressBinding
 
-/**
- * 習得レベルを視覚化する進捗レール。
- * LV1-5（基礎）と LV6-10（長期）の2モードを切り替えて表示。
- */
 class MasteryProgressView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr) {
 
+    // <merge> タグを使用したレイアウトのインフレート。
+    // 引数は (inflater, this) の2つになる。
     private val binding: ViewMasteryProgressBinding =
         ViewMasteryProgressBinding.inflate(LayoutInflater.from(context), this)
 
@@ -32,111 +32,69 @@ class MasteryProgressView @JvmOverloads constructor(
         listOf(binding.line1, binding.line2, binding.line3, binding.line4)
     }
 
-    private var currentDisplayLevel: Int = 0
     private var isLongTermMode: Boolean = false
 
-    init {
-        orientation = HORIZONTAL
-    }
-
-    /**
-     * 進捗を更新する。
-     * @param level 1-10 の絶対レベル
-     * @param animate レベルアップ時のアニメーション有無
-     */
     fun setProgress(level: Int, animate: Boolean = true) {
         val newIsLongTerm = level > 5
         val relativeLevel = if (newIsLongTerm) (level - 5).coerceAtLeast(1) else level.coerceAtLeast(1)
         
-        // モード変更時のリセット
         if (isLongTermMode != newIsLongTerm) {
             isLongTermMode = newIsLongTerm
-            resetUi()
+            updateGoalIcon()
         }
 
-        if (animate && relativeLevel > currentDisplayLevel && currentDisplayLevel > 0) {
-            animateToLevel(relativeLevel)
-        } else {
-            applyLevelImmediate(relativeLevel)
-        }
-        
-        currentDisplayLevel = relativeLevel
+        updateUi(relativeLevel, level, animate)
     }
 
-    private fun resetUi() {
-        val goalIcon = if (isLongTermMode) R.drawable.ic_round_stars_24 else R.drawable.ic_round_stars_24 
-        binding.nodeGoal.setImageResource(goalIcon)
-        
-        nodes.forEach { node ->
-            if (node is android.widget.ImageView) {
-                node.imageTintList = ContextCompat.getColorStateList(context, R.color.md_outline)
-            } else {
-                node.backgroundTintList = ContextCompat.getColorStateList(context, R.color.md_outline)
-            }
-        }
-        lines.forEach { it.setBackgroundColor(ContextCompat.getColor(context, R.color.md_outline)) }
+    private fun updateGoalIcon() {
+        val icon = if (isLongTermMode) R.drawable.ic_mastery_diamond_24 else R.drawable.ic_round_stars_24
+        binding.nodeGoal.setImageResource(icon)
     }
 
-    private fun applyLevelImmediate(relativeLevel: Int) {
-        val activeColor = if (isLongTermMode) R.color.mastery_text_longterm else R.color.md_primary
+    private fun updateUi(relativeLevel: Int, absoluteLevel: Int, animate: Boolean) {
+        val activeColor = if (isLongTermMode) R.color.navy_primary else R.color.mustard_accent
+        val inactiveColor = R.color.app_outline
         
-        for (i in 0 until 5) {
-            if (i < relativeLevel) {
-                setNodeActive(nodes[i], activeColor)
-                if (i > 0) {
-                    lines[i - 1].setBackgroundColor(ContextCompat.getColor(context, activeColor))
-                }
-            }
+        binding.textLevelChip.text = "LV$absoluteLevel"
+        binding.cardLevelIndicator.setCardBackgroundColor(ContextCompat.getColor(context, activeColor))
+
+        nodes.forEachIndexed { i, node ->
+            val isActive = i < relativeLevel
+            val color = if (isActive) activeColor else inactiveColor
+            setNodeColor(node, color)
+        }
+        lines.forEachIndexed { i, line ->
+            val isActive = i < relativeLevel - 1
+            line.setBackgroundColor(ContextCompat.getColor(context, if (isActive) activeColor else inactiveColor))
+        }
+
+        if (relativeLevel in 1..5) {
+            moveLevelChip(relativeLevel - 1, animate)
         }
     }
 
-    private fun animateToLevel(targetRelative: Int) {
-        val activeColor = if (isLongTermMode) R.color.mastery_text_longterm else R.color.md_primary
-        
-        // 直前の線のアニメーション
-        if (targetRelative > 1) {
-            animateLine(lines[targetRelative - 2], activeColor)
-        }
-        
-        // 到達ノードのバウンド
-        val targetNode = nodes[targetRelative - 1]
-        targetNode.postDelayed({
-            setNodeActive(targetNode, activeColor)
-            bounceNode(targetNode)
-        }, 200)
-    }
-
-    private fun setNodeActive(node: View, colorRes: Int) {
+    private fun setNodeColor(node: View, colorRes: Int) {
         val color = ContextCompat.getColor(context, colorRes)
-        if (node is android.widget.ImageView) {
+        if (node is ImageView) {
             node.imageTintList = android.content.res.ColorStateList.valueOf(color)
         } else {
             node.backgroundTintList = android.content.res.ColorStateList.valueOf(color)
         }
     }
 
-    private fun animateLine(line: View, colorRes: Int) {
-        val colorFrom = ContextCompat.getColor(context, R.color.md_outline)
-        val colorTo = ContextCompat.getColor(context, colorRes)
-        
-        ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
-            duration = 400
-            addUpdateListener { animator ->
-                line.setBackgroundColor(animator.animatedValue as Int)
+    private fun moveLevelChip(nodeIndex: Int, animate: Boolean) {
+        val targetNode = nodes[nodeIndex]
+        binding.layoutMasteryRoot.post {
+            val constraintSet = ConstraintSet()
+            constraintSet.clone(binding.layoutMasteryRoot)
+            
+            constraintSet.connect(R.id.card_level_indicator, ConstraintSet.START, targetNode.id, ConstraintSet.START)
+            constraintSet.connect(R.id.card_level_indicator, ConstraintSet.END, targetNode.id, ConstraintSet.END)
+            
+            if (animate) {
+                android.transition.TransitionManager.beginDelayedTransition(binding.layoutMasteryRoot)
             }
-            start()
+            constraintSet.applyTo(binding.layoutMasteryRoot)
         }
-    }
-
-    private fun bounceNode(node: View) {
-        node.animate()
-            .scaleX(1.5f)
-            .scaleY(1.5f)
-            .setDuration(200)
-            .setInterpolator(BounceInterpolator())
-            .withEndAction {
-                node.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
-            }
-            .start()
     }
 }

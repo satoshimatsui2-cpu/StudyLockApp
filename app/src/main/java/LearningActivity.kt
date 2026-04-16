@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 学習画面のActivity (クリーン化・刷新版UI)
+ * 学習画面のActivity (クリーン化・刷新版UI・インフォグラフィック版)
  */
 class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
@@ -66,12 +66,13 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         if (savedInstanceState == null) {
             viewModel.loadNextQuiz()
         }
+
         setupListeners()
     }
 
     private fun setupListeners() {
-        // 1. モードピル
-        binding.layoutModePill.rootModePill.setOnClickListener {
+        // 1. モードピル (ネストされたBindingを参照)
+        binding.layoutJourneyHeader.layoutModePill.rootModePill.setOnClickListener {
             animationManager.playModeToggleClick(it)
             viewModel.toggleSilentMode()
         }
@@ -122,40 +123,28 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun updateUi(state: LearningUiState) {
-        // 1. 各Binderに専用のBinding（部品）を渡して描画
-        ModePillBinder.bind(binding.layoutModePill, ModePillMapper.map(state.silentMode))
+        // 1. モードピルの描画
+        ModePillBinder.bind(binding.layoutJourneyHeader.layoutModePill, ModePillMapper.map(state.silentMode))
         
+        // 2. ヘッダー全体の描画 (メタチップ 15sp化・左寄せ・PT統合)
+        JourneyHeaderBinder.bind(binding.layoutJourneyHeader, JourneyHeaderMapper.map(state))
+
+        // 3. レビューカードの描画
         if (state.isReviewing && state.currentWord != null) {
+            binding.cardQuestion.visibility = View.GONE
             binding.layoutReviewCard.rootReviewCard.visibility = View.VISIBLE
             ReviewCardBinder.bind(binding.layoutReviewCard, ReviewCardMapper.map(state))
         } else {
             binding.layoutReviewCard.rootReviewCard.visibility = View.GONE
+            binding.cardQuestion.visibility = View.VISIBLE
         }
 
-        // 2. その他 (今後さらにBinderへ逃がせる余地あり)
-        renderJourneyInfo(state)
-        renderQuizIfNeeded(state)
-    }
-
-    private fun renderJourneyInfo(state: LearningUiState) {
-        binding.textJourneyTitle.text = if (state.currentLevel > 5) getString(R.string.label_until_long_term_master) else getString(R.string.label_until_basic_master)
-        binding.textTargetLevel.text = getString(R.string.label_goal) + ": " + GradeLabelFormatter.format(state.targetLevel)
-        binding.textSessionPointsSummary.text = state.sessionPoints.toString() + " PT"
-        
-        // ヘッダー行の右側に単語LVを表示
-        state.quiz?.word?.let { word ->
-            val gradeStr = GradeLabelFormatter.format(word.grade)
-            binding.textWordLevelHeader.text = getString(R.string.label_word_level_format, gradeStr)
-        }
-
-        binding.chipCurrentLevel.text = "LV " + state.currentLevel
-        val relativeLevel = if (state.currentLevel > 5) state.currentLevel - 5 else state.currentLevel
-        binding.progressMasteryRail.progress = (relativeLevel * 100) / 5
-        binding.textJourneySubtitle.text = getString(R.string.label_next_step_hint, (5 - relativeLevel).coerceAtLeast(0))
-        binding.textMasteryStatsSummary.text = getString(R.string.label_mastery_stats, state.basicMasterCount, state.longTermMasterCount)
-
+        // 4. セッション全体の進捗バー
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
+
+        // 5. クイズ描画
+        renderQuizIfNeeded(state)
     }
 
     private fun renderQuizIfNeeded(state: LearningUiState) {
@@ -233,8 +222,19 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     @SuppressLint("ClickableViewAccessibility")
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
         resetAllChoiceButtons()
+        
+        // 1. 問題カード内の情報を一括更新
         binding.textQuestionTitle.text = title
         binding.textQuestionBody.text = body
+        
+        // 2. 現在の単語の級バッジを更新・表示 (showBasicQuiz に集約)
+        viewModel.uiState.value.quiz?.word?.let { word ->
+            binding.textQuestionGradeBadge.text = GradeLabelFormatter.format(word.grade)
+            binding.cardQuestionGradeBadge.visibility = View.VISIBLE
+        } ?: run {
+            binding.cardQuestionGradeBadge.visibility = View.GONE
+        }
+
         binding.choicesContainer.visibility = View.VISIBLE
         choiceButtons.forEachIndexed { i, btn ->
             if (i < choices.size) {

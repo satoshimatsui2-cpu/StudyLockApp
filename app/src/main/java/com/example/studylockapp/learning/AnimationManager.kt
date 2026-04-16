@@ -70,13 +70,18 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
         }
     }
 
+    /**
+     * ランクアップ演出
+     * layout_journey_header のルート View をアニメーションさせます。
+     */
     fun playTierUpAnimation(tierLabel: String) {
-        binding.cardMasteryJourney.animate()
+        val headerView = binding.layoutJourneyHeader.root
+        headerView.animate()
             .scaleX(1.05f)
             .scaleY(1.05f)
             .setDuration(200)
             .withEndAction {
-                binding.cardMasteryJourney.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+                headerView.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
             }.start()
     }
 
