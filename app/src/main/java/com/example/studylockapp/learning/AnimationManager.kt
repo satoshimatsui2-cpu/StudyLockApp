@@ -70,8 +70,8 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
             }
             .start()
             
-        // 進捗レールの pulse 演出 (ノードが跳ねる)
-        binding.layoutJourneyHeader.masteryProgressRail.setProgress(newLevel, animate = true)
+        // 注意: ゲージのアニメーションは Compose 側で自動的に行われるため、
+        // ここでの古いプロパティ (masteryProgressRail) への参照は削除しました。
     }
 
     private fun showReward(point: Int) {
@@ -97,6 +97,10 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
         }
     }
 
+    /**
+     * ランクアップ演出
+     * layout_journey_header のルート View をアニメーションさせます。
+     */
     fun playTierUpAnimation(tierLabel: String) {
         val headerView = binding.layoutJourneyHeader.root
         headerView.animate()
