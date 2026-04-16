@@ -13,10 +13,30 @@ interface WordMasteryDao {
     @Query("SELECT * FROM word_mastery WHERE nextReviewTime > 0 AND nextReviewTime <= :now")
     suspend fun getDueMasteries(now: Long): List<WordMasteryEntity>
 
-    @Query("SELECT COUNT(*) FROM word_mastery WHERE isBasicMastered = 1")
+    /**
+     * 基礎マスター数の集計
+     * フラグではなく実力値（レベル5以上 + 全モード最低正解数）を直接カウントする
+     */
+    @Query("""
+        SELECT COUNT(*) FROM word_mastery 
+        WHERE level >= 5 
+        AND enToJpCorrects >= 1 
+        AND jpToEnCorrects >= 2 
+        AND listenCorrects >= 1
+    """)
     suspend fun countBasicMastered(): Int
 
-    @Query("SELECT COUNT(*) FROM word_mastery WHERE isLongTermMastered = 1")
+    /**
+     * 長期マスター数の集計
+     * フラグではなく実力値（レベル10以上 + 全モード複数回正解）を直接カウントする
+     */
+    @Query("""
+        SELECT COUNT(*) FROM word_mastery 
+        WHERE level >= 10 
+        AND enToJpCorrects >= 1 
+        AND jpToEnCorrects >= 3 
+        AND listenCorrects >= 3
+    """)
     suspend fun countLongTermMastered(): Int
 
     @Query("SELECT * FROM word_mastery WHERE pendingListenReview = 1")

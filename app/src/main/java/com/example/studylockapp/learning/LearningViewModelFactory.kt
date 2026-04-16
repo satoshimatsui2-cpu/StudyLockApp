@@ -13,7 +13,9 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LearningViewModel::class.java)) {
             val db = AppDatabase.getInstance(context.applicationContext)
-            val quizManager = QuizManager(db.wordDao(), db.wordMasteryDao())
+            val wordDao = db.wordDao()
+            val masteryDao = db.wordMasteryDao()
+            val quizManager = QuizManager(wordDao, masteryDao)
             val pointManager = PointManager(context.applicationContext)
             val audioChecker = LearningAudioStateChecker(context.applicationContext)
             val appSettings = AppSettings(context.applicationContext)
@@ -23,7 +25,8 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             
             return LearningViewModel(
                 context.applicationContext,
-                db.wordDao(),
+                wordDao,
+                masteryDao,
                 quizManager,
                 pointManager,
                 audioChecker,

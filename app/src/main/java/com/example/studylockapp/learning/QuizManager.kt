@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import java.util.*
 
 /**
- * 学習の進行とモード決定を管理するクラス (SilentMode 統合版)
+ * 学習の進行とモード決定を管理するクラス (SilentMode 統合・再出題バグ修正版)
  */
 class QuizManager(
     private val wordDao: WordDao,
@@ -20,7 +20,6 @@ class QuizManager(
 ) {
     private val choiceGenerator = ChoiceGenerator(wordDao)
     
-    // サイレントモード状態 (ViewModelから注入される)
     var silentMode: SilentMode = SilentMode.OFF
     private var pendingReviewPickedInSession = 0
 
@@ -47,10 +46,6 @@ class QuizManager(
         
         Log.e(TAG, "[NextQuiz] SELECTED: ${word.word}, ActualMode: $actualMode, Level: ${mastery.level}, Silent: $silentMode")
 
-        if (actualMode == QuizMode.LISTEN_EN && mastery.pendingListenReview) {
-            pendingReviewPickedInSession++
-        }
-
         val choices = choiceGenerator.generateChoices(word, actualMode)
             
         QuizData(
@@ -69,17 +64,15 @@ class QuizManager(
     }
 
     private fun determineActualMode(mastery: WordMasteryEntity, scheduled: QuizMode): QuizMode {
-        // サイレントモード OFF の時だけ、音声復習待ちを優先的に出す
         if (silentMode == SilentMode.OFF) {
+            // 音声復習枠（SESSION_PENDING_LIMIT）が残っている場合のみ、フラグのある単語を LISTEN_EN に強制
             if (mastery.pendingListenReview && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
                 return QuizMode.LISTEN_EN
             }
         }
 
-        // サイレントモード ON の時は LISTEN_EN を回避
         if (silentMode == SilentMode.ON) {
             if (scheduled == QuizMode.LISTEN_EN) {
-                // 音声が必要なステップなら代替モード（日本語->英語）にする
                 return QuizMode.JP_TO_EN
             }
         }
@@ -93,43 +86,74 @@ class QuizManager(
         // 1. 復習期限切れ
         val dueMasteries = masteryDao.getDueMasteries(now)
         if (dueMasteries.isNotEmpty()) {
-            val targetId = dueMasteries.sortedBy { it.nextReviewTime }.take(3).shuffled().first().wordId
-            val word = wordDao.getWordById(targetId)
-            if (word != null) return word
+            val mastery = dueMasteries.sortedBy { it.nextReviewTime }.take(3).shuffled().first()
+            val word = wordDao.getWordById(mastery.wordId)
+            if (word != null) {
+                Log.e(TAG, "[SelectReason] source=DUE, word=${word.word}, level=${mastery.level}, nextReviewTime=${mastery.nextReviewTime}, pending=${mastery.pendingListenReview}")
+                return word
+            }
         }
 
         // 2. 音声復習待ち (通常モード & セッション枠内)
         if (silentMode == SilentMode.OFF && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
             val pendingMasteries = masteryDao.getPendingListenMasteries()
             if (pendingMasteries.isNotEmpty()) {
-                val targetId = pendingMasteries.shuffled().first().wordId
-                val word = wordDao.getWordById(targetId)
-                if (word != null) return word
+                val mastery = pendingMasteries.shuffled().first()
+                val word = wordDao.getWordById(mastery.wordId)
+                if (word != null) {
+                    Log.e(TAG, "[SelectReason] source=PENDING, word=${word.word}, level=${mastery.level}, nextReviewTime=${mastery.nextReviewTime}, pending=${mastery.pendingListenReview}")
+                    return word
+                }
             }
         }
 
         // 3. 新規または未習得
         val levelWord = wordDao.getRandomWordByLevel(userLevel)
-        if (levelWord != null) return levelWord
+        if (levelWord != null) {
+            val mastery = masteryDao.getMastery(levelWord.no) ?: WordMasteryEntity(wordId = levelWord.no)
+            Log.e(TAG, "[SelectReason] source=NEW, word=${levelWord.word}, level=${mastery.level}, nextReviewTime=${mastery.nextReviewTime}, pending=${mastery.pendingListenReview}")
+            return levelWord
+        }
 
         // 4. 最終フォールバック
-        return wordDao.getAnyRandomWord()
+        val anyWord = wordDao.getAnyRandomWord()
+        if (anyWord != null) {
+            val mastery = masteryDao.getMastery(anyWord.no) ?: WordMasteryEntity(wordId = anyWord.no)
+            Log.e(TAG, "[SelectReason] source=ANY, word=${anyWord.word}, level=${mastery.level}, nextReviewTime=${mastery.nextReviewTime}, pending=${mastery.pendingListenReview}")
+            return anyWord
+        }
+
+        return null
     }
 
-    suspend fun submitAnswer(word: WordEntity, isCorrect: Boolean) = withContext(Dispatchers.IO) {
+    /**
+     * 回答提出
+     */
+    suspend fun submitAnswer(word: WordEntity, isCorrect: Boolean, actualMode: QuizMode) = withContext(Dispatchers.IO) {
         val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
         mastery.lastSeen = System.currentTimeMillis()
 
+        // 音声復習フラグの解除ロジック
+        // LISTEN_EN を実際に出題できたなら、その結果（正誤）に関わらず「借り」を返済したものとみなす
+        if (actualMode == QuizMode.LISTEN_EN && silentMode == SilentMode.OFF && mastery.pendingListenReview) {
+            mastery.pendingListenReview = false
+            pendingReviewPickedInSession++ // 実際に解き終わったタイミングでセッション回収数を増やす
+            Log.e(TAG, "[Recovery] Pending review cleared for ${word.word}. Session count: $pendingReviewPickedInSession")
+        }
+
         if (isCorrect) {
-            // サイレントモードONの場合は restricted=true として判定。
-            // これにより MasteryScheduler 側で pendingListenReview が維持される。
-            MasteryScheduler.onCorrect(mastery, silentMode == SilentMode.ON)
+            MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON)
         } else {
-            MasteryScheduler.onWrong(mastery)
+            MasteryScheduler.onWrong(mastery, actualMode)
         }
 
         masteryDao.insertOrUpdate(mastery)
-        Log.e(TAG, "[Answer] ${word.word} Correct: $isCorrect -> NewLevel: ${mastery.level}")
+        
+        // 詳細な結果ログ
+        Log.e(TAG, "[AfterAnswer] word=${word.word}, correct=$isCorrect, " +
+            "level=${mastery.level}, actualMode=$actualMode, scheduledMode=${mastery.scheduledMode}, " +
+            "pending=${mastery.pendingListenReview}, nextReviewTime=${mastery.nextReviewTime}, " +
+            "deltaSec=${(mastery.nextReviewTime - System.currentTimeMillis()) / 1000}")
     }
 
     suspend fun getMasteryCount(tier: MasteryTier): Int = withContext(Dispatchers.IO) {

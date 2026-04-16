@@ -23,4 +23,10 @@ sealed class LearningUiEvent {
     ) : LearningUiEvent()
 
     object ShowSilentModeExplanation : LearningUiEvent()
+
+    // 飛び級演出用イベント
+    data class ShowFlyingLevelUp(
+        val oldLevel: Int,
+        val newLevel: Int
+    ) : LearningUiEvent()
 }

@@ -186,6 +186,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.QuizFinished -> finish()
             is LearningUiEvent.ShowMasteryBadge -> animationManager.playTierUpAnimation(event.tier.label)
             is LearningUiEvent.ShowSilentModeExplanation -> showSilentModeExplanationDialog()
+            is LearningUiEvent.ShowFlyingLevelUp -> {
+                animationManager.playFlyingLevelUp(event.oldLevel, event.newLevel)
+            }
         }
     }
 
@@ -227,7 +230,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.textQuestionTitle.text = title
         binding.textQuestionBody.text = body
         
-        // 2. 現在の単語の級バッジを更新・表示 (showBasicQuiz に集約)
+        // 2. 現在の単語の級バッジを更新・表示
         viewModel.uiState.value.quiz?.word?.let { word ->
             binding.textQuestionGradeBadge.text = GradeLabelFormatter.format(word.grade)
             binding.cardQuestionGradeBadge.visibility = View.VISIBLE

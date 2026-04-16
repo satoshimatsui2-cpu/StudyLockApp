@@ -3,23 +3,21 @@ package com.example.studylockapp.learning
 import android.content.res.ColorStateList
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import androidx.core.content.ContextCompat
 import com.example.studylockapp.R
 import com.example.studylockapp.databinding.ActivityLearningBinding
 
 /**
- * 学習画面のアニメーションを一括管理するクラス (演出時間集約 & 堅牢版)
+ * 学習画面のアニメーションを一括管理するクラス
  */
 class AnimationManager(private val binding: ActivityLearningBinding) {
 
     companion object {
-        const val DURATION_CORRECT = 1000L // 正解演出時間
-        const val DURATION_WRONG = 1400L   // 不正解演出時間
+        const val DURATION_CORRECT = 1000L
+        const val DURATION_WRONG = 1400L
     }
 
-    /**
-     * 正解シーケンスの実行
-     */
     fun playCorrectSequence(button: View?, point: Int, tierChanged: Boolean, tierLabel: String, onEnd: () -> Unit) {
         if (button != null) {
             showCorrect(button)
@@ -30,21 +28,50 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
         } else {
             showReward(point)
         }
-
-        // 1か所で時間管理。ボタン参照がなくても確実に次へ。
         binding.rootLayout.postDelayed({ onEnd() }, DURATION_CORRECT)
     }
 
-    /**
-     * 不正解シーケンスの実行
-     */
     fun playWrongSequence(selected: View?, correct: View?, onEnd: () -> Unit) {
         if (selected != null && correct != null) {
             showWrong(selected, correct)
         }
-        
-        // 1か所で時間管理。確実にレビュー開始へ。
         binding.rootLayout.postDelayed({ onEnd() }, DURATION_WRONG)
+    }
+
+    /**
+     * 飛び級特別演出
+     */
+    fun playFlyingLevelUp(oldLevel: Int, newLevel: Int) {
+        val badge = binding.layoutFlyingLevelup.cardFlyingLevelup
+        val text = binding.layoutFlyingLevelup.textFlyingLevels
+        
+        text.text = "LV$oldLevel → LV$newLevel"
+        
+        badge.visibility = View.VISIBLE
+        badge.alpha = 0f
+        badge.scaleX = 0.8f
+        badge.scaleY = 0.8f
+        
+        badge.animate()
+            .alpha(1f)
+            .scaleX(1.1f)
+            .scaleY(1.1f)
+            .setDuration(400)
+            .setInterpolator(OvershootInterpolator())
+            .withEndAction {
+                badge.animate()
+                    .alpha(0f)
+                    .scaleX(1.3f)
+                    .scaleY(1.3f)
+                    .setStartDelay(800)
+                    .setDuration(300)
+                    .withEndAction { badge.visibility = View.GONE }
+                    .start()
+            }
+            .start()
+            
+        // 進捗レールの pulse 演出 (ノードが跳ねる)
+        binding.layoutJourneyHeader.masteryProgressRail.setProgress(newLevel, animate = true)
     }
 
     private fun showReward(point: Int) {
@@ -70,10 +97,6 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
         }
     }
 
-    /**
-     * ランクアップ演出
-     * layout_journey_header のルート View をアニメーションさせます。
-     */
     fun playTierUpAnimation(tierLabel: String) {
         val headerView = binding.layoutJourneyHeader.root
         headerView.animate()
@@ -85,22 +108,14 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
             }.start()
     }
 
-    /**
-     * モードピルクリック時の軽いスケールアニメーション
-     */
     fun playModeToggleClick(view: View) {
         view.animate()
             .scaleX(0.96f)
             .scaleY(0.96f)
             .setDuration(100)
             .withEndAction {
-                view.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(100)
-                    .start()
-            }
-            .start()
+                view.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+            }.start()
     }
 
     private fun showCorrect(button: View) {

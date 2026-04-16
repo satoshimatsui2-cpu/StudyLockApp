@@ -9,6 +9,7 @@ import com.example.studylockapp.data.db.WordDao
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.SilentMode
+import com.example.studylockapp.data.db.WordMasteryDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.withContext
 class LearningViewModel(
     private val context: Context,
     private val wordDao: WordDao,
+    private val masteryDao: WordMasteryDao,
     private val quizManager: QuizManager,
     private val pointManager: PointManager,
     private val audioChecker: LearningAudioStateChecker,
@@ -102,7 +104,13 @@ class LearningViewModel(
 
                 val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
                 val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
-                val currentLevel = quizManager.getMasteryLevel(quiz.word.no)
+                
+                // バグ修正: 現在の単語の MasteryEntity を取得して getTier に渡す
+                val mastery = withContext(Dispatchers.IO) {
+                    masteryDao.getMastery(quiz.word.no)
+                } ?: com.example.studylockapp.data.db.WordMasteryEntity(wordId = quiz.word.no)
+                
+                val currentTier = MasteryScheduler.getTier(mastery)
 
                 _uiState.update { state -> 
                     state.copy(
@@ -113,8 +121,8 @@ class LearningViewModel(
                         audioWarning = warning,
                         basicMasterCount = basicCount,
                         longTermMasterCount = longTermCount,
-                        currentTier = MasteryScheduler.getTier(currentLevel),
-                        currentLevel = currentLevel,
+                        currentTier = currentTier,
+                        currentLevel = mastery.level,
                         isLevelJustIncreased = false,
                         currentWord = quiz.word,
                         wordGrade = quiz.word.grade
@@ -159,12 +167,16 @@ class LearningViewModel(
         viewModelScope.launch {
             val wordId = currentQuiz.word.no
             val oldLevel = quizManager.getMasteryLevel(wordId)
-            val oldTier = MasteryScheduler.getTier(oldLevel)
+            
+            // バグ修正: 回答提出前後の MasteryEntity を取得して正確な Tier を比較する
+            val oldMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: com.example.studylockapp.data.db.WordMasteryEntity(wordId = wordId)
+            val oldTier = MasteryScheduler.getTier(oldMastery)
 
-            quizManager.submitAnswer(currentQuiz.word, selectedAnswer == currentQuiz.answer)
+            quizManager.submitAnswer(currentQuiz.word, selectedAnswer == currentQuiz.answer, currentQuiz.mode)
 
-            val newLevel = quizManager.getMasteryLevel(wordId)
-            val newTier = MasteryScheduler.getTier(newLevel)
+            val newMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: com.example.studylockapp.data.db.WordMasteryEntity(wordId = wordId)
+            val newLevel = newMastery.level
+            val newTier = MasteryScheduler.getTier(newMastery)
             
             val isLevelUp = newLevel > oldLevel
             if (isLevelUp) levelUpsInSession++
@@ -214,6 +226,12 @@ class LearningViewModel(
 
             if (isCorrect) {
                 withContext(Dispatchers.IO) { pointManager.add(10) }
+                
+                // 飛び級判定 (2段階以上のアップ)
+                if (newLevel - oldLevel >= 2) {
+                    _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
+                }
+
                 _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, oldTier != newTier))
                 if (oldTier != newTier) {
                     _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))

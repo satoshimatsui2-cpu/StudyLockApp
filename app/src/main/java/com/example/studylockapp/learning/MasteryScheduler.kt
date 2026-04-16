@@ -19,21 +19,42 @@ object MasteryScheduler {
 
     private const val SKIP_LEVEL_INTERVAL_MS = 60 * 60 * 1000L // 飛び級を許可する最小間隔 (1時間)
 
-    fun getTier(level: Int): MasteryTier {
+    /**
+     * 現在のステータスから即時にティアを判定する
+     */
+    fun getTier(state: WordMasteryEntity): MasteryTier {
         return when {
-            level >= 10 -> MasteryTier.LONG_TERM_MASTER
-            level >= 5 -> MasteryTier.BASIC_MASTER
+            isLongTermMasteredNow(state) -> MasteryTier.LONG_TERM_MASTER
+            isBasicMasteredNow(state) -> MasteryTier.BASIC_MASTER
             else -> MasteryTier.LEARNING
         }
     }
 
     /**
+     * 基礎マスターの条件判定 (レベル5以上 + 全モード最低成功条件を満たしているか)
+     */
+    fun isBasicMasteredNow(state: WordMasteryEntity): Boolean {
+        return state.level >= 5 &&
+                state.enToJpCorrects >= 1 &&
+                state.jpToEnCorrects >= 2 &&
+                state.listenCorrects >= 1
+    }
+
+    /**
+     * 長期マスターの条件判定 (レベル10以上 + 複数回の定着を確認済みか)
+     */
+    fun isLongTermMasteredNow(state: WordMasteryEntity): Boolean {
+        return state.level >= 10 &&
+                state.enToJpCorrects >= 1 &&
+                state.jpToEnCorrects >= 3 &&
+                state.listenCorrects >= 3
+    }
+
+    /**
      * 正解時の状態更新
      */
-    fun onCorrect(state: WordMasteryEntity, isAudioRestricted: Boolean) {
+    fun onCorrect(state: WordMasteryEntity, actualMode: QuizMode, isAudioRestricted: Boolean) {
         val now = System.currentTimeMillis()
-        val currentMode = QuizMode.valueOf(state.scheduledMode)
-        val wasAudioRequired = currentMode == QuizMode.LISTEN_EN
 
         // 統計更新
         state.challengeCount++
@@ -42,14 +63,30 @@ object MasteryScheduler {
         if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak
 
         // モード別統計
-        when (currentMode) {
-            QuizMode.EN_TO_JP -> state.enToJpCorrects++
-            QuizMode.JP_TO_EN -> state.jpToEnCorrects++
-            QuizMode.LISTEN_EN -> if (!isAudioRestricted) state.listenCorrects++
+        when (actualMode) {
+            QuizMode.EN_TO_JP -> {
+                state.enToJpAttempts++
+                state.enToJpCorrects++
+            }
+            QuizMode.JP_TO_EN -> {
+                state.jpToEnAttempts++
+                state.jpToEnCorrects++
+            }
+            QuizMode.LISTEN_EN -> {
+                state.listenAttempts++
+                if (!isAudioRestricted) state.listenCorrects++
+            }
             else -> {}
         }
 
-        // 飛び級判定 (抑制ロジック)
+        // 音声復習待ちの解除
+        if (actualMode == QuizMode.LISTEN_EN && !isAudioRestricted) {
+            state.pendingListenReview = false
+        } else if (QuizMode.valueOf(state.scheduledMode) == QuizMode.LISTEN_EN && isAudioRestricted) {
+            state.pendingListenReview = true
+        }
+
+        // 飛び級判定
         val canSkip = state.currentStreak >= 3 && 
                       state.challengeCount >= 5 && 
                       (now - state.lastCorrectTime) >= SKIP_LEVEL_INTERVAL_MS
@@ -59,14 +96,6 @@ object MasteryScheduler {
         
         state.lastCorrectTime = now
 
-        // 音声制限時の特別扱い（借りを作る）
-        if (wasAudioRequired && isAudioRestricted) {
-            state.pendingListenReview = true
-            state.deferredListenCount++
-        } else if (wasAudioRequired) {
-            state.pendingListenReview = false
-        }
-
         applyTransition(state, nextLevel, isCorrect = true)
         updateMasteryStatus(state)
     }
@@ -74,10 +103,17 @@ object MasteryScheduler {
     /**
      * 不正解時の状態更新
      */
-    fun onWrong(state: WordMasteryEntity) {
+    fun onWrong(state: WordMasteryEntity, actualMode: QuizMode) {
         state.challengeCount++
         state.failureCount++
         state.currentStreak = 0
+
+        when (actualMode) {
+            QuizMode.EN_TO_JP -> state.enToJpAttempts++
+            QuizMode.JP_TO_EN -> state.jpToEnAttempts++
+            QuizMode.LISTEN_EN -> state.listenAttempts++
+            else -> {}
+        }
 
         // レベルダウン
         val nextLevel = when (state.level) {
@@ -107,8 +143,8 @@ object MasteryScheduler {
     private fun getSuccessTransition(level: Int): Pair<Long, QuizMode> {
         return when (level) {
             1 -> TimeUnit.MINUTES.toMillis(10) to QuizMode.JP_TO_EN
-            2 -> TimeUnit.MINUTES.toMillis(30) to QuizMode.LISTEN_EN
-            3 -> TimeUnit.DAYS.toMillis(1) to QuizMode.JP_TO_EN
+            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.LISTEN_EN
+            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.JP_TO_EN
             4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.LISTEN_EN
             5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.JP_TO_EN
             6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.LISTEN_EN
@@ -124,20 +160,11 @@ object MasteryScheduler {
         return TimeUnit.MINUTES.toMillis(10) to QuizMode.EN_TO_JP
     }
 
+    /**
+     * エンティティのフラグを最新の判定結果で更新する
+     */
     fun updateMasteryStatus(state: WordMasteryEntity) {
-        // 称号維持ルール
-        if (!state.isBasicMastered) {
-            state.isBasicMastered = state.level >= 5 &&
-                    state.enToJpCorrects >= 1 &&
-                    state.jpToEnCorrects >= 2 &&
-                    state.listenCorrects >= 1
-        }
-
-        if (!state.isLongTermMastered) {
-            state.isLongTermMastered = state.level >= 10 &&
-                    state.enToJpCorrects >= 1 &&
-                    state.jpToEnCorrects >= 3 &&
-                    state.listenCorrects >= 3
-        }
+        state.isBasicMastered = isBasicMasteredNow(state)
+        state.isLongTermMastered = isLongTermMasteredNow(state)
     }
 }

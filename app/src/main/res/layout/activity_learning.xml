@@ -8,7 +8,7 @@
     android:background="@color/app_background"
     android:padding="16dp">
 
-    <!-- 1. Mastery Journey Card (外部ファイルに一本化) -->
+    <!-- 1. Mastery Journey Card -->
     <include
         android:id="@+id/layout_journey_header"
         layout="@layout/layout_journey_header"
@@ -50,7 +50,6 @@
         app:layout_constraintBottom_toTopOf="@id/layout_bottom_actions"
         app:layout_constraintTop_toBottomOf="@id/progress_horizontal">
 
-        <!-- クイズカード -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_question"
             style="@style/Widget.Material3.CardView.Elevated"
@@ -76,7 +75,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <!-- 出題単語の級バッジ (新設位置) -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_question_grade_badge"
                     android:layout_width="wrap_content"
@@ -153,6 +151,15 @@
             layout="@layout/layout_review_card"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <!-- 飛び級バッジ用 include -->
+        <include
+            android:id="@+id/layout_flying_levelup"
+            layout="@layout/layout_flying_levelup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:visibility="gone" />
 
     </FrameLayout>

@@ -25,21 +25,20 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="目標: 準2級" />
 
-        <!-- メタチップ列: 左端に固定 (級バッジを削除済み) -->
+        <!-- 1. メタチップ列: 左端(START)に固定 / 文字サイズ15sp -->
         <LinearLayout
             android:id="@+id/layout_meta_chips"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            app:layout_constrainedWidth="true"
             app:layout_constraintEnd_toStartOf="@+id/layout_mode_pill"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_target_level">
 
-            <!-- 基礎マスター数 -->
+            <!-- 基礎数 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -50,7 +49,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="8dp"
+                    android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp">
                     <ImageView
                         android:layout_width="16dp"
@@ -70,7 +69,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 長期マスター数 -->
+            <!-- 長期数 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -82,7 +81,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="8dp"
+                    android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp">
                     <ImageView
                         android:layout_width="16dp"
@@ -102,7 +101,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- PT表示 -->
+            <!-- PT表示: 15sp / 〇PT形式 -->
             <TextView
                 android:id="@+id/text_session_points_summary"
                 android:layout_width="wrap_content"
@@ -114,7 +113,7 @@
                 tools:text="120PT" />
         </LinearLayout>
 
-        <!-- モードピル: 右端に固定 -->
+        <!-- 2. モードピル: 右端(END)に固定 -->
         <include
             android:id="@+id/layout_mode_pill"
             layout="@layout/layout_mode_pill"
@@ -124,6 +123,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/layout_meta_chips" />
 
+        <!-- 3. 進捗レール -->
         <com.example.studylockapp.learning.MasteryProgressView
             android:id="@+id/mastery_progress_rail"
             android:layout_width="match_parent"
