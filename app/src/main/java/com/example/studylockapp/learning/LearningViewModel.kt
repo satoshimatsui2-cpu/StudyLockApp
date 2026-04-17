@@ -3,13 +3,14 @@ package com.example.studylockapp.learning
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.studylockapp.data.CsvImporter
+import com.example.studylockapp.data.TsvImporter
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.db.WordDao
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.SilentMode
 import com.example.studylockapp.data.db.WordMasteryDao
+import com.example.studylockapp.data.db.WordMasteryEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * 学習画面のメイン ViewModel。
+ * TSV形式のデータ層（TsvImporter / ChoiceGenerator）に準拠し、
+ * 旧形式の phonetic 等のフィールド参照を完全に排除しつつ、習得度演出ロジックを維持しています。
+ */
 class LearningViewModel(
     private val context: Context,
     private val wordDao: WordDao,
@@ -51,18 +57,17 @@ class LearningViewModel(
         _uiState.update { state -> state.copy(silentMode = currentSilent) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            CsvImporter.seedIfNeeded(context, wordDao)
+            // TsvImporter によるシード処理
+            TsvImporter(context, wordDao).seedIfNeeded()
         }
     }
 
-    // 学習音声設定の切り替え (通常 <-> サイレント)
     fun toggleSilentMode() {
         val nextMode = if (_uiState.value.silentMode == SilentMode.OFF) SilentMode.ON else SilentMode.OFF
         appSettings.silentMode = nextMode
         quizManager.silentMode = nextMode
         _uiState.update { state -> state.copy(silentMode = nextMode) }
 
-        // サイレントにした時に説明未表示なら、説明イベントを飛ばす
         if (nextMode == SilentMode.ON && !appSettings.hasShownSilentExplanation) {
             viewModelScope.launch {
                 _uiEvent.send(LearningUiEvent.ShowSilentModeExplanation)
@@ -70,7 +75,6 @@ class LearningViewModel(
         }
     }
 
-    // 「今後表示しない」の保存
     fun markSilentExplanationShown() {
         appSettings.hasShownSilentExplanation = true
     }
@@ -93,7 +97,6 @@ class LearningViewModel(
                 val importance = quiz.mode.getAudioImportance()
                 val hasRisk = audioChecker.isSilenceRisk()
                 
-                // サイレントモード時は警告を出さない
                 val isSilent = _uiState.value.silentMode == SilentMode.ON
                 val warning = if (!isSilent && hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || importance == QuizMode.AudioImportance.OPTIONAL)) {
                     AudioWarningState(
@@ -105,10 +108,9 @@ class LearningViewModel(
                 val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
                 val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
                 
-                // バグ修正: 現在の単語の MasteryEntity を取得して getTier に渡す
                 val mastery = withContext(Dispatchers.IO) {
                     masteryDao.getMastery(quiz.word.no)
-                } ?: com.example.studylockapp.data.db.WordMasteryEntity(wordId = quiz.word.no)
+                } ?: WordMasteryEntity(wordId = quiz.word.no)
                 
                 val currentTier = MasteryScheduler.getTier(mastery)
 
@@ -129,7 +131,6 @@ class LearningViewModel(
                     ) 
                 }
                 
-                // 通常モードなら自動再生
                 if (!isSilent) {
                     val shouldAutoPlay = when (importance) {
                         QuizMode.AudioImportance.REQUIRED -> true
@@ -150,9 +151,7 @@ class LearningViewModel(
     }
 
     fun requestAudioPlayback(text: String? = null) {
-        // サイレントモード時はリクエスト自体を無効化 (手動再生も音を出さない)
         if (_uiState.value.silentMode == SilentMode.ON) return
-
         val playText = text ?: _uiState.value.quiz?.word?.word ?: return
         viewModelScope.launch {
             _uiEvent.send(LearningUiEvent.PlayAudio(playText))
@@ -168,20 +167,27 @@ class LearningViewModel(
             val wordId = currentQuiz.word.no
             val oldLevel = quizManager.getMasteryLevel(wordId)
             
-            // バグ修正: 回答提出前後の MasteryEntity を取得して正確な Tier を比較する
-            val oldMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: com.example.studylockapp.data.db.WordMasteryEntity(wordId = wordId)
+            val oldMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val oldTier = MasteryScheduler.getTier(oldMastery)
 
             quizManager.submitAnswer(currentQuiz.word, selectedAnswer == currentQuiz.answer, currentQuiz.mode)
 
-            val newMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: com.example.studylockapp.data.db.WordMasteryEntity(wordId = wordId)
+            val newMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val newLevel = newMastery.level
             val newTier = MasteryScheduler.getTier(newMastery)
             
             val isLevelUp = newLevel > oldLevel
             if (isLevelUp) levelUpsInSession++
-            if (oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER) basicMastersInSession++
-            if (oldTier != MasteryTier.LONG_TERM_MASTER && newTier == MasteryTier.LONG_TERM_MASTER) longTermMastersInSession++
+            
+            // 習得度変化の検知とイベント発火
+            if (oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER) {
+                basicMastersInSession++
+                _uiEvent.send(LearningUiEvent.ShowBasicMasterCelebration)
+            }
+            if (oldTier != MasteryTier.LONG_TERM_MASTER && newTier == MasteryTier.LONG_TERM_MASTER) {
+                longTermMastersInSession++
+                _uiEvent.send(LearningUiEvent.ShowLongTermMasterCelebration)
+            }
 
             solvedInSession++
             val isCorrect = (selectedAnswer == currentQuiz.answer)
@@ -227,7 +233,6 @@ class LearningViewModel(
             if (isCorrect) {
                 withContext(Dispatchers.IO) { pointManager.add(10) }
                 
-                // 飛び級判定 (2段階以上のアップ)
                 if (newLevel - oldLevel >= 2) {
                     _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
                 }

@@ -15,10 +15,14 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             val db = AppDatabase.getInstance(context.applicationContext)
             val wordDao = db.wordDao()
             val masteryDao = db.wordMasteryDao()
-            val quizManager = QuizManager(wordDao, masteryDao)
+            
+            val appSettings = AppSettings(context.applicationContext)
+            // AppSettings.currentLearningGrade は String 型なので、toIntOrNull() で Int に変換
+            val userLevel = appSettings.currentLearningGrade.toIntOrNull() ?: 2
+            
+            val quizManager = QuizManager(wordDao, masteryDao, userLevel = userLevel)
             val pointManager = PointManager(context.applicationContext)
             val audioChecker = LearningAudioStateChecker(context.applicationContext)
-            val appSettings = AppSettings(context.applicationContext)
             
             val requiredWarningText = context.getString(R.string.warning_audio_required)
             val optionalWarningText = context.getString(R.string.warning_audio_optional)

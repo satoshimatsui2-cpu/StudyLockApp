@@ -29,4 +29,10 @@ sealed class LearningUiEvent {
         val oldLevel: Int,
         val newLevel: Int
     ) : LearningUiEvent()
+
+    // 基礎マスター達成時の専用演出
+    object ShowBasicMasterCelebration : LearningUiEvent()
+
+    // 長期マスター達成時の専用演出
+    object ShowLongTermMasterCelebration : LearningUiEvent()
 }

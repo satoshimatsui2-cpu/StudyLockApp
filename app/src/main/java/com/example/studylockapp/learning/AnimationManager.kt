@@ -39,6 +39,28 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
     }
 
     /**
+     * 習得度達成（基礎マスター / 長期マスター）の特別演出
+     */
+    fun playMasterCelebration(isLongTerm: Boolean) {
+        // ここではヘッダーの強調アニメーションを再利用しますが、
+        // 将来的には Lottie や全画面演出を追加可能な口として定義
+        val headerView = binding.layoutJourneyHeader.root
+        headerView.animate()
+            .scaleX(1.15f)
+            .scaleY(1.15f)
+            .setDuration(400)
+            .setInterpolator(OvershootInterpolator())
+            .withEndAction {
+                headerView.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(300)
+                    .start()
+            }
+            .start()
+    }
+
+    /**
      * 飛び級特別演出
      */
     fun playFlyingLevelUp(oldLevel: Int, newLevel: Int) {
@@ -69,9 +91,6 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
                     .start()
             }
             .start()
-            
-        // 注意: ゲージのアニメーションは Compose 側で自動的に行われるため、
-        // ここでの古いプロパティ (masteryProgressRail) への参照は削除しました。
     }
 
     private fun showReward(point: Int) {

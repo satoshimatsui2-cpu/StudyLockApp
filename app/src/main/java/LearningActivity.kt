@@ -189,6 +189,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.ShowFlyingLevelUp -> {
                 animationManager.playFlyingLevelUp(event.oldLevel, event.newLevel)
             }
+            is LearningUiEvent.ShowBasicMasterCelebration -> {
+                animationManager.playMasterCelebration(isLongTerm = false)
+            }
+            is LearningUiEvent.ShowLongTermMasterCelebration -> {
+                animationManager.playMasterCelebration(isLongTerm = true)
+            }
         }
     }
 

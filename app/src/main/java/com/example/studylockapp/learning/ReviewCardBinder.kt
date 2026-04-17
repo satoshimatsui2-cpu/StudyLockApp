@@ -6,8 +6,8 @@ import com.example.studylockapp.R
 import com.example.studylockapp.databinding.LayoutReviewCardBinding
 
 /**
- * レビューカードの表示（バインド）を担当するクラス
- * 全体Bindingを渡さず、専用の LayoutReviewCardBinding のみに制限
+ * レビューカードの表示（バインド）を担当するクラス。
+ * 新スキーマに合わせて発音記号(phonetic)の表示ロジックを完全に削除しました。
  */
 object ReviewCardBinder {
     fun bind(binding: LayoutReviewCardBinding, model: ReviewCardUiModel) {
@@ -24,22 +24,22 @@ object ReviewCardBinder {
             binding.layoutReviewPhoneticRow.visibility = View.GONE
             binding.layoutListeningCompare.visibility = View.VISIBLE
             
-            // 聞き比べカードへバインド
+            // 聞き比べ表示（発音記号なし、単語のみ）
             binding.includeWrong.apply {
                 labelCompare.text = context.getString(R.string.review_label_your_answer)
                 labelCompare.setTextColor(ContextCompat.getColor(context, R.color.choice_wrong))
                 textWord.text = model.wrongAnswerText
-                textPhonetic.text = model.compareWrongPhonetic
+                textPhonetic.visibility = View.GONE
             }
             binding.includeCorrect.apply {
                 labelCompare.text = context.getString(R.string.review_label_correct_answer)
                 labelCompare.setTextColor(ContextCompat.getColor(context, R.color.choice_correct))
                 textWord.text = model.correctAnswerText
-                textPhonetic.text = model.compareCorrectPhonetic
+                textPhonetic.visibility = View.GONE
             }
         } else {
             binding.containerResults.visibility = View.VISIBLE
-            binding.layoutReviewPhoneticRow.visibility = View.VISIBLE
+            binding.layoutReviewPhoneticRow.visibility = View.GONE // 新スキーマに phonetic がないため常時非表示
             binding.layoutListeningCompare.visibility = View.GONE
 
             // 通常の結果表示
@@ -48,8 +48,7 @@ object ReviewCardBinder {
             binding.textReviewAnswerCorrect.text = model.correctAnswerText
         }
 
-        // 3. 詳細 (共通)
-        binding.textReviewPhonetic.text = model.phonetic
+        // 3. 詳細 (例文のみ)
         binding.textReviewSentence.text = model.sentence
         binding.textReviewSentenceJp.text = model.sentenceJp
 

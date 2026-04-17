@@ -5,7 +5,8 @@ import com.example.studylockapp.R
 import com.example.studylockapp.data.SilentMode
 
 /**
- * レビューカードの表示用モデル
+ * レビューカードの表示用モデル。
+ * 旧 WordEntity に存在した phonetic 関連のフィールドを廃止しました。
  */
 data class ReviewCardUiModel(
     val modeChipText: String,
@@ -15,9 +16,6 @@ data class ReviewCardUiModel(
     val showWrongResult: Boolean,
     val wrongAnswerText: String,
     val correctAnswerText: String,
-    val compareWrongPhonetic: String,
-    val compareCorrectPhonetic: String,
-    val phonetic: String,
     val sentence: String,
     val sentenceJp: String,
     val playButtonsEnabled: Boolean
@@ -41,9 +39,6 @@ object ReviewCardMapper {
             showWrongResult = !state.isLastAnswerCorrect,
             wrongAnswerText = state.reviewUserAnswerText,
             correctAnswerText = state.reviewCorrectAnswerText,
-            compareWrongPhonetic = state.wrongWord?.phonetic ?: "",
-            compareCorrectPhonetic = state.currentWord?.phonetic ?: "",
-            phonetic = state.currentWord?.phonetic ?: "",
             sentence = state.currentWord?.sentence ?: "",
             sentenceJp = state.currentWord?.japaneseSentence ?: "",
             playButtonsEnabled = (state.silentMode == SilentMode.OFF)
