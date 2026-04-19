@@ -2,6 +2,7 @@ package com.example.studylockapp
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -30,6 +31,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private lateinit var ttsController: LearningTtsController
     
     private var currentQuizId: String? = null
+    private var defaultQuestionBodyTextSize: Float = 0f
 
     private val viewModel: LearningViewModel by viewModels {
         LearningViewModelFactory(this)
@@ -60,6 +62,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         animationManager = AnimationManager(binding)
         soundEffectManager = SoundEffectManager(this)
         ttsController = LearningTtsController(this)
+
+        // デフォルトの文字サイズを保存
+        defaultQuestionBodyTextSize = binding.textQuestionBody.textSize
 
         observeViewModel()
 
@@ -259,6 +264,13 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 btn.visibility = View.GONE
             }
         }
+    }
+
+    override fun setQuestionBodyTextScale(scale: Float) {
+        binding.textQuestionBody.setTextSize(
+            TypedValue.COMPLEX_UNIT_PX,
+            defaultQuestionBodyTextSize * scale
+        )
     }
 
     override fun playAudio(text: String) {

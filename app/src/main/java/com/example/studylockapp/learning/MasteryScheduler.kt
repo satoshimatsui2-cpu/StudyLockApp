@@ -27,13 +27,20 @@ object MasteryScheduler {
         }
     }
 
+    /**
+     * 基礎マスターの条件判定 (既存ロジック維持)
+     * jpToEnCorrects は 2 回必要。
+     */
     fun isBasicMasteredNow(state: WordMasteryEntity): Boolean {
         return state.level >= 5 &&
                 state.enToJpCorrects >= 1 &&
-                state.jpToEnCorrects >= 1 &&
+                state.jpToEnCorrects >= 2 &&
                 state.listenCorrects >= 1
     }
 
+    /**
+     * 長期マスターの条件判定 (既存ロジック維持)
+     */
     fun isLongTermMasteredNow(state: WordMasteryEntity): Boolean {
         return state.level >= 10 &&
                 state.enToJpCorrects >= 1 &&
@@ -41,6 +48,9 @@ object MasteryScheduler {
                 state.listenCorrects >= 3
     }
 
+    /**
+     * 正解時の状態更新
+     */
     fun onCorrect(state: WordMasteryEntity, actualMode: QuizMode, isAudioRestricted: Boolean) {
         val now = System.currentTimeMillis()
         state.challengeCount++
@@ -48,12 +58,13 @@ object MasteryScheduler {
         state.currentStreak++
         if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak
 
+        // モード別統計 (FILL_BLANK は JP_TO_EN の統計に含める)
         when (actualMode) {
             QuizMode.EN_TO_JP -> {
                 state.enToJpAttempts++
                 state.enToJpCorrects++
             }
-            QuizMode.JP_TO_EN -> {
+            QuizMode.JP_TO_EN, QuizMode.FILL_BLANK -> {
                 state.jpToEnAttempts++
                 state.jpToEnCorrects++
             }
@@ -82,14 +93,23 @@ object MasteryScheduler {
         updateMasteryStatus(state)
     }
 
+    /**
+     * 不正解時の状態更新
+     */
     fun onWrong(state: WordMasteryEntity, actualMode: QuizMode) {
         state.challengeCount++
         state.failureCount++
         state.currentStreak = 0
 
+        when (actualMode) {
+            QuizMode.EN_TO_JP -> state.enToJpAttempts++
+            QuizMode.JP_TO_EN, QuizMode.FILL_BLANK -> state.jpToEnAttempts++
+            QuizMode.LISTEN_EN -> state.listenAttempts++
+            else -> {}
+        }
+
         val nextLevel = when (state.level) {
-            10 -> 7
-            9 -> 7
+            10, 9 -> 7
             else -> (state.level - 1).coerceAtLeast(0)
         }
 
@@ -111,15 +131,19 @@ object MasteryScheduler {
         state.scheduledMode = nextMode.name
     }
 
+    /**
+     * 単語の習熟度(レベル)に合わせた学習フロー。
+     * 段階的に負荷を上げ、想起と文脈理解を繰り返します。
+     */
     private fun getSuccessTransition(level: Int): Pair<Long, QuizMode> {
         return when (level) {
-            1 -> TimeUnit.MINUTES.toMillis(10) to QuizMode.FILL_BLANK
-            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.LISTEN_EN
-            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.JP_TO_EN
-            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.FILL_BLANK
-            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.LISTEN_EN
-            6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.JP_TO_EN
-            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.FILL_BLANK
+            1 -> TimeUnit.MINUTES.toMillis(1) to QuizMode.FILL_BLANK
+            2 -> TimeUnit.MINUTES.toMillis(1) to QuizMode.FILL_BLANK
+            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.FILL_BLANK // L3で穴埋め導入
+            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.LISTEN_EN
+            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.JP_TO_EN
+            6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.LISTEN_EN
+            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.FILL_BLANK // L7で穴埋め再登場
             8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.LISTEN_EN
             9 -> TimeUnit.DAYS.toMillis(60) to QuizMode.JP_TO_EN
             10 -> TimeUnit.DAYS.toMillis(90) to QuizMode.LISTEN_EN
