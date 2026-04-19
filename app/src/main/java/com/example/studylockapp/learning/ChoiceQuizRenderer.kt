@@ -3,16 +3,18 @@ package com.example.studylockapp.learning
 import com.example.studylockapp.R
 
 /**
- * 4択形式のクイズ（JP_TO_EN, EN_TO_JP, LISTEN_EN）を統合して描画するRenderer
+ * 4択形式のクイズ（JP_TO_EN, EN_TO_JP, LISTEN_EN, SYNONYM_PICK, ANTONYM_PICK）を描画するRenderer
  */
 class ChoiceQuizRenderer : QuizRenderer {
     override fun render(ui: QuizUiProvider, quiz: QuizData) {
-        // 通常の文字サイズに戻す
+        // 文字サイズをリセット
         ui.setQuestionBodyTextScale(1.0f)
 
         val title = when (quiz.mode) {
             QuizMode.EN_TO_JP -> ui.getString(R.string.question_title_en_to_jp)
             QuizMode.LISTEN_EN -> ui.getString(R.string.question_title_listening)
+            QuizMode.SYNONYM_PICK -> "この類義語を選んでください。"
+            QuizMode.ANTONYM_PICK -> "この対義語を選んでください。"
             else -> ui.getString(R.string.question_title_meaning)
         }
         
@@ -20,6 +22,7 @@ class ChoiceQuizRenderer : QuizRenderer {
         val body = if (quiz.mode == QuizMode.LISTEN_EN) {
             ui.getString(R.string.label_listen_placeholder)
         } else {
+            // SYNONYM_PICK / ANTONYM_PICK の場合も含め、本文は quiz.question (word.trim()) を表示
             quiz.question
         }
         

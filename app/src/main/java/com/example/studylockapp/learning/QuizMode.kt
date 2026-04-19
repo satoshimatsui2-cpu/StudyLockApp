@@ -6,6 +6,8 @@ enum class QuizMode {
     LISTEN_EN,         // 音声単語 -> 英語(4択)
     FILL_BLANK,        // 文脈穴埋め(4択)
     LISTEN_FILL_BLANK, // 文脈リスニング穴埋め(4択)
+    SYNONYM_PICK,      // 類義語選び(4択)
+    ANTONYM_PICK,      // 対義語選び(4択)
     SORT;              // 並べ替え
 
     /**
