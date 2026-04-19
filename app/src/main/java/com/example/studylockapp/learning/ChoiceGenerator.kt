@@ -11,27 +11,35 @@ class ChoiceGenerator {
 
     fun generateChoices(word: WordEntity, mode: QuizMode): List<String> {
         val (correct, candidates) = when (mode) {
-            QuizMode.EN_TO_JP -> word.japanese to word.choicesEnJa
-            QuizMode.JP_TO_EN -> word.word to word.choicesJaEn
-            QuizMode.LISTEN_EN -> word.word to word.choicesListening
-            QuizMode.FILL_BLANK -> word.word to word.choicesJaEn // 穴埋めも単語想起なので ja_en を使用
+            QuizMode.EN_TO_JP -> word.japanese.trim() to word.choicesEnJa
+            QuizMode.JP_TO_EN,
+            QuizMode.FILL_BLANK,
+            QuizMode.LISTEN_FILL_BLANK -> word.word.trim() to word.choicesJaEn
+            QuizMode.LISTEN_EN -> word.word.trim() to word.choicesListening
             else -> return emptyList()
         }
 
         val result = mutableSetOf<String>()
+        // 1. 正解を必ず含める
         result.add(correct)
 
-        val filteredCandidates = candidates.filter { it != correct && it.isNotBlank() }.shuffled()
+        // 2. 対応する候補配列からランダムに選び、重複を除去しながら追加
+        val filteredCandidates = candidates
+            .filter { it.trim() != correct && it.isNotBlank() }
+            .shuffled()
+        
         filteredCandidates.forEach {
             if (result.size < 4) {
-                result.add(it)
+                result.add(it.trim())
             }
         }
 
+        // 3. 候補が不足している場合の警告ログ
         if (result.size < 4) {
-            Log.w(TAG, "Insufficient choices for word '${word.word}' in mode $mode.")
+            Log.w(TAG, "Insufficient choices for word '${word.word}' in mode $mode. Found only ${result.size} choices.")
         }
 
+        // 4. 最後にシャッフルして返す
         return result.toList().shuffled()
     }
 }

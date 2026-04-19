@@ -58,7 +58,7 @@ object MasteryScheduler {
         state.currentStreak++
         if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak
 
-        // モード別統計 (FILL_BLANK は JP_TO_EN の統計に含める)
+        // モード別統計 (FILL_BLANK は JP_TO_EN の統計に含める, LISTEN_FILL_BLANK は LISTEN_EN に含める)
         when (actualMode) {
             QuizMode.EN_TO_JP -> {
                 state.enToJpAttempts++
@@ -68,7 +68,7 @@ object MasteryScheduler {
                 state.jpToEnAttempts++
                 state.jpToEnCorrects++
             }
-            QuizMode.LISTEN_EN -> {
+            QuizMode.LISTEN_EN, QuizMode.LISTEN_FILL_BLANK -> {
                 state.listenAttempts++
                 if (!isAudioRestricted) state.listenCorrects++
             }
@@ -104,7 +104,7 @@ object MasteryScheduler {
         when (actualMode) {
             QuizMode.EN_TO_JP -> state.enToJpAttempts++
             QuizMode.JP_TO_EN, QuizMode.FILL_BLANK -> state.jpToEnAttempts++
-            QuizMode.LISTEN_EN -> state.listenAttempts++
+            QuizMode.LISTEN_EN, QuizMode.LISTEN_FILL_BLANK -> state.listenAttempts++
             else -> {}
         }
 
@@ -137,14 +137,14 @@ object MasteryScheduler {
      */
     private fun getSuccessTransition(level: Int): Pair<Long, QuizMode> {
         return when (level) {
-            1 -> TimeUnit.MINUTES.toMillis(1) to QuizMode.FILL_BLANK
-            2 -> TimeUnit.MINUTES.toMillis(1) to QuizMode.FILL_BLANK
-            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.FILL_BLANK // L3で穴埋め導入
-            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.LISTEN_EN
-            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.JP_TO_EN
+            1 -> TimeUnit.MINUTES.toMillis(1) to QuizMode.LISTEN_FILL_BLANK
+            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.LISTEN_FILL_BLANK
+            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.FILL_BLANK 
+            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.JP_TO_EN
+            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.LISTEN_FILL_BLANK // L5で新モード
             6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.LISTEN_EN
-            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.FILL_BLANK // L7で穴埋め再登場
-            8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.LISTEN_EN
+            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.FILL_BLANK 
+            8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.LISTEN_FILL_BLANK // L8で新モード
             9 -> TimeUnit.DAYS.toMillis(60) to QuizMode.JP_TO_EN
             10 -> TimeUnit.DAYS.toMillis(90) to QuizMode.LISTEN_EN
             else -> TimeUnit.DAYS.toMillis(120) to QuizMode.JP_TO_EN

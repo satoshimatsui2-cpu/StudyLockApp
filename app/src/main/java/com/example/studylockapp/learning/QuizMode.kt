@@ -1,11 +1,12 @@
 package com.example.studylockapp.learning
 
 enum class QuizMode {
-    JP_TO_EN,      // 日本語 -> 英語(4択)
-    EN_TO_JP,      // 英語 -> 日本語(4択)
-    LISTEN_EN,     // 音声 -> 英語(4択)
-    FILL_BLANK,    // 穴埋め
-    SORT;          // 並べ替え
+    JP_TO_EN,          // 日本語 -> 英語(4択)
+    EN_TO_JP,          // 英語 -> 日本語(4択)
+    LISTEN_EN,         // 音声単語 -> 英語(4択)
+    FILL_BLANK,        // 文脈穴埋め(4択)
+    LISTEN_FILL_BLANK, // 文脈リスニング穴埋め(4択)
+    SORT;              // 並べ替え
 
     /**
      * 音声の重要度
@@ -17,7 +18,7 @@ enum class QuizMode {
     }
 
     fun getAudioImportance(): AudioImportance = when (this) {
-        LISTEN_EN -> AudioImportance.REQUIRED
+        LISTEN_EN, LISTEN_FILL_BLANK -> AudioImportance.REQUIRED
         EN_TO_JP -> AudioImportance.OPTIONAL
         else -> AudioImportance.NONE
     }

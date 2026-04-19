@@ -69,7 +69,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         observeViewModel()
 
         if (savedInstanceState == null) {
-            // 初回はインポート完了を待機する loadInitialQuiz を呼び出す
             viewModel.loadInitialQuiz()
         }
 
@@ -77,13 +76,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun setupListeners() {
-        // 1. モードピル (ネストされたBindingを参照)
         binding.layoutJourneyHeader.layoutModePill.rootModePill.setOnClickListener {
             animationManager.playModeToggleClick(it)
             viewModel.toggleSilentMode()
         }
 
-        // 2. 基本操作 (部品Binding経由)
         binding.layoutReviewCard.buttonNextQuestion.setOnClickListener {
             viewModel.onNextAfterReview()
         }
@@ -129,13 +126,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun updateUi(state: LearningUiState) {
-        // 1. モードピルの描画
         ModePillBinder.bind(binding.layoutJourneyHeader.layoutModePill, ModePillMapper.map(state.silentMode))
-        
-        // 2. ヘッダー全体の描画 (メタチップ 15sp化・左寄せ・PT統合)
         JourneyHeaderBinder.bind(binding.layoutJourneyHeader, JourneyHeaderMapper.map(state))
 
-        // 3. レビューカードの描画
         if (state.isReviewing && state.currentWord != null) {
             binding.cardQuestion.visibility = View.GONE
             binding.layoutReviewCard.rootReviewCard.visibility = View.VISIBLE
@@ -145,11 +138,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             binding.cardQuestion.visibility = View.VISIBLE
         }
 
-        // 4. セッション全体の進捗バー
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
-        // 5. クイズ描画
         renderQuizIfNeeded(state)
     }
 
@@ -166,7 +157,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private fun handleEvent(event: LearningUiEvent) {
         when (event) {
             is LearningUiEvent.ShowCorrect -> {
-                if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
+                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playCorrect(1.0f)
                 }
                 val correctBtn = choiceButtons.find { it.text == event.answer }
@@ -175,7 +166,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.ShowWrong -> {
-                if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
+                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playWrong(1.0f)
                 }
                 val selectedBtn = choiceButtons.find { it.text == event.selected }
@@ -185,7 +176,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.PlayAudio -> {
-                if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
+                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     ttsController.speak(event.text)
                 }
             }
@@ -209,9 +200,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             .setTitle(R.string.silent_mode_explanation_title)
             .setMessage(R.string.silent_mode_explanation_body)
             .setPositiveButton(R.string.ok, null)
-            .setNeutralButton(R.string.action_dont_show_again) { _, _ ->
-                viewModel.markSilentExplanationShown()
-            }
             .show()
     }
 
@@ -221,14 +209,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_text_default))
             strokeColor = android.content.res.ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_stroke_default))
             strokeWidth = resources.getDimensionPixelSize(R.dimen.choice_button_stroke_width_default)
-            alpha = 1.0f
-            scaleX = 1.0f
-            scaleY = 1.0f
-            translationX = 0f
-            translationY = 0f
-            isEnabled = true
-            isClickable = true
-            clearAnimation()
+            alpha = 1.0f; scaleX = 1.0f; scaleY = 1.0f; translationX = 0f; translationY = 0f
+            isEnabled = true; isClickable = true; clearAnimation()
         }
     }
 
@@ -238,11 +220,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
         resetAllChoiceButtons()
         
-        // 1. 問題カード内の情報を一括更新
         binding.textQuestionTitle.text = title
         binding.textQuestionBody.text = body
         
-        // 2. 現在の単語の級バッジを更新・表示
         viewModel.uiState.value.quiz?.word?.let { word ->
             binding.textQuestionGradeBadge.text = GradeLabelFormatter.format(word.grade)
             binding.cardQuestionGradeBadge.visibility = View.VISIBLE
@@ -274,7 +254,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     override fun playAudio(text: String) {
-        if (viewModel.uiState.value.silentMode == com.example.studylockapp.data.SilentMode.OFF) {
+        if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
             ttsController.speak(text)
         }
     }

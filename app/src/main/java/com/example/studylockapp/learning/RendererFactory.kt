@@ -6,8 +6,11 @@ class RendererFactory {
             return when (mode) {
                 QuizMode.JP_TO_EN,
                 QuizMode.EN_TO_JP,
-                QuizMode.LISTEN_EN -> ChoiceQuizRenderer() // 4択系は統合
+                QuizMode.LISTEN_EN -> ChoiceQuizRenderer()
+
                 QuizMode.FILL_BLANK -> FillBlankRenderer()
+                QuizMode.LISTEN_FILL_BLANK -> ListenFillBlankRenderer()
+
                 QuizMode.SORT -> SortRenderer()
             }
         }

@@ -23,7 +23,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * 学習画面のメイン ViewModel。
- * 初回起動時のインポート完了を待機してから出題を開始するように修正されました。
+ * 演出・インポート待機・詳細表示など、すべての既存重要ロジックを保持したまま
+ * 新モード LISTEN_FILL_BLANK の音声再生・ラベル対応を追加しました。
  */
 class LearningViewModel(
     private val context: Context,
@@ -68,29 +69,24 @@ class LearningViewModel(
     fun loadInitialQuiz() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            
             withContext(Dispatchers.IO) {
-                // インポート完了を待つ
+                // インポート完了を確実に待機 (既存の重要ロジック)
                 TsvImporter(context, wordDao).seedIfNeeded()
                 
-                // 診断ログ
                 val total = wordDao.countAllWords()
                 val currentGrade = appSettings.currentLearningGrade
                 Log.e(TAG, "[SeedCheck] import finished. totalWords=$total, currentGrade=$currentGrade")
             }
-            
             loadNextQuiz()
         }
     }
 
-    // 学習音声設定の切り替え (通常 <-> サイレント)
     fun toggleSilentMode() {
         val nextMode = if (_uiState.value.silentMode == SilentMode.OFF) SilentMode.ON else SilentMode.OFF
         appSettings.silentMode = nextMode
         quizManager.silentMode = nextMode
         _uiState.update { state -> state.copy(silentMode = nextMode) }
 
-        // サイレントにした時に説明未表示なら、説明イベントを飛ばす
         if (nextMode == SilentMode.ON && !appSettings.hasShownSilentExplanation) {
             viewModelScope.launch {
                 _uiEvent.send(LearningUiEvent.ShowSilentModeExplanation)
@@ -98,7 +94,6 @@ class LearningViewModel(
         }
     }
 
-    // 「今後表示しない」の保存
     fun markSilentExplanationShown() {
         appSettings.hasShownSilentExplanation = true
     }
@@ -121,7 +116,6 @@ class LearningViewModel(
                 val importance = quiz.mode.getAudioImportance()
                 val hasRisk = audioChecker.isSilenceRisk()
                 
-                // サイレントモード時は警告を出さない
                 val isSilent = _uiState.value.silentMode == SilentMode.ON
                 val warning = if (!isSilent && hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || importance == QuizMode.AudioImportance.OPTIONAL)) {
                     AudioWarningState(
@@ -133,7 +127,6 @@ class LearningViewModel(
                 val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
                 val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
                 
-                // 現在の単語の MasteryEntity を取得して現在の Tier を特定
                 val mastery = withContext(Dispatchers.IO) {
                     masteryDao.getMastery(quiz.word.no)
                 } ?: WordMasteryEntity(wordId = quiz.word.no)
@@ -157,7 +150,6 @@ class LearningViewModel(
                     ) 
                 }
                 
-                // 通常モードなら自動再生
                 if (!isSilent) {
                     val shouldAutoPlay = when (importance) {
                         QuizMode.AudioImportance.REQUIRED -> true
@@ -177,11 +169,22 @@ class LearningViewModel(
         loadNextQuiz()
     }
 
+    /**
+     * 音声再生をリクエストします。
+     * LISTEN_FILL_BLANK の場合は英文全体、それ以外は単語単体を再生するよう集約。
+     */
     fun requestAudioPlayback(text: String? = null) {
-        // サイレントモード時はリクエスト自体を無効化
         if (_uiState.value.silentMode == SilentMode.ON) return
 
-        val playText = text ?: _uiState.value.quiz?.word?.word ?: return
+        val playText = text ?: run {
+            val quiz = _uiState.value.quiz ?: return
+            if (quiz.mode == QuizMode.LISTEN_FILL_BLANK) {
+                quiz.word.sentence
+            } else {
+                quiz.word.word
+            }
+        }
+        
         viewModelScope.launch {
             _uiEvent.send(LearningUiEvent.PlayAudio(playText))
         }
@@ -196,13 +199,11 @@ class LearningViewModel(
             val wordId = currentQuiz.word.no
             val oldLevel = quizManager.getMasteryLevel(wordId)
             
-            // Tier 比較用に回答前の状態を取得
             val oldMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val oldTier = MasteryScheduler.getTier(oldMastery)
 
-            quizManager.submitAnswer(currentQuiz.word, selectedAnswer == currentQuiz.answer, currentQuiz.mode)
+            quizManager.submitAnswer(currentQuiz.word, selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase(), currentQuiz.mode)
 
-            // 回答後の状態を取得して Tier 変化を検知
             val newMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val newLevel = newMastery.level
             val newTier = MasteryScheduler.getTier(newMastery)
@@ -210,7 +211,6 @@ class LearningViewModel(
             val isLevelUp = newLevel > oldLevel
             if (isLevelUp) levelUpsInSession++
             
-            // 習得度変化の検知とイベント発火
             if (oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER) {
                 basicMastersInSession++
                 _uiEvent.send(LearningUiEvent.ShowBasicMasterCelebration)
@@ -221,15 +221,21 @@ class LearningViewModel(
             }
 
             solvedInSession++
-            val isCorrect = (selectedAnswer == currentQuiz.answer)
+            val isCorrect = (selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase())
             
             val modeLabel = when (currentQuiz.mode) {
                 QuizMode.EN_TO_JP -> "英語 → 日本語"
                 QuizMode.JP_TO_EN -> "日本語 → 英語"
                 QuizMode.LISTEN_EN -> "リスニング"
+                QuizMode.FILL_BLANK -> "穴埋め"
+                QuizMode.LISTEN_FILL_BLANK -> "リスニング(文脈)"
                 else -> currentQuiz.mode.name
             }
-            val questionText = if (currentQuiz.mode == QuizMode.LISTEN_EN) "聞こえた英単語" else currentQuiz.question
+            val questionText = when(currentQuiz.mode) {
+                QuizMode.LISTEN_EN -> "聞こえた英単語"
+                QuizMode.LISTEN_FILL_BLANK -> "聞こえた英文の空欄"
+                else -> currentQuiz.question
+            }
             val correctDisplay = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
                 currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
             } else {
@@ -243,7 +249,7 @@ class LearningViewModel(
                 }
             }
 
-            // Synonyms / Antonyms 判定ロジック
+            // Synonyms / Antonyms 判定 (復元)
             var synonymTitle: String? = null
             var synonymBody: String? = null
             if (!isCorrect && (currentQuiz.mode == QuizMode.JP_TO_EN || currentQuiz.mode == QuizMode.LISTEN_EN)) {
@@ -277,13 +283,9 @@ class LearningViewModel(
 
             if (isCorrect) {
                 withContext(Dispatchers.IO) { pointManager.add(10) }
-                
-                // 飛び級演出判定
                 if (newLevel - oldLevel >= 2) {
                     _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
                 }
-
-                // Tier変化の通知（LearningActivity 側で ShowMasteryBadge を受けて演出を行う）
                 _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, oldTier != newTier))
                 if (oldTier != newTier) {
                     _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))

@@ -11,16 +11,12 @@ import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.regex.Pattern
 
-/**
- * 学習の進行とモード決定を管理するクラス。
- */
 class QuizManager(
     private val wordDao: WordDao,
     private val masteryDao: WordMasteryDao,
     private var userLevel: Int = 2
 ) {
     private val choiceGenerator = ChoiceGenerator()
-    
     var silentMode: SilentMode = SilentMode.OFF
     private var pendingReviewPickedInSession = 0
 
@@ -34,70 +30,86 @@ class QuizManager(
     }
 
     suspend fun nextQuiz(): QuizData? = withContext(Dispatchers.IO) {
-        val word = selectNextWord()
-        if (word == null) {
-            Log.e(TAG, "[NextQuiz] FAILED: No candidates available.")
-            return@withContext null
-        }
-        
+        val word = selectNextWord() ?: return@withContext null
         val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
-        val scheduledMode = QuizMode.valueOf(mastery.scheduledMode)
-        val actualMode = determineActualMode(mastery, scheduledMode)
         
-        Log.d(TAG, "[NextQuiz] SELECTED: ${word.word} (ID:${word.no}), Mode: $actualMode, LV: ${mastery.level}")
-
+        val baseMode = determineActualMode(mastery, QuizMode.valueOf(mastery.scheduledMode))
+        val actualMode = resolveModeForWord(word, baseMode)
+        
         val choices = choiceGenerator.generateChoices(word, actualMode)
+        
+        // デバッグログ: 選択肢が空でないか確認
+        Log.e(TAG, "[ListenFillBlankDebug] mode=$actualMode, word=${word.word}, choices=${choices.joinToString()}")
             
         QuizData(
             id = UUID.randomUUID().toString(),
             mode = actualMode,
             word = word,
             question = when (actualMode) {
-                QuizMode.JP_TO_EN -> word.japanese
-                QuizMode.EN_TO_JP -> word.word
-                QuizMode.LISTEN_EN -> word.word
+                QuizMode.JP_TO_EN -> word.japanese.trim()
+                QuizMode.EN_TO_JP, QuizMode.LISTEN_EN -> word.word.trim()
                 QuizMode.FILL_BLANK -> createFillBlankQuestion(word)
-                else -> word.word
+                QuizMode.LISTEN_FILL_BLANK -> createListenFillBlankQuestion(word)
+                else -> word.word.trim()
             },
             choices = choices,
-            answer = if (actualMode == QuizMode.EN_TO_JP) word.japanese else word.word
+            answer = if (actualMode == QuizMode.EN_TO_JP) word.japanese.trim() else word.word.trim()
         )
     }
 
     /**
-     * 穴埋め問題用のテキストを生成します。
-     * word を ＿＿＿ に置換します。
+     * pos=phrase は穴埋め対象外。JP_TO_EN にフォールバック。
      */
-    private fun createFillBlankQuestion(word: WordEntity): String {
-        val sentence = word.sentence
-        if (sentence.isBlank()) return word.japanese
-
-        // 単語境界 (\b) を使って正確に置換を試みる。
-        val pattern = Pattern.compile("\\b" + Pattern.quote(word.word) + "\\b", Pattern.CASE_INSENSITIVE)
-        val matcher = pattern.matcher(sentence)
-        
-        val replacedSentence = if (matcher.find()) {
-            matcher.replaceAll("＿＿＿")
+    private fun resolveModeForWord(word: WordEntity, mode: QuizMode): QuizMode {
+        val isPhrase = word.pos.trim().lowercase() == "phrase"
+        return if ((mode == QuizMode.FILL_BLANK || mode == QuizMode.LISTEN_FILL_BLANK) && isPhrase) {
+            QuizMode.JP_TO_EN
         } else {
-            // 単語境界で見つからない場合は単純置換
-            if (sentence.contains(word.word, ignoreCase = true)) {
-                sentence.replace(word.word, "＿＿＿", ignoreCase = true)
-            } else {
-                sentence
-            }
+            mode
         }
-        
-        return "${word.japaneseSentence}\n\n$replacedSentence"
     }
 
+    private fun createFillBlankQuestion(word: WordEntity): String {
+        val blanked = createBlankedSentence(word)
+        return "${word.japaneseSentence.trim()}\n\n$blanked"
+    }
+
+    private fun createListenFillBlankQuestion(word: WordEntity): String {
+        return createBlankedSentence(word)
+    }
+
+    private fun createBlankedSentence(word: WordEntity): String {
+        val s = word.sentence.trim()
+        val w = word.word.trim()
+        if (s.isBlank()) return "(      )"
+
+        val flexibleWord = Pattern.quote(w).replace(" ", "\\s+")
+        val pattern = Pattern.compile("\\b$flexibleWord\\b", Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(s)
+        
+        return if (matcher.find()) {
+            matcher.replaceFirst("＿＿＿")
+        } else {
+            Log.e(TAG, "[FillBlankReplaceFailed] word=${word.word}, wordId=${word.no}, sentence=${word.sentence}")
+            "(      )"
+        }
+    }
+
+    /**
+     * サイレント時は LISTEN_FILL_BLANK を音声なしの FILL_BLANK へ落とす。
+     */
     private fun determineActualMode(mastery: WordMasteryEntity, scheduled: QuizMode): QuizMode {
         if (silentMode == SilentMode.OFF) {
             if (mastery.pendingListenReview && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
                 return QuizMode.LISTEN_EN
             }
         }
-        if (silentMode == SilentMode.ON && scheduled == QuizMode.LISTEN_EN) {
-            return QuizMode.JP_TO_EN
+        if (silentMode == SilentMode.ON) {
+            return when (scheduled) {
+                QuizMode.LISTEN_EN -> QuizMode.JP_TO_EN
+                QuizMode.LISTEN_FILL_BLANK -> QuizMode.FILL_BLANK
+                else -> scheduled
+            }
         }
         return scheduled
     }
@@ -118,9 +130,7 @@ class QuizManager(
                 if (word != null) return word
             }
         }
-        val newWord = wordDao.getRandomNewWordByGrade(userLevel)
-        if (newWord != null) return newWord
-        return null
+        return wordDao.getRandomNewWordByGrade(userLevel)
     }
 
     suspend fun submitAnswer(word: WordEntity, isCorrect: Boolean, actualMode: QuizMode) = withContext(Dispatchers.IO) {
@@ -132,11 +142,8 @@ class QuizManager(
             pendingReviewPickedInSession++
         }
 
-        if (isCorrect) {
-            MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON)
-        } else {
-            MasteryScheduler.onWrong(mastery, actualMode)
-        }
+        if (isCorrect) MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON)
+        else MasteryScheduler.onWrong(mastery, actualMode)
 
         masteryDao.insertOrUpdate(mastery)
     }

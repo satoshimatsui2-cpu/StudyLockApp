@@ -7,6 +7,9 @@ import com.example.studylockapp.R
  */
 class ChoiceQuizRenderer : QuizRenderer {
     override fun render(ui: QuizUiProvider, quiz: QuizData) {
+        // 通常の文字サイズに戻す
+        ui.setQuestionBodyTextScale(1.0f)
+
         val title = when (quiz.mode) {
             QuizMode.EN_TO_JP -> ui.getString(R.string.question_title_en_to_jp)
             QuizMode.LISTEN_EN -> ui.getString(R.string.question_title_listening)
