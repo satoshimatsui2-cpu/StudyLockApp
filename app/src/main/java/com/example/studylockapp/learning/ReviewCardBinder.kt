@@ -1,13 +1,14 @@
 package com.example.studylockapp.learning
 
 import android.view.View
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.example.studylockapp.R
 import com.example.studylockapp.databinding.LayoutReviewCardBinding
 
 /**
  * レビューカードの表示（バインド）を担当するクラス。
- * 新スキーマに合わせて発音記号(phonetic)の表示ロジックを完全に削除しました。
+ * synonyms / antonyms の表示ロジックを追加しました。
  */
 object ReviewCardBinder {
     fun bind(binding: LayoutReviewCardBinding, model: ReviewCardUiModel) {
@@ -24,7 +25,6 @@ object ReviewCardBinder {
             binding.layoutReviewPhoneticRow.visibility = View.GONE
             binding.layoutListeningCompare.visibility = View.VISIBLE
             
-            // 聞き比べ表示（発音記号なし、単語のみ）
             binding.includeWrong.apply {
                 labelCompare.text = context.getString(R.string.review_label_your_answer)
                 labelCompare.setTextColor(ContextCompat.getColor(context, R.color.choice_wrong))
@@ -39,20 +39,45 @@ object ReviewCardBinder {
             }
         } else {
             binding.containerResults.visibility = View.VISIBLE
-            binding.layoutReviewPhoneticRow.visibility = View.GONE // 新スキーマに phonetic がないため常時非表示
+            binding.layoutReviewPhoneticRow.visibility = View.GONE
             binding.layoutListeningCompare.visibility = View.GONE
 
-            // 通常の結果表示
             binding.layoutResultWrong.visibility = if (model.showWrongResult) View.VISIBLE else View.GONE
             binding.textReviewAnswerWrong.text = model.wrongAnswerText
             binding.textReviewAnswerCorrect.text = model.correctAnswerText
         }
 
-        // 3. 詳細 (例文のみ)
+        // 3. 惜しい不正解 (Synonym Hint)
+        if (!model.synonymHintTitle.isNullOrEmpty()) {
+            binding.layoutSynonymHint.visibility = View.VISIBLE
+            binding.textSynonymHintTitle.text = model.synonymHintTitle
+            binding.textSynonymHintBody.text = model.synonymHintBody
+        } else {
+            binding.layoutSynonymHint.visibility = View.GONE
+        }
+
+        // 4. 反対の意味 (Antonyms)
+        if (model.antonyms.isNotEmpty()) {
+            binding.layoutAntonymsSection.visibility = View.VISIBLE
+            binding.containerAntonyms.removeAllViews()
+            model.antonyms.forEach { antonym ->
+                val tv = TextView(context).apply {
+                    text = if (antonym.note.isNotEmpty()) "・${antonym.word} (${antonym.note})" else "・${antonym.word}"
+                    textSize = 14f
+                    setTextColor(ContextCompat.getColor(context, R.color.text_main))
+                    setPadding(0, dpToPx(4, context), 0, dpToPx(4, context))
+                }
+                binding.containerAntonyms.addView(tv)
+            }
+        } else {
+            binding.layoutAntonymsSection.visibility = View.GONE
+        }
+
+        // 5. 詳細 (例文)
         binding.textReviewSentence.text = model.sentence
         binding.textReviewSentenceJp.text = model.sentenceJp
 
-        // 4. 再生ボタン制御
+        // 6. 再生ボタン制御
         val alpha = if (model.playButtonsEnabled) 1.0f else 0.3f
         listOf(
             binding.buttonPlayReviewWord,
@@ -63,5 +88,9 @@ object ReviewCardBinder {
             it.isEnabled = model.playButtonsEnabled
             it.alpha = alpha
         }
+    }
+
+    private fun dpToPx(dp: Int, context: android.content.Context): Int {
+        return (dp * context.resources.displayMetrics.density).toInt()
     }
 }

@@ -9,16 +9,16 @@ import com.example.studylockapp.data.db.WordMasteryEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
+import java.util.regex.Pattern
 
 /**
- * 学習の進行とモード決定を管理するクラス
+ * 学習の進行とモード決定を管理するクラス。
  */
 class QuizManager(
     private val wordDao: WordDao,
     private val masteryDao: WordMasteryDao,
     private var userLevel: Int = 2
 ) {
-    // 新しい ChoiceGenerator は WordDao を必要としません
     private val choiceGenerator = ChoiceGenerator()
     
     var silentMode: SilentMode = SilentMode.OFF
@@ -36,7 +36,7 @@ class QuizManager(
     suspend fun nextQuiz(): QuizData? = withContext(Dispatchers.IO) {
         val word = selectNextWord()
         if (word == null) {
-            Log.e(TAG, "[NextQuiz] FAILED: DB might be empty.")
+            Log.e(TAG, "[NextQuiz] FAILED: No candidates available.")
             return@withContext null
         }
         
@@ -44,6 +44,8 @@ class QuizManager(
         val scheduledMode = QuizMode.valueOf(mastery.scheduledMode)
         val actualMode = determineActualMode(mastery, scheduledMode)
         
+        Log.d(TAG, "[NextQuiz] SELECTED: ${word.word} (ID:${word.no}), Mode: $actualMode, LV: ${mastery.level}")
+
         val choices = choiceGenerator.generateChoices(word, actualMode)
             
         QuizData(
@@ -54,11 +56,38 @@ class QuizManager(
                 QuizMode.JP_TO_EN -> word.japanese
                 QuizMode.EN_TO_JP -> word.word
                 QuizMode.LISTEN_EN -> word.word
+                QuizMode.FILL_BLANK -> createFillBlankQuestion(word)
                 else -> word.word
             },
             choices = choices,
             answer = if (actualMode == QuizMode.EN_TO_JP) word.japanese else word.word
         )
+    }
+
+    /**
+     * 穴埋め問題用のテキストを生成します。
+     * word を ＿＿＿ に置換します。
+     */
+    private fun createFillBlankQuestion(word: WordEntity): String {
+        val sentence = word.sentence
+        if (sentence.isBlank()) return word.japanese
+
+        // 単語境界 (\b) を使って正確に置換を試みる。
+        val pattern = Pattern.compile("\\b" + Pattern.quote(word.word) + "\\b", Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(sentence)
+        
+        val replacedSentence = if (matcher.find()) {
+            matcher.replaceAll("＿＿＿")
+        } else {
+            // 単語境界で見つからない場合は単純置換
+            if (sentence.contains(word.word, ignoreCase = true)) {
+                sentence.replace(word.word, "＿＿＿", ignoreCase = true)
+            } else {
+                sentence
+            }
+        }
+        
+        return "${word.japaneseSentence}\n\n$replacedSentence"
     }
 
     private fun determineActualMode(mastery: WordMasteryEntity, scheduled: QuizMode): QuizMode {
@@ -67,28 +96,20 @@ class QuizManager(
                 return QuizMode.LISTEN_EN
             }
         }
-
-        if (silentMode == SilentMode.ON) {
-            if (scheduled == QuizMode.LISTEN_EN) {
-                return QuizMode.JP_TO_EN
-            }
+        if (silentMode == SilentMode.ON && scheduled == QuizMode.LISTEN_EN) {
+            return QuizMode.JP_TO_EN
         }
-        
         return scheduled
     }
 
     private suspend fun selectNextWord(): WordEntity? {
         val now = System.currentTimeMillis()
-        
-        // 1. 復習期限切れ
         val dueMasteries = masteryDao.getDueMasteries(now)
         if (dueMasteries.isNotEmpty()) {
             val mastery = dueMasteries.sortedBy { it.nextReviewTime }.take(3).shuffled().first()
             val word = wordDao.getWordById(mastery.wordId)
             if (word != null) return word
         }
-
-        // 2. 音声復習待ち
         if (silentMode == SilentMode.OFF && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
             val pendingMasteries = masteryDao.getPendingListenMasteries()
             if (pendingMasteries.isNotEmpty()) {
@@ -97,18 +118,11 @@ class QuizManager(
                 if (word != null) return word
             }
         }
-
-        // 3. 新規または未習得 (WordDao のメソッド名を getRandomWordByGrade に合わせる)
-        val gradeWord = wordDao.getRandomWordByGrade(userLevel)
-        if (gradeWord != null) return gradeWord
-
-        // 4. 最終フォールバック
-        return wordDao.getAnyRandomWord()
+        val newWord = wordDao.getRandomNewWordByGrade(userLevel)
+        if (newWord != null) return newWord
+        return null
     }
 
-    /**
-     * 回答提出
-     */
     suspend fun submitAnswer(word: WordEntity, isCorrect: Boolean, actualMode: QuizMode) = withContext(Dispatchers.IO) {
         val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
         mastery.lastSeen = System.currentTimeMillis()

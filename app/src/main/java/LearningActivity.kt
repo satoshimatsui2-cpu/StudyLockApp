@@ -64,7 +64,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         observeViewModel()
 
         if (savedInstanceState == null) {
-            viewModel.loadNextQuiz()
+            // 初回はインポート完了を待機する loadInitialQuiz を呼び出す
+            viewModel.loadInitialQuiz()
         }
 
         setupListeners()

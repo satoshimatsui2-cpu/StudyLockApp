@@ -29,7 +29,6 @@ interface WordDao {
 
     /**
      * 指定された学習レベル（grade）からランダムに1件取得します。
-     * QuizManagerで使用されます。
      */
     @Query("""
         SELECT * FROM words 
@@ -38,6 +37,21 @@ interface WordDao {
         LIMIT 1
     """)
     suspend fun getRandomWordByGrade(grade: Int): WordEntity?
+
+    /**
+     * 未学習（マスタリーレコードがない、またはレベル0）の単語を
+     * 指定されたグレードからランダムに1件取得します。
+     */
+    @Query("""
+        SELECT w.*
+        FROM words w
+        LEFT JOIN word_mastery m ON w.no = m.wordId
+        WHERE w.grade = :grade
+          AND (m.wordId IS NULL OR m.level = 0)
+        ORDER BY RANDOM()
+        LIMIT 1
+    """)
+    suspend fun getRandomNewWordByGrade(grade: Int): WordEntity?
 
     @Query("""
         SELECT japanese FROM words 

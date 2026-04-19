@@ -2,6 +2,7 @@ package com.example.studylockapp.learning
 
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.SilentMode
+import com.example.studylockapp.data.RelatedWord
 
 data class LearningUiState(
     val isLoading: Boolean = false,
@@ -23,7 +24,7 @@ data class LearningUiState(
     
     // Mastery Info
     val basicMasterCount: Int = 0,
-    val longTermMasterCount: Int = 0, // ViewModel と完全に一致させる
+    val longTermMasterCount: Int = 0,
     val currentTier: MasteryTier = MasteryTier.LEARNING,
     val currentLevel: Int = 0,
     val targetLevel: Int = 5,
@@ -38,6 +39,11 @@ data class LearningUiState(
     val reviewCorrectAnswerText: String = "",
     val showListeningCompare: Boolean = false,
     val wrongWord: WordEntity? = null,
+
+    // Synonyms / Antonyms for Review
+    val reviewSynonymHintTitle: String? = null,
+    val reviewSynonymHintBody: String? = null,
+    val reviewAntonyms: List<RelatedWord> = emptyList(),
 
     // Session Summary
     val sessionLevelUpCount: Int = 0,

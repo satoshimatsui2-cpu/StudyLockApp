@@ -3,10 +3,10 @@ package com.example.studylockapp.learning
 import androidx.annotation.DrawableRes
 import com.example.studylockapp.R
 import com.example.studylockapp.data.SilentMode
+import com.example.studylockapp.data.RelatedWord
 
 /**
- * レビューカードの表示用モデル。
- * 旧 WordEntity に存在した phonetic 関連のフィールドを廃止しました。
+ * レビューカードの表示用モデル
  */
 data class ReviewCardUiModel(
     val modeChipText: String,
@@ -18,7 +18,11 @@ data class ReviewCardUiModel(
     val correctAnswerText: String,
     val sentence: String,
     val sentenceJp: String,
-    val playButtonsEnabled: Boolean
+    val playButtonsEnabled: Boolean,
+    // New fields for synonyms and antonyms
+    val synonymHintTitle: String?,
+    val synonymHintBody: String?,
+    val antonyms: List<RelatedWord>
 )
 
 object ReviewCardMapper {
@@ -41,7 +45,10 @@ object ReviewCardMapper {
             correctAnswerText = state.reviewCorrectAnswerText,
             sentence = state.currentWord?.sentence ?: "",
             sentenceJp = state.currentWord?.japaneseSentence ?: "",
-            playButtonsEnabled = (state.silentMode == SilentMode.OFF)
+            playButtonsEnabled = (state.silentMode == SilentMode.OFF),
+            synonymHintTitle = state.reviewSynonymHintTitle,
+            synonymHintBody = state.reviewSynonymHintBody,
+            antonyms = state.reviewAntonyms
         )
     }
 }
