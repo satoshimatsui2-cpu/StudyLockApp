@@ -105,9 +105,51 @@
                     android:layout_marginTop="12dp"
                     android:gravity="center"
                     android:textColor="@color/text_main"
-                    android:textSize="32sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     app:layout_constraintTop_toBottomOf="@id/card_question_grade_badge" />
+
+                <!-- 英文並び替え専用UI -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layout_sort_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toTopOf="@id/choices_container"
+                    app:layout_constraintTop_toBottomOf="@id/text_question_body">
+
+                    <com.google.android.flexbox.FlexboxLayout
+                        android:id="@+id/flexbox_answer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/shape_answer_area"
+                        android:minHeight="120dp"
+                        android:padding="8dp"
+                        app:flexWrap="wrap"
+                        app:justifyContent="flex_start"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.google.android.flexbox.FlexboxLayout
+                        android:id="@+id/flexbox_candidates"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        app:flexWrap="wrap"
+                        app:justifyContent="center"
+                        app:layout_constraintTop_toBottomOf="@id/flexbox_answer" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_sort_check"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="判定する"
+                        app:layout_constraintBottom_toBottomOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <LinearLayout
                     android:id="@+id/choices_container"

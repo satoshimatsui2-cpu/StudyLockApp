@@ -12,7 +12,8 @@ class RendererFactory {
 
                 QuizMode.FILL_BLANK -> FillBlankRenderer()
                 QuizMode.LISTEN_FILL_BLANK -> ListenFillBlankRenderer()
-                QuizMode.SORT -> SortRenderer()
+                
+                QuizMode.SENTENCE_SORT, QuizMode.SORT -> SortRenderer()
             }
         }
     }

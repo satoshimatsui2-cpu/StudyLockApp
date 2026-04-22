@@ -8,7 +8,8 @@ enum class QuizMode {
     LISTEN_FILL_BLANK, // 文脈リスニング穴埋め(4択)
     SYNONYM_PICK,      // 類義語選び(4択)
     ANTONYM_PICK,      // 対義語選び(4択)
-    SORT;              // 並べ替え
+    SENTENCE_SORT,     // 英文並び替え (新規)
+    SORT;              // 汎用並べ替え(既存)
 
     /**
      * 音声の重要度
@@ -22,6 +23,7 @@ enum class QuizMode {
     fun getAudioImportance(): AudioImportance = when (this) {
         LISTEN_EN, LISTEN_FILL_BLANK -> AudioImportance.REQUIRED
         EN_TO_JP -> AudioImportance.OPTIONAL
+        SENTENCE_SORT -> AudioImportance.NONE // 出題時は読まない
         else -> AudioImportance.NONE
     }
 }

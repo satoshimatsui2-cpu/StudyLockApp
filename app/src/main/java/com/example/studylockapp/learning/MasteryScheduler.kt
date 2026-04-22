@@ -28,8 +28,7 @@ object MasteryScheduler {
     }
 
     /**
-     * 基礎マスターの条件判定 (既存ロジック維持)
-     * jpToEnCorrects は 2 回必要。
+     * 基礎マスターの条件判定
      */
     fun isBasicMasteredNow(state: WordMasteryEntity): Boolean {
         return state.level >= 5 &&
@@ -39,7 +38,7 @@ object MasteryScheduler {
     }
 
     /**
-     * 長期マスターの条件判定 (既存ロジック維持)
+     * 長期マスターの条件判定
      */
     fun isLongTermMasteredNow(state: WordMasteryEntity): Boolean {
         return state.level >= 10 &&
@@ -58,13 +57,13 @@ object MasteryScheduler {
         state.currentStreak++
         if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak
 
-        // モード別統計 (FILL_BLANK は JP_TO_EN の統計に含める, LISTEN_FILL_BLANK は LISTEN_EN に含める)
+        // モード別統計 (並び替えや類義語などは JP_TO_EN 系統に集計)
         when (actualMode) {
             QuizMode.EN_TO_JP -> {
                 state.enToJpAttempts++
                 state.enToJpCorrects++
             }
-            QuizMode.JP_TO_EN, QuizMode.FILL_BLANK -> {
+            QuizMode.JP_TO_EN, QuizMode.FILL_BLANK, QuizMode.SENTENCE_SORT, QuizMode.SYNONYM_PICK, QuizMode.ANTONYM_PICK -> {
                 state.jpToEnAttempts++
                 state.jpToEnCorrects++
             }
@@ -103,7 +102,7 @@ object MasteryScheduler {
 
         when (actualMode) {
             QuizMode.EN_TO_JP -> state.enToJpAttempts++
-            QuizMode.JP_TO_EN, QuizMode.FILL_BLANK -> state.jpToEnAttempts++
+            QuizMode.JP_TO_EN, QuizMode.FILL_BLANK, QuizMode.SENTENCE_SORT, QuizMode.SYNONYM_PICK, QuizMode.ANTONYM_PICK -> state.jpToEnAttempts++
             QuizMode.LISTEN_EN, QuizMode.LISTEN_FILL_BLANK -> state.listenAttempts++
             else -> {}
         }
@@ -132,22 +131,21 @@ object MasteryScheduler {
     }
 
     /**
-     * 単語の習熟度(レベル)に合わせた学習フロー。
-     * 段階的に負荷を上げ、想起と文脈理解を繰り返します。
+     * 指定された LV1〜LV10 の固定順モード配置
      */
     private fun getSuccessTransition(level: Int): Pair<Long, QuizMode> {
         return when (level) {
-            1 -> TimeUnit.MINUTES.toMillis(1) to QuizMode.LISTEN_FILL_BLANK
-            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.LISTEN_FILL_BLANK
-            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.FILL_BLANK 
-            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.JP_TO_EN
-            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.LISTEN_FILL_BLANK // L5で新モード
-            6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.LISTEN_EN
-            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.FILL_BLANK 
-            8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.LISTEN_FILL_BLANK // L8で新モード
-            9 -> TimeUnit.DAYS.toMillis(60) to QuizMode.JP_TO_EN
-            10 -> TimeUnit.DAYS.toMillis(90) to QuizMode.LISTEN_EN
-            else -> TimeUnit.DAYS.toMillis(120) to QuizMode.JP_TO_EN
+            1 -> TimeUnit.MINUTES.toMillis(10) to QuizMode.EN_TO_JP
+            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.JP_TO_EN
+            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.LISTEN_EN
+            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.FILL_BLANK
+            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.SENTENCE_SORT
+            6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.SYNONYM_PICK
+            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.LISTEN_FILL_BLANK
+            8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.LISTEN_EN
+            9 -> TimeUnit.DAYS.toMillis(60) to QuizMode.ANTONYM_PICK
+            10 -> TimeUnit.DAYS.toMillis(90) to QuizMode.LISTEN_FILL_BLANK
+            else -> TimeUnit.DAYS.toMillis(120) to QuizMode.LISTEN_FILL_BLANK
         }
     }
 

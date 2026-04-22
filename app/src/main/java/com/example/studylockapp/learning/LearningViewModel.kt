@@ -23,8 +23,6 @@ import kotlinx.coroutines.withContext
 
 /**
  * 学習画面のメイン ViewModel。
- * 演出・インポート待機・詳細表示など、すべての既存重要ロジックを保持したまま
- * 新モード LISTEN_FILL_BLANK の音声再生・ラベル対応を追加しました。
  */
 class LearningViewModel(
     private val context: Context,
@@ -64,15 +62,12 @@ class LearningViewModel(
 
     /**
      * 初回のクイズ読み込み。
-     * インポート処理の完了を確実に待機してから最初の問題をロードします。
      */
     fun loadInitialQuiz() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             withContext(Dispatchers.IO) {
-                // インポート完了を確実に待機 (既存の重要ロジック)
                 TsvImporter(context, wordDao).seedIfNeeded()
-                
                 val total = wordDao.countAllWords()
                 val currentGrade = appSettings.currentLearningGrade
                 Log.e(TAG, "[SeedCheck] import finished. totalWords=$total, currentGrade=$currentGrade")
@@ -171,7 +166,6 @@ class LearningViewModel(
 
     /**
      * 音声再生をリクエストします。
-     * LISTEN_FILL_BLANK の場合は英文全体、それ以外は単語単体を再生するよう集約。
      */
     fun requestAudioPlayback(text: String? = null) {
         if (_uiState.value.silentMode == SilentMode.ON) return
@@ -229,6 +223,7 @@ class LearningViewModel(
                 QuizMode.LISTEN_EN -> "リスニング"
                 QuizMode.FILL_BLANK -> "穴埋め"
                 QuizMode.LISTEN_FILL_BLANK -> "リスニング(文脈)"
+                QuizMode.SENTENCE_SORT -> "英文並び替え"
                 else -> currentQuiz.mode.name
             }
             val questionText = when(currentQuiz.mode) {
@@ -238,6 +233,8 @@ class LearningViewModel(
             }
             val correctDisplay = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
                 currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
+            } else if (currentQuiz.mode == QuizMode.SENTENCE_SORT) {
+                currentQuiz.word.sentence // 並び替えは英文を正解表示にする
             } else {
                 currentQuiz.word.word
             }

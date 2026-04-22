@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 学習画面のActivity (クリーン化・刷新版UI・インフォグラフィック版)
+ * 学習画面のActivity
  */
 class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
@@ -46,6 +46,10 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         )
     }
 
+    // Rendererから安全にアクセスするためのブリッジメソッド
+    fun exposeBinding(): ActivityLearningBinding = binding
+    fun exposeLearningViewModel(): LearningViewModel = viewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -63,7 +67,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         soundEffectManager = SoundEffectManager(this)
         ttsController = LearningTtsController(this)
 
-        // デフォルトの文字サイズを保存
         defaultQuestionBodyTextSize = binding.textQuestionBody.textSize
 
         observeViewModel()
@@ -94,7 +97,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 viewModel.requestAudioPlayback(it) 
             }
         }
-
+        
         binding.layoutReviewCard.includeWrong.buttonPlay.setOnClickListener {
             viewModel.uiState.value.reviewUserAnswerText.let {
                 if (it.isNotEmpty()) viewModel.requestAudioPlayback(it)
@@ -133,6 +136,10 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             binding.cardQuestion.visibility = View.GONE
             binding.layoutReviewCard.rootReviewCard.visibility = View.VISIBLE
             ReviewCardBinder.bind(binding.layoutReviewCard, ReviewCardMapper.map(state))
+            
+            // 並び替えモードでは単語再生ボタンを非表示
+            val isSortMode = state.quiz?.mode == QuizMode.SENTENCE_SORT
+            binding.layoutReviewCard.buttonPlayReviewWord.visibility = if (isSortMode) View.GONE else View.VISIBLE
         } else {
             binding.layoutReviewCard.rootReviewCard.visibility = View.GONE
             binding.cardQuestion.visibility = View.VISIBLE
@@ -148,10 +155,19 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         state.quiz?.let { quiz ->
             if (currentQuizId != quiz.id) {
                 currentQuizId = quiz.id
-                resetAllChoiceButtons()
+                resetUiForNewQuiz()
                 RendererFactory.getRenderer(quiz.mode).render(this, quiz)
             }
         }
+    }
+
+    private fun resetUiForNewQuiz() {
+        resetAllChoiceButtons()
+        binding.choicesContainer.visibility = View.VISIBLE
+        binding.layoutSortContainer.visibility = View.GONE
+        binding.flexboxAnswer.removeAllViews()
+        binding.flexboxCandidates.removeAllViews()
+        setQuestionBodyTextScale(1.0f)
     }
 
     private fun handleEvent(event: LearningUiEvent) {
@@ -160,19 +176,30 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playCorrect(1.0f)
                 }
-                val correctBtn = choiceButtons.find { it.text == event.answer }
-                animationManager.playCorrectSequence(correctBtn, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
+                // 並び替えモードの場合：遅延させて英文読み上げ。単語ボタンなし。
+                if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
+                    playSentenceAudioDelayed()
                     viewModel.startReview()
+                } else {
+                    val correctBtn = choiceButtons.find { it.text == event.answer }
+                    animationManager.playCorrectSequence(correctBtn, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
+                        viewModel.startReview()
+                    }
                 }
             }
             is LearningUiEvent.ShowWrong -> {
                 if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playWrong(1.0f)
                 }
-                val selectedBtn = choiceButtons.find { it.text == event.selected }
-                val correctBtn = choiceButtons.find { it.text == event.correct }
-                animationManager.playWrongSequence(selectedBtn, correctBtn) {
+                if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
+                    playSentenceAudioDelayed()
                     viewModel.startReview()
+                } else {
+                    val selectedBtn = choiceButtons.find { it.text == event.selected }
+                    val correctBtn = choiceButtons.find { it.text == event.correct }
+                    animationManager.playWrongSequence(selectedBtn, correctBtn) {
+                        viewModel.startReview()
+                    }
                 }
             }
             is LearningUiEvent.PlayAudio -> {
@@ -183,16 +210,20 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.QuizFinished -> finish()
             is LearningUiEvent.ShowMasteryBadge -> animationManager.playTierUpAnimation(event.tier.label)
             is LearningUiEvent.ShowSilentModeExplanation -> showSilentModeExplanationDialog()
-            is LearningUiEvent.ShowFlyingLevelUp -> {
-                animationManager.playFlyingLevelUp(event.oldLevel, event.newLevel)
-            }
-            is LearningUiEvent.ShowBasicMasterCelebration -> {
-                animationManager.playMasterCelebration(isLongTerm = false)
-            }
-            is LearningUiEvent.ShowLongTermMasterCelebration -> {
-                animationManager.playMasterCelebration(isLongTerm = true)
-            }
+            is LearningUiEvent.ShowFlyingLevelUp -> animationManager.playFlyingLevelUp(event.oldLevel, event.newLevel)
+            is LearningUiEvent.ShowBasicMasterCelebration -> animationManager.playMasterCelebration(isLongTerm = false)
+            is LearningUiEvent.ShowLongTermMasterCelebration -> animationManager.playMasterCelebration(isLongTerm = true)
         }
+    }
+
+    private fun playSentenceAudioDelayed() {
+        binding.rootLayout.postDelayed({
+            if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
+                viewModel.uiState.value.currentWord?.sentence?.let { 
+                    ttsController.speak(it) 
+                }
+            }
+        }, 700)
     }
 
     private fun showSilentModeExplanationDialog() {
@@ -218,19 +249,17 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
-        resetAllChoiceButtons()
-        
         binding.textQuestionTitle.text = title
         binding.textQuestionBody.text = body
         
         viewModel.uiState.value.quiz?.word?.let { word ->
             binding.textQuestionGradeBadge.text = GradeLabelFormatter.format(word.grade)
             binding.cardQuestionGradeBadge.visibility = View.VISIBLE
-        } ?: run {
-            binding.cardQuestionGradeBadge.visibility = View.GONE
         }
 
         binding.choicesContainer.visibility = View.VISIBLE
+        binding.layoutSortContainer.visibility = View.GONE
+
         choiceButtons.forEachIndexed { i, btn ->
             if (i < choices.size) {
                 btn.text = choices[i]
@@ -247,10 +276,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     override fun setQuestionBodyTextScale(scale: Float) {
-        binding.textQuestionBody.setTextSize(
-            TypedValue.COMPLEX_UNIT_PX,
-            defaultQuestionBodyTextSize * scale
-        )
+        binding.textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultQuestionBodyTextSize * scale)
     }
 
     override fun playAudio(text: String) {
