@@ -14,7 +14,7 @@ data class LearningUiState(
     val currentStep: Int = 1,
     val totalSteps: Int = 10,
     val progress: Int = 0,
-    val sessionPoints: Int = 0,
+    val totalPoints: Int = 0, // セッション毎ではなく累計ポイントを保持
     val comboCount: Int = 0,
     
     // 学習音声 (通常 / サイレント)
@@ -23,6 +23,8 @@ data class LearningUiState(
     val audioWarning: AudioWarningState? = null,
     
     // Mastery Info
+    val basicCount: Int = 0,
+    val longTermCount: Int = 0,
     val basicMasterCount: Int = 0,
     val longTermMasterCount: Int = 0,
     val currentTier: MasteryTier = MasteryTier.LEARNING,

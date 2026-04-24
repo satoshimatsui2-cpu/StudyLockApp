@@ -43,7 +43,13 @@ class LearningViewModel(
     private var basicMastersInSession = 0
     private var longTermMastersInSession = 0
 
-    private val _uiState = MutableStateFlow(LearningUiState(totalSteps = totalCount))
+    // 初期化時にポイントマネージャーから累計を取得
+    private val _uiState = MutableStateFlow(
+        LearningUiState(
+            totalSteps = totalCount,
+            totalPoints = pointManager.getTotal()
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     private val _uiEvent = Channel<LearningUiEvent>(Channel.BUFFERED)
@@ -289,10 +295,14 @@ class LearningViewModel(
                 }
             }
 
+            if (isCorrect) {
+                withContext(Dispatchers.IO) { pointManager.add(10) }
+            }
+
             _uiState.update { state -> 
                 state.copy(
                     comboCount = if (isCorrect) state.comboCount + 1 else 0, 
-                    sessionPoints = if (isCorrect) state.sessionPoints + 10 else state.sessionPoints,
+                    totalPoints = pointManager.getTotal(), // 累計を反映
                     progress = (solvedInSession * 100) / totalCount,
                     currentTier = newTier,
                     currentLevel = newLevel,
@@ -311,7 +321,6 @@ class LearningViewModel(
             }
 
             if (isCorrect) {
-                withContext(Dispatchers.IO) { pointManager.add(10) }
                 if (newLevel - oldLevel >= 2) {
                     _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
                 }

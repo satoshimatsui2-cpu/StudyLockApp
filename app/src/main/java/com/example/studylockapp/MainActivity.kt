@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.PointHistoryActivity
 
@@ -16,16 +17,32 @@ import com.example.studylockapp.ui.PointHistoryActivity
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appSettings: AppSettings
+    private lateinit var pointManager: PointManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         appSettings = AppSettings(this)
+        pointManager = PointManager(this)
 
         setupGradeSection()
         setupLearningStart()
         setupPointHistoryNavigation()
+        updatePointDisplay()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 級表示の更新（他画面からの戻り時など）
+        val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
+        val targetGradeText = findViewById<TextView>(R.id.text_target_grade)
+        if (gradeButton != null && targetGradeText != null) {
+            updateGradeDisplay(gradeButton, targetGradeText)
+        }
+        
+        // ポイント表示の更新
+        updatePointDisplay()
     }
 
     /**
@@ -36,18 +53,20 @@ class MainActivity : AppCompatActivity() {
         val targetGradeText = findViewById<TextView>(R.id.text_target_grade)
 
         // 初期表示の反映
-        updateGradeDisplay(gradeButton, targetGradeText)
+        if (gradeButton != null && targetGradeText != null) {
+            updateGradeDisplay(gradeButton, targetGradeText)
 
-        // 級選択ボタンのクリックリスナー
-        gradeButton.setOnClickListener {
-            // GradeBottomSheetを表示
-            val bottomSheet = GradeBottomSheet { selectedGrade ->
-                // 選択された級をAppSettingsに保存
-                appSettings.currentLearningGrade = selectedGrade
-                // 保存された級に基づいて表示を更新
-                updateGradeDisplay(gradeButton, targetGradeText)
+            // 級選択ボタンのクリックリスナー
+            gradeButton.setOnClickListener {
+                // GradeBottomSheetを表示
+                val bottomSheet = GradeBottomSheet { selectedGrade ->
+                    // 選択された級をAppSettingsに保存
+                    appSettings.currentLearningGrade = selectedGrade
+                    // 保存された級に基づいて表示を更新
+                    updateGradeDisplay(gradeButton, targetGradeText)
+                }
+                bottomSheet.show(supportFragmentManager, "GradeBottomSheet")
             }
-            bottomSheet.show(supportFragmentManager, "GradeBottomSheet")
         }
     }
 
@@ -67,7 +86,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupLearningStart() {
         val startButton = findViewById<TextView>(R.id.button_to_learning)
-        startButton.setOnClickListener {
+        startButton?.setOnClickListener {
             startActivity(Intent(this, LearningActivity::class.java))
         }
     }
@@ -81,13 +100,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         // ポイントボタン
-        findViewById<View>(R.id.button_to_point_history).setOnClickListener {
+        findViewById<View>(R.id.button_to_point_history)?.setOnClickListener {
             openPointHistory()
         }
 
         // ポイント表示カード
-        findViewById<View>(R.id.card_to_point_history).setOnClickListener {
+        findViewById<View>(R.id.card_to_point_history)?.setOnClickListener {
             openPointHistory()
         }
+    }
+
+    /**
+     * 保有ポイントの表示を更新
+     */
+    private fun updatePointDisplay() {
+        val totalPoints = pointManager.getTotal()
+        findViewById<TextView>(R.id.text_points_top)?.text = "保有ポイント: $totalPoints"
+        
+        // 今日分のポイントについては、現在 PointManager に同期取得メソッドがないため、
+        // 今回は累計ポイントの更新のみに留めます。
     }
 }

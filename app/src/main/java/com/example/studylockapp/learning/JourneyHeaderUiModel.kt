@@ -19,7 +19,7 @@ object JourneyHeaderMapper {
         return JourneyHeaderUiModel(
             basicCountText = state.basicMasterCount.toString(),
             longTermCountText = state.longTermMasterCount.toString(),
-            sessionPointsText = "${state.sessionPoints}PT",
+            sessionPointsText = "${state.totalPoints}PT", // sessionPoints から totalPoints (累計) に変更
             goalText = "目標: ${GradeLabelFormatter.format(state.targetLevel)}",
             currentLevel = state.currentLevel,
             currentWordId = state.quiz?.word?.no ?: -1
