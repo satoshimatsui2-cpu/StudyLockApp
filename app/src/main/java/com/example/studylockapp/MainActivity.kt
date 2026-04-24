@@ -2,26 +2,70 @@ package com.example.studylockapp
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.ui.GradeBottomSheet
 
 /**
  * アプリ起動時のメイン画面。
- * activity_main.xml を表示し、学習画面への遷移を管理します。
+ * 級選択と学習開始の導線を管理します。
  */
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var appSettings: AppSettings
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 既存のレイアウトをそのまま使用
         setContentView(R.layout.activity_main)
 
-        // STARTボタン（ID: button_to_learning）を取得してクリックリスナーを設定
-        val startButton = findViewById<Button>(R.id.button_to_learning)
+        appSettings = AppSettings(this)
+
+        setupGradeSection()
+        setupLearningStart()
+    }
+
+    /**
+     * 級選択に関連するUIのセットアップ
+     */
+    private fun setupGradeSection() {
+        val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
+        val targetGradeText = findViewById<TextView>(R.id.text_target_grade)
+
+        // 初期表示の反映
+        updateGradeDisplay(gradeButton, targetGradeText)
+
+        // 級選択ボタンのクリックリスナー
+        gradeButton.setOnClickListener {
+            // GradeBottomSheetを表示
+            val bottomSheet = GradeBottomSheet { selectedGrade ->
+                // 選択された級をAppSettingsに保存
+                appSettings.currentLearningGrade = selectedGrade
+                // 保存された級に基づいて表示を更新
+                updateGradeDisplay(gradeButton, targetGradeText)
+            }
+            bottomSheet.show(supportFragmentManager, "GradeBottomSheet")
+        }
+    }
+
+    /**
+     * 表示されている級のテキストを更新
+     */
+    private fun updateGradeDisplay(gradeButton: TextView, targetGradeText: TextView) {
+        val gradeValue = appSettings.safeLearningGrade
+        val displayStr = GradeUtils.toDisplay(gradeValue)
+
+        gradeButton.text = displayStr
+        targetGradeText.text = "目標：$displayStr"
+    }
+
+    /**
+     * 学習開始ボタンのセットアップ
+     */
+    private fun setupLearningStart() {
+        val startButton = findViewById<TextView>(R.id.button_to_learning)
         startButton.setOnClickListener {
-            // LearningActivity への遷移
-            val intent = Intent(this, LearningActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, LearningActivity::class.java))
         }
     }
 }
