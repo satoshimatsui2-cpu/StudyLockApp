@@ -12,7 +12,7 @@ import com.example.studylockapp.ui.PointHistoryActivity
 
 /**
  * アプリ起動時のメイン画面。
- * 級選択、ポイント履歴、学習開始の導線を管理します。
+ * 級選択、ポイント履歴、管理者設定、学習開始の導線を管理します。
  */
 class MainActivity : AppCompatActivity() {
 
@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         setupGradeSection()
         setupLearningStart()
         setupPointHistoryNavigation()
+        setupAdminSettingsNavigation()
         updatePointDisplay()
     }
 
@@ -111,13 +112,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
+     * 管理者設定画面への遷移セットアップ
+     */
+    private fun setupAdminSettingsNavigation() {
+        findViewById<View>(R.id.button_admin_settings_top)?.setOnClickListener {
+            startActivity(Intent(this, AdminSettingsActivity::class.java))
+        }
+    }
+
+    /**
      * 保有ポイントの表示を更新
      */
     private fun updatePointDisplay() {
         val totalPoints = pointManager.getTotal()
         findViewById<TextView>(R.id.text_points_top)?.text = "保有ポイント: $totalPoints"
-        
-        // 今日分のポイントについては、現在 PointManager に同期取得メソッドがないため、
-        // 今回は累計ポイントの更新のみに留めます。
     }
 }
