@@ -2,14 +2,16 @@ package com.example.studylockapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.ui.GradeBottomSheet
+import com.example.studylockapp.ui.PointHistoryActivity
 
 /**
  * アプリ起動時のメイン画面。
- * 級選択と学習開始の導線を管理します。
+ * 級選択、ポイント履歴、学習開始の導線を管理します。
  */
 class MainActivity : AppCompatActivity() {
 
@@ -23,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         setupGradeSection()
         setupLearningStart()
+        setupPointHistoryNavigation()
     }
 
     /**
@@ -66,6 +69,25 @@ class MainActivity : AppCompatActivity() {
         val startButton = findViewById<TextView>(R.id.button_to_learning)
         startButton.setOnClickListener {
             startActivity(Intent(this, LearningActivity::class.java))
+        }
+    }
+
+    /**
+     * ポイント履歴画面への遷移セットアップ
+     */
+    private fun setupPointHistoryNavigation() {
+        val openPointHistory = {
+            startActivity(Intent(this, PointHistoryActivity::class.java))
+        }
+
+        // ポイントボタン
+        findViewById<View>(R.id.button_to_point_history).setOnClickListener {
+            openPointHistory()
+        }
+
+        // ポイント表示カード
+        findViewById<View>(R.id.card_to_point_history).setOnClickListener {
+            openPointHistory()
         }
     }
 }
