@@ -7,6 +7,7 @@ import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.GradeUtils
 
 class LearningViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -17,8 +18,8 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             val masteryDao = db.wordMasteryDao()
             
             val appSettings = AppSettings(context.applicationContext)
-            // AppSettings.currentLearningGrade は String 型なので、toIntOrNull() で Int に変換
-            val userLevel = appSettings.currentLearningGrade.toIntOrNull() ?: 2
+            // AppSettings.safeLearningGrade は "1"〜"7" を返すため、Intに変換して QuizManager に渡す
+            val userLevel = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
             
             val quizManager = QuizManager(wordDao, masteryDao, userLevel = userLevel)
             val pointManager = PointManager(context.applicationContext)

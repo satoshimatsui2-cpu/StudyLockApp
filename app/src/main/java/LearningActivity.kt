@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -172,6 +173,10 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
     private fun handleEvent(event: LearningUiEvent) {
         when (event) {
+            is LearningUiEvent.NoAvailableWords -> {
+                Toast.makeText(this, "現在学習出来る単語がありません", Toast.LENGTH_LONG).show()
+                finish()
+            }
             is LearningUiEvent.ShowCorrect -> {
                 if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playCorrect(1.0f)

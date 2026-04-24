@@ -130,54 +130,63 @@ class LearningViewModel(
             _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
             
             val quiz = quizManager.nextQuiz()
-            if (quiz != null) {
-                val importance = quiz.mode.getAudioImportance()
-                val hasRisk = audioChecker.isSilenceRisk()
-                
-                val isSilent = _uiState.value.silentMode == SilentMode.ON
-                val warning = if (!isSilent && hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || importance == QuizMode.AudioImportance.OPTIONAL)) {
-                    AudioWarningState(
-                        message = if (importance == QuizMode.AudioImportance.REQUIRED) requiredWarningText else optionalWarningText,
-                        isCritical = (importance == QuizMode.AudioImportance.REQUIRED)
-                    )
-                } else null
-
-                val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
-                val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
-                
-                val mastery = withContext(Dispatchers.IO) {
-                    masteryDao.getMastery(quiz.word.no)
-                } ?: WordMasteryEntity(wordId = quiz.word.no)
-                
-                val currentTier = MasteryScheduler.getTier(mastery)
-
-                _uiState.update { state -> 
-                    state.copy(
-                        quiz = quiz, 
-                        isLoading = false,
-                        currentStep = solvedInSession + 1,
-                        progress = (solvedInSession * 100) / totalCount,
-                        audioWarning = warning,
-                        basicMasterCount = basicCount,
-                        longTermMasterCount = longTermCount,
-                        currentTier = currentTier,
-                        currentLevel = mastery.level,
-                        isLevelJustIncreased = false,
-                        currentWord = quiz.word,
-                        wordGrade = quiz.word.grade
-                    ) 
+            
+            if (quiz == null) {
+                _uiState.update { it.copy(isLoading = false) }
+                if (solvedInSession == 0) {
+                    // 初回ロードでクイズが取れなかった場合は、単語がないイベントを発行
+                    _uiEvent.send(LearningUiEvent.NoAvailableWords)
+                } else {
+                    finishSession()
                 }
-                
-                if (!isSilent) {
-                    val shouldAutoPlay = when (importance) {
-                        QuizMode.AudioImportance.REQUIRED -> true
-                        QuizMode.AudioImportance.OPTIONAL -> true
-                        else -> false
-                    }
-                    if (shouldAutoPlay) requestAudioPlayback()
+                return@launch
+            }
+
+            // quiz が null でない場合の通常処理
+            val importance = quiz.mode.getAudioImportance()
+            val hasRisk = audioChecker.isSilenceRisk()
+            
+            val isSilent = _uiState.value.silentMode == SilentMode.ON
+            val warning = if (!isSilent && hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || importance == QuizMode.AudioImportance.OPTIONAL)) {
+                AudioWarningState(
+                    message = if (importance == QuizMode.AudioImportance.REQUIRED) requiredWarningText else optionalWarningText,
+                    isCritical = (importance == QuizMode.AudioImportance.REQUIRED)
+                )
+            } else null
+
+            val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
+            val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
+            
+            val mastery = withContext(Dispatchers.IO) {
+                masteryDao.getMastery(quiz.word.no)
+            } ?: WordMasteryEntity(wordId = quiz.word.no)
+            
+            val currentTier = MasteryScheduler.getTier(mastery)
+
+            _uiState.update { state -> 
+                state.copy(
+                    quiz = quiz, 
+                    isLoading = false,
+                    currentStep = solvedInSession + 1,
+                    progress = (solvedInSession * 100) / totalCount,
+                    audioWarning = warning,
+                    basicMasterCount = basicCount,
+                    longTermMasterCount = longTermCount,
+                    currentTier = currentTier,
+                    currentLevel = mastery.level,
+                    isLevelJustIncreased = false,
+                    currentWord = quiz.word,
+                    wordGrade = quiz.word.grade
+                ) 
+            }
+            
+            if (!isSilent) {
+                val shouldAutoPlay = when (importance) {
+                    QuizMode.AudioImportance.REQUIRED -> true
+                    QuizMode.AudioImportance.OPTIONAL -> true
+                    else -> false
                 }
-            } else {
-                finishSession()
+                if (shouldAutoPlay) requestAudioPlayback()
             }
         }
     }

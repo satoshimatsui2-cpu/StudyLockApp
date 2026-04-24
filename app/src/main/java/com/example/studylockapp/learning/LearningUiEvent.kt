@@ -35,4 +35,7 @@ sealed class LearningUiEvent {
 
     // 長期マスター達成時の専用演出
     object ShowLongTermMasterCelebration : LearningUiEvent()
+
+    // 出題可能な単語がない場合のイベント
+    object NoAvailableWords : LearningUiEvent()
 }

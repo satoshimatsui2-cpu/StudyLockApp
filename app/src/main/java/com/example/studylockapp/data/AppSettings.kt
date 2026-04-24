@@ -188,11 +188,15 @@ class AppSettings(context: Context) {
     fun setBasePoint(mode: String, value: Int) { prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(4, 32)) } }
 
     var currentLearningGrade: String
-        get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "") ?: ""
+        get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "3") ?: "3"
         set(value) = prefs.edit { putString(KEY_CURRENT_LEARNING_GRADE, value) }
 
     val safeLearningGrade: String
-        get() = if (currentLearningGrade.isBlank()) "3" else currentLearningGrade
+        get() {
+            val value = currentLearningGrade
+            val rank = value.toIntOrNull()
+            return if (rank != null && rank in 1..7) value else "3"
+        }
 
     var pointReductionOneGradeDown: Int
         get() = prefs.getInt(KEY_POINT_REDUCTION_ONE_GRADE_DOWN, 50)
