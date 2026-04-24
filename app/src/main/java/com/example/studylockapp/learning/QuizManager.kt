@@ -32,15 +32,21 @@ class QuizManager(
     suspend fun nextQuiz(): QuizData? = withContext(Dispatchers.IO) {
         val word = selectNextWord() ?: return@withContext null
         val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
-        
+
         val baseMode = determineActualMode(mastery, QuizMode.valueOf(mastery.scheduledMode))
         val actualMode = resolveModeForWord(word, baseMode)
-        
+
+        // 調査用ログ
+        Log.e(
+            TAG,
+            "[ModeCheck] word=${word.word}, level=${mastery.level}, scheduledMode=${mastery.scheduledMode}, actualMode=$actualMode"
+        )
+
         val choices = choiceGenerator.generateChoices(word, actualMode)
-        
+
         // デバッグログ
         Log.d(TAG, "[QuizDebug] mode=$actualMode, word=${word.word}, choices=${choices.joinToString()}")
-            
+
         QuizData(
             id = UUID.randomUUID().toString(),
             mode = actualMode,
@@ -72,33 +78,37 @@ class QuizManager(
      */
     private fun resolveModeForWord(word: WordEntity, mode: QuizMode): QuizMode {
         val isPhrase = word.pos.trim().lowercase() == "phrase"
-        
-        // 1. phrase は穴埋め(文脈系)対象外 -> JP_TO_EN にフォールバック
-        if ((mode == QuizMode.FILL_BLANK || mode == QuizMode.LISTEN_FILL_BLANK) && isPhrase) {
-            return QuizMode.JP_TO_EN
-        }
-        
-        // 2. SYNONYM_PICK: 有効な synonym が無ければ JP_TO_EN
-        if (mode == QuizMode.SYNONYM_PICK) {
+        var currentMode = mode
+
+        // 1. SYNONYM_PICK: 有効な synonym が無ければ FILL_BLANK にフォールバック
+        if (currentMode == QuizMode.SYNONYM_PICK) {
             val hasValidSynonym = word.synonyms.any { it.word.trim().isNotBlank() }
-            if (!hasValidSynonym) return QuizMode.JP_TO_EN
+            if (!hasValidSynonym) {
+                currentMode = QuizMode.FILL_BLANK
+            }
         }
 
-        // 3. ANTONYM_PICK: 有効な antonym が無ければ EN_TO_JP
-        if (mode == QuizMode.ANTONYM_PICK) {
+        // 2. ANTONYM_PICK: 有効な antonym が無ければ EN_TO_JP
+        if (currentMode == QuizMode.ANTONYM_PICK) {
             val hasValidAntonym = word.antonyms.any { it.word.trim().isNotBlank() }
             if (!hasValidAntonym) return QuizMode.EN_TO_JP
+            return currentMode
+        }
+
+        // 3. phrase は穴埋め(文脈系)対象外 -> JP_TO_EN にフォールバック
+        if ((currentMode == QuizMode.FILL_BLANK || currentMode == QuizMode.LISTEN_FILL_BLANK) && isPhrase) {
+            return QuizMode.JP_TO_EN
         }
 
         // 4. SENTENCE_SORT: 不適合なら JP_TO_EN
-        if (mode == QuizMode.SENTENCE_SORT) {
+        if (currentMode == QuizMode.SENTENCE_SORT) {
             val tokens = word.sentence.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
             if (tokens.size < 3 || word.japaneseSentence.isBlank() || word.sentence.isBlank()) {
                 return QuizMode.JP_TO_EN
             }
         }
-        
-        return mode
+
+        return currentMode
     }
 
     private fun createFillBlankQuestion(word: WordEntity): String {
@@ -118,7 +128,7 @@ class QuizManager(
         val flexibleWord = Pattern.quote(w).replace(" ", "\\s+")
         val pattern = Pattern.compile("\\b$flexibleWord\\b", Pattern.CASE_INSENSITIVE)
         val matcher = pattern.matcher(s)
-        
+
         return if (matcher.find()) {
             matcher.replaceFirst("＿＿＿")
         } else {
@@ -171,8 +181,14 @@ class QuizManager(
             pendingReviewPickedInSession++
         }
 
+        // ★ 更新前ログ
+        Log.e(TAG, "[BeforeUpdate] word=${word.word}, level=${mastery.level}, currentScheduled=${mastery.scheduledMode}")
+
         if (isCorrect) MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON)
         else MasteryScheduler.onWrong(mastery, actualMode)
+
+        // ★ 更新後ログ
+        Log.e(TAG, "[AfterScheduler] word=${word.word}, nextLevel=${mastery.level}, nextScheduled=${mastery.scheduledMode}")
 
         masteryDao.insertOrUpdate(mastery)
     }

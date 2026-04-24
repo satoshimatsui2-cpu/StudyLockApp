@@ -1,5 +1,6 @@
 package com.example.studylockapp.learning
 
+import android.util.Log
 import com.example.studylockapp.data.db.WordMasteryEntity
 import java.util.concurrent.TimeUnit
 
@@ -80,10 +81,10 @@ object MasteryScheduler {
             state.pendingListenReview = true
         }
 
-        val canSkip = state.currentStreak >= 3 && 
-                      state.challengeCount >= 5 && 
-                      (now - state.lastCorrectTime) >= SKIP_LEVEL_INTERVAL_MS
-        
+        val canSkip = state.currentStreak >= 3 &&
+                state.challengeCount >= 5 &&
+                (now - state.lastCorrectTime) >= SKIP_LEVEL_INTERVAL_MS
+
         val bonusLevel = if (canSkip) 1 else 0
         val nextLevel = (state.level + 1 + bonusLevel).coerceAtMost(10)
         state.lastCorrectTime = now
@@ -126,25 +127,34 @@ object MasteryScheduler {
             getFailureTransition(nextLevel)
         }
 
+        // 調査用ログ
+        Log.e(
+            "MasteryScheduler",
+            "[ApplyTransition] wordId=${state.wordId}, nextLevel=$nextLevel, isCorrect=$isCorrect, nextMode=${nextMode.name}"
+        )
+
         state.nextReviewTime = now + intervalMillis
         state.scheduledMode = nextMode.name
     }
 
     /**
-     * 指定された LV1〜LV10 の固定順モード配置
+     * 指定された LV1〜LV10 到達時の次回予約モード
+     * 
+     * 注意: LV0（新規単語）の初回出題（EN_TO_JP）はここでは決めず、
+     * WordMasteryEntity のデフォルト値や QuizManager の初期化ロジックで決定されます。
      */
     private fun getSuccessTransition(level: Int): Pair<Long, QuizMode> {
         return when (level) {
-            1 -> TimeUnit.MINUTES.toMillis(10) to QuizMode.EN_TO_JP
-            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.JP_TO_EN
-            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.LISTEN_EN
-            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.FILL_BLANK
-            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.SENTENCE_SORT
-            6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.SYNONYM_PICK
-            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.LISTEN_FILL_BLANK
-            8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.LISTEN_EN
-            9 -> TimeUnit.DAYS.toMillis(60) to QuizMode.ANTONYM_PICK
-            10 -> TimeUnit.DAYS.toMillis(90) to QuizMode.LISTEN_FILL_BLANK
+            1 -> TimeUnit.MINUTES.toMillis(10) to QuizMode.JP_TO_EN
+            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.LISTEN_EN
+            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.FILL_BLANK
+            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.SENTENCE_SORT
+            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.SYNONYM_PICK
+            6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.LISTEN_FILL_BLANK
+            7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.LISTEN_EN
+            8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.ANTONYM_PICK
+            9 -> TimeUnit.DAYS.toMillis(60) to QuizMode.LISTEN_FILL_BLANK
+            10 -> TimeUnit.DAYS.toMillis(90) to QuizMode.SENTENCE_SORT
             else -> TimeUnit.DAYS.toMillis(120) to QuizMode.LISTEN_FILL_BLANK
         }
     }

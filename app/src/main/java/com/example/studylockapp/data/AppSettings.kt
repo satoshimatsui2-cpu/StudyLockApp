@@ -61,6 +61,8 @@ class AppSettings(context: Context) {
         private const val PREF_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec"
         private const val KEY_LAST_GRADE_FILTER = "learning_last_grade_filter"
         
+        private const val KEY_HAS_RESET_MASTERY_FOR_FIX = "has_reset_mastery_for_fix"
+
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
@@ -73,6 +75,10 @@ class AppSettings(context: Context) {
     var hasShownSilentExplanation: Boolean
         get() = prefs.getBoolean(KEY_HAS_SHOWN_SILENT_EXPLANATION, false)
         set(value) = prefs.edit { putBoolean(KEY_HAS_SHOWN_SILENT_EXPLANATION, value) }
+
+    var hasResetMasteryForFix: Boolean
+        get() = prefs.getBoolean(KEY_HAS_RESET_MASTERY_FOR_FIX, false)
+        set(value) = prefs.edit { putBoolean(KEY_HAS_RESET_MASTERY_FOR_FIX, value) }
 
     fun isEnableAdminLongPress(): Boolean = prefs.getBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, true)
     fun setEnableAdminLongPress(enabled: Boolean) {

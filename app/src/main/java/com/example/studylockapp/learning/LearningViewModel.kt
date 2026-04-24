@@ -67,6 +67,29 @@ class LearningViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             withContext(Dispatchers.IO) {
+                // ★ 既存データの1回限定自動補正
+                if (!appSettings.hasResetMasteryForFix) {
+                    val allMasteries = masteryDao.getAllMasteries()
+                    allMasteries.forEach { m ->
+                        // LV5未満なのに並べ替えが予約されている不具合データを特定して修正
+                        if (m.level < 5 && m.scheduledMode == QuizMode.SENTENCE_SORT.name) {
+                            val correctedMode = when (m.level) {
+                                0, 1 -> QuizMode.EN_TO_JP
+                                2 -> QuizMode.JP_TO_EN
+                                3 -> QuizMode.LISTEN_EN
+                                4 -> QuizMode.FILL_BLANK
+                                else -> null
+                            }
+                            if (correctedMode != null) {
+                                m.scheduledMode = correctedMode.name
+                                masteryDao.insertOrUpdate(m)
+                                Log.e(TAG, "[AutoFix] wordId=${m.wordId} level=${m.level} corrected to ${m.scheduledMode}")
+                            }
+                        }
+                    }
+                    appSettings.hasResetMasteryForFix = true
+                }
+                
                 TsvImporter(context, wordDao).seedIfNeeded()
                 val total = wordDao.countAllWords()
                 val currentGrade = appSettings.currentLearningGrade
