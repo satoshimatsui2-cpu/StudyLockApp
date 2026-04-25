@@ -55,10 +55,28 @@
     <color name="sl_button_stroke">@color/navy_primary</color>
     <color name="ic_launcher_background">@color/navy_primary</color>
 
-    <!-- ===== 学習演出/状態色 ===== -->
-    <color name="choice_correct">#2FA36B</color>
-    <color name="choice_wrong">#D84C5A</color>
-    <color name="correct_flash">#E8F5E9</color>
+    <!-- ===== 新・選択肢ボタンUIカラー (明るくはっきりした色) ===== -->
+    <color name="choice_normal_bg">#FFFFFF</color>
+    <color name="choice_normal_stroke">#163A70</color>
+    <color name="choice_normal_text">#163A70</color>
+    <color name="choice_pressed_bg">#EEF4FB</color>
+
+    <color name="choice_correct_bg">#E8F7EE</color>
+    <color name="choice_correct_stroke">#34A853</color>
+    <color name="choice_correct_text">#1B7F3A</color>
+
+    <color name="choice_wrong_bg">#FDECEC</color>
+    <color name="choice_wrong_stroke">#E04B4B</color>
+    <color name="choice_wrong_text">#B3261E</color>
+
+    <color name="unknown_bg">#FFF6D6</color>
+    <color name="unknown_stroke">#D4A72C</color>
+    <color name="unknown_text">#7A5A00</color>
+
+    <!-- 互換性維持のための演出エイリアス -->
+    <color name="choice_correct">@color/choice_correct_stroke</color>
+    <color name="choice_wrong">@color/choice_wrong_stroke</color>
+    <color name="correct_flash">@color/choice_correct_bg</color>
 
     <!-- 報酬・バッジ用 -->
     <color name="reward_bg">@color/mustard_accent</color>
@@ -74,9 +92,9 @@
     <color name="mastery_text_longterm">@color/mustard_dark</color>
 
     <!-- 選択肢ボタンデフォルト -->
-    <color name="choice_button_bg">@color/white</color>
-    <color name="choice_button_text">@color/text_main</color>
-    <color name="choice_button_background_default">@color/white</color>
-    <color name="choice_button_text_default">@color/text_main</color>
-    <color name="choice_button_stroke_default">@color/app_outline</color>
+    <color name="choice_button_bg">@color/choice_normal_bg</color>
+    <color name="choice_button_text">@color/choice_normal_text</color>
+    <color name="choice_button_background_default">@color/choice_normal_bg</color>
+    <color name="choice_button_text_default">@color/choice_normal_text</color>
+    <color name="choice_button_stroke_default">@color/choice_normal_stroke</color>
 </resources>

@@ -163,48 +163,28 @@
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        app:backgroundTint="@color/white"
-                        app:strokeColor="@color/navy_primary"
-                        app:strokeWidth="3dp"
-                        android:textColor="@color/navy_primary"
-                        app:cornerRadius="18dp" />
+                        android:layout_marginBottom="8dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_2"
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        app:backgroundTint="@color/white"
-                        app:strokeColor="@color/navy_primary"
-                        app:strokeWidth="3dp"
-                        android:textColor="@color/navy_primary"
-                        app:cornerRadius="18dp" />
+                        android:layout_marginBottom="8dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_3"
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        app:backgroundTint="@color/white"
-                        app:strokeColor="@color/navy_primary"
-                        app:strokeWidth="3dp"
-                        android:textColor="@color/navy_primary"
-                        app:cornerRadius="18dp" />
+                        android:layout_marginBottom="8dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_choice_4"
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        app:backgroundTint="@color/white"
-                        app:strokeColor="@color/navy_primary"
-                        app:strokeWidth="3dp"
-                        android:textColor="@color/navy_primary"
-                        app:cornerRadius="18dp" />
+                        android:layout_marginBottom="16dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_unknown_answer"

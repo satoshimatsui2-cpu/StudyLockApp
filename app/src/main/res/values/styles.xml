@@ -4,7 +4,7 @@
     <style name="App.MainButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="backgroundTint">@color/white</item>
         <item name="strokeColor">@color/navy_primary</item>
-        <item name="strokeWidth">3dp</item>
+        <item name="strokeWidth">2dp</item>
         <item name="cornerRadius">20dp</item>
         <item name="android:textColor">@color/navy_primary</item>
         <item name="android:textSize">18sp</item>
@@ -18,14 +18,14 @@
 
     <!-- 学習画面 選択肢ボタン共通スタイル -->
     <style name="Widget.StudyLock.ChoiceButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
-        <item name="backgroundTint">@color/white</item>
-        <item name="strokeColor">@color/navy_primary</item>
-        <item name="strokeWidth">2.5dp</item>
+        <item name="backgroundTint">@color/choice_normal_bg</item>
+        <item name="strokeColor">@color/choice_normal_stroke</item>
+        <item name="strokeWidth">2dp</item>
         <item name="cornerRadius">18dp</item>
-        <item name="android:textColor">@color/navy_primary</item>
+        <item name="android:textColor">@color/choice_normal_text</item>
         <item name="android:textSize">18sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:minHeight">64dp</item>
+        <item name="android:minHeight">60dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
         <item name="android:paddingStart">20dp</item>
@@ -34,26 +34,27 @@
         <item name="android:insetBottom">0dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:gravity">center_vertical|start</item>
-        <item name="rippleColor">@color/sl_button_bg_pressed</item>
+        <item name="rippleColor">@color/choice_pressed_bg</item>
+        <item name="android:elevation">3dp</item>
+        <item name="android:stateListAnimator">@animator/sl_button_elevation_animator</item>
     </style>
 
-    <!-- 学習画面 「わからない」ボタン共通スタイル -->
+    <!-- 学習画面 「わからない」ボタンスタイル (黄色・マスタード系) -->
     <style name="Widget.StudyLock.UnknownButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
-        <item name="backgroundTint">@color/app_surface</item>
-        <item name="strokeColor">@color/text_sub</item>
+        <item name="backgroundTint">@color/unknown_bg</item>
+        <item name="strokeColor">@color/unknown_stroke</item>
         <item name="strokeWidth">2dp</item>
         <item name="cornerRadius">18dp</item>
-        <item name="android:textColor">@color/text_sub</item>
+        <item name="android:textColor">@color/unknown_text</item>
         <item name="android:textSize">16sp</item>
         <item name="android:minHeight">52dp</item>
-        <item name="android:paddingTop">10dp</item>
-        <item name="android:paddingBottom">10dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="icon">@drawable/ic_help_outline_24</item>
-        <item name="iconTint">@color/text_sub</item>
+        <item name="iconTint">@color/unknown_text</item>
         <item name="iconPadding">8dp</item>
         <item name="iconSize">20dp</item>
-        <item name="rippleColor">@color/app_outline</item>
+        <item name="rippleColor">#F3E3A4</item>
+        <item name="android:elevation">1dp</item>
     </style>
 
     <!-- 回答ボタン共通スタイル (既存互換用) -->
