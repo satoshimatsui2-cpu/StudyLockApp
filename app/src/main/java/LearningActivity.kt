@@ -1,6 +1,7 @@
 package com.example.studylockapp
 
 import android.annotation.SuppressLint
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -170,21 +172,55 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
     private fun resetUiForNewQuiz() {
         resetAllChoiceButtons()
+        resetUnknownAnswerButton()
         binding.choicesContainer.visibility = View.VISIBLE
         binding.layoutSortContainer.visibility = View.GONE
         binding.flexboxAnswer.removeAllViews()
         binding.flexboxCandidates.removeAllViews()
         setQuestionBodyTextScale(1.0f)
-        
-        // 「わからない」ボタンをリセット
+    }
+
+    private fun resetUnknownAnswerButton() {
         binding.buttonUnknownAnswer.apply {
-            visibility = View.VISIBLE
+            // モードによって表示を切り替える (4択系のみ表示)
+            val isSentenceSort = viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT
+            visibility = if (isSentenceSort) View.GONE else View.VISIBLE
             isEnabled = true
             alpha = 1.0f
             scaleX = 1.0f
             scaleY = 1.0f
         }
     }
+
+    private fun resetChoiceButton(btn: MaterialButton) {
+        btn.apply {
+            backgroundTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(context, R.color.white)
+            )
+            setTextColor(
+                ContextCompat.getColor(context, R.color.navy_primary)
+            )
+            strokeColor = ColorStateList.valueOf(
+                ContextCompat.getColor(context, R.color.navy_primary)
+            )
+            strokeWidth = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                3f,
+                resources.displayMetrics
+            ).toInt()
+
+            alpha = 1.0f
+            scaleX = 1.0f
+            scaleY = 1.0f
+            translationX = 0f
+            translationY = 0f
+            isEnabled = true
+            isClickable = true
+            clearAnimation()
+        }
+    }
+
+    private fun resetAllChoiceButtons() { choiceButtons.forEach { resetChoiceButton(it) } }
 
     private fun handleEvent(event: LearningUiEvent) {
         when (event) {
@@ -260,19 +296,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             .setPositiveButton(R.string.ok, null)
             .show()
     }
-
-    private fun resetChoiceButton(btn: MaterialButton) {
-        btn.apply {
-            backgroundTintList = android.content.res.ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_background_default))
-            setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_text_default))
-            strokeColor = android.content.res.ColorStateList.valueOf(androidx.core.content.ContextCompat.getColor(context, R.color.choice_button_stroke_default))
-            strokeWidth = resources.getDimensionPixelSize(R.dimen.choice_button_stroke_width_default)
-            alpha = 1.0f; scaleX = 1.0f; scaleY = 1.0f; translationX = 0f; translationY = 0f
-            isEnabled = true; isClickable = true; clearAnimation()
-        }
-    }
-
-    private fun resetAllChoiceButtons() { choiceButtons.forEach { resetChoiceButton(it) } }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {

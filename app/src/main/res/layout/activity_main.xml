@@ -108,16 +108,27 @@
                             android:layout_height="wrap_content"
                             android:padding="12dp">
 
+                            <ImageView
+                                android:id="@+id/icon_coin"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:src="@drawable/ic_monetization_on_24"
+                                app:tint="@color/navy_primary"
+                                android:contentDescription="@string/cd_coin"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintBottom_toBottomOf="parent" />
+
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
                                 android:gravity="center_horizontal"
-                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintStart_toEndOf="@id/icon_coin"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toStartOf="@+id/arrow_icon"
-                                android:layout_marginEnd="8dp">
+                                android:layout_marginHorizontal="8dp">
 
                                 <TextView
                                     android:id="@+id/text_points_top"
@@ -148,7 +159,7 @@
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_arrow_right"
                                 app:tint="@color/navy_primary"
-                                android:contentDescription="@string/action_point_history"
+                                android:contentDescription="@string/cd_arrow_right"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintBottom_toBottomOf="parent" />
@@ -167,19 +178,13 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_to_learning_history"
-                        style="@style/Widget.Material3.Button"
+                        style="@style/App.MainButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="48dp"
-                        android:text="@string/action_learning_history"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="12dp"
-                        app:backgroundTint="@null"
-                        android:textSize="18sp"
-                        android:textAllCaps="false"
-                        app:strokeColor="@color/sl_button_stroke"
-                        app:strokeWidth="3dp"/>
+                        android:layout_marginHorizontal="64dp"
+                        android:text="@string/label_history_short"
+                        app:icon="@drawable/ic_history_24"
+                        app:iconGravity="textStart" />
                 </LinearLayout>
 
                 <!-- 目標・学習レベル表示 -->
@@ -204,23 +209,15 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/spinner_grade_top"
-                        style="@style/App.PrimaryButton"
+                        style="@style/App.MainButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.8"
                         android:layout_marginHorizontal="8dp"
-                        android:text="@string/hint_select_grade"
-                        android:textAllCaps="false"
-                        android:textSize="20sp"
-                        android:paddingVertical="12dp"
-                        android:background="@drawable/sl_button_bg"
-                        app:backgroundTint="@null"
-                        android:textColor="@color/sl_button_text"
+                        android:text="@string/grade_3"
                         app:icon="@drawable/ic_expand_more"
                         app:iconGravity="textEnd"
-                        app:iconTint="@color/sl_button_text"
-                        app:iconSize="32dp"
-                        app:iconPadding="4dp" />
+                        app:iconSize="32dp" />
                 </LinearLayout>
 
                 <!-- STARTボタン -->
@@ -234,23 +231,21 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_to_learning"
-                        style="@style/Widget.Material3.Button"
+                        style="@style/App.MainButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.8"
                         android:layout_marginTop="12dp"
                         android:layout_marginHorizontal="8dp"
-                        android:text="@string/action_start"
-                        android:textAllCaps="false"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="12dp"
-                        app:backgroundTint="@null"
+                        android:text="@string/label_start_short"
                         android:textSize="22sp"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_play_arrow_24"
+                        app:iconGravity="textStart"
+                        app:iconSize="28dp" />
                 </LinearLayout>
 
-                <!-- 管理設定ボタン -->
+                <!-- 管理設定ボタン (デバッグ用/非表示) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -260,18 +255,12 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_admin_settings"
-                        style="@style/Widget.Material3.Button"
+                        style="@style/App.MainButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.8"
                         android:layout_marginTop="10dp"
                         android:text="@string/action_admin_settings"
-                        android:textAllCaps="false"
-                        android:background="@drawable/sl_button_bg"
-                        android:textColor="@color/sl_button_text"
-                        android:paddingVertical="12dp"
-                        app:backgroundTint="@null"
-                        android:textSize="20sp"
                         android:visibility="gone"/>
                 </LinearLayout>
             </LinearLayout>
@@ -284,7 +273,7 @@
             android:src="@drawable/ic_settings"
             android:scaleType="fitCenter"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/action_admin_settings"
+            android:contentDescription="@string/cd_admin_settings"
             android:clickable="true"
             android:focusable="true"
             android:elevation="8dp"

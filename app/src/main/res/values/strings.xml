@@ -8,8 +8,10 @@
     <string name="label_word_count">%1$d語</string>
 
     <string name="action_start">学習スタート</string>
+    <string name="label_start_short">START</string>
     <string name="action_point_history">ポイント</string>
     <string name="action_learning_history">学習履歴</string>
+    <string name="label_history_short">履歴</string>
     <string name="action_admin_settings">設定</string>
     <string name="title_top">Eiken for Slacker</string>
     <string name="points_default">保有ポイント: 0</string>
@@ -232,4 +234,8 @@
 
     <!-- 追加: ヘッダー用 -->
     <string name="label_word_level_format">単語LV：%1$s</string>
+
+    <string name="cd_admin_settings">管理者設定</string>
+    <string name="cd_arrow_right">詳細へ</string>
+    <string name="cd_coin">ポイントアイコン</string>
 </resources>
