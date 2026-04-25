@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.ads.AdAudioManager
 import com.example.studylockapp.data.AdminAuthManager
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.learning.QuizMode
 import com.example.studylockapp.service.AccessibilityUtils
 import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.QrCodeActivity
@@ -144,7 +145,8 @@ class AdminSettingsActivity : AppCompatActivity() {
         val spinner = findViewById<Spinner>(R.id.spinner_current_learning_grade)
         val grades = listOf("未設定", "1級", "準1級", "2級", "準2級", "3級", "4級", "5級")
 
-        val current = GradeUtils.toDisplay(settings.safeLearningGrade)
+        // ポイント計算の基準となる「目標級」を表示
+        val current = GradeUtils.toDisplay(settings.targetLearningGrade)
 
         val index = grades.indexOf(current).takeIf { it >= 0 } ?: 0
 
@@ -302,25 +304,26 @@ class AdminSettingsActivity : AppCompatActivity() {
         gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCurrentGrade.adapter = gradeAdapter
 
-        val currentGrade = GradeUtils.toDisplay(settings.safeLearningGrade)
-        val index = if (currentGrade.isBlank()) {
-            0 // 未設定
+        // 目標級の初期表示
+        val currentTarget = GradeUtils.toDisplay(settings.targetLearningGrade)
+        val index = if (currentTarget == "未設定") {
+            0
         } else {
-            grades.indexOf(currentGrade).takeIf { it >= 0 } ?: 0
+            grades.indexOf(currentTarget).takeIf { it >= 0 } ?: 0
         }
         spinnerCurrentGrade.setSelection(index)
 
+        // QuizModeとViewの紐付け
         val modes = mapOf(
-            "meaning" to (findViewById<TextView>(R.id.text_point_meaning) to findViewById<SeekBar>(R.id.seek_point_meaning)),
-            "listening" to (findViewById<TextView>(R.id.text_point_listening) to findViewById<SeekBar>(R.id.seek_point_listening)),
-            "listening_jp" to (findViewById<TextView>(R.id.text_point_listening_jp) to findViewById<SeekBar>(R.id.seek_point_listening_jp)),
-            "japanese_to_english" to (findViewById<TextView>(R.id.text_point_ja_to_en) to findViewById<SeekBar>(R.id.seek_point_ja_to_en)),
-            "english_english_1" to (findViewById<TextView>(R.id.text_point_en_en_1) to findViewById<SeekBar>(R.id.seek_point_en_en_1)),
-            "english_english_2" to (findViewById<TextView>(R.id.text_point_en_en_2) to findViewById<SeekBar>(R.id.seek_point_en_en_2)),
-            "test_fill_blank" to (findViewById<TextView>(R.id.text_point_test_fill_blank) to findViewById<SeekBar>(R.id.seek_point_test_fill_blank)),
-            "test_sort" to (findViewById<TextView>(R.id.text_point_test_sort) to findViewById<SeekBar>(R.id.seek_point_test_sort)),
-            "test_listen_q1" to (findViewById<TextView>(R.id.text_point_test_listen_q1) to findViewById<SeekBar>(R.id.seek_point_test_listen_q1)),
-            "test_listen_q2" to (findViewById<TextView>(R.id.text_point_test_listen_q2) to findViewById<SeekBar>(R.id.seek_point_test_listen_q2))
+            QuizMode.EN_TO_JP to (findViewById<TextView>(R.id.text_point_meaning) to findViewById<SeekBar>(R.id.seek_point_meaning)),
+            QuizMode.LISTEN_EN to (findViewById<TextView>(R.id.text_point_listening) to findViewById<SeekBar>(R.id.seek_point_listening)),
+            QuizMode.LISTEN_FILL_BLANK to (findViewById<TextView>(R.id.text_point_listening_jp) to findViewById<SeekBar>(R.id.seek_point_listening_jp)),
+            QuizMode.JP_TO_EN to (findViewById<TextView>(R.id.text_point_ja_to_en) to findViewById<SeekBar>(R.id.seek_point_ja_to_en)),
+            QuizMode.SYNONYM_PICK to (findViewById<TextView>(R.id.text_point_en_en_1) to findViewById<SeekBar>(R.id.seek_point_en_en_1)),
+            QuizMode.ANTONYM_PICK to (findViewById<TextView>(R.id.text_point_en_en_2) to findViewById<SeekBar>(R.id.seek_point_en_en_2)),
+            QuizMode.FILL_BLANK to (findViewById<TextView>(R.id.text_point_test_fill_blank) to findViewById<SeekBar>(R.id.seek_point_test_fill_blank)),
+            QuizMode.SENTENCE_SORT to (findViewById<TextView>(R.id.text_point_test_sort) to findViewById<SeekBar>(R.id.seek_point_test_sort)),
+            // 他のテストモードは現時点のQuizModeに含まれないため一時的に既存互換で維持
         )
 
         fun progressToPoint(progress: Int): Int = 4 + progress * 4
@@ -329,12 +332,12 @@ class AdminSettingsActivity : AppCompatActivity() {
         modes.forEach { (mode, views) ->
             val (textView, seekBar) = views
             if (textView != null && seekBar != null) {
-                seekBar.max = 7
+                seekBar.max = 7 // 4, 8, 12, 16, 20, 24, 28, 32
                 seekBar.progress = pointToProgress(settings.getBasePoint(mode))
-                textView.text = "${getModeDisplayName(mode)}: ${progressToPoint(seekBar.progress)} pt"
+                textView.text = "${getQuizModeDisplayName(mode)}: ${progressToPoint(seekBar.progress)} pt"
                 seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        textView.text = "${getModeDisplayName(mode)}: ${progressToPoint(progress)} pt"
+                        textView.text = "${getQuizModeDisplayName(mode)}: ${progressToPoint(progress)} pt"
                     }
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -398,34 +401,38 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val selected = spinnerCurrentGrade.selectedItem?.toString() ?: "未設定"
-            settings.currentLearningGrade =
-                if (selected == "未設定") "" else GradeUtils.normalize(selected)
-            settings.pointReductionOneGradeDown = 50
-            settings.pointReductionTwoGradesDown = 25
-            modes.forEach { (mode, views) -> val (_, seekBar) = views; if (seekBar != null) settings.setBasePoint(mode, progressToPoint(seekBar.progress)) }
+            
+            // 目標級の保存（キーを分離）
+            settings.targetLearningGrade = if (selected == "未設定") "0" else GradeUtils.normalize(selected)
+            
+            // 各モードの基本ポイント保存
+            modes.forEach { (mode, views) -> 
+                val (_, seekBar) = views
+                if (seekBar != null) settings.setBasePoint(mode, progressToPoint(seekBar.progress)) 
+            }
+
             settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
             settings.dontKnowRetrySec = progressToDontKnowSec(seekDontKnowRetry.progress)
             settings.setUnlockMinutesPer10Pt(progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
+            
             AdAudioManager.apply(settings)
             finish()
         }
     }
 
-    private fun getModeDisplayName(mode: String): String {
+    private fun getQuizModeDisplayName(mode: QuizMode): String {
         return when (mode) {
-            "meaning" -> getString(R.string.mode_meaning)
-            "listening" -> getString(R.string.mode_listening)
-            "listening_jp" -> getString(R.string.mode_listening_jp)
-            "japanese_to_english" -> getString(R.string.mode_japanese_to_english)
-            "english_english_1" -> getString(R.string.mode_english_english_1)
-            "english_english_2" -> getString(R.string.mode_english_english_2)
-            "test_fill_blank" -> getString(R.string.mode_test_fill_blank)
-            "test_sort" -> getString(R.string.mode_test_sort)
-            "test_listen_q1" -> getString(R.string.mode_test_listen_q1)
-            "test_listen_q2" -> getString(R.string.mode_test_listen_q2)
-            else -> mode.replace("_", " ").replaceFirstChar { it.uppercase() }
+            QuizMode.JP_TO_EN -> getString(R.string.mode_japanese_to_english)
+            QuizMode.EN_TO_JP -> getString(R.string.mode_meaning)
+            QuizMode.LISTEN_EN -> getString(R.string.mode_listening)
+            QuizMode.FILL_BLANK -> getString(R.string.mode_test_fill_blank)
+            QuizMode.LISTEN_FILL_BLANK -> "穴埋めリスニング"
+            QuizMode.SYNONYM_PICK -> "類義語選び"
+            QuizMode.ANTONYM_PICK -> "対義語選び"
+            QuizMode.SENTENCE_SORT -> getString(R.string.mode_test_sort)
+            else -> mode.name
         }
     }
 

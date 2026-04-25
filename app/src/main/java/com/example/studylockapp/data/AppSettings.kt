@@ -2,6 +2,7 @@ package com.example.studylockapp.data
 
 import android.content.Context
 import androidx.core.content.edit
+import com.example.studylockapp.learning.QuizMode
 import java.time.ZoneId
 import kotlin.math.roundToInt
 
@@ -44,8 +45,9 @@ class AppSettings(context: Context) {
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
         private const val KEY_ACCESSIBILITY_ENABLED_NOTIFIED = "accessibility_enabled_notified"
 
-        private const val KEY_BASE_POINT_PREFIX = "base_point_"
+        private const val KEY_BASE_POINT_PREFIX = "base_point_v2_" // v2 prefix for QuizMode based points
         private const val KEY_CURRENT_LEARNING_GRADE = "current_learning_grade"
+        private const val KEY_TARGET_LEARNING_GRADE = "target_learning_grade" // New: Target grade for point calculation
         private const val KEY_POINT_REDUCTION_ONE_GRADE_DOWN = "point_reduction_one_grade_down"
         private const val KEY_POINT_REDUCTION_TWO_GRADES_DOWN = "point_reduction_two_grades_down"
 
@@ -67,7 +69,50 @@ class AppSettings(context: Context) {
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
 
-    // サイレントモード設定
+    // --- Grade Settings ---
+
+    var currentLearningGrade: String
+        get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "3") ?: "3"
+        set(value) = prefs.edit { putString(KEY_CURRENT_LEARNING_GRADE, value) }
+
+    val safeLearningGrade: String
+        get() {
+            val value = currentLearningGrade
+            val rank = value.toIntOrNull()
+            return if (rank != null && rank in 1..7) value else "3"
+        }
+
+    /**
+     * ポイント計算の基準となる「目標Grade」。
+     * 設定されていない場合は "0" を返す。
+     */
+    var targetLearningGrade: String
+        get() = prefs.getString(KEY_TARGET_LEARNING_GRADE, "0") ?: "0"
+        set(value) = prefs.edit { putString(KEY_TARGET_LEARNING_GRADE, value) }
+
+    val isTargetLearningGradeSet: Boolean
+        get() = targetLearningGrade.toIntOrNull() in 1..7
+
+    val safeTargetLearningGrade: String
+        get() {
+            val rank = targetLearningGrade.toIntOrNull()
+            return if (rank != null && rank in 1..7) rank.toString() else "3"
+        }
+
+    // --- Point Settings ---
+
+    private fun basePointKey(mode: QuizMode): String = KEY_BASE_POINT_PREFIX + mode.name
+
+    fun getBasePoint(mode: QuizMode): Int {
+        return prefs.getInt(basePointKey(mode), 4)
+    }
+
+    fun setBasePoint(mode: QuizMode, point: Int) {
+        prefs.edit { putInt(basePointKey(mode), point) }
+    }
+
+    // --- Remaining Settings (Preserved) ---
+
     var silentMode: SilentMode
         get() = if (prefs.getBoolean(KEY_SILENT_MODE, false)) SilentMode.ON else SilentMode.OFF
         set(value) = prefs.edit { putBoolean(KEY_SILENT_MODE, value == SilentMode.ON) }
@@ -172,31 +217,6 @@ class AppSettings(context: Context) {
 
     fun isAccessibilityEnabledNotified(): Boolean = prefs.getBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, false)
     fun setAccessibilityEnabledNotified(notified: Boolean) { prefs.edit { putBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, notified) } }
-
-    fun getBasePoint(mode: String): Int {
-        val defaultPoint = when (mode) {
-            "test_sort","test_listen_q2" -> 12
-            "test_listen_q1","test_fill_blank" -> 8
-            "english_english_1", "english_english_2" -> 8
-            "listening_jp" -> 4
-            "meaning", "japanese_to_english", "listening" -> 4
-            else -> 4
-        }
-        return prefs.getInt(KEY_BASE_POINT_PREFIX + mode, defaultPoint).coerceIn(4, 32)
-    }
-
-    fun setBasePoint(mode: String, value: Int) { prefs.edit { putInt(KEY_BASE_POINT_PREFIX + mode, value.coerceIn(4, 32)) } }
-
-    var currentLearningGrade: String
-        get() = prefs.getString(KEY_CURRENT_LEARNING_GRADE, "3") ?: "3"
-        set(value) = prefs.edit { putString(KEY_CURRENT_LEARNING_GRADE, value) }
-
-    val safeLearningGrade: String
-        get() {
-            val value = currentLearningGrade
-            val rank = value.toIntOrNull()
-            return if (rank != null && rank in 1..7) value else "3"
-        }
 
     var pointReductionOneGradeDown: Int
         get() = prefs.getInt(KEY_POINT_REDUCTION_ONE_GRADE_DOWN, 50)
