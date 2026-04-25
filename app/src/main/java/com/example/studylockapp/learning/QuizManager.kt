@@ -122,17 +122,18 @@ class QuizManager(
         }
     }
 
+    private fun isListeningMode(mode: QuizMode): Boolean {
+        return mode == QuizMode.LISTEN_EN || mode == QuizMode.LISTEN_FILL_BLANK
+    }
+
+    private fun shouldSkipForSilentMode(scheduledMode: QuizMode): Boolean {
+        return silentMode == SilentMode.ON && isListeningMode(scheduledMode)
+    }
+
     private fun determineActualMode(mastery: WordMasteryEntity, scheduled: QuizMode): QuizMode {
         if (silentMode == SilentMode.OFF) {
             if (mastery.pendingListenReview && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
                 return QuizMode.LISTEN_EN
-            }
-        }
-        if (silentMode == SilentMode.ON) {
-            return when (scheduled) {
-                QuizMode.LISTEN_EN -> QuizMode.JP_TO_EN
-                QuizMode.LISTEN_FILL_BLANK -> QuizMode.FILL_BLANK
-                else -> scheduled
             }
         }
         return scheduled
@@ -144,6 +145,14 @@ class QuizManager(
         // 1. 期限到達済みの復習
         val dueMasteries = masteryDao.getDueMasteries(now)
         for (mastery in dueMasteries.shuffled()) {
+            val scheduledMode = runCatching {
+                QuizMode.valueOf(mastery.scheduledMode)
+            }.getOrDefault(QuizMode.EN_TO_JP)
+
+            if (shouldSkipForSilentMode(scheduledMode)) {
+                continue
+            }
+
             val word = wordDao.getWordById(mastery.wordId)
             if (word != null && word.grade == userLevel) {
                 return word
