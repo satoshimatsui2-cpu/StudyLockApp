@@ -9,7 +9,8 @@ sealed class LearningUiEvent {
 
     data class ShowWrong(
         val selected: String,
-        val correct: String
+        val correct: String,
+        val isUnknown: Boolean = false
     ) : LearningUiEvent()
 
     data class PlayAudio(

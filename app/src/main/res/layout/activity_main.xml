@@ -179,7 +179,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_to_learning_history"
                         style="@style/App.MainButton"
-                        android:layout_width="match_parent"
+                        android:layout_width="292dp"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="64dp"
                         android:text="@string/label_history_short"

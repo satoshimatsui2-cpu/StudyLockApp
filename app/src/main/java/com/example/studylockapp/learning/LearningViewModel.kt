@@ -57,6 +57,7 @@ class LearningViewModel(
 
     companion object {
         private const val TAG = "LearningViewModel"
+        const val UNKNOWN_ANSWER_LABEL = "わからない"
     }
 
     init {
@@ -239,7 +240,7 @@ class LearningViewModel(
     }
 
     fun submitUnknownAnswer() {
-        submitAnswer("わからない")
+        submitAnswer(UNKNOWN_ANSWER_LABEL)
     }
 
     fun submitAnswer(selectedAnswer: String) {
@@ -254,7 +255,7 @@ class LearningViewModel(
             val oldMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val oldTier = MasteryScheduler.getTier(oldMastery)
 
-            val isUnknown = selectedAnswer == "わからない"
+            val isUnknown = selectedAnswer == UNKNOWN_ANSWER_LABEL
             val isCorrect = !isUnknown && (selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase())
 
             val timingSettings = getReviewTimingSettings()
@@ -364,7 +365,7 @@ class LearningViewModel(
                     _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
                 }
             } else {
-                _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer))
+                _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer, isUnknown))
             }
         }
     }

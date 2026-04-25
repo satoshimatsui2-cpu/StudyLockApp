@@ -7,6 +7,7 @@ import android.view.animation.OvershootInterpolator
 import androidx.core.content.ContextCompat
 import com.example.studylockapp.R
 import com.example.studylockapp.databinding.ActivityLearningBinding
+import com.google.android.material.button.MaterialButton
 
 /**
  * 学習画面のアニメーションを一括管理するクラス
@@ -42,8 +43,6 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
      * 習得度達成（基礎マスター / 長期マスター）の特別演出
      */
     fun playMasterCelebration(isLongTerm: Boolean) {
-        // ここではヘッダーの強調アニメーションを再利用しますが、
-        // 将来的には Lottie や全画面演出を追加可能な口として定義
         val headerView = binding.layoutJourneyHeader.root
         headerView.animate()
             .scaleX(1.15f)
@@ -116,10 +115,6 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
         }
     }
 
-    /**
-     * ランクアップ演出
-     * layout_journey_header のルート View をアニメーションさせます。
-     */
     fun playTierUpAnimation(tierLabel: String) {
         val headerView = binding.layoutJourneyHeader.root
         headerView.animate()
@@ -142,15 +137,27 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
     }
 
     private fun showCorrect(button: View) {
-        button.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.choice_correct))
+        if (button is MaterialButton) {
+            button.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.choice_correct_bg))
+            button.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.choice_correct_stroke))
+            button.setTextColor(ContextCompat.getColor(button.context, R.color.choice_correct_text))
+        }
         button.animate().scaleX(1.05f).scaleY(1.05f).setDuration(150).withEndAction {
             button.animate().scaleX(1f).scaleY(1f).setDuration(150).start()
         }.start()
     }
 
     private fun showWrong(selected: View, correct: View) {
-        selected.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(selected.context, R.color.choice_wrong))
-        correct.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(correct.context, R.color.choice_correct))
+        if (selected is MaterialButton) {
+            selected.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(selected.context, R.color.choice_wrong_bg))
+            selected.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(selected.context, R.color.choice_wrong_stroke))
+            selected.setTextColor(ContextCompat.getColor(selected.context, R.color.choice_wrong_text))
+        }
+        if (correct is MaterialButton) {
+            correct.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(correct.context, R.color.choice_correct_bg))
+            correct.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(correct.context, R.color.choice_correct_stroke))
+            correct.setTextColor(ContextCompat.getColor(correct.context, R.color.choice_correct_text))
+        }
         correct.animate().scaleX(1.08f).scaleY(1.08f).setDuration(200).withEndAction {
             correct.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
         }.start()

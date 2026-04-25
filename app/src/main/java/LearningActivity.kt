@@ -244,9 +244,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.ShowWrong -> {
-                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
+                // 「わからない」の場合は不正解音を鳴らさない
+                if (!event.isUnknown && viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playWrong(1.0f)
                 }
+                
                 if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
                     playSentenceAudioDelayed()
                     viewModel.startReview()
@@ -255,7 +257,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                     val correctBtn = choiceButtons.find { it.text == event.correct }
                     
                     // 「わからない」の場合はアニメーションのみで進める
-                    if (event.selected == "わからない") {
+                    if (event.isUnknown) {
                         binding.buttonUnknownAnswer.isEnabled = false
                         viewModel.startReview()
                     } else {

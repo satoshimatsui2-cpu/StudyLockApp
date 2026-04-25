@@ -73,7 +73,7 @@
     <color name="unknown_stroke">#D4A72C</color>
     <color name="unknown_text">#7A5A00</color>
 
-    <!-- 互換性維持のための演出エイリアス -->
+    <!-- 互換性維持のための演出エイリアス (AnimationManagerで使用) -->
     <color name="choice_correct">@color/choice_correct_stroke</color>
     <color name="choice_wrong">@color/choice_wrong_stroke</color>
     <color name="correct_flash">@color/choice_correct_bg</color>
