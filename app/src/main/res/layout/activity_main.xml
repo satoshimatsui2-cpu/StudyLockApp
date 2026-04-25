@@ -100,12 +100,13 @@
                         android:focusable="true"
                         android:foreground="?android:attr/selectableItemBackground"
                         app:strokeColor="@color/sl_button_stroke"
-                        app:strokeWidth="2dp">
+                        app:strokeWidth="3dp"
+                        app:cardBackgroundColor="@color/white">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="10dp">
+                            android:padding="12dp">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -124,7 +125,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/points_default"
                                     android:textSize="18sp"
-                                    android:textColor="?attr/colorOnSurface"
+                                    android:textColor="@color/navy_primary"
                                     android:textStyle="bold"
                                     android:gravity="center_horizontal"
                                     tools:text="保有ポイント: 120" />
@@ -135,7 +136,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/point_stats_default"
                                     android:textSize="12sp"
-                                    android:textColor="?attr/colorOnSurface"
+                                    android:textColor="@color/navy_primary"
                                     android:paddingTop="6dp"
                                     android:gravity="center_horizontal"
                                     tools:text="今日: 30 / 前日比: +10" />
@@ -146,7 +147,7 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_arrow_right"
-                                app:tint="?attr/colorOnSurface"
+                                app:tint="@color/navy_primary"
                                 android:contentDescription="@string/action_point_history"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
@@ -156,53 +157,29 @@
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
-                <!-- 履歴ボタン -->
+                <!-- 履歴ボタン群 (1列縦並び) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
+                    android:orientation="vertical"
                     android:gravity="center_horizontal"
                     android:layout_marginBottom="24dp">
 
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_to_learning_history"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginHorizontal="8dp"
-                        android:orientation="horizontal"
-                        android:weightSum="2">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_to_point_history"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:text="@string/action_point_history"
-                            android:background="@drawable/sl_button_bg_navy"
-                            android:textColor="@color/sl_button_text"
-                            android:paddingVertical="12dp"
-                            app:backgroundTint="@null"
-                            android:textSize="16sp"
-                            android:textAllCaps="false"/>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_to_learning_history"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:text="@string/action_learning_history"
-                            android:background="@drawable/sl_button_bg_navy"
-                            android:textColor="@color/sl_button_text"
-                            android:paddingVertical="12dp"
-                            app:backgroundTint="@null"
-                            android:textSize="16sp"
-                            android:textAllCaps="false"/>
-                    </LinearLayout>
+                        android:layout_marginHorizontal="48dp"
+                        android:text="@string/action_learning_history"
+                        android:background="@drawable/sl_button_bg"
+                        android:textColor="@color/sl_button_text"
+                        android:paddingVertical="12dp"
+                        app:backgroundTint="@null"
+                        android:textSize="18sp"
+                        android:textAllCaps="false"
+                        app:strokeColor="@color/sl_button_stroke"
+                        app:strokeWidth="3dp"/>
                 </LinearLayout>
 
                 <!-- 目標・学習レベル表示 -->
@@ -213,7 +190,7 @@
                     android:layout_marginBottom="8dp"
                     android:gravity="center_horizontal"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorPrimary"
+                    android:textColor="@color/navy_primary"
                     android:textStyle="bold"
                     tools:text="目標：3級 / 学習：5級（復習）" />
 
@@ -269,7 +246,8 @@
                         android:textColor="@color/sl_button_text"
                         android:paddingVertical="12dp"
                         app:backgroundTint="@null"
-                        android:textSize="20sp"/>
+                        android:textSize="22sp"
+                        android:textStyle="bold"/>
                 </LinearLayout>
 
                 <!-- 管理設定ボタン -->
@@ -310,7 +288,7 @@
             android:clickable="true"
             android:focusable="true"
             android:elevation="8dp"
-            app:tint="@color/sl_button_stroke"
+            app:tint="@color/navy_primary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="50dp"

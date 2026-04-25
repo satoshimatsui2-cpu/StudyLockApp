@@ -44,7 +44,7 @@
     <color name="text_primary">@color/text_main</color>
     <color name="text_secondary">@color/text_sub</color>
     <color name="text_link">@color/navy_primary</color>
-    <color name="sl_button_text">@color/text_main</color>
+    <color name="sl_button_text">@color/navy_primary</color>
     <color name="outline">@color/app_outline</color>
     <color name="onSurface">@color/text_main</color>
 
@@ -52,7 +52,7 @@
     <color name="sort_question_navy">@color/navy_primary</color>
     <color name="sl_button_bg">@color/white</color>
     <color name="sl_button_bg_pressed">@color/mustard_soft</color>
-    <color name="sl_button_stroke">@color/app_outline</color>
+    <color name="sl_button_stroke">@color/navy_primary</color>
     <color name="ic_launcher_background">@color/navy_primary</color>
 
     <!-- ===== 学習演出/状態色 ===== -->
