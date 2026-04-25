@@ -295,8 +295,18 @@ class LearningViewModel(
                 }
             }
 
+            var gainedPoints = 0
             if (isCorrect) {
-                withContext(Dispatchers.IO) { pointManager.add(10) }
+                val basePoint = appSettings.getBasePoint(currentQuiz.mode)
+                val targetGrade = appSettings.safeTargetLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
+                
+                gainedPoints = RewardPointCalculator.calculate(
+                    basePoint = basePoint,
+                    wordGrade = currentQuiz.word.grade,
+                    targetGrade = targetGrade
+                )
+                
+                withContext(Dispatchers.IO) { pointManager.add(gainedPoints) }
             }
 
             _uiState.update { state -> 
@@ -324,7 +334,7 @@ class LearningViewModel(
                 if (newLevel - oldLevel >= 2) {
                     _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
                 }
-                _uiEvent.send(LearningUiEvent.ShowCorrect(10, currentQuiz.answer, oldTier != newTier))
+                _uiEvent.send(LearningUiEvent.ShowCorrect(gainedPoints, currentQuiz.answer, oldTier != newTier))
                 if (oldTier != newTier) {
                     _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
                 }

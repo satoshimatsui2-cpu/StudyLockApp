@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appSettings: AppSettings
     private lateinit var pointManager: PointManager
+    private var hasShownTargetGradeSetupAlert = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,15 +36,29 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 級表示の更新（他画面からの戻り時など）
-        val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
-        val targetGradeText = findViewById<TextView>(R.id.text_target_grade)
-        if (gradeButton != null && targetGradeText != null) {
-            updateGradeDisplay(gradeButton, targetGradeText)
-        }
         
-        // ポイント表示の更新
+        // 目標級が未設定の場合、一度だけアラートを表示
+        if (!appSettings.isTargetLearningGradeSet && !hasShownTargetGradeSetupAlert) {
+            hasShownTargetGradeSetupAlert = true
+            showTargetGradeSetupAlert()
+        }
+
+        updateGradeDisplay()
         updatePointDisplay()
+    }
+
+    /**
+     * 目標級設定を促すアラートを表示
+     */
+    private fun showTargetGradeSetupAlert() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("目標設定が必要です")
+            .setMessage("学習を始める前に、管理者設定から目標とする級を設定してください。")
+            .setPositiveButton("設定へ") { _, _ ->
+                startActivity(Intent(this, AdminSettingsActivity::class.java))
+            }
+            .setNegativeButton("あとで", null)
+            .show()
     }
 
     /**
@@ -51,20 +66,16 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupGradeSection() {
         val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
-        val targetGradeText = findViewById<TextView>(R.id.text_target_grade)
-
-        // 初期表示の反映
-        if (gradeButton != null && targetGradeText != null) {
-            updateGradeDisplay(gradeButton, targetGradeText)
-
+        
+        if (gradeButton != null) {
             // 級選択ボタンのクリックリスナー
             gradeButton.setOnClickListener {
                 // GradeBottomSheetを表示
                 val bottomSheet = GradeBottomSheet { selectedGrade ->
-                    // 選択された級をAppSettingsに保存
+                    // 選択された「学習級」を保存
                     appSettings.currentLearningGrade = selectedGrade
-                    // 保存された級に基づいて表示を更新
-                    updateGradeDisplay(gradeButton, targetGradeText)
+                    // 表示を更新
+                    updateGradeDisplay()
                 }
                 bottomSheet.show(supportFragmentManager, "GradeBottomSheet")
             }
@@ -74,12 +85,23 @@ class MainActivity : AppCompatActivity() {
     /**
      * 表示されている級のテキストを更新
      */
-    private fun updateGradeDisplay(gradeButton: TextView, targetGradeText: TextView) {
-        val gradeValue = appSettings.safeLearningGrade
-        val displayStr = GradeUtils.toDisplay(gradeValue)
+    private fun updateGradeDisplay() {
+        val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
+        val targetGradeText = findViewById<TextView>(R.id.text_target_grade)
 
-        gradeButton.text = displayStr
-        targetGradeText.text = "目標：$displayStr"
+        if (gradeButton != null && targetGradeText != null) {
+            // 学習中の級を表示
+            val learningDisplay = GradeUtils.toDisplay(appSettings.safeLearningGrade)
+            gradeButton.text = learningDisplay
+
+            // ポイント計算の基準となる目標級を表示
+            targetGradeText.text = if (appSettings.isTargetLearningGradeSet) {
+                val targetDisplay = GradeUtils.toDisplay(appSettings.targetLearningGrade)
+                "目標：$targetDisplay"
+            } else {
+                "目標：未設定"
+            }
+        }
     }
 
     /**
