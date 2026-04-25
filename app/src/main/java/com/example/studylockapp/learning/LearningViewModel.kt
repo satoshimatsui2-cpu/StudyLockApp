@@ -148,6 +148,13 @@ class LearningViewModel(
                 return@launch
             }
 
+            // 目標級(Intランク)を反映。未設定時は0、設定済みなら1-7。
+            val targetLevel = if (appSettings.isTargetLearningGradeSet) {
+                appSettings.safeTargetLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
+            } else {
+                0
+            }
+
             // quiz が null でない場合の通常処理
             val importance = quiz.mode.getAudioImportance()
             val hasRisk = audioChecker.isSilenceRisk()
@@ -180,6 +187,7 @@ class LearningViewModel(
                     longTermMasterCount = longTermCount,
                     currentTier = currentTier,
                     currentLevel = mastery.level,
+                    targetLevel = targetLevel, // 最新の目標ランクを反映
                     isLevelJustIncreased = false,
                     currentWord = quiz.word,
                     wordGrade = quiz.word.grade
@@ -222,6 +230,10 @@ class LearningViewModel(
         }
     }
 
+    fun submitUnknownAnswer() {
+        submitAnswer("わからない")
+    }
+
     fun submitAnswer(selectedAnswer: String) {
         val currentQuiz = _uiState.value.quiz ?: return
         if (_uiState.value.isAnswering || _uiState.value.isReviewing) return
@@ -234,7 +246,10 @@ class LearningViewModel(
             val oldMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val oldTier = MasteryScheduler.getTier(oldMastery)
 
-            quizManager.submitAnswer(currentQuiz.word, selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase(), currentQuiz.mode)
+            val isUnknown = selectedAnswer == "わからない"
+            val isCorrect = !isUnknown && (selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase())
+
+            quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode)
 
             val newMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val newLevel = newMastery.level
@@ -253,7 +268,6 @@ class LearningViewModel(
             }
 
             solvedInSession++
-            val isCorrect = (selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase())
             
             val modeLabel = when (currentQuiz.mode) {
                 QuizMode.EN_TO_JP -> "英語 → 日本語"
@@ -278,7 +292,7 @@ class LearningViewModel(
             }
 
             var wrongWordEntity: WordEntity? = null
-            if (currentQuiz.mode == QuizMode.LISTEN_EN && !isCorrect) {
+            if (currentQuiz.mode == QuizMode.LISTEN_EN && !isCorrect && !isUnknown) {
                 wrongWordEntity = withContext(Dispatchers.IO) {
                     wordDao.getWordBySpelling(selectedAnswer)
                 }
@@ -287,7 +301,7 @@ class LearningViewModel(
             // Synonyms / Antonyms 判定 (復元)
             var synonymTitle: String? = null
             var synonymBody: String? = null
-            if (!isCorrect && (currentQuiz.mode == QuizMode.JP_TO_EN || currentQuiz.mode == QuizMode.LISTEN_EN)) {
+            if (!isCorrect && !isUnknown && (currentQuiz.mode == QuizMode.JP_TO_EN || currentQuiz.mode == QuizMode.LISTEN_EN)) {
                 val synonym = currentQuiz.word.synonyms.find { it.word.equals(selectedAnswer, ignoreCase = true) }
                 if (synonym != null) {
                     synonymTitle = "惜しい不正解"
@@ -309,10 +323,12 @@ class LearningViewModel(
                 withContext(Dispatchers.IO) { pointManager.add(gainedPoints) }
             }
 
+            val latestTotal = withContext(Dispatchers.IO) { pointManager.getTotal() }
+
             _uiState.update { state -> 
                 state.copy(
                     comboCount = if (isCorrect) state.comboCount + 1 else 0, 
-                    totalPoints = pointManager.getTotal(), // 累計を反映
+                    totalPoints = latestTotal, // 累計を反映
                     progress = (solvedInSession * 100) / totalCount,
                     currentTier = newTier,
                     currentLevel = newLevel,
@@ -322,7 +338,7 @@ class LearningViewModel(
                     reviewQuestionText = questionText,
                     reviewUserAnswerText = selectedAnswer,
                     reviewCorrectAnswerText = correctDisplay,
-                    showListeningCompare = (currentQuiz.mode == QuizMode.LISTEN_EN && !isCorrect),
+                    showListeningCompare = (currentQuiz.mode == QuizMode.LISTEN_EN && !isCorrect && !isUnknown),
                     wrongWord = wrongWordEntity,
                     reviewSynonymHintTitle = synonymTitle,
                     reviewSynonymHintBody = synonymBody,

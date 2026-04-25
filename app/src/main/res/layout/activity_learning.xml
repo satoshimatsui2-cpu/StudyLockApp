@@ -183,7 +183,17 @@
                         android:id="@+id/button_choice_4"
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_unknown_answer"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="わからない"
+                        android:textColor="@color/text_sub"
+                        app:strokeColor="@color/app_outline" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>

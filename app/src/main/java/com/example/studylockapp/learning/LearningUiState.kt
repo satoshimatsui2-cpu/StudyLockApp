@@ -29,7 +29,7 @@ data class LearningUiState(
     val longTermMasterCount: Int = 0,
     val currentTier: MasteryTier = MasteryTier.LEARNING,
     val currentLevel: Int = 0,
-    val targetLevel: Int = 5,
+    val targetLevel: Int = 0, // 初期値を 0 (未設定) に変更
     val isLevelJustIncreased: Boolean = false,
     val wordGrade: Int = 5,
 

@@ -110,6 +110,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 if (it.isNotEmpty()) viewModel.requestAudioPlayback(it)
             }
         }
+
+        binding.buttonUnknownAnswer.setOnClickListener {
+            if (!viewModel.uiState.value.isAnswering && !viewModel.uiState.value.isReviewing) {
+                viewModel.submitUnknownAnswer()
+            }
+        }
     }
 
     private fun observeViewModel() {
@@ -169,6 +175,15 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.flexboxAnswer.removeAllViews()
         binding.flexboxCandidates.removeAllViews()
         setQuestionBodyTextScale(1.0f)
+        
+        // 「わからない」ボタンをリセット
+        binding.buttonUnknownAnswer.apply {
+            visibility = View.VISIBLE
+            isEnabled = true
+            alpha = 1.0f
+            scaleX = 1.0f
+            scaleY = 1.0f
+        }
     }
 
     private fun handleEvent(event: LearningUiEvent) {
@@ -202,8 +217,15 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 } else {
                     val selectedBtn = choiceButtons.find { it.text == event.selected }
                     val correctBtn = choiceButtons.find { it.text == event.correct }
-                    animationManager.playWrongSequence(selectedBtn, correctBtn) {
+                    
+                    // 「わからない」の場合はアニメーションのみで進める
+                    if (event.selected == "わからない") {
+                        binding.buttonUnknownAnswer.isEnabled = false
                         viewModel.startReview()
+                    } else {
+                        animationManager.playWrongSequence(selectedBtn, correctBtn) {
+                            viewModel.startReview()
+                        }
                     }
                 }
             }
@@ -264,6 +286,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
         binding.choicesContainer.visibility = View.VISIBLE
         binding.layoutSortContainer.visibility = View.GONE
+        
+        // 4択モードでは「わからない」ボタンを表示
+        binding.buttonUnknownAnswer.visibility = View.VISIBLE
 
         choiceButtons.forEachIndexed { i, btn ->
             if (i < choices.size) {
