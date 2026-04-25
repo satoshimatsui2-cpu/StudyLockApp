@@ -122,6 +122,14 @@ class LearningViewModel(
         appSettings.hasShownSilentExplanation = true
     }
 
+    private fun getReviewTimingSettings(): ReviewTimingSettings {
+        return ReviewTimingSettings(
+            correctSameDayDelayMillis = appSettings.level1RetrySec * 1000L,
+            wrongSameDayDelayMillis = appSettings.wrongRetrySec * 1000L,
+            unknownSameDayDelayMillis = appSettings.dontKnowRetrySec * 1000L
+        )
+    }
+
     fun loadNextQuiz() {
         if (solvedInSession == 0) {
             quizManager.resetSessionStats()
@@ -249,7 +257,8 @@ class LearningViewModel(
             val isUnknown = selectedAnswer == "わからない"
             val isCorrect = !isUnknown && (selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase())
 
-            quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode)
+            val timingSettings = getReviewTimingSettings()
+            quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode, timingSettings, isUnknown)
 
             val newMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val newLevel = newMastery.level

@@ -39,8 +39,15 @@ interface WordMasteryDao {
     """)
     suspend fun countLongTermMastered(): Int
 
-    @Query("SELECT * FROM word_mastery WHERE pendingListenReview = 1")
-    suspend fun getPendingListenMasteries(): List<WordMasteryEntity>
+    /**
+     * 音声復習待ちかつ、再出題時刻を過ぎているものを取得
+     */
+    @Query("""
+        SELECT * FROM word_mastery 
+        WHERE pendingListenReview = 1 
+        AND nextReviewTime <= :now
+    """)
+    suspend fun getPendingListenMasteries(now: Long): List<WordMasteryEntity>
     
     @Query("SELECT * FROM word_mastery")
     suspend fun getAllMasteries(): List<WordMasteryEntity>

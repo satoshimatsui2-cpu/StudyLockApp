@@ -40,7 +40,7 @@ class QuizManager(
 
         val choices = choiceGenerator.generateChoices(word, actualMode)
 
-        QuizData(
+         QuizData(
             id = UUID.randomUUID().toString(),
             mode = actualMode,
             word = word,
@@ -141,41 +141,37 @@ class QuizManager(
     private suspend fun selectNextWord(): WordEntity? {
         val now = System.currentTimeMillis()
         
-        // 1. 復習対象(通常)の抽出
+        // 1. 期限到達済みの復習
         val dueMasteries = masteryDao.getDueMasteries(now)
-        if (dueMasteries.isNotEmpty()) {
-            val candidates = dueMasteries.sortedBy { it.nextReviewTime }.take(20).shuffled()
-            for (mastery in candidates) {
+        for (mastery in dueMasteries.shuffled()) {
+            val word = wordDao.getWordById(mastery.wordId)
+            if (word != null && word.grade == userLevel) {
+                return word
+            }
+        }
+        
+        // 2. 期限到達済みの音声復習
+        if (silentMode == SilentMode.OFF && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
+            val pendingMasteries = masteryDao.getPendingListenMasteries(now)
+            for (mastery in pendingMasteries.shuffled()) {
                 val word = wordDao.getWordById(mastery.wordId)
-                // 復習対象も現在の userLevel に一致するものだけに絞る
                 if (word != null && word.grade == userLevel) {
-                    Log.d(TAG, "selected due word=${word.word}, grade=${word.grade}, userLevel=$userLevel")
                     return word
                 }
             }
         }
         
-        // 2. 音声復習待ちの抽出
-        if (silentMode == SilentMode.OFF && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
-            val pendingMasteries = masteryDao.getPendingListenMasteries()
-            if (pendingMasteries.isNotEmpty()) {
-                for (mastery in pendingMasteries.shuffled()) {
-                    val word = wordDao.getWordById(mastery.wordId)
-                    if (word != null && word.grade == userLevel) {
-                        Log.d(TAG, "selected pending word=${word.word}, grade=${word.grade}, userLevel=$userLevel")
-                        return word
-                    }
-                }
-            }
-        }
-        
-        // 3. 新規単語の抽出 (wordDao側でgradeフィルタ済み)
-        val newWord = wordDao.getRandomNewWordByGrade(userLevel)
-        Log.d(TAG, "selected new word=${newWord?.word}, grade=${newWord?.grade}, userLevel=$userLevel")
-        return newWord
+        // 3. 本当の新規単語のみ (masteryレコードが一切ないもの)
+        return wordDao.getRandomNewWordByGrade(userLevel)
     }
 
-    suspend fun submitAnswer(word: WordEntity, isCorrect: Boolean, actualMode: QuizMode) = withContext(Dispatchers.IO) {
+    suspend fun submitAnswer(
+        word: WordEntity, 
+        isCorrect: Boolean, 
+        actualMode: QuizMode,
+        timingSettings: ReviewTimingSettings,
+        isUnknown: Boolean = false
+    ) = withContext(Dispatchers.IO) {
         val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
         mastery.lastSeen = System.currentTimeMillis()
 
@@ -184,8 +180,8 @@ class QuizManager(
             pendingReviewPickedInSession++
         }
 
-        if (isCorrect) MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON)
-        else MasteryScheduler.onWrong(mastery, actualMode)
+        if (isCorrect) MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON, timingSettings)
+        else MasteryScheduler.onWrong(mastery, actualMode, timingSettings, isUnknown)
 
         masteryDao.insertOrUpdate(mastery)
     }

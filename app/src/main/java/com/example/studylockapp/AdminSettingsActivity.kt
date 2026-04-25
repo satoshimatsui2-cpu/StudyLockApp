@@ -345,6 +345,7 @@ class AdminSettingsActivity : AppCompatActivity() {
             }
         }
 
+        // --- タイミング設定 ---
         val textInterval = findViewById<TextView>(R.id.text_interval)
         val seekInterval = findViewById<SeekBar>(R.id.seek_interval)
         val textWrongRetry = findViewById<TextView>(R.id.text_wrong_retry)
@@ -357,17 +358,18 @@ class AdminSettingsActivity : AppCompatActivity() {
         val seekUnlockMinPer10Pt = findViewById<SeekBar>(R.id.seek_unlock_min_per_10pt)
         val btnSave = findViewById<MaterialButton>(R.id.btn_save)
 
+        // 「回答間隔」は非表示
+        textInterval?.visibility = View.GONE
+        seekInterval?.visibility = View.GONE
+
         findViewById<MaterialButton>(R.id.button_open_timezone_setup)?.apply { visibility = View.GONE }
         findViewById<MaterialButton>(R.id.button_app_lock_settings)?.setOnClickListener { startActivity(Intent(this, AppLockSettingsActivity::class.java)) }
         findViewById<MaterialButton>(R.id.button_show_qr)?.setOnClickListener { startActivity(Intent(this, QrCodeActivity::class.java)) }
 
-        seekInterval.max = 19
         seekWrongRetry.max = 118
         seekLevel1Retry.max = 118
         seekDontKnowRetry.max = 19
 
-        fun intervalMsToProgress(ms: Long): Int = ((ms.coerceIn(500L, 10_000L) - 500L) / 500L).toInt()
-        fun progressToIntervalMs(progress: Int): Long = 500L + (progress.coerceIn(0, 19) * 500L)
         fun secToProgress(sec: Long): Int = ((sec.coerceIn(10L, 600L) - 10L) / 5L).toInt()
         fun progressToSec(progress: Int): Long = 10L + (progress.coerceIn(0, 118) * 5L)
         fun minPer10PtToProgress(value: Int): Int = value.coerceIn(1, 10) - 1
@@ -375,18 +377,15 @@ class AdminSettingsActivity : AppCompatActivity() {
         fun dontKnowSecToProgress(sec: Long): Int = ((sec.coerceIn(5L, 100L) - 5L) / 5L).toInt()
         fun progressToDontKnowSec(progress: Int): Long = 5L + (progress.coerceIn(0, 19) * 5L)
 
-        seekInterval.progress = intervalMsToProgress(settings.answerIntervalMs)
         seekWrongRetry.progress = secToProgress(settings.wrongRetrySec)
         seekLevel1Retry.progress = secToProgress(settings.level1RetrySec)
         seekUnlockMinPer10Pt.progress = minPer10PtToProgress(settings.getUnlockMinutesPer10Pt())
         seekDontKnowRetry.progress = dontKnowSecToProgress(settings.dontKnowRetrySec)
 
         fun refreshLabels() {
-            val sec = progressToIntervalMs(seekInterval.progress) / 1000f
-            textInterval.text = getString(R.string.admin_label_interval_sec, sec)
-            textWrongRetry.text = getString(R.string.admin_label_wrong_retry_sec, progressToSec(seekWrongRetry.progress))
-            textLevel1Retry.text = getString(R.string.admin_label_level1_retry_sec, progressToSec(seekLevel1Retry.progress))
-            textDontKnowRetry.text = getString(R.string.admin_label_dont_know_retry_sec, progressToDontKnowSec(seekDontKnowRetry.progress))
+            textWrongRetry.text = "当日再出題（不正解）: ${progressToSec(seekWrongRetry.progress)} 秒"
+            textLevel1Retry.text = "当日再出題（正解済）: ${progressToSec(seekLevel1Retry.progress)} 秒"
+            textDontKnowRetry.text = "当日再出題（わからない）: ${progressToDontKnowSec(seekDontKnowRetry.progress)} 秒"
             textUnlockMinPer10Pt.text = getString(R.string.admin_label_unlock_min_per_10pt_value, progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
         }
         refreshLabels()
@@ -397,7 +396,7 @@ class AdminSettingsActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         }
 
-        listOf(seekInterval, seekWrongRetry, seekLevel1Retry, seekDontKnowRetry, seekUnlockMinPer10Pt).forEach { it.setOnSeekBarChangeListener(commonListener) }
+        listOf(seekWrongRetry, seekLevel1Retry, seekDontKnowRetry, seekUnlockMinPer10Pt).forEach { it.setOnSeekBarChangeListener(commonListener) }
 
         btnSave.setOnClickListener {
             val selected = spinnerCurrentGrade.selectedItem?.toString() ?: "未設定"
@@ -411,7 +410,6 @@ class AdminSettingsActivity : AppCompatActivity() {
                 if (seekBar != null) settings.setBasePoint(mode, progressToPoint(seekBar.progress)) 
             }
 
-            settings.answerIntervalMs = progressToIntervalMs(seekInterval.progress)
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
             settings.dontKnowRetrySec = progressToDontKnowSec(seekDontKnowRetry.progress)

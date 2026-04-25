@@ -39,15 +39,17 @@ interface WordDao {
     suspend fun getRandomWordByGrade(grade: Int): WordEntity?
 
     /**
-     * 未学習（マスタリーレコードがない、またはレベル0）の単語を
+     * 未学習（マスタリーレコードがない）の単語を
      * 指定されたグレードからランダムに1件取得します。
+     * 一度でも出題されたものは mastery レコードが作成されるため、
+     * ここでは純粋に未遭遇の単語のみが対象となります。
      */
     @Query("""
         SELECT w.*
         FROM words w
         LEFT JOIN word_mastery m ON w.no = m.wordId
         WHERE w.grade = :grade
-          AND (m.wordId IS NULL OR m.level = 0)
+          AND m.wordId IS NULL
         ORDER BY RANDOM()
         LIMIT 1
     """)

@@ -51,7 +51,12 @@ object MasteryScheduler {
     /**
      * 正解時の状態更新
      */
-    fun onCorrect(state: WordMasteryEntity, actualMode: QuizMode, isAudioRestricted: Boolean) {
+    fun onCorrect(
+        state: WordMasteryEntity, 
+        actualMode: QuizMode, 
+        isAudioRestricted: Boolean,
+        timingSettings: ReviewTimingSettings
+    ) {
         val now = System.currentTimeMillis()
         state.challengeCount++
         state.successCount++
@@ -89,14 +94,19 @@ object MasteryScheduler {
         val nextLevel = (state.level + 1 + bonusLevel).coerceAtMost(10)
         state.lastCorrectTime = now
 
-        applyTransition(state, nextLevel, isCorrect = true)
+        applyTransition(state, nextLevel, isCorrect = true, timingSettings = timingSettings)
         updateMasteryStatus(state)
     }
 
     /**
      * 不正解時の状態更新
      */
-    fun onWrong(state: WordMasteryEntity, actualMode: QuizMode) {
+    fun onWrong(
+        state: WordMasteryEntity, 
+        actualMode: QuizMode,
+        timingSettings: ReviewTimingSettings,
+        isUnknown: Boolean = false
+    ) {
         state.challengeCount++
         state.failureCount++
         state.currentStreak = 0
@@ -113,24 +123,30 @@ object MasteryScheduler {
             else -> (state.level - 1).coerceAtLeast(0)
         }
 
-        applyTransition(state, nextLevel, isCorrect = false)
+        applyTransition(state, nextLevel, isCorrect = false, timingSettings = timingSettings, isUnknown = isUnknown)
         updateMasteryStatus(state)
     }
 
-    private fun applyTransition(state: WordMasteryEntity, nextLevel: Int, isCorrect: Boolean) {
+    private fun applyTransition(
+        state: WordMasteryEntity, 
+        nextLevel: Int, 
+        isCorrect: Boolean,
+        timingSettings: ReviewTimingSettings,
+        isUnknown: Boolean = false
+    ) {
         state.level = nextLevel
         val now = System.currentTimeMillis()
 
         val (intervalMillis, nextMode) = if (isCorrect) {
-            getSuccessTransition(nextLevel)
+            getSuccessTransition(nextLevel, timingSettings)
         } else {
-            getFailureTransition(nextLevel)
+            getFailureTransition(nextLevel, timingSettings, isUnknown)
         }
 
         // 調査用ログ
-        Log.e(
+        Log.d(
             "MasteryScheduler",
-            "[ApplyTransition] wordId=${state.wordId}, nextLevel=$nextLevel, isCorrect=$isCorrect, nextMode=${nextMode.name}"
+            "[ApplyTransition] wordId=${state.wordId}, nextLevel=$nextLevel, isCorrect=$isCorrect, interval=${intervalMillis/1000}s, nextMode=${nextMode.name}"
         )
 
         state.nextReviewTime = now + intervalMillis
@@ -139,13 +155,10 @@ object MasteryScheduler {
 
     /**
      * 指定された LV1〜LV10 到達時の次回予約モード
-     * 
-     * 注意: LV0（新規単語）の初回出題（EN_TO_JP）はここでは決めず、
-     * WordMasteryEntity のデフォルト値や QuizManager の初期化ロジックで決定されます。
      */
-    private fun getSuccessTransition(level: Int): Pair<Long, QuizMode> {
+    private fun getSuccessTransition(level: Int, settings: ReviewTimingSettings): Pair<Long, QuizMode> {
         return when (level) {
-            1 -> TimeUnit.MINUTES.toMillis(10) to QuizMode.JP_TO_EN
+            1 -> settings.correctSameDayDelayMillis to QuizMode.JP_TO_EN // LV0正解時は設定値を反映
             2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.LISTEN_EN
             3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.FILL_BLANK
             4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.SENTENCE_SORT
@@ -159,8 +172,14 @@ object MasteryScheduler {
         }
     }
 
-    private fun getFailureTransition(level: Int): Pair<Long, QuizMode> {
-        return TimeUnit.MINUTES.toMillis(10) to QuizMode.EN_TO_JP
+    private fun getFailureTransition(
+        level: Int, 
+        settings: ReviewTimingSettings, 
+        isUnknown: Boolean
+    ): Pair<Long, QuizMode> {
+        // 不正解時は常に当日再出題。タイミングのみ設定値に従う。
+        val delay = if (isUnknown) settings.unknownSameDayDelayMillis else settings.wrongSameDayDelayMillis
+        return delay to QuizMode.EN_TO_JP
     }
 
     fun updateMasteryStatus(state: WordMasteryEntity) {

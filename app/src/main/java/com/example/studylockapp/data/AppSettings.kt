@@ -16,21 +16,24 @@ class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
 
     companion object {
-        private const val KEY_ANSWER_INTERVAL_MS = "answer_interval_ms" // Long
+        // --- Timing Settings ---
+        // answer_interval_ms は廃止予定のため新規利用禁止
+        private const val KEY_ANSWER_INTERVAL_MS = "answer_interval_ms"
+        
+        // 再出題タイミング (秒単位で保存)
+        private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"      // 当日再出題（不正解）
+        private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"    // 当日再出題（正解: LV0->LV1）
+        private const val KEY_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec" // 当日再出題（わからない）
 
-        // 音量・TTS
+        // --- Other Settings ---
         private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume"
         private const val KEY_SE_WRONG_VOLUME = "se_wrong_volume"
         private const val KEY_TTS_VOLUME = "tts_volume"
         private const val KEY_TTS_SPEED = "tts_speed"   // Float 0.5..1.5
         private const val KEY_TTS_PITCH = "tts_pitch"   // Float 0.5..1.5
 
-        // 広告音量
         private const val KEY_AD_VOLUME = "ad_volume"
         private const val KEY_AD_MUTED = "ad_muted"
-
-        private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"
-        private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"
 
         private const val KEY_LAST_SELECTED_GRADE = "last_selected_grade"
 
@@ -39,15 +42,15 @@ class AppSettings(context: Context) {
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
         private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt"
 
-        // --- Settings ---
+        // --- Administrative ---
         private const val KEY_UNINSTALL_LOCK = "key_uninstall_lock"
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
         private const val KEY_ACCESSIBILITY_ENABLED_NOTIFIED = "accessibility_enabled_notified"
 
-        private const val KEY_BASE_POINT_PREFIX = "base_point_v2_" // v2 prefix for QuizMode based points
+        private const val KEY_BASE_POINT_PREFIX = "base_point_v2_"
         private const val KEY_CURRENT_LEARNING_GRADE = "current_learning_grade"
-        private const val KEY_TARGET_LEARNING_GRADE = "target_learning_grade" // New: Target grade for point calculation
+        private const val KEY_TARGET_LEARNING_GRADE = "target_learning_grade"
         private const val KEY_POINT_REDUCTION_ONE_GRADE_DOWN = "point_reduction_one_grade_down"
         private const val KEY_POINT_REDUCTION_TWO_GRADES_DOWN = "point_reduction_two_grades_down"
 
@@ -56,18 +59,34 @@ class AppSettings(context: Context) {
         private const val KEY_INCLUDE_OTHER_GRADES = "learning_include_other_grades"
         private const val KEY_HIDE_CHOICES = "learning_hide_choices"
         
-        // 統合されたサイレントモード設定
         private const val KEY_SILENT_MODE = "learning_silent_mode"
         private const val KEY_HAS_SHOWN_SILENT_EXPLANATION = "has_shown_silent_explanation"
 
-        private const val PREF_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec"
         private const val KEY_LAST_GRADE_FILTER = "learning_last_grade_filter"
-        
         private const val KEY_HAS_RESET_MASTERY_FOR_FIX = "has_reset_mastery_for_fix"
 
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
+
+    // --- Timing Implementation ---
+
+    // 廃止予定の項目。常に 0 または無視されるべき。
+    var answerIntervalMs: Long
+        get() = 0L
+        set(value) { /* No-op */ }
+
+    var wrongRetrySec: Long
+        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 600L) // デフォルト 10分
+        set(v) = prefs.edit { putLong(KEY_WRONG_RETRY_SEC, v) }
+
+    var level1RetrySec: Long
+        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 600L) // デフォルト 10分
+        set(v) = prefs.edit { putLong(KEY_LEVEL1_RETRY_SEC, v) }
+
+    var dontKnowRetrySec: Long
+        get() = prefs.getLong(KEY_DONT_KNOW_RETRY_SEC, 30L) // デフォルト 30秒
+        set(value) = prefs.edit { putLong(KEY_DONT_KNOW_RETRY_SEC, value) }
 
     // --- Grade Settings ---
 
@@ -82,10 +101,6 @@ class AppSettings(context: Context) {
             return if (rank != null && rank in 1..7) value else "3"
         }
 
-    /**
-     * ポイント計算の基準となる「目標Grade」。
-     * 設定されていない場合は "0" を返す。
-     */
     var targetLearningGrade: String
         get() = prefs.getString(KEY_TARGET_LEARNING_GRADE, "0") ?: "0"
         set(value) = prefs.edit { putString(KEY_TARGET_LEARNING_GRADE, value) }
@@ -111,7 +126,7 @@ class AppSettings(context: Context) {
         prefs.edit { putInt(basePointKey(mode), point) }
     }
 
-    // --- Remaining Settings (Preserved) ---
+    // --- Remaining Settings ---
 
     var silentMode: SilentMode
         get() = if (prefs.getBoolean(KEY_SILENT_MODE, false)) SilentMode.ON else SilentMode.OFF
@@ -174,18 +189,6 @@ class AppSettings(context: Context) {
         prefs.edit { putFloat(KEY_TTS_PITCH, value.coerceIn(0.5f, 1.5f)) }
     }
 
-    var answerIntervalMs: Long
-        get() = prefs.getLong(KEY_ANSWER_INTERVAL_MS, 1000L)
-        set(value) = prefs.edit { putLong(KEY_ANSWER_INTERVAL_MS, value) }
-
-    var wrongRetrySec: Long
-        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 120L)
-        set(v) = prefs.edit { putLong(KEY_WRONG_RETRY_SEC, v) }
-
-    var level1RetrySec: Long
-        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 120L)
-        set(v) = prefs.edit { putLong(KEY_LEVEL1_RETRY_SEC, v) }
-
     var lastSelectedGrade: String?
         get() = prefs.getString(KEY_LAST_SELECTED_GRADE, null)
         set(value) = prefs.edit { putString(KEY_LAST_SELECTED_GRADE, value) }
@@ -193,9 +196,6 @@ class AppSettings(context: Context) {
     var includeLowerGradeInReview: Boolean
         get() = prefs.getBoolean("include_lower_grade_in_review", false)
         set(value) = prefs.edit().putBoolean("include_lower_grade_in_review", value).apply()
-    var dontKnowRetrySec: Long
-        get() = prefs.getLong(PREF_DONT_KNOW_RETRY_SEC, 10L)
-        set(value) = prefs.edit().putLong(PREF_DONT_KNOW_RETRY_SEC, value).apply()
 
     fun getAppZoneId(): ZoneId {
         return ZoneId.systemDefault()
