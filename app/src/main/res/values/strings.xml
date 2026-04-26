@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EikenForSlacker</string>
 
@@ -238,4 +239,11 @@
     <string name="cd_admin_settings">管理者設定</string>
     <string name="cd_arrow_right">詳細へ</string>
     <string name="cd_coin">ポイントアイコン</string>
+
+    <!-- 補助操作バー用 -->
+    <string name="action_toggle_choices">選択肢</string>
+    <string name="action_unknown_answer">わからない</string>
+    <string name="action_replay_question_audio">再生</string>
+    <string name="cd_replay_question_audio">問題音声を再生</string>
+    <string name="cd_learning_settings">学習設定</string>
 </resources>

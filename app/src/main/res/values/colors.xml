@@ -24,6 +24,10 @@
     <color name="text_main">#142033</color>
     <color name="text_sub">#5B667A</color>
 
+    <!-- 補助ボタン無効時カラー -->
+    <color name="assist_disabled">#A8B0BD</color>
+    <color name="assist_disabled_bg">#F1F3F6</color>
+
     <!-- Material 3 Mapping -->
     <color name="md_primary">@color/navy_primary</color>
     <color name="md_onPrimary">@color/white</color>

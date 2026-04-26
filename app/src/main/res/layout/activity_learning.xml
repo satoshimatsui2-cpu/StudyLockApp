@@ -8,7 +8,7 @@
     android:background="@color/app_background"
     android:padding="16dp">
 
-    <!-- 1. Mastery Journey Card -->
+    <!-- 1. Mastery Journey Card (Header) -->
     <include
         android:id="@+id/layout_journey_header"
         layout="@layout/layout_journey_header"
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 2. セッション進捗バー -->
+    <!-- 2. Session Progress Bar -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_horizontal"
         android:layout_width="0dp"
@@ -41,13 +41,13 @@
         app:layout_constraintTop_toTopOf="@+id/progress_horizontal"
         tools:text="4 / 10" />
 
-    <!-- 3. メインコンテナ -->
+    <!-- 3. Main Container -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"
-        app:layout_constraintBottom_toTopOf="@id/layout_bottom_actions"
+        app:layout_constraintBottom_toTopOf="@id/layout_assist_buttons"
         app:layout_constraintTop_toBottomOf="@id/progress_horizontal">
 
         <com.google.android.material.card.MaterialCardView
@@ -109,7 +109,7 @@
                     android:textStyle="bold"
                     app:layout_constraintTop_toBottomOf="@id/card_question_grade_badge" />
 
-                <!-- 英文並び替え専用UI -->
+                <!-- Sentence Sorting UI -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/layout_sort_container"
                     android:layout_width="match_parent"
@@ -184,14 +184,7 @@
                         style="@style/Widget.StudyLock.ChoiceButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_unknown_answer"
-                        style="@style/Widget.StudyLock.UnknownButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="わからない" />
+                        android:layout_marginBottom="8dp" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -203,7 +196,6 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
 
-        <!-- 飛び級バッジ用 include -->
         <include
             android:id="@+id/layout_flying_levelup"
             layout="@layout/layout_flying_levelup"
@@ -214,7 +206,7 @@
 
     </FrameLayout>
 
-    <!-- 報酬ポップアップ -->
+    <!-- Reward Popup -->
     <TextView
         android:id="@+id/text_reward_popup"
         android:layout_width="wrap_content"
@@ -231,28 +223,45 @@
         app:layout_constraintEnd_toEndOf="@id/layout_journey_header"
         app:layout_constraintTop_toTopOf="@id/layout_journey_header" />
 
-    <!-- 6. 下部アクション -->
+    <!-- 補助操作 3ボタンバー -->
     <LinearLayout
-        android:id="@+id/layout_bottom_actions"
+        android:id="@+id/layout_assist_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:orientation="horizontal"
+        android:weightSum="3"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <View
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_toggle_choices"
+            style="@style/Widget.StudyLock.AssistButton"
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="@string/action_toggle_choices"
+            app:icon="@drawable/ic_visibility_24" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_admin_settings"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+            android:id="@+id/button_unknown_answer"
+            style="@style/Widget.StudyLock.AssistButton.Unknown"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/action_admin_settings"
-            android:textColor="@color/text_sub"
-            app:icon="@drawable/ic_settings" />
+            android:layout_weight="1"
+            android:layout_marginHorizontal="4dp"
+            android:text="@string/action_unknown_answer" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_replay_question_audio"
+            style="@style/Widget.StudyLock.AssistButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="@string/action_replay_question_audio"
+            app:icon="@drawable/ic_volume_up_24"
+            android:contentDescription="@string/cd_replay_question_audio" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

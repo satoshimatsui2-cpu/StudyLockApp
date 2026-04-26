@@ -1,6 +1,7 @@
 package com.example.studylockapp
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.TypedValue
@@ -87,6 +88,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             viewModel.toggleSilentMode()
         }
 
+        // 右上の設定ボタン
+        binding.layoutJourneyHeader.buttonAdminSettingsHeader.setOnClickListener {
+            val intent = Intent(this, AdminSettingsActivity::class.java)
+            startActivity(intent)
+        }
+
         binding.layoutReviewCard.buttonNextQuestion.setOnClickListener {
             viewModel.onNextAfterReview()
         }
@@ -113,10 +120,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
         }
 
+        // 補助操作バー: わからない
         binding.buttonUnknownAnswer.setOnClickListener {
             if (!viewModel.uiState.value.isAnswering && !viewModel.uiState.value.isReviewing) {
                 viewModel.submitUnknownAnswer()
             }
+        }
+
+        // 補助操作バー: 選択肢
+        binding.buttonToggleChoices.setOnClickListener {
+            // TODO: 選択肢の表示/非表示切り替えを実装する
+        }
+
+        // 補助操作バー: 再生
+        binding.buttonReplayQuestionAudio.setOnClickListener {
+            viewModel.requestAudioPlayback()
         }
     }
 
@@ -144,20 +162,60 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         if (state.isReviewing && state.currentWord != null) {
             binding.cardQuestion.visibility = View.GONE
             binding.layoutReviewCard.rootReviewCard.visibility = View.VISIBLE
+            binding.layoutAssistButtons.visibility = View.GONE 
             ReviewCardBinder.bind(binding.layoutReviewCard, ReviewCardMapper.map(state))
             
-            // 並び替えモードでは単語再生ボタンを非表示
             val isSortMode = state.quiz?.mode == QuizMode.SENTENCE_SORT
             binding.layoutReviewCard.buttonPlayReviewWord.visibility = if (isSortMode) View.GONE else View.VISIBLE
         } else {
             binding.layoutReviewCard.rootReviewCard.visibility = View.GONE
             binding.cardQuestion.visibility = View.VISIBLE
+            
+            state.quiz?.mode?.let { mode ->
+                updateAssistButtonsForQuiz(mode)
+            }
         }
 
         binding.progressHorizontal.progress = state.progress
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
         renderQuizIfNeeded(state)
+    }
+
+    private fun updateAssistButtonsForQuiz(mode: QuizMode) {
+        if (mode == QuizMode.SENTENCE_SORT) {
+            binding.layoutAssistButtons.visibility = View.GONE
+        } else {
+            binding.layoutAssistButtons.visibility = View.VISIBLE
+            
+            val canReplay = canReplayQuestionAudio(mode)
+            updateReplayButtonState(canReplay)
+        }
+    }
+
+    private fun updateReplayButtonState(canReplay: Boolean) {
+        binding.buttonReplayQuestionAudio.apply {
+            isEnabled = canReplay
+            alpha = if (canReplay) 1.0f else 0.4f
+
+            val strokeCol = ContextCompat.getColor(context, if (canReplay) R.color.navy_primary else R.color.assist_disabled)
+            val iconCol = ContextCompat.getColor(context, if (canReplay) R.color.navy_primary else R.color.assist_disabled)
+            val bgCol = ContextCompat.getColor(context, if (canReplay) R.color.white else R.color.assist_disabled_bg)
+
+            backgroundTintList = ColorStateList.valueOf(bgCol)
+            strokeColor = ColorStateList.valueOf(strokeCol)
+            iconTint = ColorStateList.valueOf(iconCol)
+            setTextColor(iconCol)
+        }
+    }
+
+    private fun canReplayQuestionAudio(mode: QuizMode): Boolean {
+        return when (mode) {
+            QuizMode.EN_TO_JP,
+            QuizMode.LISTEN_EN,
+            QuizMode.LISTEN_FILL_BLANK -> true
+            else -> false
+        }
     }
 
     private fun renderQuizIfNeeded(state: LearningUiState) {
@@ -172,7 +230,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
     private fun resetUiForNewQuiz() {
         resetAllChoiceButtons()
-        resetUnknownAnswerButton()
+        resetAssistButtons()
         binding.choicesContainer.visibility = View.VISIBLE
         binding.layoutSortContainer.visibility = View.GONE
         binding.flexboxAnswer.removeAllViews()
@@ -180,15 +238,14 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         setQuestionBodyTextScale(1.0f)
     }
 
-    private fun resetUnknownAnswerButton() {
+    private fun resetAssistButtons() {
         binding.buttonUnknownAnswer.apply {
-            // モードによって表示を切り替える (4択系のみ表示)
-            val isSentenceSort = viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT
-            visibility = if (isSentenceSort) View.GONE else View.VISIBLE
             isEnabled = true
             alpha = 1.0f
-            scaleX = 1.0f
-            scaleY = 1.0f
+        }
+        binding.buttonToggleChoices.apply {
+            isEnabled = true
+            alpha = 1.0f
         }
     }
 
@@ -203,11 +260,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             strokeColor = ColorStateList.valueOf(
                 ContextCompat.getColor(context, R.color.navy_primary)
             )
-            strokeWidth = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                2f,
-                resources.displayMetrics
-            ).toInt()
 
             alpha = 1.0f
             scaleX = 1.0f
@@ -232,7 +284,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playCorrect(1.0f)
                 }
-                // 並び替えモードの場合：遅延させて英文読み上げ。単語ボタンなし。
                 if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
                     playSentenceAudioDelayed()
                     viewModel.startReview()
@@ -244,11 +295,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.ShowWrong -> {
-                // 「わからない」の場合は不正解音を鳴らさない
                 if (!event.isUnknown && viewModel.uiState.value.silentMode == SilentMode.OFF) {
                     soundEffectManager.playWrong(1.0f)
                 }
-                
                 if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
                     playSentenceAudioDelayed()
                     viewModel.startReview()
@@ -256,7 +305,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                     val selectedBtn = choiceButtons.find { it.text == event.selected }
                     val correctBtn = choiceButtons.find { it.text == event.correct }
                     
-                    // 「わからない」の場合はアニメーションのみで進める
                     if (event.isUnknown) {
                         binding.buttonUnknownAnswer.isEnabled = false
                         viewModel.startReview()
@@ -312,9 +360,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.choicesContainer.visibility = View.VISIBLE
         binding.layoutSortContainer.visibility = View.GONE
         
-        // 4択モードでは「わからない」ボタンを表示
-        binding.buttonUnknownAnswer.visibility = View.VISIBLE
-
         choiceButtons.forEachIndexed { i, btn ->
             if (i < choices.size) {
                 btn.text = choices[i]

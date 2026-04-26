@@ -78,7 +78,6 @@ class LearningViewModel(
                 if (!appSettings.hasResetMasteryForFix) {
                     val allMasteries = masteryDao.getAllMasteries()
                     allMasteries.forEach { m ->
-                        // LV5未満なのに並べ替えが予約されている不具合データを特定して修正
                         if (m.level < 5 && m.scheduledMode == QuizMode.SENTENCE_SORT.name) {
                             val correctedMode = when (m.level) {
                                 0, 1 -> QuizMode.EN_TO_JP
@@ -90,7 +89,6 @@ class LearningViewModel(
                             if (correctedMode != null) {
                                 m.scheduledMode = correctedMode.name
                                 masteryDao.insertOrUpdate(m)
-                                Log.e(TAG, "[AutoFix] wordId=${m.wordId} level=${m.level} corrected to ${m.scheduledMode}")
                             }
                         }
                     }
@@ -98,9 +96,7 @@ class LearningViewModel(
                 }
                 
                 TsvImporter(context, wordDao).seedIfNeeded()
-                val total = wordDao.countAllWords()
-                val currentGrade = appSettings.currentLearningGrade
-                Log.e(TAG, "[SeedCheck] import finished. totalWords=$total, currentGrade=$currentGrade")
+                wordDao.countAllWords()
             }
             loadNextQuiz()
         }
@@ -119,10 +115,6 @@ class LearningViewModel(
         }
     }
 
-    fun markSilentExplanationShown() {
-        appSettings.hasShownSilentExplanation = true
-    }
-
     private fun getReviewTimingSettings(): ReviewTimingSettings {
         return ReviewTimingSettings(
             correctSameDayDelayMillis = appSettings.level1RetrySec * 1000L,
@@ -132,10 +124,7 @@ class LearningViewModel(
     }
 
     fun loadNextQuiz() {
-        if (solvedInSession == 0) {
-            quizManager.resetSessionStats()
-        }
-
+        if (solvedInSession == 0) quizManager.resetSessionStats()
         if (solvedInSession >= totalCount) {
             finishSession()
             return
@@ -145,11 +134,9 @@ class LearningViewModel(
             _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
             
             val quiz = quizManager.nextQuiz()
-            
             if (quiz == null) {
                 _uiState.update { it.copy(isLoading = false) }
                 if (solvedInSession == 0) {
-                    // 初回ロードでクイズが取れなかった場合は、単語がないイベントを発行
                     _uiEvent.send(LearningUiEvent.NoAvailableWords)
                 } else {
                     finishSession()
@@ -157,18 +144,14 @@ class LearningViewModel(
                 return@launch
             }
 
-            // 目標級(Intランク)を反映。未設定時は0、設定済みなら1-7。
             val targetLevel = if (appSettings.isTargetLearningGradeSet) {
                 appSettings.safeTargetLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
-            } else {
-                0
-            }
+            } else 0
 
-            // quiz が null でない場合の通常処理
             val importance = quiz.mode.getAudioImportance()
             val hasRisk = audioChecker.isSilenceRisk()
-            
             val isSilent = _uiState.value.silentMode == SilentMode.ON
+            
             val warning = if (!isSilent && hasRisk && (importance == QuizMode.AudioImportance.REQUIRED || importance == QuizMode.AudioImportance.OPTIONAL)) {
                 AudioWarningState(
                     message = if (importance == QuizMode.AudioImportance.REQUIRED) requiredWarningText else optionalWarningText,
@@ -178,11 +161,7 @@ class LearningViewModel(
 
             val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
             val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
-            
-            val mastery = withContext(Dispatchers.IO) {
-                masteryDao.getMastery(quiz.word.no)
-            } ?: WordMasteryEntity(wordId = quiz.word.no)
-            
+            val mastery = withContext(Dispatchers.IO) { masteryDao.getMastery(quiz.word.no) } ?: WordMasteryEntity(wordId = quiz.word.no)
             val currentTier = MasteryScheduler.getTier(mastery)
 
             _uiState.update { state -> 
@@ -196,21 +175,52 @@ class LearningViewModel(
                     longTermMasterCount = longTermCount,
                     currentTier = currentTier,
                     currentLevel = mastery.level,
-                    targetLevel = targetLevel, // 最新の目標ランクを反映
+                    targetLevel = targetLevel,
                     isLevelJustIncreased = false,
                     currentWord = quiz.word,
                     wordGrade = quiz.word.grade
                 ) 
             }
             
+            // 自動再生の制御
             if (!isSilent) {
-                val shouldAutoPlay = when (importance) {
-                    QuizMode.AudioImportance.REQUIRED -> true
-                    QuizMode.AudioImportance.OPTIONAL -> true
-                    else -> false
+                if (shouldAutoPlayQuestionAudio(quiz.mode)) {
+                    val audioText = getQuestionAudioTextForMode(quiz)
+                    if (audioText != null) {
+                        requestAudioPlayback(audioText)
+                    }
                 }
-                if (shouldAutoPlay) requestAudioPlayback()
             }
+        }
+    }
+
+    /**
+     * モードごとに問題文として再生すべきテキストを決定します。
+     * 固定仕様：
+     * - EN_TO_JP: word
+     * - LISTEN_EN: word
+     * - LISTEN_FILL_BLANK: sentence
+     * - その他: null (再生しない)
+     */
+    private fun getQuestionAudioTextForMode(quiz: QuizData): String? {
+        val word = quiz.word
+        return when (quiz.mode) {
+            QuizMode.EN_TO_JP -> word.word
+            QuizMode.LISTEN_EN -> word.word
+            QuizMode.LISTEN_FILL_BLANK -> word.sentence
+            else -> null
+        }
+    }
+
+    /**
+     * 自動再生を行うべきモードかを判定します。
+     */
+    private fun shouldAutoPlayQuestionAudio(mode: QuizMode): Boolean {
+        return when (mode) {
+            QuizMode.EN_TO_JP,
+            QuizMode.LISTEN_EN,
+            QuizMode.LISTEN_FILL_BLANK -> true
+            else -> false
         }
     }
 
@@ -227,11 +237,7 @@ class LearningViewModel(
 
         val playText = text ?: run {
             val quiz = _uiState.value.quiz ?: return
-            if (quiz.mode == QuizMode.LISTEN_FILL_BLANK) {
-                quiz.word.sentence
-            } else {
-                quiz.word.word
-            }
+            getQuestionAudioTextForMode(quiz) ?: return
         }
         
         viewModelScope.launch {
@@ -251,7 +257,6 @@ class LearningViewModel(
         viewModelScope.launch {
             val wordId = currentQuiz.word.no
             val oldLevel = quizManager.getMasteryLevel(wordId)
-            
             val oldMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val oldTier = MasteryScheduler.getTier(oldMastery)
 
@@ -296,7 +301,7 @@ class LearningViewModel(
             val correctDisplay = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
                 currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
             } else if (currentQuiz.mode == QuizMode.SENTENCE_SORT) {
-                currentQuiz.word.sentence // 並び替えは英文を正解表示にする
+                currentQuiz.word.sentence
             } else {
                 currentQuiz.word.word
             }
@@ -308,7 +313,6 @@ class LearningViewModel(
                 }
             }
 
-            // Synonyms / Antonyms 判定 (復元)
             var synonymTitle: String? = null
             var synonymBody: String? = null
             if (!isCorrect && !isUnknown && (currentQuiz.mode == QuizMode.JP_TO_EN || currentQuiz.mode == QuizMode.LISTEN_EN)) {
@@ -323,13 +327,7 @@ class LearningViewModel(
             if (isCorrect) {
                 val basePoint = appSettings.getBasePoint(currentQuiz.mode)
                 val targetGrade = appSettings.safeTargetLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
-                
-                gainedPoints = RewardPointCalculator.calculate(
-                    basePoint = basePoint,
-                    wordGrade = currentQuiz.word.grade,
-                    targetGrade = targetGrade
-                )
-                
+                gainedPoints = RewardPointCalculator.calculate(basePoint, currentQuiz.word.grade, targetGrade)
                 withContext(Dispatchers.IO) { pointManager.add(gainedPoints) }
             }
 
@@ -338,7 +336,7 @@ class LearningViewModel(
             _uiState.update { state -> 
                 state.copy(
                     comboCount = if (isCorrect) state.comboCount + 1 else 0, 
-                    totalPoints = latestTotal, // 累計を反映
+                    totalPoints = latestTotal,
                     progress = (solvedInSession * 100) / totalCount,
                     currentTier = newTier,
                     currentLevel = newLevel,
@@ -357,13 +355,9 @@ class LearningViewModel(
             }
 
             if (isCorrect) {
-                if (newLevel - oldLevel >= 2) {
-                    _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
-                }
+                if (newLevel - oldLevel >= 2) _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
                 _uiEvent.send(LearningUiEvent.ShowCorrect(gainedPoints, currentQuiz.answer, oldTier != newTier))
-                if (oldTier != newTier) {
-                    _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
-                }
+                if (oldTier != newTier) _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
             } else {
                 _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer, isUnknown))
             }
@@ -384,8 +378,6 @@ class LearningViewModel(
                 sessionLongTermMasterGained = longTermMastersInSession
             ) 
         }
-        viewModelScope.launch { 
-            _uiEvent.send(LearningUiEvent.QuizFinished) 
-        }
+        viewModelScope.launch { _uiEvent.send(LearningUiEvent.QuizFinished) }
     }
 }

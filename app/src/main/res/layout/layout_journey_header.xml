@@ -33,7 +33,7 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constrainedWidth="true"
-            app:layout_constraintEnd_toStartOf="@+id/layout_mode_pill"
+            app:layout_constraintEnd_toStartOf="@+id/layout_header_actions"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_target_level">
@@ -110,14 +110,32 @@
                 tools:text="120PT" />
         </LinearLayout>
 
-        <include
-            android:id="@+id/layout_mode_pill"
-            layout="@layout/layout_mode_pill"
+        <LinearLayout
+            android:id="@+id/layout_header_actions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="@id/layout_meta_chips"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/layout_meta_chips" />
+            app:layout_constraintTop_toTopOf="@id/layout_meta_chips">
+
+            <include
+                android:id="@+id/layout_mode_pill"
+                layout="@layout/layout_mode_pill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_admin_settings_header"
+                style="@style/Widget.StudyLock.HeaderIconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                app:icon="@drawable/ic_settings"
+                android:contentDescription="@string/cd_learning_settings" />
+
+        </LinearLayout>
 
         <!-- 3. 進捗レール (Compose版へ移行) -->
         <androidx.compose.ui.platform.ComposeView

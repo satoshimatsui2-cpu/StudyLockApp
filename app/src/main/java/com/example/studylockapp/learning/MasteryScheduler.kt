@@ -159,11 +159,13 @@ object MasteryScheduler {
     private fun getSuccessTransition(level: Int, settings: ReviewTimingSettings): Pair<Long, QuizMode> {
         return when (level) {
             1 -> settings.correctSameDayDelayMillis to QuizMode.JP_TO_EN // LV0正解時は設定値を反映
-            2 -> TimeUnit.DAYS.toMillis(1) to QuizMode.LISTEN_EN
-            3 -> TimeUnit.DAYS.toMillis(2) to QuizMode.FILL_BLANK
-            4 -> TimeUnit.DAYS.toMillis(3) to QuizMode.SENTENCE_SORT
-            5 -> TimeUnit.DAYS.toMillis(7) to QuizMode.SYNONYM_PICK
-            6 -> TimeUnit.DAYS.toMillis(14) to QuizMode.LISTEN_FILL_BLANK
+            2 -> TimeUnit.MINUTES.toMillis(1) to QuizMode.LISTEN_EN
+            3 -> TimeUnit.MINUTES.toMillis(2) to QuizMode.FILL_BLANK
+            4 -> TimeUnit.MINUTES.toMillis(3) to QuizMode.SENTENCE_SORT
+            5 -> TimeUnit.MINUTES.toMillis(7) to QuizMode.SYNONYM_PICK
+            6 -> TimeUnit.MINUTES.toMillis(14) to QuizMode.LISTEN_FILL_BLANK
+
+            // ここから先は本番相当のまま
             7 -> TimeUnit.DAYS.toMillis(30) to QuizMode.LISTEN_EN
             8 -> TimeUnit.DAYS.toMillis(45) to QuizMode.ANTONYM_PICK
             9 -> TimeUnit.DAYS.toMillis(60) to QuizMode.LISTEN_FILL_BLANK
