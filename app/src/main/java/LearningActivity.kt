@@ -205,7 +205,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             )
             strokeWidth = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
-                3f,
+                2f,
                 resources.displayMetrics
             ).toInt()
 
