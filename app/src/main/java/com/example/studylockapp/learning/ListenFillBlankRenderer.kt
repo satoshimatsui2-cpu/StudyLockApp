@@ -6,8 +6,8 @@ package com.example.studylockapp.learning
  */
 class ListenFillBlankRenderer : QuizRenderer {
     override fun render(ui: QuizUiProvider, quiz: QuizData) {
-        // 情報量が多いため文字サイズを縮小
-        ui.setQuestionBodyTextScale(0.7f)
+        // FILL_BLANK と同様に文字サイズを 90% に設定
+        ui.setQuestionBodyTextScale(0.9f)
         
         ui.showBasicQuiz(
             title = "音声を聞いて空欄に入る語を選んでください。",

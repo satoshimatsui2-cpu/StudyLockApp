@@ -229,6 +229,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun resetUiForNewQuiz() {
+        ttsController.stop()
         resetAllChoiceButtons()
         resetAssistButtons()
         binding.choicesContainer.visibility = View.VISIBLE
@@ -285,7 +286,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                     soundEffectManager.playCorrect(1.0f)
                 }
                 if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
-                    playSentenceAudioDelayed()
                     viewModel.startReview()
                 } else {
                     val correctBtn = choiceButtons.find { it.text == event.answer }
@@ -299,7 +299,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                     soundEffectManager.playWrong(1.0f)
                 }
                 if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
-                    playSentenceAudioDelayed()
                     viewModel.startReview()
                 } else {
                     val selectedBtn = choiceButtons.find { it.text == event.selected }
@@ -327,16 +326,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.ShowBasicMasterCelebration -> animationManager.playMasterCelebration(isLongTerm = false)
             is LearningUiEvent.ShowLongTermMasterCelebration -> animationManager.playMasterCelebration(isLongTerm = true)
         }
-    }
-
-    private fun playSentenceAudioDelayed() {
-        binding.rootLayout.postDelayed({
-            if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
-                viewModel.uiState.value.currentWord?.sentence?.let { 
-                    ttsController.speak(it) 
-                }
-            }
-        }, 700)
     }
 
     private fun showSilentModeExplanationDialog() {
