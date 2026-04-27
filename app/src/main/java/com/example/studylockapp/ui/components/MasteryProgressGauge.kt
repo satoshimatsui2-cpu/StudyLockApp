@@ -5,6 +5,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -12,10 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.studylockapp.R
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -90,7 +93,7 @@ fun MasteryProgressGauge(
             if (current >= threshold && i > lastTriggeredIndex) {
                 lastTriggeredIndex = i
                 scope.launch {
-                    nodeScales[i].animateTo(1.8f, tween(100, easing = FastOutLinearInEasing))
+                    nodeScales[i].animateTo(1.6f, tween(100, easing = FastOutLinearInEasing))
                     nodeScales[i].animateTo(1.0f, tween(150, easing = LinearOutSlowInEasing))
                 }
             }
@@ -98,7 +101,7 @@ fun MasteryProgressGauge(
     }
 
     // UIサイズ定数
-    val nodeSize = 14.dp
+    val nodeSize = 28.dp // アイコンサイズの基準
     val accentColor = if (isLongTerm) NavyPrimary else MustardAccent
 
     Column(
@@ -109,21 +112,19 @@ fun MasteryProgressGauge(
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.BottomCenter // 下（●の行）を基準に配置
+            contentAlignment = Alignment.BottomCenter
         ) {
             // --- レイヤー1: 線（背景と前景） ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = nodeSize / 2) // ●の半径分左右をあける
-                    .height(3.dp)
+                    .padding(horizontal = nodeSize / 2)
+                    .height(4.dp)
                     .align(Alignment.BottomCenter)
-                    .offset(y = -(nodeSize / 2)) // ●の垂直中心を通るように配置
+                    .offset(y = -(nodeSize / 2))
             ) {
-                // 背景線
                 Box(Modifier.fillMaxSize().background(GrayOutline, CircleShape))
                 
-                // 前景線 (LV0とLV6は非表示)
                 if (absoluteLevel != 0 && absoluteLevel != 6) {
                     Box(
                         Modifier
@@ -134,17 +135,16 @@ fun MasteryProgressGauge(
                 }
             }
 
-            // --- レイヤー2: ノード列（ラベル領域 + 固定Spacer + ●） ---
+            // --- レイヤー2: ノード列 ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom // 下基準で揃える
+                verticalAlignment = Alignment.Bottom
             ) {
                 repeat(5) { index ->
                     val threshold = index / 4f
                     val nodeLevel = if (isLongTerm) index + 6 else index + 1
 
-                    // ドットの点灯判定
                     val isLit = progressAnimatable.value >= threshold && 
                                 absoluteLevel != 0 && absoluteLevel != 6
 
@@ -155,11 +155,11 @@ fun MasteryProgressGauge(
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom // 下寄せ
+                        verticalArrangement = Arrangement.Bottom
                     ) {
-                        // 1. ラベル領域 (20dp固定の高さを確保)
+                        // 1. ラベル領域
                         Box(
-                            modifier = Modifier.height(20.dp),
+                            modifier = Modifier.height(24.dp),
                             contentAlignment = Alignment.BottomCenter
                         ) {
                             if (nodeLevel == absoluteLevel && absoluteLevel != 0) {
@@ -172,16 +172,61 @@ fun MasteryProgressGauge(
                             }
                         }
 
-                        // 2. 固定Spacer (8dp)
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // 3. ● ドット本体
+                        // 3. ノード本体
                         Box(
                             modifier = Modifier
                                 .size(nodeSize)
-                                .scale(nodeScales[index].value)
-                                .background(nodeColor, CircleShape)
-                        )
+                                .scale(nodeScales[index].value),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            when (nodeLevel) {
+                                2, 6, 7, 9 -> {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_headphones_24),
+                                        contentDescription = null,
+                                        tint = nodeColor,
+                                        modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    )
+                                }
+                                4 -> {
+                                    // 並び替え (LV4) はミキサー/ブレンダーアイコン
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.outline_blender_24),
+                                        contentDescription = null,
+                                        tint = nodeColor,
+                                        modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    )
+                                }
+                                5 -> {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_round_stars_24),
+                                        contentDescription = null,
+                                        tint = nodeColor,
+                                        modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    )
+                                }
+                                10 -> {
+                                    // ゴール (LV10) はトロフィー
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_emoji_events_24),
+                                        contentDescription = null,
+                                        tint = nodeColor,
+                                        modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    )
+                                }
+                                else -> {
+                                    // 通常LV (1, 3, 8) は「●」
+                                    // アイコンに対して視覚的バランスを整えたサイズ
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize(0.64f)
+                                            .background(nodeColor, CircleShape)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -190,7 +235,7 @@ fun MasteryProgressGauge(
 }
 
 /**
- * プレビュー用：動作確認
+ * プレビュー
  */
 @Preview(showBackground = true)
 @Composable
@@ -226,15 +271,6 @@ fun MasteryProgressGaugePreview() {
                     if (level > 0) level-- 
                 }) {
                     Text("レベルダウン")
-                }
-                
-                Spacer(Modifier.width(8.dp))
-                
-                androidx.compose.material3.Button(onClick = { 
-                    currentWordId++
-                    level = (1..10).random()
-                }) {
-                    Text("次の単語へ")
                 }
             }
         }
