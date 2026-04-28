@@ -110,122 +110,138 @@ fun MasteryProgressGauge(
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
+        // --- ノードとセグメント化された線の描画 (Row で水平に並べる) ---
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.BottomCenter
+            verticalAlignment = Alignment.Bottom
         ) {
-            // --- レイヤー1: 線（背景と前景） ---
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = nodeSize / 2)
-                    .height(4.dp)
-                    .align(Alignment.BottomCenter)
-                    .offset(y = -(nodeSize / 2))
-            ) {
-                Box(Modifier.fillMaxSize().background(GrayOutline, CircleShape))
-                
-                if (absoluteLevel != 0 && absoluteLevel != 6) {
-                    Box(
-                        Modifier
-                            .fillMaxWidth(progressAnimatable.value)
-                            .fillMaxHeight()
-                            .background(accentColor, CircleShape)
-                    )
+            repeat(5) { index ->
+                val threshold = index / 4f
+                val nodeLevel = if (isLongTerm) index + 6 else index + 1
+
+                // 点灯判定: そのレベルに到達しているか、アニメーションが到達しているか
+                val isLit = if (nodeLevel == 6) {
+                    absoluteLevel >= 6 // LV6 display の開始点
+                } else {
+                    (progressAnimatable.value >= threshold) && (absoluteLevel != 0 && absoluteLevel != 6)
                 }
-            }
 
-            // --- レイヤー2: ノード列 ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                repeat(5) { index ->
-                    val threshold = index / 4f
-                    val nodeLevel = if (isLongTerm) index + 6 else index + 1
+                val nodeColor by animateColorAsState(
+                    targetValue = if (isLit) accentColor else GrayOutline,
+                    label = "NodeColor"
+                )
 
-                    val isLit = progressAnimatable.value >= threshold && 
-                                absoluteLevel != 0 && absoluteLevel != 6
-
-                    val nodeColor by animateColorAsState(
-                        targetValue = if (isLit) accentColor else GrayOutline,
-                        label = "NodeColor"
-                    )
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom
+                // 1. ノードカラム (ラベル + スペーサー + アイコン/ドット)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom,
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    // ラベル領域
+                    Box(
+                        modifier = Modifier.height(24.dp),
+                        contentAlignment = Alignment.BottomCenter
                     ) {
-                        // 1. ラベル領域
-                        Box(
-                            modifier = Modifier.height(24.dp),
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            if (nodeLevel == absoluteLevel && absoluteLevel != 0) {
-                                Text(
-                                    text = "LV$nodeLevel",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = NavyPrimary
+                        if (nodeLevel == absoluteLevel && absoluteLevel != 0) {
+                            Text(
+                                text = "LV$nodeLevel",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = NavyPrimary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // ノード本体
+                    Box(
+                        modifier = Modifier
+                            .size(nodeSize)
+                            .scale(nodeScales[index].value),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        when (nodeLevel) {
+                            2, 6, 7, 9 -> {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_headphones_24),
+                                    contentDescription = null,
+                                    tint = nodeColor,
+                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                )
+                            }
+                            4 -> {
+                                // 並び替え (LV4) はミキサー/ブレンダーアイコン
+                                Icon(
+                                    painter = painterResource(id = R.drawable.outline_blender_24),
+                                    contentDescription = null,
+                                    tint = nodeColor,
+                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                )
+                            }
+                            5 -> {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_round_stars_24),
+                                    contentDescription = null,
+                                    tint = nodeColor,
+                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                )
+                            }
+                            10 -> {
+                                // ゴール (LV10) はトロフィー
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_emoji_events_24),
+                                    contentDescription = null,
+                                    tint = nodeColor,
+                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                )
+                            }
+                            else -> {
+                                // 通常LV (1, 3, 8) は「●」
+                                // アイコンに対して視覚的バランスを整えたサイズ (80% 程度)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(0.64f)
+                                        .background(nodeColor, CircleShape)
                                 )
                             }
                         }
+                    }
+                }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // 3. ノード本体
+                // 2. セグメント線 (ノード間に挿入)
+                if (index < 4) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(nodeSize)
+                            .padding(horizontal = 10.dp)
+                            .align(Alignment.Bottom),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        // 背景線
                         Box(
                             modifier = Modifier
-                                .size(nodeSize)
-                                .scale(nodeScales[index].value),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            when (nodeLevel) {
-                                2, 6, 7, 9 -> {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_headphones_24),
-                                        contentDescription = null,
-                                        tint = nodeColor,
-                                        modifier = Modifier.fillMaxSize().scale(1.2f)
-                                    )
-                                }
-                                4 -> {
-                                    // 並び替え (LV4) はミキサー/ブレンダーアイコン
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.outline_blender_24),
-                                        contentDescription = null,
-                                        tint = nodeColor,
-                                        modifier = Modifier.fillMaxSize().scale(1.2f)
-                                    )
-                                }
-                                5 -> {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_round_stars_24),
-                                        contentDescription = null,
-                                        tint = nodeColor,
-                                        modifier = Modifier.fillMaxSize().scale(1.2f)
-                                    )
-                                }
-                                10 -> {
-                                    // ゴール (LV10) はトロフィー
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_emoji_events_24),
-                                        contentDescription = null,
-                                        tint = nodeColor,
-                                        modifier = Modifier.fillMaxSize().scale(1.2f)
-                                    )
-                                }
-                                else -> {
-                                    // 通常LV (1, 3, 8) は「●」
-                                    // アイコンに対して視覚的バランスを整えたサイズ
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize(0.64f)
-                                            .background(nodeColor, CircleShape)
-                                    )
-                                }
-                            }
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .background(GrayOutline, CircleShape)
+                        )
+                        
+                        // プログレス線
+                        val segmentProgress = (progressAnimatable.value * 4 - index).coerceIn(0f, 1f)
+                        val shouldShowProgress = if (isLongTerm) {
+                            absoluteLevel > 6
+                        } else {
+                            absoluteLevel > 1
+                        }
+                        
+                        if (segmentProgress > 0f && shouldShowProgress) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(segmentProgress)
+                                    .height(4.dp)
+                                    .background(accentColor, CircleShape)
+                            )
                         }
                     }
                 }
