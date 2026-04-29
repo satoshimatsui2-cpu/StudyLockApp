@@ -101,7 +101,7 @@ fun MasteryProgressGauge(
     }
 
     // UIサイズ定数
-    val nodeSize = 28.dp // アイコンサイズの基準
+    val nodeSize = 24.dp // アイコンサイズの基準
     val accentColor = if (isLongTerm) NavyPrimary else MustardAccent
 
     Column(
@@ -215,7 +215,7 @@ fun MasteryProgressGauge(
                         modifier = Modifier
                             .weight(1f)
                             .height(nodeSize)
-                            .padding(horizontal = 10.dp)
+                            .padding(horizontal = 6.dp)
                             .align(Alignment.Bottom),
                         contentAlignment = Alignment.CenterStart
                     ) {
@@ -223,7 +223,7 @@ fun MasteryProgressGauge(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(4.dp)
+                                .height(2.dp)
                                 .background(GrayOutline, CircleShape)
                         )
                         
@@ -239,7 +239,7 @@ fun MasteryProgressGauge(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(segmentProgress)
-                                    .height(4.dp)
+                                    .height(3.dp)
                                     .background(accentColor, CircleShape)
                             )
                         }
