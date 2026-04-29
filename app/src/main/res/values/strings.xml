@@ -223,9 +223,9 @@
     <string name="action_dont_show_again">今後表示しない</string>
 
     <!-- モード名称刷新 -->
-    <string name="mode_balance_title">バランスモード</string>
+    <string name="mode_balance_title">バランス</string>
     <string name="mode_balance_subtitle">おすすめ</string>
-    <string name="mode_silent_title">サイレントモード</string>
+    <string name="mode_silent_title">サイレント</string>
     <string name="mode_silent_subtitle">音声なし</string>
 
     <!-- レビューカード刷新用ラベル -->

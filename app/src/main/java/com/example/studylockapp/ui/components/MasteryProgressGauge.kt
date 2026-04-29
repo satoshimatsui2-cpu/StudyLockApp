@@ -111,20 +111,17 @@ fun MasteryProgressGauge(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // --- ノードとセグメント化された線の描画 (Row で水平に並べる) ---
+        // fillMaxWidth(0.9f) で全体の幅を 90% に抑えて左右にマージンを作る
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(0.9f),
             verticalAlignment = Alignment.Bottom
         ) {
             repeat(5) { index ->
                 val threshold = index / 4f
                 val nodeLevel = if (isLongTerm) index + 6 else index + 1
 
-                // 点灯判定: そのレベルに到達しているか、アニメーションが到達しているか
-                val isLit = if (nodeLevel == 6) {
-                    absoluteLevel >= 6 // LV6 display の開始点
-                } else {
-                    (progressAnimatable.value >= threshold) && (absoluteLevel != 0 && absoluteLevel != 6)
-                }
+                // 点灯判定: LV0以外かつ、アニメーションが各ノードの閾値に達しているか
+                val isLit = absoluteLevel != 0 && progressAnimatable.value >= threshold
 
                 val nodeColor by animateColorAsState(
                     targetValue = if (isLit) accentColor else GrayOutline,
