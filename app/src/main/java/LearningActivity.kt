@@ -120,11 +120,16 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
         }
 
-        // 補助操作バー: わからない
+        // 選択肢コンテナ内の「わからない」ボタン
         binding.buttonUnknownAnswer.setOnClickListener {
             if (!viewModel.uiState.value.isAnswering && !viewModel.uiState.value.isReviewing) {
                 viewModel.submitUnknownAnswer()
             }
+        }
+
+        // 補助操作バー: 他級復習トグル
+        binding.buttonToggleOtherGradeReviews.setOnClickListener {
+            viewModel.setIncludeOtherGradeReviews(!viewModel.uiState.value.includeOtherGradeReviews)
         }
 
         // 補助操作バー: 選択肢
@@ -159,6 +164,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         ModePillBinder.bind(binding.layoutJourneyHeader.layoutModePill, ModePillMapper.map(state.silentMode))
         JourneyHeaderBinder.bind(binding.layoutJourneyHeader, JourneyHeaderMapper.map(state))
 
+        // 他級復習トグルボタンの見た目を更新
+        updateOtherGradeReviewButton(state.includeOtherGradeReviews)
+
         if (state.isReviewing && state.currentWord != null) {
             binding.cardQuestion.visibility = View.GONE
             binding.layoutReviewCard.rootReviewCard.visibility = View.VISIBLE
@@ -180,6 +188,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
         renderQuizIfNeeded(state)
+    }
+
+    private fun updateOtherGradeReviewButton(enabled: Boolean) {
+        binding.buttonToggleOtherGradeReviews.apply {
+            text = if (enabled) "他級ON" else "他級OFF"
+            
+            val bgColor = ContextCompat.getColor(context, if (enabled) R.color.mustard_soft else R.color.white)
+            val strokeColor = ContextCompat.getColor(context, if (enabled) R.color.mustard_accent else R.color.navy_primary)
+            val textColor = ContextCompat.getColor(context, if (enabled) R.color.unknown_text else R.color.navy_primary)
+
+            backgroundTintList = ColorStateList.valueOf(bgColor)
+            this.strokeColor = ColorStateList.valueOf(strokeColor)
+            setTextColor(textColor)
+            iconTint = ColorStateList.valueOf(textColor)
+        }
     }
 
     private fun updateAssistButtonsForQuiz(mode: QuizMode) {
@@ -362,6 +385,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 btn.visibility = View.GONE
             }
         }
+        
+        // 「わからない」ボタンは常に末尾に表示（showBasicQuiz時）
+        binding.buttonUnknownAnswer.visibility = View.VISIBLE
     }
 
     override fun setQuestionBodyTextScale(scale: Float) {

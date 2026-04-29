@@ -115,6 +115,11 @@ class LearningViewModel(
         }
     }
 
+    fun setIncludeOtherGradeReviews(enabled: Boolean) {
+        _uiState.update { it.copy(includeOtherGradeReviews = enabled) }
+        quizManager.includeOtherGradeReviews = enabled
+    }
+
     private fun getReviewTimingSettings(): ReviewTimingSettings {
         return ReviewTimingSettings(
             correctSameDayDelayMillis = appSettings.level1RetrySec * 1000L,

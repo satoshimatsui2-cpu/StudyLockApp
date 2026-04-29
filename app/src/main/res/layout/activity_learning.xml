@@ -185,6 +185,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_unknown_answer"
+                        style="@style/Widget.StudyLock.AssistButton.Unknown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/action_unknown_answer" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -230,6 +238,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="3"
+        android:gravity="center_vertical"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.button.MaterialButton
@@ -243,13 +252,15 @@
             app:icon="@drawable/ic_visibility_24" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_unknown_answer"
-            style="@style/Widget.StudyLock.AssistButton.Unknown"
+            android:id="@+id/button_toggle_other_grade_reviews"
+            style="@style/Widget.StudyLock.AssistButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginHorizontal="4dp"
-            android:text="@string/action_unknown_answer" />
+            android:text="他級OFF"
+            android:textSize="13sp"
+            app:icon="@drawable/ic_review_24" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_replay_question_audio"

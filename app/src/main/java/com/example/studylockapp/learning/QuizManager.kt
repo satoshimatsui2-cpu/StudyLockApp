@@ -18,6 +18,7 @@ class QuizManager(
 ) {
     private val choiceGenerator = ChoiceGenerator()
     var silentMode: SilentMode = SilentMode.OFF
+    var includeOtherGradeReviews: Boolean = false
     private var pendingReviewPickedInSession = 0
 
     companion object {
@@ -132,25 +133,33 @@ class QuizManager(
 
     private suspend fun selectNextWord(): WordEntity? {
         val now = System.currentTimeMillis()
+        val allDueMasteries = masteryDao.getDueMasteries(now).shuffled()
         
-        // 1. 期限到達済みの復習
-        val dueMasteries = masteryDao.getDueMasteries(now)
-        for (mastery in dueMasteries.shuffled()) {
-            val scheduledMode = runCatching {
-                QuizMode.valueOf(mastery.scheduledMode)
-            }.getOrDefault(QuizMode.EN_TO_JP)
-
-            if (shouldSkipForSilentMode(scheduledMode)) {
-                continue
-            }
+        // 1. 現在級の復習 (優先度最高)
+        for (mastery in allDueMasteries) {
+            val scheduledMode = runCatching { QuizMode.valueOf(mastery.scheduledMode) }.getOrDefault(QuizMode.EN_TO_JP)
+            if (shouldSkipForSilentMode(scheduledMode)) continue
 
             val word = wordDao.getWordById(mastery.wordId)
             if (word != null && word.grade == userLevel) {
                 return word
             }
         }
+
+        // 2. 他級の復習 (チェックON時のみ、新規より優先)
+        if (includeOtherGradeReviews) {
+            for (mastery in allDueMasteries) {
+                val scheduledMode = runCatching { QuizMode.valueOf(mastery.scheduledMode) }.getOrDefault(QuizMode.EN_TO_JP)
+                if (shouldSkipForSilentMode(scheduledMode)) continue
+
+                val word = wordDao.getWordById(mastery.wordId)
+                if (word != null && word.grade != userLevel) {
+                    return word
+                }
+            }
+        }
         
-        // 2. 期限到達済みの音声復習
+        // 3. 期限到達済みの音声復習 (現在級のみ)
         if (silentMode == SilentMode.OFF && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
             val pendingMasteries = masteryDao.getPendingListenMasteries(now)
             for (mastery in pendingMasteries.shuffled()) {
@@ -161,7 +170,7 @@ class QuizManager(
             }
         }
         
-        // 3. 本当の新規単語のみ (masteryレコードが一切ないもの)
+        // 4. 現在級の新規単語
         return wordDao.getRandomNewWordByGrade(userLevel)
     }
 

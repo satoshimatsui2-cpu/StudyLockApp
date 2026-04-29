@@ -21,6 +21,9 @@ data class LearningUiState(
     val silentMode: SilentMode = SilentMode.OFF,
     
     val audioWarning: AudioWarningState? = null,
+
+    // 他級復習設定
+    val includeOtherGradeReviews: Boolean = false,
     
     // Mastery Info
     val basicCount: Int = 0,
