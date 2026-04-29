@@ -83,8 +83,15 @@ class QuizManager(
             return currentMode
         }
 
-        if ((currentMode == QuizMode.FILL_BLANK || currentMode == QuizMode.LISTEN_FILL_BLANK) && isPhrase) {
-            return QuizMode.JP_TO_EN
+        if (currentMode == QuizMode.FILL_BLANK || currentMode == QuizMode.LISTEN_FILL_BLANK) {
+            if (isPhrase) {
+                return QuizMode.JP_TO_EN
+            }
+            // 穴埋め文が生成できない場合は別のモードにフォールバック
+            if (FillBlankTextBuilder.build(word.sentence, word.word) == null) {
+                Log.w("FillBlank", "Cannot build blank sentence. word=${word.word}, sentence=${word.sentence}. fallback to JP_TO_EN")
+                return QuizMode.JP_TO_EN
+            }
         }
 
         if (currentMode == QuizMode.SENTENCE_SORT) {
@@ -98,28 +105,12 @@ class QuizManager(
     }
 
     private fun createFillBlankQuestion(word: WordEntity): String {
-        val blanked = createBlankedSentence(word)
+        val blanked = FillBlankTextBuilder.build(word.sentence, word.word) ?: ""
         return "${word.japaneseSentence.trim()}\n\n$blanked"
     }
 
     private fun createListenFillBlankQuestion(word: WordEntity): String {
-        return createBlankedSentence(word)
-    }
-
-    private fun createBlankedSentence(word: WordEntity): String {
-        val s = word.sentence.trim()
-        val w = word.word.trim()
-        if (s.isBlank()) return "(      )"
-
-        val flexibleWord = Pattern.quote(w).replace(" ", "\\s+")
-        val pattern = Pattern.compile("\\b$flexibleWord\\b", Pattern.CASE_INSENSITIVE)
-        val matcher = pattern.matcher(s)
-
-        return if (matcher.find()) {
-            matcher.replaceFirst("＿＿＿")
-        } else {
-            "(      )"
-        }
+        return FillBlankTextBuilder.build(word.sentence, word.word) ?: ""
     }
 
     private fun isListeningMode(mode: QuizMode): Boolean {
