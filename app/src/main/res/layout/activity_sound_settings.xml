@@ -192,50 +192,11 @@
             android:layout_height="wrap_content"
             android:max="20" />
 
-        <!-- 広告音量 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingTop="14dp">
-
-            <TextView
-                android:id="@+id/text_ad_volume"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="?attr/colorOnSurface"
-                tools:text="広告音量: 100%" />
-
-            <ImageButton
-                android:id="@+id/reset_ad_volume"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_refresh_24"
-                android:contentDescription="広告音量をリセット"
-                style="?attr/materialIconButtonStyle" />
-        </LinearLayout>
-
-        <SeekBar
-            android:id="@+id/seek_ad_volume"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="20" />
-
-        <!-- 既存ボタン（IDそのまま） -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_toggle_ad_mute"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:text="@string/sound_settings_ad_mute_off" />
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_sound"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="24dp"
             android:text="@string/sound_settings_save"/>
 
     </LinearLayout>

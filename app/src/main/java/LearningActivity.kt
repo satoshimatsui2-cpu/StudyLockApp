@@ -93,9 +93,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             viewModel.toggleSilentMode()
         }
 
-        // 右上の設定ボタン
-        binding.layoutJourneyHeader.buttonAdminSettingsHeader.setOnClickListener {
-            val intent = Intent(this, AdminSettingsActivity::class.java)
+        // 補助操作バー: サウンド設定
+        binding.buttonSoundSettingsAssist.setOnClickListener {
+            val intent = Intent(this, SoundSettingsActivity::class.java)
             startActivity(intent)
         }
 
@@ -190,8 +190,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             binding.layoutReviewCard.rootReviewCard.visibility = View.GONE
             binding.cardQuestion.visibility = View.VISIBLE
             
-            state.quiz?.mode?.let { mode ->
-                updateAssistButtonsForQuiz(mode)
+            state.quiz?.let { quiz ->
+                updateAssistButtonsForQuiz(quiz.mode)
             }
         }
 
@@ -207,8 +207,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             text = if (enabled) "他級ON" else "他級OFF"
             
             val bgColor = ContextCompat.getColor(context, if (enabled) R.color.mustard_soft else R.color.white)
-            val strokeColor = ContextCompat.getColor(context, if (enabled) R.color.mustard_accent else R.color.navy_primary)
-            val textColor = ContextCompat.getColor(context, if (enabled) R.color.unknown_text else R.color.navy_primary)
+            val strokeColor = ContextCompat.getColor(context, if (enabled) R.color.mustard_accent else R.color.outline)
+            val textColor = ContextCompat.getColor(context, if (enabled) R.color.unknown_text else R.color.text_sub)
 
             backgroundTintList = ColorStateList.valueOf(bgColor)
             this.strokeColor = ColorStateList.valueOf(strokeColor)
@@ -220,8 +220,10 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private fun updateAssistButtonsForQuiz(mode: QuizMode) {
         if (mode == QuizMode.SENTENCE_SORT) {
             binding.layoutAssistButtons.visibility = View.GONE
+            binding.layoutAnswerAssistButtons.visibility = View.GONE
         } else {
             binding.layoutAssistButtons.visibility = View.VISIBLE
+            binding.layoutAnswerAssistButtons.visibility = View.VISIBLE
             
             val canReplay = canReplayQuestionAudio(mode)
             updateReplayButtonState(canReplay)
@@ -323,7 +325,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
             is LearningUiEvent.ShowCorrect -> {
                 if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
-                    soundEffectManager.playCorrect(1.0f)
+                    soundEffectManager.playCorrect()
                 }
                 if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
                     viewModel.startReview()
@@ -336,7 +338,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
             is LearningUiEvent.ShowWrong -> {
                 if (!event.isUnknown && viewModel.uiState.value.silentMode == SilentMode.OFF) {
-                    soundEffectManager.playWrong(1.0f)
+                    soundEffectManager.playWrong()
                 }
                 if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
                     viewModel.startReview()
@@ -447,6 +449,15 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.buttonToggleChoices.apply {
             text = if (choicesInitiallyVisible) "選択肢ON" else "選択肢OFF"
             setIconResource(if (choicesInitiallyVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
+
+            val bgColor = ContextCompat.getColor(context, if (choicesInitiallyVisible) R.color.navy_soft else R.color.white)
+            val strokeColor = ContextCompat.getColor(context, if (choicesInitiallyVisible) R.color.navy_primary else R.color.outline)
+            val textColor = ContextCompat.getColor(context, if (choicesInitiallyVisible) R.color.navy_primary else R.color.text_sub)
+
+            backgroundTintList = ColorStateList.valueOf(bgColor)
+            this.strokeColor = ColorStateList.valueOf(strokeColor)
+            setTextColor(textColor)
+            iconTint = ColorStateList.valueOf(textColor)
         }
     }
 

@@ -2,24 +2,25 @@ package com.example.studylockapp.learning
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import com.example.studylockapp.data.AppSettings
 import java.util.Locale
 
 /**
  * TTS (TextToSpeech) の管理を担当するクラス。
- * SE 側と音量ポリシーを統一し、メディアストリーム（USAGE_MEDIA）で再生します。
+ * AppSettings から速度・ピッチ・音量を取得して再生に反映します。
  */
 class LearningTtsController(context: Context) : TextToSpeech.OnInitListener {
 
+    private val appSettings = AppSettings(context)
     private var tts: TextToSpeech? = TextToSpeech(context, this)
     private var isReady = false
     private var pendingText: String? = null
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            // 音声属性をメディア用に設定（SE とポリシーを統一）
-            // 話者音声なので CONTENT_TYPE_SPEECH を使用
             val audioAttributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
@@ -40,12 +41,24 @@ class LearningTtsController(context: Context) : TextToSpeech.OnInitListener {
     }
 
     /**
-     * 指定したテキストを再生。準備ができていない場合はバッファに保存。
+     * 指定したテキストを再生。AppSettings の設定値を反映します。
      */
     fun speak(text: String) {
         if (isReady) {
-            // USAGE_MEDIA 属性で再生される
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "StudyLockTts")
+            val speed = appSettings.getTtsSpeed()
+            val pitch = appSettings.getTtsPitch()
+            val volume = appSettings.ttsVolume
+
+            tts?.apply {
+                setSpeechRate(speed)
+                setPitch(pitch)
+                
+                val params = Bundle().apply {
+                    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
+                }
+                
+                speak(text, TextToSpeech.QUEUE_FLUSH, params, "StudyLockTts_${System.currentTimeMillis()}")
+            }
         } else {
             pendingText = text
         }

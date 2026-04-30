@@ -126,15 +126,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_admin_settings_header"
-                style="@style/Widget.StudyLock.HeaderIconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                app:icon="@drawable/ic_settings"
-                android:contentDescription="@string/cd_learning_settings" />
-
         </LinearLayout>
 
         <!-- 3. 進捗レール (Compose版へ移行) -->

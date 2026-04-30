@@ -101,4 +101,10 @@
     <color name="choice_button_background_default">@color/choice_normal_bg</color>
     <color name="choice_button_text_default">@color/choice_normal_text</color>
     <color name="choice_button_stroke_default">@color/choice_normal_stroke</color>
+
+    <!-- 選択肢カバー用 -->
+    <color name="choice_cover_bg">#102B55</color>
+    <color name="choice_cover_stroke">#FFFFFF</color>
+    <color name="choice_cover_text">#FFFFFF</color>
+
 </resources>

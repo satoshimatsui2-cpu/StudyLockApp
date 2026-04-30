@@ -203,11 +203,11 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:visibility="gone"
-                            app:cardBackgroundColor="@color/white"
-                            app:cardCornerRadius="12dp"
+                            app:cardBackgroundColor="@color/choice_cover_bg"
+                            app:cardCornerRadius="18dp"
                             app:cardElevation="4dp"
-                            app:strokeColor="@color/navy_primary"
-                            app:strokeWidth="1dp">
+                            app:strokeColor="@color/choice_cover_stroke"
+                            app:strokeWidth="2dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -221,27 +221,58 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="まず自分で思い出してみよう"
-                                    android:textColor="@color/text_main"
-                                    android:textSize="14sp" />
+                                    android:textColor="@color/choice_cover_text"
+                                    android:textSize="13sp" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/button_reveal_choices"
                                     style="@style/Widget.Material3.Button"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginTop="12dp"
-                                    android:text="回答する" />
+                                    android:layout_marginTop="16dp"
+                                    android:minHeight="60dp"
+                                    android:paddingHorizontal="40dp"
+                                    android:text="回答する"
+                                    android:textColor="@color/white"
+                                    android:textSize="16sp"
+                                    app:backgroundTint="@color/choice_cover_bg"
+                                    app:icon="@drawable/ic_lightbulb_24"
+                                    app:iconPadding="12dp"
+                                    app:iconTint="@color/white"
+                                    app:strokeColor="@color/white"
+                                    app:strokeWidth="2dp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
                     </FrameLayout>
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_unknown_answer"
-                        style="@style/Widget.StudyLock.AssistButton.Unknown"
+                    <!-- 回答補助ボタン (わからない・再生) -->
+                    <LinearLayout
+                        android:id="@+id/layout_answer_assist_buttons"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/action_unknown_answer" />
+                        android:layout_marginTop="24dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_unknown_answer"
+                            style="@style/Widget.StudyLock.AssistButton.Unknown"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:text="@string/action_unknown_answer" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_replay_question_audio"
+                            style="@style/Widget.StudyLock.AssistButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.4"
+                            android:contentDescription="@string/cd_replay_question_audio"
+                            app:icon="@drawable/ic_volume_up_24"
+                            app:iconPadding="0dp"
+                            app:iconGravity="textStart" />
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -280,48 +311,82 @@
         app:layout_constraintEnd_toEndOf="@id/layout_journey_header"
         app:layout_constraintTop_toTopOf="@id/layout_journey_header" />
 
-    <!-- 補助操作 3ボタンバー -->
-    <LinearLayout
+    <!-- 補助操作 学習補助パネル (チップ列) -->
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/layout_assist_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="3"
-        android:gravity="center_vertical"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        app:cardBackgroundColor="#F1F3F6"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_toggle_choices"
-            style="@style/Widget.StudyLock.AssistButton"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="@string/action_toggle_choices"
-            app:icon="@drawable/ic_visibility_24" />
+            android:gravity="center_vertical|start"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_toggle_other_grade_reviews"
-            style="@style/Widget.StudyLock.AssistButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginHorizontal="4dp"
-            android:text="他級OFF"
-            android:textSize="13sp"
-            app:icon="@drawable/ic_review_24" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_sound_settings_assist"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="8dp"
+                android:text="@string/label_sound_settings"
+                android:textSize="11sp"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_settings"
+                app:iconSize="16dp"
+                app:iconPadding="4dp"
+                app:iconGravity="textStart"
+                app:strokeWidth="1dp"
+                android:contentDescription="@string/cd_sound_settings" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_replay_question_audio"
-            style="@style/Widget.StudyLock.AssistButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:text="@string/action_replay_question_audio"
-            app:icon="@drawable/ic_volume_up_24"
-            android:contentDescription="@string/cd_replay_question_audio" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_toggle_choices"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="8dp"
+                android:text="@string/action_toggle_choices"
+                android:textSize="11sp"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_visibility_24"
+                app:iconSize="16dp"
+                app:iconPadding="4dp"
+                app:strokeWidth="1dp" />
 
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_toggle_other_grade_reviews"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="8dp"
+                android:text="@string/label_other_grade_off"
+                android:textSize="11sp"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_review_24"
+                app:iconSize="16dp"
+                app:iconPadding="4dp"
+                app:strokeWidth="1dp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

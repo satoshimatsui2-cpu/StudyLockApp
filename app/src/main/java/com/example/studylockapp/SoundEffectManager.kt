@@ -3,20 +3,20 @@ package com.example.studylockapp
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
+import com.example.studylockapp.data.AppSettings
 
 /**
  * 正解・不正解の効果音（SE）を管理するクラス。
- * 音声ポリシーを TTS と統一し、メディアストリームで再生します。
+ * AppSettings から設定された音量を読み取って再生します。
  */
 class SoundEffectManager(private val context: Context) {
 
+    private val appSettings = AppSettings(context)
     private var soundPool: SoundPool? = null
     private var seCorrectId: Int = 0
     private var seWrongId: Int = 0
 
     init {
-        // マナーモード時もメディア音量に従うよう USAGE_MEDIA を設定。
-        // 役割に合わせて CONTENT_TYPE_SONIFICATION を使用。
         val attrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -27,24 +27,25 @@ class SoundEffectManager(private val context: Context) {
             .setAudioAttributes(attrs)
             .build()
 
-        // 音声ファイルの読み込み
         seCorrectId = loadSeIfExists("se_correct")
         seWrongId = loadSeIfExists("se_wrong")
     }
 
     /**
-     * 正解音を再生
+     * 正解音を再生（AppSettings の音量を反映）
      */
-    fun playCorrect(volume: Float) {
+    fun playCorrect() {
+        val volume = appSettings.seCorrectVolume
         if (seCorrectId != 0) {
             soundPool?.play(seCorrectId, volume, volume, 1, 0, 1f)
         }
     }
 
     /**
-     * 不正解音を再生
+     * 不正解音を再生（AppSettings の音量を反映）
      */
-    fun playWrong(volume: Float) {
+    fun playWrong() {
+        val volume = appSettings.seWrongVolume
         if (seWrongId != 0) {
             soundPool?.play(seWrongId, volume, volume, 1, 0, 1f)
         }
