@@ -37,6 +37,10 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private var currentQuizId: String? = null
     private var defaultQuestionBodyTextSize: Float = 0f
 
+    // 選択肢表示状態管理
+    private var choicesInitiallyVisible: Boolean = true
+    private var choicesRevealedForCurrentQuiz: Boolean = true
+
     private val viewModel: LearningViewModel by viewModels {
         LearningViewModelFactory(this)
     }
@@ -80,6 +84,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         }
 
         setupListeners()
+        updateToggleChoicesButton()
     }
 
     private fun setupListeners() {
@@ -132,9 +137,14 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             viewModel.setIncludeOtherGradeReviews(!viewModel.uiState.value.includeOtherGradeReviews)
         }
 
-        // 補助操作バー: 選択肢
+        // 補助操作バー: 選択肢ON/OFF
         binding.buttonToggleChoices.setOnClickListener {
-            // TODO: 選択肢の表示/非表示切り替えを実装する
+            toggleChoicesInitialVisibility()
+        }
+
+        // カバーカードの「回答する」ボタン
+        binding.buttonRevealChoices.setOnClickListener {
+            revealChoicesForCurrentQuiz()
         }
 
         // 補助操作バー: 再生
@@ -166,6 +176,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
         // 他級復習トグルボタンの見た目を更新
         updateOtherGradeReviewButton(state.includeOtherGradeReviews)
+        updateToggleChoicesButton()
 
         if (state.isReviewing && state.currentWord != null) {
             binding.cardQuestion.visibility = View.GONE
@@ -188,6 +199,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.textProgressPercent.text = getString(R.string.label_progress_step, state.currentStep, state.totalSteps)
 
         renderQuizIfNeeded(state)
+        updateChoiceCoverVisibility()
     }
 
     private fun updateOtherGradeReviewButton(enabled: Boolean) {
@@ -255,6 +267,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         ttsController.stop()
         resetAllChoiceButtons()
         resetAssistButtons()
+        
+        // 選択肢表示状態のリセット
+        choicesRevealedForCurrentQuiz = choicesInitiallyVisible
+        updateChoiceCoverVisibility()
+
         binding.choicesContainer.visibility = View.VISIBLE
         binding.layoutSortContainer.visibility = View.GONE
         binding.flexboxAnswer.removeAllViews()
@@ -388,6 +405,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         
         // 「わからない」ボタンは常に末尾に表示（showBasicQuiz時）
         binding.buttonUnknownAnswer.visibility = View.VISIBLE
+        updateChoiceCoverVisibility()
     }
 
     override fun setQuestionBodyTextScale(scale: Float) {
@@ -398,6 +416,57 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
             ttsController.speak(text)
         }
+    }
+
+    // --- 選択肢カバー関連のメソッド ---
+
+    private fun toggleChoicesInitialVisibility() {
+        choicesInitiallyVisible = !choicesInitiallyVisible
+        // トグルした瞬間に現在のクイズの状態も同期させる（今のクイズでも反映したい場合）
+        // ただし仕様では「OFF時：新しい問題開始時にカバーで隠す」となっているが、
+        // ユーザー体験としてはトグルしたらすぐ切り替わったほうが自然。
+        choicesRevealedForCurrentQuiz = choicesInitiallyVisible
+        updateToggleChoicesButton()
+        updateChoiceCoverVisibility()
+    }
+
+    private fun revealChoicesForCurrentQuiz() {
+        choicesRevealedForCurrentQuiz = true
+        updateChoiceCoverVisibility()
+    }
+
+    private fun updateChoiceCoverVisibility() {
+        val shouldShowCover = isChoiceCoverAvailableForCurrentQuiz()
+        binding.choiceCoverCard.visibility = if (shouldShowCover) View.VISIBLE else View.GONE
+        
+        // カバー表示中は4択ボタンを無効化
+        choiceButtons.forEach { it.isEnabled = !shouldShowCover }
+    }
+
+    private fun updateToggleChoicesButton() {
+        binding.buttonToggleChoices.apply {
+            text = if (choicesInitiallyVisible) "選択肢ON" else "選択肢OFF"
+            setIconResource(if (choicesInitiallyVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
+        }
+    }
+
+    private fun isChoiceCoverAvailableForCurrentQuiz(): Boolean {
+        val state = viewModel.uiState.value
+        val mode = state.quiz?.mode
+        
+        // カバーを表示する条件：
+        // 1. 4択系問題である (SENTENCE_SORTではない、かつ選択肢が存在する)
+        // 2. choicesInitiallyVisible == false
+        // 3. choicesRevealedForCurrentQuiz == false
+        // 4. レビュー中ではない
+        // 5. 回答中ではない
+        
+        val isChoiceQuiz = mode != null && mode != QuizMode.SENTENCE_SORT
+        return isChoiceQuiz && 
+                !choicesInitiallyVisible && 
+                !choicesRevealedForCurrentQuiz && 
+                !state.isReviewing && 
+                !state.isAnswering
     }
 
     override fun onDestroy() {
