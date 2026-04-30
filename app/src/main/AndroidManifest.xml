@@ -55,6 +55,11 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.LearningHistoryActivity"
+            android:exported="false"
+            android:label="学習履歴" />
+
+        <activity
             android:name=".ui.applock.AppLockSettingsActivity"
             android:exported="false"
             android:label="アプリロック設定" />

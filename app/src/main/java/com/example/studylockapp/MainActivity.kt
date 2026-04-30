@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.ui.GradeBottomSheet
+import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 
 /**
@@ -134,8 +135,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupLearningHistoryNavigation() {
         findViewById<View>(R.id.button_to_learning_history)?.setOnClickListener {
-            // TODO: 学習履歴画面の実装が完了したら遷移処理を記述
-            // 現時点ではボタンのみ配置
+            startActivity(Intent(this, LearningHistoryActivity::class.java))
         }
     }
 

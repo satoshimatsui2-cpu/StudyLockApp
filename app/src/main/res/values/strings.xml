@@ -253,4 +253,16 @@
     <string name="label_learning_assist">学習補助</string>
     <string name="label_choice_on">選択肢ON</string>
     <string name="label_choice_off">選択肢OFF</string>
+
+    <!-- 学習履歴画面 -->
+    <string name="learning_history_title">学習履歴</string>
+    <string name="total_learned_count">学習済み合計: %1$d 語</string>
+    <string name="history_empty_message">まだ学習履歴がありません</string>
+    <string name="feature_under_construction">%1$s機能は準備中です</string>
+    <string name="error_loading_history">履歴の取得に失敗しました</string>
+    <string name="history_search_hint">単語・意味を検索</string>
+    <string name="label_edit">編集</string>
+    <string name="label_graph_period_change">グラフ表示の切り替え</string>
+    <string name="label_grade_filter">級フィルタ</string>
+
 </resources>

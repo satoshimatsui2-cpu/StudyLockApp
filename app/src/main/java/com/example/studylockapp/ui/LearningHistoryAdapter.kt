@@ -4,18 +4,14 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studylockapp.R
 import com.example.studylockapp.data.WordHistoryItem
-import com.example.studylockapp.data.ModeStatus
-import java.text.SimpleDateFormat
-import java.util.*
 
 class LearningHistoryAdapter(
     private val onEditClick: (WordHistoryItem) -> Unit
@@ -30,7 +26,6 @@ class LearningHistoryAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item, onEditClick) {
-            // タップ時の処理: 展開フラグを反転して更新
             item.isExpanded = !item.isExpanded
             notifyItemChanged(position)
         }
@@ -39,82 +34,73 @@ class LearningHistoryAdapter(
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textWord: TextView = itemView.findViewById(R.id.text_word)
         private val textMeaning: TextView = itemView.findViewById(R.id.text_meaning)
+        private val textGradeLevel: TextView = itemView.findViewById(R.id.text_grade_level)
+        private val textReviewSummary: TextView = itemView.findViewById(R.id.text_review_summary)
         private val layoutIcons: LinearLayout = itemView.findViewById(R.id.layout_status_icons)
         private val layoutDetail: LinearLayout = itemView.findViewById(R.id.layout_detail_container)
         private val textDetail: TextView = itemView.findViewById(R.id.text_detail_content)
-        private val buttonEdit: ImageButton = itemView.findViewById(R.id.button_edit)
 
         fun bind(item: WordHistoryItem, onEditClick: (WordHistoryItem) -> Unit, onClick: () -> Unit) {
             textWord.text = item.word
-            textMeaning.text = item.meaning
+            textMeaning.text = item.japanese
+            textGradeLevel.text = "${item.gradeLabel} / ${item.levelLabel}"
+            textReviewSummary.text = "${item.reviewStatusLabel} ・ ${item.scoreLabel}"
 
-            // アイコンの生成
+            // 復習待ちの場合は赤色にするなどの調整
+            if (item.reviewStatusLabel == "復習待ち") {
+                textReviewSummary.setTextColor(Color.parseColor("#F44336"))
+            } else {
+                textReviewSummary.setTextColor(Color.parseColor("#757575"))
+            }
+
+            // バッジの生成
             layoutIcons.removeAllViews()
-            item.statuses.forEach { status ->
-                val iconView = createStatusIcon(itemView, status)
-                layoutIcons.addView(iconView)
+            layoutIcons.addView(createBadge(item.tierLabel, getTierColor(item.tierLabel)))
+            if (item.hasPendingListenReview) {
+                layoutIcons.addView(createBadge("音声復習", Color.parseColor("#FF9800")))
             }
 
             // 展開・折りたたみ制御
             layoutDetail.visibility = if (item.isExpanded) View.VISIBLE else View.GONE
-            buttonEdit.visibility = if (item.isExpanded) View.VISIBLE else View.GONE
-
             itemView.setOnClickListener { onClick() }
-            buttonEdit.setOnClickListener { onEditClick(item) }
 
-            // 詳細テキストの生成（表形式っぽく整形）
             if (item.isExpanded) {
-                val sb = StringBuilder()
-                val dateFormat = SimpleDateFormat("MM/dd", Locale.getDefault())
-                item.statuses.forEach {
-                    val dateStr = dateFormat.format(Date(it.nextReviewDate * 1000L)) // 秒 -> ミリ秒
-                    sb.append("${it.modeName}: Lv.${it.level}  (Next: $dateStr)\n")
+                val detailText = buildString {
+                    append("説明: ${item.description}\n")
+                    append("例文: ${item.sentence}\n")
+                    append("訳: ${item.japaneseSentence}\n")
+                    append("次回モード: ${item.scheduledModeLabel}\n")
+                    append(item.lastSeenLabel)
                 }
-                textDetail.text = sb.toString()
+                textDetail.text = detailText
             }
         }
 
-        private fun createStatusIcon(view: View, status: ModeStatus): View {
-            // アイコンのコンテナ（バッジを表示するためにFrameLayoutを使用）
-            val container = FrameLayout(view.context)
-            val params = LinearLayout.LayoutParams(40, 40) // サイズ調整
-            params.setMargins(8, 0, 8, 0)
-            container.layoutParams = params
-
-            // 丸いインジケーター
-            val indicator = View(view.context)
-            val indicatorParams = FrameLayout.LayoutParams(32, 32)
-            indicatorParams.gravity = android.view.Gravity.CENTER
-            indicator.layoutParams = indicatorParams
+        private fun createBadge(text: String, color: Int): TextView {
+            val tv = TextView(itemView.context)
+            tv.text = text
+            tv.textSize = 10f
+            tv.setTextColor(Color.WHITE)
+            tv.setPadding(12, 4, 12, 4)
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            params.setMargins(4, 0, 4, 0)
+            tv.layoutParams = params
             
-            // レベルに応じた色設定
-            indicator.setBackgroundResource(R.drawable.bg_circle_indicator)
+            val bg = ContextCompat.getDrawable(itemView.context, R.drawable.bg_circle_indicator)?.mutate()
+            bg?.setTint(color)
+            tv.background = bg
+            return tv
+        }
 
-            val color = when (status.level) {
-                0 -> Color.parseColor("#F9F9F9")
-                1 -> Color.parseColor("#F9F9F9")
-                2 -> Color.parseColor("#8D6E63") // ブロンズ
-                3 -> Color.parseColor("#9E9E9E") // シルバー
-                4 -> Color.parseColor("#FFCA28") // ゴールド
-                5 -> Color.parseColor("#4DD0E1") // クリスタル
-                else -> Color.parseColor("#9C27B0") // パープル (Lv5以上)
+        private fun getTierColor(tier: String): Int {
+            return when (tier) {
+                "長期マスター" -> Color.parseColor("#4DD0E1") // クリスタル
+                "基礎マスター" -> Color.parseColor("#FFCA28") // ゴールド
+                else -> Color.parseColor("#9E9E9E") // シルバー
             }
-            indicator.background.setTint(color)
-            
-            container.addView(indicator)
-
-            // 復習アラート（赤丸バッジ）
-            if (status.isReviewNeeded) {
-                val badge = View(view.context)
-                val badgeParams = FrameLayout.LayoutParams(12, 12)
-                badgeParams.gravity = android.view.Gravity.TOP or android.view.Gravity.END
-                badge.layoutParams = badgeParams
-                badge.setBackgroundResource(R.drawable.bg_circle_indicator)
-                badge.background.setTint(Color.RED)
-                container.addView(badge)
-            }
-
-            return container
         }
     }
 

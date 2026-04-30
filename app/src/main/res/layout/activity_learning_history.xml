@@ -5,19 +5,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="#F8F9FA">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:theme="@style/ThemeOverlay.AppCompat.Light">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="?attr/colorPrimary">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -30,36 +31,37 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:tabMode="fixed"
-                    app:tabGravity="fill">
+                    app:tabGravity="fill"
+                    app:tabIndicatorColor="#1A237E"
+                    app:tabSelectedTextColor="#1A237E">
                     <com.google.android.material.tabs.TabItem android:text="日次" />
                     <com.google.android.material.tabs.TabItem android:text="週次" />
-                    <com.google.android.material.tabs.TabItem android:text="月次" />
                 </com.google.android.material.tabs.TabLayout>
 
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/bar_chart"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
+                    android:layout_height="180dp"
                     android:layout_margin="16dp" />
                 
                 <TextView
                     android:id="@+id/text_total_learned"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Total Learned: -- Words"
+                    android:text="学習済み合計: -- 語"
                     android:textAlignment="center"
-                    android:textColor="#333333"
-                    android:textStyle="bold"/>
+                    android:textColor="#1A237E"
+                    android:textStyle="bold"
+                    android:textSize="14sp"/>
 
-                <!-- 検索バーの追加 -->
                 <androidx.appcompat.widget.SearchView
                     android:id="@+id/search_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     app:iconifiedByDefault="false"
-                    app:queryHint="単語・意味を検索"
+                    app:queryHint="単語・意味・例文を検索"
                     android:background="@drawable/sl_button_bg" />
 
             </LinearLayout>
@@ -71,32 +73,33 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="#FFFFFF"
-            android:elevation="4dp"
-            android:padding="8dp">
+            android:elevation="2dp"
+            android:paddingVertical="4dp">
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scrollbars="none">
+                android:scrollbars="none"
+                android:paddingHorizontal="12dp">
 
                 <com.google.android.material.chip.ChipGroup
                     android:id="@+id/grade_filter_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:singleSelection="true">
+                    app:singleSelection="true"
+                    app:selectionRequired="false">
 
                     <com.google.android.material.chip.Chip
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="5級"
-                        android:tag="5"
-                        android:checked="true"/>
+                        android:tag="1"/>
                     <com.google.android.material.chip.Chip
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:tag="4"
+                        android:tag="2"
                         android:text="4級"/>
                     <com.google.android.material.chip.Chip
                         style="@style/Widget.MaterialComponents.Chip.Choice"
@@ -108,30 +111,28 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:tag="2.5"
+                        android:tag="4"
                         android:text="準2級"/>
                      <com.google.android.material.chip.Chip
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:tag="2"
+                        android:tag="5"
                         android:text="2級"/>
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="6"
+                        android:text="準1級"/>
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="7"
+                        android:text="1級"/>
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
-
-             <com.google.android.material.chip.ChipGroup
-                android:id="@+id/sort_chip_group"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleSelection="true">
-
-                 <com.google.android.material.chip.Chip
-                     android:id="@+id/chip_sort_review"
-                     style="@style/Widget.MaterialComponents.Chip.Filter"
-                     android:layout_width="wrap_content"
-                     android:layout_height="wrap_content"
-                     android:text="学習中" />
-             </com.google.android.material.chip.ChipGroup>
 
         </LinearLayout>
 

@@ -3,17 +3,19 @@ package com.example.studylockapp.learning
 import android.util.Log
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.SilentMode
+import com.example.studylockapp.data.WordStudyLogEntity
+import com.example.studylockapp.data.db.StudyLogDao
 import com.example.studylockapp.data.db.WordDao
 import com.example.studylockapp.data.db.WordMasteryDao
 import com.example.studylockapp.data.db.WordMasteryEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
-import java.util.regex.Pattern
 
 class QuizManager(
     private val wordDao: WordDao,
     private val masteryDao: WordMasteryDao,
+    private val studyLogDao: StudyLogDao, // 追加
     private var userLevel: Int = 3
 ) {
     private val choiceGenerator = ChoiceGenerator()
@@ -23,7 +25,7 @@ class QuizManager(
 
     companion object {
         private const val SESSION_PENDING_LIMIT = 3
-        private const val TAG = "GradeFlow" // ログタグを統一
+        private const val TAG = "GradeFlow"
     }
 
     fun resetSessionStats() {
@@ -36,8 +38,6 @@ class QuizManager(
 
         val baseMode = determineActualMode(mastery, QuizMode.valueOf(mastery.scheduledMode))
         val actualMode = resolveModeForWord(word, baseMode)
-
-        Log.d(TAG, "selected word=${word.word}, word.grade=${word.grade}, userLevel=$userLevel")
 
         val choices = choiceGenerator.generateChoices(word, actualMode)
 
@@ -88,9 +88,7 @@ class QuizManager(
             if (isPhrase) {
                 return QuizMode.JP_TO_EN
             }
-            // 穴埋め文が生成できない場合は別のモードにフォールバック
             if (FillBlankTextBuilder.build(word.sentence, word.word) == null) {
-                Log.w("FillBlank", "Cannot build blank sentence. word=${word.word}, sentence=${word.sentence}. fallback to JP_TO_EN")
                 return QuizMode.JP_TO_EN
             }
         }
@@ -135,7 +133,6 @@ class QuizManager(
         val now = System.currentTimeMillis()
         val allDueMasteries = masteryDao.getDueMasteries(now).shuffled()
         
-        // 1. 現在級の復習 (優先度最高)
         for (mastery in allDueMasteries) {
             val scheduledMode = runCatching { QuizMode.valueOf(mastery.scheduledMode) }.getOrDefault(QuizMode.EN_TO_JP)
             if (shouldSkipForSilentMode(scheduledMode)) continue
@@ -146,7 +143,6 @@ class QuizManager(
             }
         }
 
-        // 2. 他級の復習 (チェックON時のみ、新規より優先)
         if (includeOtherGradeReviews) {
             for (mastery in allDueMasteries) {
                 val scheduledMode = runCatching { QuizMode.valueOf(mastery.scheduledMode) }.getOrDefault(QuizMode.EN_TO_JP)
@@ -159,7 +155,6 @@ class QuizManager(
             }
         }
         
-        // 3. 期限到達済みの音声復習 (現在級のみ)
         if (silentMode == SilentMode.OFF && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
             val pendingMasteries = masteryDao.getPendingListenMasteries(now)
             for (mastery in pendingMasteries.shuffled()) {
@@ -170,7 +165,6 @@ class QuizManager(
             }
         }
         
-        // 4. 現在級の新規単語
         return wordDao.getRandomNewWordByGrade(userLevel)
     }
 
@@ -181,9 +175,19 @@ class QuizManager(
         timingSettings: ReviewTimingSettings,
         isUnknown: Boolean = false
     ) = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
         val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
-        mastery.lastSeen = System.currentTimeMillis()
+        mastery.lastSeen = now
 
+        // 1. 学習ログを記録 (ミリ秒)
+        // 正解・不正解・わからないに関わらずすべて記録する
+        studyLogDao.insert(WordStudyLogEntity(
+            wordId = word.no,
+            mode = actualMode.name,
+            learnedAt = now
+        ))
+
+        // 2. マスタリー状態の更新
         if (actualMode == QuizMode.LISTEN_EN && silentMode == SilentMode.OFF && mastery.pendingListenReview) {
             mastery.pendingListenReview = false
             pendingReviewPickedInSession++

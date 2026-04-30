@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.studylockapp.data.WordEntity
+import com.example.studylockapp.data.WordHistoryQueryResult
 
 @Dao
 interface WordDao {
@@ -70,4 +71,19 @@ interface WordDao {
         LIMIT :limit
     """)
     suspend fun getRandomEnglishDistractors(grade: Int, excludeWord: String, limit: Int): List<String>
+
+    /**
+     * 学習履歴（マスタリーレコードがある単語）を取得します。
+     */
+    @Query("""
+        SELECT 
+            w.no, w.word, w.japanese, w.description, w.sentence, w.japaneseSentence, w.pos, w.grade,
+            m.level, m.scheduledMode, m.nextReviewTime, m.lastSeen, m.lastCorrectTime,
+            m.challengeCount, m.successCount, m.failureCount, m.currentStreak, m.bestStreak,
+            m.isBasicMastered, m.isLongTermMastered, m.pendingListenReview, m.deferredListenCount
+        FROM words w
+        INNER JOIN word_mastery m ON w.no = m.wordId
+        ORDER BY m.lastSeen DESC, w.no ASC
+    """)
+    suspend fun getLearningHistory(): List<WordHistoryQueryResult>
 }

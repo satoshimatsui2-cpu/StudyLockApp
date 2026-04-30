@@ -28,23 +28,48 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/text_word"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="Apple"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#212121"/>
+                    android:orientation="horizontal"
+                    android:gravity="bottom">
+
+                    <TextView
+                        android:id="@+id/text_word"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="bring"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#212121"/>
+
+                    <TextView
+                        android:id="@+id/text_grade_level"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        tools:text="5級 / LV4"
+                        android:textSize="12sp"
+                        android:textColor="#757575"/>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/text_meaning"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    tools:text="リンゴ"
-                    android:textSize="14sp"
-                    android:textColor="#757575"/>
+                    tools:text="持ってくる"
+                    android:textSize="15sp"
+                    android:textColor="#424242"/>
+
+                <TextView
+                    android:id="@+id/text_review_summary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    tools:text="復習待ち・成功 3 / 失敗 1"
+                    android:textSize="12sp"
+                    android:textColor="#F44336"/>
 
             </LinearLayout>
 
@@ -54,20 +79,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
-                <!-- アイコンが動的に追加されます -->
+                <!-- 級、LV、ティアなどのバッジが動的に追加されます -->
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/button_edit"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_edit_24"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:layout_marginStart="8dp"
-                android:contentDescription="編集"
-                android:visibility="gone"
-                tools:visibility="visible"/>
         </LinearLayout>
 
         <!-- 詳細情報 (展開時のみ表示) -->
@@ -87,7 +101,8 @@
                 android:layout_height="wrap_content"
                 android:textSize="13sp"
                 android:textColor="#555555"
-                tools:text="英日: Lv.5 (Next: 04/01)\nリスニング: Lv.3 (Next: 03/25)"/>
+                android:lineSpacingExtra="4dp"
+                tools:text="説明: to carry or take something...\n例文: Please bring your notebook tomorrow.\n訳: 明日、ノートを持ってきてください。\n状態: 基礎マスター\n次回モード: 並び替え\n次回: 04/30 18:20\n最終学習: 04/30 14:10\n成功: 3  失敗: 1  最高連続: 2"/>
         </LinearLayout>
 
     </LinearLayout>
