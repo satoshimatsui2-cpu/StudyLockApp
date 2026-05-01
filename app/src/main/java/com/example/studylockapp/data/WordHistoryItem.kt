@@ -19,5 +19,9 @@ data class WordHistoryItem(
     val scheduledModeLabel: String, // 例: "英日"
     val hasPendingListenReview: Boolean,
     val grade: Int,                 // フィルタリング用
-    var isExpanded: Boolean = false
+    var isExpanded: Boolean = false,
+    val successCount: Int,
+    val failureCount: Int,
+    val isNew: Boolean,
+    val isReviewWaiting: Boolean
 )

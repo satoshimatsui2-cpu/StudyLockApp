@@ -15,7 +15,6 @@ import java.util.*
 class WordHistoryMapper(private val context: Context) {
 
     private val dateTimeFormat = SimpleDateFormat("MM/dd HH:mm", Locale.getDefault())
-    private val dateFormat = SimpleDateFormat("MM/dd", Locale.getDefault())
 
     fun map(result: WordHistoryQueryResult): WordHistoryItem {
         val now = System.currentTimeMillis()
@@ -31,9 +30,10 @@ class WordHistoryMapper(private val context: Context) {
         }
 
         // 復習ステータス
+        val isReviewWaiting = result.nextReviewTime > 0 && result.nextReviewTime <= now
         val reviewStatusLabel = when {
             result.nextReviewTime <= 0 -> "学習済み"
-            result.nextReviewTime <= now -> "復習待ち"
+            isReviewWaiting -> "復習待ち"
             else -> "次回: ${dateTimeFormat.format(Date(result.nextReviewTime))}"
         }
 
@@ -45,7 +45,7 @@ class WordHistoryMapper(private val context: Context) {
         }
 
         // 成績
-        val scoreLabel = "成功 ${result.successCount} / 失敗 ${result.failureCount}"
+        val scoreLabel = "○ ${result.successCount}  × ${result.failureCount}"
 
         // 次回モードのラベル
         val modeLabel = try {
@@ -80,7 +80,11 @@ class WordHistoryMapper(private val context: Context) {
             scoreLabel = scoreLabel,
             scheduledModeLabel = modeLabel,
             hasPendingListenReview = result.pendingListenReview,
-            grade = result.grade
+            grade = result.grade,
+            successCount = result.successCount,
+            failureCount = result.failureCount,
+            isNew = result.challengeCount <= 0,
+            isReviewWaiting = isReviewWaiting
         )
     }
 }

@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -40,20 +41,57 @@ class LearningHistoryAdapter(
         private val layoutDetail: LinearLayout = itemView.findViewById(R.id.layout_detail_container)
         private val textDetail: TextView = itemView.findViewById(R.id.text_detail_content)
 
+        // New UI Components
+        private val layoutStatusChip: LinearLayout = itemView.findViewById(R.id.layout_status_chip)
+        private val imageStatusIcon: ImageView = itemView.findViewById(R.id.image_status_icon)
+        private val textStatusLabel: TextView = itemView.findViewById(R.id.text_status_label)
+        private val textCountSuccess: TextView = itemView.findViewById(R.id.text_count_success)
+        private val textCountFailure: TextView = itemView.findViewById(R.id.text_count_failure)
+
         fun bind(item: WordHistoryItem, onEditClick: (WordHistoryItem) -> Unit, onClick: () -> Unit) {
             textWord.text = item.word
             textMeaning.text = item.japanese
             textGradeLevel.text = "${item.gradeLabel} / ${item.levelLabel}"
-            textReviewSummary.text = "${item.reviewStatusLabel} ・ ${item.scoreLabel}"
-
-            // 復習待ちの場合は赤色にするなどの調整
-            if (item.reviewStatusLabel == "復習待ち") {
-                textReviewSummary.setTextColor(Color.parseColor("#F44336"))
-            } else {
-                textReviewSummary.setTextColor(Color.parseColor("#757575"))
+            
+            // 状態チップの制御 (NEW / 復習 / 学習済)
+            when {
+                item.isNew -> {
+                    textStatusLabel.text = "NEW"
+                    textStatusLabel.setTextColor(Color.parseColor("#E91E63")) // Pink
+                    imageStatusIcon.visibility = View.GONE
+                    layoutStatusChip.background.mutate().setTint(Color.parseColor("#FCE4EC"))
+                }
+                item.isReviewWaiting -> {
+                    textStatusLabel.text = "復習"
+                    textStatusLabel.setTextColor(Color.parseColor("#F44336")) // Red
+                    imageStatusIcon.visibility = View.VISIBLE
+                    imageStatusIcon.setImageResource(R.drawable.ic_refresh_24)
+                    imageStatusIcon.drawable?.setTint(Color.parseColor("#F44336"))
+                    layoutStatusChip.background.mutate().setTint(Color.parseColor("#FFEBEE"))
+                }
+                else -> {
+                    textStatusLabel.text = "学習済"
+                    textStatusLabel.setTextColor(Color.parseColor("#757575"))
+                    imageStatusIcon.visibility = View.GONE
+                    layoutStatusChip.background.mutate().setTint(Color.parseColor("#F5F5F5"))
+                }
             }
 
-            // バッジの生成
+            // スコア表示 (○ / ×)
+            textCountSuccess.text = "○ ${item.successCount}"
+            textCountFailure.text = "× ${item.failureCount}"
+            
+            // 新規単語の場合はスコアを非表示
+            val scoreVisibility = if (item.isNew) View.GONE else View.VISIBLE
+            textCountSuccess.visibility = scoreVisibility
+            textCountFailure.visibility = scoreVisibility
+
+            // サマリーテキスト (次回学習予定の日時など)
+            textReviewSummary.text = item.reviewStatusLabel
+            // 復習待ちや新規の場合はチップでわかるので、具体的な日時は学習済みの時だけ出す、などの調整も可能
+            textReviewSummary.visibility = if (item.isReviewWaiting || item.isNew) View.GONE else View.VISIBLE
+
+            // バッジの生成 (ティアなど)
             layoutIcons.removeAllViews()
             layoutIcons.addView(createBadge(item.tierLabel, getTierColor(item.tierLabel)))
             if (item.hasPendingListenReview) {
@@ -105,7 +143,11 @@ class LearningHistoryAdapter(
     }
 
     class DiffCallback : DiffUtil.ItemCallback<WordHistoryItem>() {
-        override fun areItemsTheSame(oldItem: WordHistoryItem, newItem: WordHistoryItem) = oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: WordHistoryItem, newItem: WordHistoryItem) = oldItem == newItem
+        override fun areItemsTheSame(oldItem: WordHistoryItem, newItem: WordHistoryItem): Boolean {
+            return oldItem.id == newItem.id
+        }
+        override fun areContentsTheSame(oldItem: WordHistoryItem, newItem: WordHistoryItem): Boolean {
+            return oldItem == newItem
+        }
     }
 }
