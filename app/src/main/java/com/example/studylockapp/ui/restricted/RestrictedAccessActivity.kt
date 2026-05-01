@@ -10,6 +10,10 @@ import com.example.studylockapp.R
 
 class RestrictedAccessActivity : AppCompatActivity() {
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var homeRunnable: Runnable? = null
+    private var isFinishingHome = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         overridePendingTransition(0, 0) // ★アニメ無し
@@ -20,14 +24,18 @@ class RestrictedAccessActivity : AppCompatActivity() {
             goHomeAndFinish()
         }
 
-        // ★調整: 0.6秒 (600ms) だけ表示して、ホームへ飛ばす
-        // これなら「警告画面が出た！」と認識でき、かつ操作はできません。
-        Handler(Looper.getMainLooper()).postDelayed({
-            goHomeAndFinish()
-        }, 800)
+        // ★調整: 0.8秒 (800ms) だけ表示して、ホームへ飛ばす
+        homeRunnable = Runnable { goHomeAndFinish() }
+        homeRunnable?.let { handler.postDelayed(it, 800) }
     }
 
     private fun goHomeAndFinish() {
+        if (isFinishingHome) return
+        isFinishingHome = true
+
+        // 予約済みの実行があればキャンセル
+        homeRunnable?.let { handler.removeCallbacks(it) }
+
         // 1. ホーム画面（ランチャー）を呼び出す
         // これにより、裏にある「設定画面」からフォーカスを外します（無限ループ防止）
         val homeIntent = Intent(Intent.ACTION_MAIN).apply {
@@ -40,8 +48,13 @@ class RestrictedAccessActivity : AppCompatActivity() {
         finish()
     }
 
+    override fun onDestroy() {
+        homeRunnable?.let { handler.removeCallbacks(it) }
+        super.onDestroy()
+    }
+
     override fun onBackPressed() {
-        super.onBackPressed()
-        goHomeAndFinish() // 戻るボタンでもホームへ飛ばす
+        // super.onBackPressed() は呼ばずにホームへ飛ばす
+        goHomeAndFinish()
     }
 }

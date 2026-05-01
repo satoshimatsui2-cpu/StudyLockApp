@@ -61,6 +61,8 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     private var skipLockUntilMs: Long = 0L
 
+    private var accessibilityDisabledHandled = false
+
     private val myAppName by lazy {
         try {
             val appInfo = packageManager.getApplicationInfo(packageName, 0)
@@ -106,18 +108,26 @@ class AppLockAccessibilityService : AccessibilityService() {
         this.serviceInfo = info
         startExpiryWatcher()
 
-        if (!settings.isAccessibilityEnabledNotified()) {
-            sendSecurityAlertToFunctions("accessibility_enabled") { success ->
-                if (success) settings.setAccessibilityEnabledNotified(true)
-            }
-        }
         updateAccessibilityStatus(true)
+        accessibilityDisabledHandled = false
+
+        val wasEnabled = if (settings.hasAccessibilityStateRecorded()) settings.isLastAccessibilityEnabled() else null
+        if (wasEnabled == false) {
+            Log.w("AppLockDebug", "Accessibility state transition: OFF -> ON. Sending alert.")
+            sendSecurityAlertToFunctions("accessibility_enabled")
+        } else {
+            Log.w("AppLockDebug", "Skipping ON alert. recorded_wasEnabled: $wasEnabled")
+        }
+        settings.setLastAccessibilityEnabled(true)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val eventType = event?.eventType ?: return
         val pkgName = event.packageName?.toString() ?: return
         if (pkgName == packageName) return
+
+        if (!::settings.isInitialized) settings = AppSettings(this)
+        if (!::db.isInitialized) db = AppDatabase.getInstance(this)
 
         if (launcherPackages.any { pkgName.contains(it, ignoreCase = true) }) {
             if (settings.isUninstallLockEnabled()) {
@@ -244,7 +254,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         if (System.currentTimeMillis() < skipLockUntilMs) return
         if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         lastForegroundPkg = pkgName
-        if (!::settings.isInitialized || !settings.isAppLockEnabled()) return
+        if (!settings.isAppLockEnabled()) return
         serviceScope.launch(Dispatchers.IO) {
             val locked = db.lockedAppDao().get(pkgName)
             if (locked?.isLocked != true) return@launch
@@ -349,7 +359,8 @@ class AppLockAccessibilityService : AccessibilityService() {
         return false
     }
 
-    private fun recursiveCheckForTile(node: AccessibilityNodeInfo, keywords: List<String>): Boolean {
+    private fun recursiveCheckForTile(node: AccessibilityNodeInfo, keywords: List<String>, depth: Int = 0): Boolean {
+        if (depth > 20) return false
         val text = node.text?.toString()
         val desc = node.contentDescription?.toString()
         if (text != null && keywords.any { text.contains(it, ignoreCase = true) }) return true
@@ -358,7 +369,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         for (i in 0 until count) {
             val child = node.getChild(i)
             if (child != null) {
-                if (recursiveCheckForTile(child, keywords)) {
+                if (recursiveCheckForTile(child, keywords, depth + 1)) {
                     child.recycle()
                     return true
                 }
@@ -454,21 +465,36 @@ class AppLockAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() {}
+
     override fun onDestroy() {
-        super.onDestroy()
+        Log.w("AppLockDebug", "Accessibility onDestroy called. Cleanup only.")
         expiryRunnable?.let { expiryHandler.removeCallbacks(it) }
         serviceJob.cancel()
+        super.onDestroy()
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
         if (!::settings.isInitialized) settings = AppSettings(this)
-        if (!isServiceEnabled(this)) {
-            sendSecurityAlertToFunctions("accessibility_disabled")
-            settings.setAccessibilityEnabledNotified(false)
-            showAccessibilityOffNotification()
-        }
-        updateAccessibilityStatus(false)
+        Log.w("AppLockDebug", "Accessibility onUnbind called. Handling disabled state.")
+        handleAccessibilityDisabled("onUnbind")
         return super.onUnbind(intent)
+    }
+
+    private fun handleAccessibilityDisabled(source: String) {
+        if (accessibilityDisabledHandled) return
+        accessibilityDisabledHandled = true
+
+        updateAccessibilityStatus(false)
+        showAccessibilityOffNotification()
+
+        val wasEnabled = if (settings.hasAccessibilityStateRecorded()) settings.isLastAccessibilityEnabled() else null
+        if (wasEnabled == true) {
+            Log.w("AppLockDebug", "Accessibility state transition: ON -> OFF (source: $source). Sending alert.")
+            sendSecurityAlertToFunctions("accessibility_disabled")
+        } else {
+            Log.w("AppLockDebug", "Skipping OFF alert. source: $source, wasEnabled: $wasEnabled")
+        }
+        settings.setLastAccessibilityEnabled(false)
     }
 
     private fun isServiceEnabled(context: Context): Boolean {

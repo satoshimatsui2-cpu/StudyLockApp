@@ -17,20 +17,17 @@ class AppSettings(context: Context) {
 
     companion object {
         // --- Timing Settings ---
-        // answer_interval_ms は廃止予定のため新規利用禁止
         private const val KEY_ANSWER_INTERVAL_MS = "answer_interval_ms"
-        
-        // 再出題タイミング (秒単位で保存)
-        private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"      // 当日再出題（不正解）
-        private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"    // 当日再出題（正解: LV0->LV1）
-        private const val KEY_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec" // 当日再出題（わからない）
+        private const val KEY_WRONG_RETRY_SEC = "wrong_retry_sec"
+        private const val KEY_LEVEL1_RETRY_SEC = "level1_retry_sec"
+        private const val KEY_DONT_KNOW_RETRY_SEC = "dont_know_retry_sec"
 
         // --- Other Settings ---
         private const val KEY_SE_CORRECT_VOLUME = "se_correct_volume"
         private const val KEY_SE_WRONG_VOLUME = "se_wrong_volume"
         private const val KEY_TTS_VOLUME = "tts_volume"
-        private const val KEY_TTS_SPEED = "tts_speed"   // Float 0.5..1.5
-        private const val KEY_TTS_PITCH = "tts_pitch"   // Float 0.5..1.5
+        private const val KEY_TTS_SPEED = "tts_speed"
+        private const val KEY_TTS_PITCH = "tts_pitch"
 
         private const val KEY_AD_VOLUME = "ad_volume"
         private const val KEY_AD_MUTED = "ad_muted"
@@ -47,6 +44,7 @@ class AppSettings(context: Context) {
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
         private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
         private const val KEY_ACCESSIBILITY_ENABLED_NOTIFIED = "accessibility_enabled_notified"
+        private const val KEY_LAST_ACCESSIBILITY_ENABLED = "last_accessibility_enabled"
 
         private const val KEY_BASE_POINT_PREFIX = "base_point_v2_"
         private const val KEY_CURRENT_LEARNING_GRADE = "current_learning_grade"
@@ -73,21 +71,20 @@ class AppSettings(context: Context) {
 
     // --- Timing Implementation ---
 
-    // 廃止予定の項目。常に 0 または無視されるべき。
     var answerIntervalMs: Long
         get() = 0L
         set(value) { /* No-op */ }
 
     var wrongRetrySec: Long
-        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 600L) // デフォルト 10分
+        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 600L)
         set(v) = prefs.edit { putLong(KEY_WRONG_RETRY_SEC, v) }
 
     var level1RetrySec: Long
-        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 600L) // デフォルト 10分
+        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 600L)
         set(v) = prefs.edit { putLong(KEY_LEVEL1_RETRY_SEC, v) }
 
     var dontKnowRetrySec: Long
-        get() = prefs.getLong(KEY_DONT_KNOW_RETRY_SEC, 30L) // デフォルト 30秒
+        get() = prefs.getLong(KEY_DONT_KNOW_RETRY_SEC, 30L)
         set(value) = prefs.edit { putLong(KEY_DONT_KNOW_RETRY_SEC, value) }
 
     // --- Grade Settings ---
@@ -219,6 +216,10 @@ class AppSettings(context: Context) {
 
     fun isAccessibilityEnabledNotified(): Boolean = prefs.getBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, false)
     fun setAccessibilityEnabledNotified(notified: Boolean) { prefs.edit { putBoolean(KEY_ACCESSIBILITY_ENABLED_NOTIFIED, notified) } }
+
+    fun hasAccessibilityStateRecorded(): Boolean = prefs.contains(KEY_LAST_ACCESSIBILITY_ENABLED)
+    fun isLastAccessibilityEnabled(): Boolean = prefs.getBoolean(KEY_LAST_ACCESSIBILITY_ENABLED, false)
+    fun setLastAccessibilityEnabled(enabled: Boolean) { prefs.edit { putBoolean(KEY_LAST_ACCESSIBILITY_ENABLED, enabled) } }
 
     var pointReductionOneGradeDown: Int
         get() = prefs.getInt(KEY_POINT_REDUCTION_ONE_GRADE_DOWN, 50)
