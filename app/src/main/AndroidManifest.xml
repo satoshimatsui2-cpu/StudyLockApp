@@ -3,6 +3,7 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -96,6 +97,12 @@
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:excludeFromRecents="true"
+            android:theme="@style/Theme.StudyLockApp" />
+
+        <activity
+            android:name=".ui.PronunciationCheckActivity"
+            android:exported="false"
+            android:label="発音チェック"
             android:theme="@style/Theme.StudyLockApp" />
 
         <service

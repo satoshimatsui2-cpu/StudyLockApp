@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,7 +16,8 @@ import com.example.studylockapp.R
 import com.example.studylockapp.data.WordHistoryItem
 
 class LearningHistoryAdapter(
-    private val onEditClick: (WordHistoryItem) -> Unit
+    private val onEditClick: (WordHistoryItem) -> Unit,
+    private val onVoiceCheckClick: (WordHistoryItem) -> Unit
 ) : ListAdapter<WordHistoryItem, LearningHistoryAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -26,7 +28,7 @@ class LearningHistoryAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, onEditClick) {
+        holder.bind(item, onEditClick, onVoiceCheckClick) {
             item.isExpanded = !item.isExpanded
             notifyItemChanged(position)
         }
@@ -40,15 +42,21 @@ class LearningHistoryAdapter(
         private val layoutIcons: LinearLayout = itemView.findViewById(R.id.layout_status_icons)
         private val layoutDetail: LinearLayout = itemView.findViewById(R.id.layout_detail_container)
         private val textDetail: TextView = itemView.findViewById(R.id.text_detail_content)
+        private val buttonVoiceCheck: Button = itemView.findViewById(R.id.button_voice_check)
 
-        // New UI Components
+        // Status Chip Components
         private val layoutStatusChip: LinearLayout = itemView.findViewById(R.id.layout_status_chip)
         private val imageStatusIcon: ImageView = itemView.findViewById(R.id.image_status_icon)
         private val textStatusLabel: TextView = itemView.findViewById(R.id.text_status_label)
         private val textCountSuccess: TextView = itemView.findViewById(R.id.text_count_success)
         private val textCountFailure: TextView = itemView.findViewById(R.id.text_count_failure)
 
-        fun bind(item: WordHistoryItem, onEditClick: (WordHistoryItem) -> Unit, onClick: () -> Unit) {
+        fun bind(
+            item: WordHistoryItem,
+            onEditClick: (WordHistoryItem) -> Unit,
+            onVoiceCheckClick: (WordHistoryItem) -> Unit,
+            onClick: () -> Unit
+        ) {
             textWord.text = item.word
             textMeaning.text = item.japanese
             textGradeLevel.text = "${item.gradeLabel} / ${item.levelLabel}"
@@ -81,19 +89,22 @@ class LearningHistoryAdapter(
             textCountSuccess.text = "○ ${item.successCount}"
             textCountFailure.text = "× ${item.failureCount}"
             
-            // 新規単語の場合はスコアを非表示
             val scoreVisibility = if (item.isNew) View.GONE else View.VISIBLE
             textCountSuccess.visibility = scoreVisibility
             textCountFailure.visibility = scoreVisibility
 
-            // サマリーテキスト (次回学習予定の日時など)
             textReviewSummary.text = item.reviewStatusLabel
-            // 復習待ちや新規の場合はチップでわかるので、具体的な日時は学習済みの時だけ出す、などの調整も可能
             textReviewSummary.visibility = if (item.isReviewWaiting || item.isNew) View.GONE else View.VISIBLE
 
-            // バッジの生成 (ティアなど)
+            // バッジの生成
             layoutIcons.removeAllViews()
             layoutIcons.addView(createBadge(item.tierLabel, getTierColor(item.tierLabel)))
+            
+            // 音声チェック済みバッジ
+            if (item.isVoiceChecked) {
+                layoutIcons.addView(createBadge("🎙 発音OK", Color.parseColor("#4CAF50"))) // Green
+            }
+
             if (item.hasPendingListenReview) {
                 layoutIcons.addView(createBadge("音声復習", Color.parseColor("#FF9800")))
             }
@@ -111,6 +122,10 @@ class LearningHistoryAdapter(
                     append(item.lastSeenLabel)
                 }
                 textDetail.text = detailText
+                
+                buttonVoiceCheck.setOnClickListener {
+                    onVoiceCheckClick(item)
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 package com.example.studylockapp.ui
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
@@ -50,13 +51,9 @@ class LearningHistoryActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(null) // Clear any default if exists
-        supportActionBar?.apply {
-            setTitle(R.string.learning_history_title)
-            setDisplayHomeAsUpEnabled(true)
-        }
-        // If not using SupportActionBar from theme, we can just use the activity title
+        setSupportActionBar(null) 
         title = getString(R.string.learning_history_title)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -65,9 +62,19 @@ class LearningHistoryActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = LearningHistoryAdapter { item ->
-            // Edit action if needed
-        }
+        adapter = LearningHistoryAdapter(
+            onEditClick = { item ->
+                // Edit action if needed
+            },
+            onVoiceCheckClick = { item ->
+                val intent = Intent(this, PronunciationCheckActivity::class.java).apply {
+                    putExtra("WORD_ID", item.id)
+                    putExtra("WORD_TEXT", item.word)
+                    putExtra("WORD_MEANING", item.japanese)
+                }
+                startActivity(intent)
+            }
+        )
         binding.recyclerHistory.apply {
             layoutManager = LinearLayoutManager(this@LearningHistoryActivity)
             adapter = this@LearningHistoryActivity.adapter
@@ -129,6 +136,12 @@ class LearningHistoryActivity : AppCompatActivity() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 戻ってきたときに音声チェック結果を反映するため再読み込み
+        loadHistory()
+    }
+
     private fun loadHistory() {
         lifecycleScope.launch {
             try {
@@ -137,7 +150,22 @@ class LearningHistoryActivity : AppCompatActivity() {
                     db.wordDao().getLearningHistory()
                 }
                 
-                allHistoryItems = results.map { mapper.map(it) }
+                val itemsWithoutVoice = results.map { mapper.map(it) }
+                
+                // 音声チェック結果をまとめて取得してマージ
+                val wordIds = itemsWithoutVoice.map { it.id }
+                val voiceResults = if (wordIds.isNotEmpty()) {
+                    withContext(Dispatchers.IO) {
+                        db.voiceCheckDao().getResultsByIds(wordIds)
+                    }
+                } else emptyList()
+                
+                val voiceCheckedMap = voiceResults.associate { it.wordId to it.checked }
+                
+                allHistoryItems = itemsWithoutVoice.map { item ->
+                    item.copy(isVoiceChecked = voiceCheckedMap[item.id] ?: false)
+                }
+
                 applyFilters()
                 
                 binding.textTotalLearned.text = getString(R.string.total_learned_count, allHistoryItems.size)
