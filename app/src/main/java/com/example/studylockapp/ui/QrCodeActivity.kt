@@ -10,6 +10,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
@@ -53,7 +55,23 @@ class QrCodeActivity : AppCompatActivity() {
     }
 
     private fun showQrCode(uid: String) {
-        statusTextView.text = "UID: $uid\n\n保護者アプリで読み取ってください"
+        // 子端末自身でロールを設定する（バックエンド連携およびセキュリティルール対策）
+        val db = FirebaseFirestore.getInstance()
+        db.collection("users").document(uid).set(mapOf("role" to "child"), SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("QrCodeActivity", "Child role set successfully")
+            }
+            .addOnFailureListener { e ->
+                Log.e("QrCodeActivity", "Failed to set child role", e)
+                statusTextView.text = "警告: 役割設定に失敗しました。\nレポート機能が正しく動作しない可能性があります。\nエラー: ${e.message}"
+                statusTextView.setTextColor(Color.YELLOW)
+            }
+
+        if (!statusTextView.text.toString().contains("失敗")) {
+            statusTextView.text = "UID: $uid\n\n保護者アプリで読み取ってください"
+            statusTextView.setTextColor(Color.BLACK)
+        }
+        
         try {
             val bitmap = createQrCode(uid, 500, 500)
             qrImageView.setImageBitmap(bitmap)

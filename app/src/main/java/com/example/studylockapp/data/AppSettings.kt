@@ -64,6 +64,8 @@ class AppSettings(context: Context) {
 
         private const val KEY_LAST_GRADE_FILTER = "learning_last_grade_filter"
         private const val KEY_HAS_RESET_MASTERY_FOR_FIX = "has_reset_mastery_for_fix"
+        
+        private const val KEY_LAST_ACTIVE_UPDATE_MILLIS = "last_active_update_millis"
 
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -257,4 +259,8 @@ class AppSettings(context: Context) {
     var isTetheringLockEnabled: Boolean
         get() = prefs.getBoolean("tethering_lock", false)
         set(value) = prefs.edit { putBoolean("tethering_lock", value) }
+        
+    var lastActiveUpdateMillis: Long
+        get() = prefs.getLong(KEY_LAST_ACTIVE_UPDATE_MILLIS, 0L)
+        set(value) = prefs.edit { putLong(KEY_LAST_ACTIVE_UPDATE_MILLIS, value) }
 }

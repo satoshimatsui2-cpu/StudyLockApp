@@ -237,8 +237,8 @@ class AppLockBlockActivity : AppCompatActivity() {
         }
 
         // ★親向け日次レポート用：Firestoreへ「使用ポイント」を加算
-        // （失敗してもロック解除自体は成功していいので、内部で握りつぶしてOK）
-        StudyHistoryRepository.addUsedPoints(usePoints, lockedPkg)
+        val unlockedMinutes = ceil(durationSec / 60.0).toInt()
+        StudyHistoryRepository.addUsedPoints(usePoints, lockedPkg, lockedLabel, unlockedMinutes)
 
         // 画面を閉じて元アプリに戻る
         runOnUiThread {

@@ -20,10 +20,14 @@ import com.example.studylockapp.PrefsManager
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.StudyHistoryRepository
 import com.example.studylockapp.ui.alert.BlockedAlertActivity
 import com.example.studylockapp.ui.applock.AppLockBlockActivity
 import com.example.studylockapp.ui.restricted.RestrictedAccessActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,10 +59,8 @@ class AppLockAccessibilityService : AccessibilityService() {
         "com.android.inputmethod.latin"
     )
 
-    // クールダウン用
     private var skipLockUntilMs: Long = 0L
 
-    // 自分のアプリ名
     private val myAppName by lazy {
         try {
             val appInfo = packageManager.getApplicationInfo(packageName, 0)
@@ -68,45 +70,17 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
     }
 
-    // ランチャー判定用
     private var lastTouchedIconName: String? = null
     private var lastTouchedTime: Long = 0
 
-    // 設定TOP画面
     private val settingsHomeKeywords = listOf("Settings", "設定")
+    private val appsListKeywords = listOf("Apps", "アプリ", "Applications", "App list", "アプリリスト")
+    private val tetheringKeywords = listOf("Tethering", "テザリング", "Hotspot", "アクセスポイント", "アクセス ポイント")
+    private val networkMenuKeywords = listOf("Network & internet", "ネットワークとインターネット")
+    private val accessibilityKeywords = listOf("Accessibility", "ユーザー補助", "Accessibility settings", "ユーザー補助設定", "Security & privacy", "セキュリティとプライバシー")
+    private val launcherMenuKeywords = listOf("Pause app", "アプリを一時停止", "App info", "アプリ情報")
+    private val appInfoKeywords = listOf("Uninstall", "アンインストール", "Force stop", "強制停止")
 
-    // ★追加: 設定＞アプリ一覧画面をブロックするためのキーワード
-    private val appsListKeywords = listOf(
-        "Apps", "アプリ", "Applications", "App list", "アプリリスト"
-    )
-
-    // ロック対象キーワード（テザリング等）
-    private val tetheringKeywords = listOf(
-        "Tethering", "テザリング", "Hotspot",
-        "アクセスポイント", "アクセス ポイント"
-    )
-    private val networkMenuKeywords = listOf(
-        "Network & internet", "ネットワークとインターネット"
-    )
-    private val accessibilityKeywords = listOf(
-        "Accessibility", "ユーザー補助",
-        "Accessibility settings", "ユーザー補助設定",
-        "Security & privacy", "セキュリティとプライバシー"
-    )
-
-    // ランチャーメニュー
-    private val launcherMenuKeywords = listOf(
-        "Pause app", "アプリを一時停止",
-        "App info", "アプリ情報"
-    )
-
-    // 詳細画面（アンインストール等）
-    private val appInfoKeywords = listOf(
-        "Uninstall", "アンインストール",
-        "Force stop", "強制停止"
-    )
-
-    // Launcher Packages
     private val launcherPackages = listOf(
         "com.google.android.apps.nexuslauncher",
         "com.android.launcher3",
@@ -132,57 +106,41 @@ class AppLockAccessibilityService : AccessibilityService() {
         this.serviceInfo = info
         startExpiryWatcher()
 
-        // ★改善: 通知済みでなければ、成功時のみフラグを立てる
         if (!settings.isAccessibilityEnabledNotified()) {
             sendSecurityAlertToFunctions("accessibility_enabled") { success ->
-                if (success) {
-                    settings.setAccessibilityEnabledNotified(true)
-                }
+                if (success) settings.setAccessibilityEnabledNotified(true)
             }
         }
+        updateAccessibilityStatus(true)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val eventType = event?.eventType ?: return
         val pkgName = event.packageName?.toString() ?: return
-
         if (pkgName == packageName) return
 
-        // ---------------------------------------------------------
-        // 1. Launcher Logic (ホーム画面)
-        // ---------------------------------------------------------
         if (launcherPackages.any { pkgName.contains(it, ignoreCase = true) }) {
-
-            // ★チェック: 「アプリ削除ロック」がONの時だけランチャー監視を行う
             if (settings.isUninstallLockEnabled()) {
-
-                // タッチ記録
                 if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED ||
                     eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED ||
                     eventType == AccessibilityEvent.TYPE_VIEW_SELECTED ||
                     eventType == AccessibilityEvent.TYPE_VIEW_FOCUSED ||
                     eventType == AccessibilityEvent.TYPE_VIEW_HOVER_ENTER) {
-
                     val text = event.text?.joinToString("") ?: event.contentDescription?.toString()
                     if (!text.isNullOrBlank()) {
                         lastTouchedIconName = text
                         lastTouchedTime = System.currentTimeMillis()
                     }
                 }
-
-                // メニュー出現検知
                 if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
                     eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-
                     val rootNode = rootInActiveWindow
                     if (rootNode != null) {
                         try {
                             if (recursiveCheckForTile(rootNode, launcherMenuKeywords)) {
                                 val isRecent = (System.currentTimeMillis() - lastTouchedTime) < 3000
                                 val isTarget = lastTouchedIconName?.contains(myAppName, ignoreCase = true) == true
-
                                 if (isRecent && isTarget) {
-                                    Log.d("AppLockSvc", "Launcher: Blocked menu for $lastTouchedIconName")
                                     skipLockUntilMs = System.currentTimeMillis() + 1500L
                                     performGlobalAction(GLOBAL_ACTION_BACK)
                                     return
@@ -196,94 +154,61 @@ class AppLockAccessibilityService : AccessibilityService() {
             }
         }
 
-        // ---------------------------------------------------------
-        // 2. Settings App Logic (設定アプリ)
-        // ---------------------------------------------------------
         if (pkgName == "com.android.settings") {
-
             if (System.currentTimeMillis() < skipLockUntilMs) return
-
-            // A. Click Detection
             if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 val clickedText = event.text?.joinToString("") ?: ""
-
-                // テザリング等の既存ロック
-                if (PrefsManager.isTetheringLockEnabled(this)) {
-                    if (checkKeywords(clickedText, tetheringKeywords) ||
-                        checkKeywords(clickedText, networkMenuKeywords)) {
+                if (settings.isTetheringLockEnabled) {
+                    if (checkKeywords(clickedText, tetheringKeywords) || checkKeywords(clickedText, networkMenuKeywords)) {
                         backAndCooldown()
                         showRestrictedScreen(pkgName)
                         return
-
                     }
                 }
-
-                // ★追加: 「アプリ削除ロック」がONなら、設定一覧の「アプリ」クリックもブロック
                 if (settings.isUninstallLockEnabled()) {
                     if (checkKeywords(clickedText, appsListKeywords)) {
                         backAndCooldown()
                         showRestrictedScreen(pkgName)
                         return
-
                     }
                 }
             }
-
-            // B. Window & Content Scanning
             val isWindowStateChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
             val isContentChanged = (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
-
             if (isWindowStateChanged || isContentChanged) {
                 val now = System.currentTimeMillis()
                 if (isContentChanged && (now - lastScanTimeMs < scanIntervalMs)) return
                 lastScanTimeMs = now
-
                 val rootNode = rootInActiveWindow
                 if (rootNode != null) {
                     try {
                         if (isSettingsTopScreen(rootNode)) return
-
-                        // ★チェック: 「アプリ削除ロック」がONの場合の処理
                         if (settings.isUninstallLockEnabled()) {
-
-                            // 1. 設定＞アプリ一覧画面自体のブロック
                             if (findAndValidateTitle(rootNode, appsListKeywords)) {
                                 backAndCooldown()
                                 showRestrictedScreen(pkgName)
                                 return
-
                             }
-
-                            // 2. 詳細画面でのアンインストールボタン検知
                             if (findAndValidateTitle(rootNode, listOf(myAppName))) {
                                 if (recursiveCheckForTile(rootNode, appInfoKeywords)) {
-                                    Log.d("AppLockSvc", "Protected Self Settings detected. Locking.")
                                     backAndCooldown()
                                     showRestrictedScreen(pkgName)
                                     return
-
                                 }
                             }
                         }
-
-                        // ユーザー補助
-                        if (PrefsManager.isAccessibilityLockEnabled(this)) {
+                        if (settings.isAccessibilityLockEnabled) {
                             if (findAndValidateTitle(rootNode, accessibilityKeywords)) {
                                 backAndCooldown()
                                 showRestrictedScreen(pkgName)
                                 return
-
                             }
                         }
-
-                        // テザリング
-                        if (PrefsManager.isTetheringLockEnabled(this)) {
-                            if (findAndValidateTitle(rootNode, networkMenuKeywords) ||
-                                findAndValidateTitle(rootNode, tetheringKeywords)) {
+                        if (settings.isTetheringLockEnabled) {
+                            if (findAndValidateTitle(rootNode, networkMenuKeywords) || findAndValidateTitle(rootNode, tetheringKeywords)) {
                                 backAndCooldown()
                                 showRestrictedScreen(pkgName)
                                 return
-
                             }
                         }
                     } finally {
@@ -293,13 +218,9 @@ class AppLockAccessibilityService : AccessibilityService() {
             }
         }
 
-        // ---------------------------------------------------------
-        // 3. SystemUI Logic (通知パネル)
-        // ---------------------------------------------------------
         if (pkgName == "com.android.systemui") {
             if (System.currentTimeMillis() < skipLockUntilMs) return
-
-            if (PrefsManager.isTetheringLockEnabled(this)) {
+            if (settings.isTetheringLockEnabled) {
                 val rootNode = rootInActiveWindow
                 if (rootNode != null) {
                     try {
@@ -320,44 +241,30 @@ class AppLockAccessibilityService : AccessibilityService() {
             }
         }
 
-        // ---------------------------------------------------------
-        // 4. Regular App Lock Logic (ここは通常通り)
-        // ---------------------------------------------------------
         if (System.currentTimeMillis() < skipLockUntilMs) return
         if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-
         lastForegroundPkg = pkgName
         if (!::settings.isInitialized || !settings.isAppLockEnabled()) return
-
         serviceScope.launch(Dispatchers.IO) {
             val locked = db.lockedAppDao().get(pkgName)
             if (locked?.isLocked != true) return@launch
-
             val nowSec = Instant.now().epochSecond
             db.appUnlockDao().clearExpired(nowSec)
-
             val unlockEntry = db.appUnlockDao().get(pkgName)
             val unlockUntil = unlockEntry?.unlockedUntilSec ?: 0L
-
             if (unlockUntil > nowSec) return@launch
-
             val label = locked.label.ifBlank { pkgName }
             Handler(Looper.getMainLooper()).post {
                 backAndCooldown()
                 showBlockScreen(pkgName, label)
             }
-
         }
     }
 
-    // --- Helper Methods ---
-
     private fun backAndCooldown(ms: Long = 800L) {
-        // 自分のBACKでイベントが連続してループしないように
         skipLockUntilMs = System.currentTimeMillis() + ms
         performGlobalAction(GLOBAL_ACTION_BACK)
     }
-
 
     private fun isSettingsTopScreen(rootNode: AccessibilityNodeInfo): Boolean {
         val windows = this.windows
@@ -470,47 +377,28 @@ class AppLockAccessibilityService : AccessibilityService() {
         return true
     }
 
-// AppLockAccessibilityService.kt 内
-
     private fun showRestrictedScreen(pkg: String) {
-        // クールダウン中なら何もしない
-
-        // ★修正: やはり警告画面を出す（無言バックはやめる）
         val intent = Intent(applicationContext, RestrictedAccessActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
-
         Handler(Looper.getMainLooper()).postDelayed({
             val nowMs = System.currentTimeMillis()
-
-            // 連続起動防止
             if (pkg == lastBlockPkg && (nowMs - lastBlockAtMs) < blockCooldownMs) return@postDelayed
             lastBlockPkg = pkg
             lastBlockAtMs = nowMs
-
-            // ★まず即戻す（タップで進める隙を潰す）
-            // （戻る操作でイベントが連打されることがあるので短めにクールダウン）
             skipLockUntilMs = nowMs + 600L
             performGlobalAction(GLOBAL_ACTION_BACK)
-
-            // ★アニメ無しで警告画面を起動
             val options = android.app.ActivityOptions.makeCustomAnimation(this, 0, 0)
             startActivity(intent, options.toBundle())
-        }, 80L) // ★遷移中のroot/状態ズレ対策：少しだけ遅らせる
-
+        }, 80L)
     }
 
-    // 学習アプリ用のロック画面（こちらは表示する）
     private fun showBlockScreen(pkg: String, label: String) {
-
         val intent = Intent(applicationContext, AppLockBlockActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-
-            // ★重要修正: これがないとアイコンが出ず、解除もできません
-            putExtra("package_name", pkg) // キー名は AppLockBlockActivity 側の受け取りキーと合わせてください
+            putExtra("package_name", pkg)
             putExtra("app_label", label)
         }
-
         Handler(Looper.getMainLooper()).post {
             val nowMs = System.currentTimeMillis()
             if (pkg == lastBlockPkg && (nowMs - lastBlockAtMs) < blockCooldownMs) return@post
@@ -524,9 +412,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         val intent = Intent(this, BlockedAlertActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
-        Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(intent)
-        }, 400)
+        Handler(Looper.getMainLooper()).postDelayed({ startActivity(intent) }, 400)
     }
 
     private fun startExpiryWatcher() {
@@ -575,15 +461,13 @@ class AppLockAccessibilityService : AccessibilityService() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.d("AppLockDebug", "★onUnbind 呼ばれました！(OFF操作を検知)")
         if (!::settings.isInitialized) settings = AppSettings(this)
-
-        // ★改善: 本当に無効化された時だけ通知し、フラグをリセット
         if (!isServiceEnabled(this)) {
             sendSecurityAlertToFunctions("accessibility_disabled")
             settings.setAccessibilityEnabledNotified(false)
             showAccessibilityOffNotification()
         }
+        updateAccessibilityStatus(false)
         return super.onUnbind(intent)
     }
 
@@ -595,11 +479,26 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     private fun showAccessibilityOffNotification() {
         val channelId = "SECURITY_ALERTS"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "セキュリティ警告",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "アクセシビリティ設定の変更を通知します"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
 
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         val builder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_lock_24dp)
@@ -609,35 +508,45 @@ class AppLockAccessibilityService : AccessibilityService() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(1001, builder.build())
     }
 
     private fun sendSecurityAlertToFunctions(alertType: String, callback: ((Boolean) -> Unit)? = null) {
-        val auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
-
-        if (user == null) {
-            Log.e("AppLockDebug", "★エラー: User is null。")
+        if (FirebaseAuth.getInstance().currentUser == null) {
             callback?.invoke(false)
             return
         }
-
         val functions = FirebaseFunctions.getInstance("asia-northeast1")
         val data = hashMapOf(
-            "alertType" to alertType,
-            "uid" to user.uid,
-            "timestamp" to java.util.Date().toString()
+            "alertType" to alertType
         )
 
         functions.getHttpsCallable("sendSecurityAlert").call(data)
-            .addOnSuccessListener {
-                Log.d("AppLockDebug", "★送信成功！")
-                callback?.invoke(true)
+            .addOnSuccessListener { result ->
+                val map = result.getData() as? Map<*, *>
+                val success = map?.get("success") as? Boolean ?: false
+                val message = map?.get("message") as? String
+                if (!success && message != null) {
+                    Log.w("AppLockDebug", "★警告送信失敗通知: $message")
+                }
+                callback?.invoke(success)
             }
             .addOnFailureListener { e ->
-                Log.e("AppLockDebug", "★送信失敗...", e)
+                Log.e("AppLockDebug", "★警告送信失敗", e)
                 callback?.invoke(false)
+            }
+    }
+
+    private fun updateAccessibilityStatus(enabled: Boolean) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+        val data = hashMapOf(
+            "accessibilityEnabled" to enabled,
+            "accessibilityUpdatedAt" to FieldValue.serverTimestamp()
+        )
+        db.collection("users").document(uid).set(data, SetOptions.merge())
+            .addOnFailureListener { e ->
+                Log.e("AppLockDebug", "Failed to update accessibility status", e)
             }
     }
 }

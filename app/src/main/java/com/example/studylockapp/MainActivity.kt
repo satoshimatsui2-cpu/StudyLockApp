@@ -7,6 +7,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.StudyHistoryRepository
+import com.example.studylockapp.service.NotificationPermissionHelper
 import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
@@ -19,7 +21,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appSettings: AppSettings
     private lateinit var pointManager: PointManager
+    private lateinit var notificationHelper: NotificationPermissionHelper
+    
     private var hasShownTargetGradeSetupAlert = false
+    private var hasShownNotificationPrompt = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
         appSettings = AppSettings(this)
         pointManager = PointManager(this)
+        notificationHelper = NotificationPermissionHelper(this)
 
         setupGradeSection()
         setupLearningStart()
@@ -39,10 +45,25 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         
-        // 目標級が未設定の場合、一度だけアラートを表示
+        // 優先度1: 目標級が未設定の場合、一度だけアラートを表示
         if (!appSettings.isTargetLearningGradeSet && !hasShownTargetGradeSetupAlert) {
             hasShownTargetGradeSetupAlert = true
             showTargetGradeSetupAlert()
+        } 
+        // 優先度2: 通知許可がオフの場合、一度だけ誘導を表示 (目標級アラートと重ならないように)
+        else if (!hasShownNotificationPrompt) {
+            hasShownNotificationPrompt = true
+            notificationHelper.checkAndPromptNotification()
+        }
+
+        // 最終アクティブ更新 (6時間以上の間隔を空ける)
+        val now = System.currentTimeMillis()
+        val sixHoursMillis = 6 * 60 * 60 * 1000L
+        if (now - appSettings.lastActiveUpdateMillis > sixHoursMillis) {
+            StudyHistoryRepository.updateLastActiveStatus {
+                // サーバー書き込み成功時のみ、ローカルの次回判定用時刻を更新
+                appSettings.lastActiveUpdateMillis = now
+            }
         }
 
         updateGradeDisplay()

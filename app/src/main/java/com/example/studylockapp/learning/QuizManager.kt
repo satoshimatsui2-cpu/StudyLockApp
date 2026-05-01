@@ -8,6 +8,7 @@ import com.example.studylockapp.data.db.StudyLogDao
 import com.example.studylockapp.data.db.WordDao
 import com.example.studylockapp.data.db.WordMasteryDao
 import com.example.studylockapp.data.db.WordMasteryEntity
+import com.example.studylockapp.data.StudyHistoryRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -197,6 +198,12 @@ class QuizManager(
         else MasteryScheduler.onWrong(mastery, actualMode, timingSettings, isUnknown)
 
         masteryDao.insertOrUpdate(mastery)
+
+        // 3. マスター累計数をFirestoreに同期
+        // TODO: 毎問書き込みは負荷が高いため、将来的には学習セッション終了時などにまとめて保存することを検討
+        val short = getMasteryCount(MasteryTier.BASIC_MASTER)
+        val long = getMasteryCount(MasteryTier.LONG_TERM_MASTER)
+        StudyHistoryRepository.updateMasteryCounts(short, long)
     }
 
     suspend fun getMasteryCount(tier: MasteryTier): Int = withContext(Dispatchers.IO) {
