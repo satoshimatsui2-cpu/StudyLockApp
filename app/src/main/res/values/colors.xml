@@ -15,6 +15,10 @@
     <color name="mustard_dark">#B88F1F</color>
     <color name="mustard_soft">#F3E3A4</color>
 
+    <!-- オレンジ系 (New) -->
+    <color name="orange_accent">#FF9800</color>
+    <color name="orange_dark">#F57C00</color>
+
     <!-- 背景・補助 -->
     <color name="app_background">#FBFAF5</color>
     <color name="app_surface">#FFFFFF</color>

@@ -79,7 +79,7 @@
                         android:maxHeight="420dp" />
                 </LinearLayout>
 
-                <!-- ポイントカード -->
+                <!-- ポイントカード (アイコンなし) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -108,23 +108,12 @@
                             android:layout_height="wrap_content"
                             android:padding="12dp">
 
-                            <ImageView
-                                android:id="@+id/icon_coin"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:src="@drawable/ic_monetization_on_24"
-                                app:tint="@color/navy_primary"
-                                android:contentDescription="@string/cd_coin"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="parent" />
-
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
                                 android:gravity="center_horizontal"
-                                app:layout_constraintStart_toEndOf="@id/icon_coin"
+                                app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toStartOf="@+id/arrow_icon"
@@ -168,7 +157,7 @@
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
-                <!-- 履歴ボタン群 (1列縦並び) -->
+                <!-- 履歴ボタン群 (紺色塗りつぶし) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -178,7 +167,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_to_learning_history"
-                        style="@style/App.MainButton"
+                        style="@style/App.HistoryButton"
                         android:layout_width="292dp"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="64dp"
@@ -199,7 +188,7 @@
                     android:textStyle="bold"
                     tools:text="目標：3級 / 学習：5級（復習）" />
 
-                <!-- 級選択ボタン -->
+                <!-- 級選択ボタン (オレンジ) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -209,7 +198,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/spinner_grade_top"
-                        style="@style/App.MainButton"
+                        style="@style/App.OrangeButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.8"
@@ -220,7 +209,7 @@
                         app:iconSize="32dp" />
                 </LinearLayout>
 
-                <!-- STARTボタン -->
+                <!-- STARTボタン (オレンジ) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -231,7 +220,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_to_learning"
-                        style="@style/App.MainButton"
+                        style="@style/App.OrangeButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.8"
