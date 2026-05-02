@@ -1,7 +1,10 @@
 package com.example.studylockapp.ui
 
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,6 +46,7 @@ class LearningHistoryAdapter(
         private val textGradeLevel: TextView = itemView.findViewById(R.id.text_grade_level)
         private val textReviewSummary: TextView = itemView.findViewById(R.id.text_review_summary)
         private val layoutIcons: LinearLayout = itemView.findViewById(R.id.layout_status_icons)
+        private val textMasteryIcon: TextView = itemView.findViewById(R.id.text_mastery_icon)
         private val layoutDetail: LinearLayout = itemView.findViewById(R.id.layout_detail_container)
         private val textDetail: TextView = itemView.findViewById(R.id.text_detail_content)
         private val buttonWordCheck: MaterialButton = itemView.findViewById(R.id.button_voice_check)
@@ -66,19 +70,18 @@ class LearningHistoryAdapter(
             textMeaning.text = item.japanese
             textGradeLevel.text = "${item.gradeLabel} / ${item.levelLabel}"
             
-            // 豪華な枠線の演出 (両方OKならゴールド)
             val cardView = itemView as? MaterialCardView
             if (item.isWordVoiceChecked && item.isSentenceVoiceChecked) {
-                cardView?.strokeColor = Color.parseColor("#F9A825") // 控えめなゴールド
-                cardView?.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1.5f, itemView.resources.displayMetrics).toInt()
+                cardView?.strokeColor = Color.parseColor("#F9A825")
+                cardView?.strokeWidth = dpToPx(1.5f)
             } else if (item.isWordVoiceChecked || item.isSentenceVoiceChecked) {
-                cardView?.strokeColor = Color.parseColor("#EEEEEE") // 片方だけならごく薄いグレー
-                cardView?.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1.0f, itemView.resources.displayMetrics).toInt()
+                cardView?.strokeColor = Color.parseColor("#EEEEEE")
+                cardView?.strokeWidth = dpToPx(1.0f)
             } else {
                 cardView?.strokeWidth = 0
             }
 
-            // 状態チップの制御
+            // Status Chip
             when {
                 item.isNew -> {
                     textStatusLabel.text = "NEW"
@@ -102,10 +105,8 @@ class LearningHistoryAdapter(
                 }
             }
 
-            // スコア表示
             textCountSuccess.text = "○ ${item.successCount}"
             textCountFailure.text = "× ${item.failureCount}"
-            
             val scoreVisibility = if (item.isNew) View.GONE else View.VISIBLE
             textCountSuccess.visibility = scoreVisibility
             textCountFailure.visibility = scoreVisibility
@@ -113,23 +114,26 @@ class LearningHistoryAdapter(
             textReviewSummary.text = item.reviewStatusLabel
             textReviewSummary.visibility = if (item.isReviewWaiting || item.isNew) View.GONE else View.VISIBLE
 
-            // バッジの生成
+            // Mastery Icon
+            textMasteryIcon.text = when (item.tierLabel) {
+                "長期マスター" -> "🏆"
+                "基礎マスター" -> "✪"
+                else -> ""
+            }
+
+            // Voice Badges (Chips)
             layoutIcons.removeAllViews()
-            layoutIcons.addView(createBadge(item.tierLabel, getTierColor(item.tierLabel)))
-            
-            // 音声チェックバッジ
             if (item.isWordVoiceChecked) {
-                layoutIcons.addView(createBadge("🎙 単語OK", Color.parseColor("#4CAF50"))) // Green
+                layoutIcons.addView(createVoiceChip("単語OK", Color.parseColor("#4CAF50")))
             }
             if (item.isSentenceVoiceChecked) {
-                layoutIcons.addView(createBadge("📖 例文OK", Color.parseColor("#4527A0"))) // Purple
+                layoutIcons.addView(createVoiceChip("例文OK", Color.parseColor("#4527A0")))
             }
-
             if (item.hasPendingListenReview) {
-                layoutIcons.addView(createBadge("音声復習", Color.parseColor("#FF9800")))
+                layoutIcons.addView(createVoiceChip("音声復習", Color.parseColor("#FF9800")))
             }
 
-            // 展開・折りたたみ制御
+            // Expand/Collapse logic
             layoutDetail.visibility = if (item.isExpanded) View.VISIBLE else View.GONE
             itemView.setOnClickListener { onClick() }
 
@@ -143,44 +147,76 @@ class LearningHistoryAdapter(
                 }
                 textDetail.text = detailText
                 
-                buttonWordCheck.setOnClickListener { onWordCheckClick(item) }
-                
-                // 例文が3語以上あるかチェック
+                // Initialize buttons to prevent reuse issues
+                buttonWordCheck.apply {
+                    text = "単語"
+                    setIconResource(R.drawable.ic_mic_24)
+                    visibility = View.VISIBLE
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F8F8F8"))
+                    strokeColor = ColorStateList.valueOf(Color.parseColor("#DDDDDD"))
+                    setOnClickListener { onWordCheckClick(item) }
+                }
+
                 val words = item.sentence.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
-                if (words.size >= 3) {
-                    buttonSentenceCheck.visibility = View.VISIBLE
-                    buttonSentenceCheck.setOnClickListener { onSentenceCheckClick(item) }
-                } else {
-                    buttonSentenceCheck.visibility = View.GONE
+                buttonSentenceCheck.apply {
+                    text = "例文"
+                    setIconResource(R.drawable.ic_mic_24)
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F8F8F8"))
+                    strokeColor = ColorStateList.valueOf(Color.parseColor("#DDDDDD"))
+                    if (words.size >= 3) {
+                        visibility = View.VISIBLE
+                        setOnClickListener { onSentenceCheckClick(item) }
+                    } else {
+                        visibility = View.GONE
+                    }
                 }
             }
         }
 
-        private fun createBadge(text: String, color: Int): TextView {
-            val tv = TextView(itemView.context)
-            tv.text = text
-            tv.textSize = 10f
-            tv.setTextColor(Color.WHITE)
-            tv.setPadding(12, 4, 12, 4)
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            params.setMargins(4, 0, 4, 0)
-            tv.layoutParams = params
-            
-            val bg = ContextCompat.getDrawable(itemView.context, R.drawable.bg_circle_indicator)?.mutate()
-            bg?.setTint(color)
-            tv.background = bg
-            return tv
+        private fun createVoiceChip(label: String, color: Int): View {
+            val chip = LinearLayout(itemView.context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dpToPx(6f), dpToPx(2f), dpToPx(8f), dpToPx(2f))
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.setMargins(0, dpToPx(2f), 0, dpToPx(2f))
+                layoutParams = params
+                
+                val bg = ContextCompat.getDrawable(context, R.drawable.bg_status_chip)?.mutate()
+                bg?.setTint(color)
+                background = bg
+            }
+
+            val icon = ImageView(itemView.context).apply {
+                setImageResource(R.drawable.ic_mic_24)
+                imageTintList = ColorStateList.valueOf(Color.WHITE)
+                val iconSize = dpToPx(12f)
+                layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply {
+                    marginEnd = dpToPx(4f)
+                }
+            }
+
+            val text = TextView(itemView.context).apply {
+                text = label
+                textSize = 11f
+                setTextColor(Color.WHITE)
+                typeface = Typeface.DEFAULT_BOLD
+            }
+
+            chip.addView(icon)
+            chip.addView(text)
+            return chip
         }
 
-        private fun getTierColor(tier: String): Int {
-            return when (tier) {
-                "長期マスター" -> Color.parseColor("#4DD0E1")
-                "基礎マスター" -> Color.parseColor("#FFCA28")
-                else -> Color.parseColor("#9E9E9E")
-            }
+        private fun dpToPx(dp: Float): Int {
+            return TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                dp,
+                itemView.resources.displayMetrics
+            ).toInt()
         }
     }
 
