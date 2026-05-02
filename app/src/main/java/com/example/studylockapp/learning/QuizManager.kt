@@ -166,7 +166,7 @@ class QuizManager(
             }
         }
         
-        return wordDao.getRandomNewWordByGrade(userLevel)
+        return wordDao.getPriorityNewWordByGrade(userLevel)
     }
 
     suspend fun submitAnswer(

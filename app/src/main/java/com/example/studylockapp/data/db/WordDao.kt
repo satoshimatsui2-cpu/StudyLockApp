@@ -41,9 +41,8 @@ interface WordDao {
 
     /**
      * 未学習（マスタリーレコードがない）の単語を
-     * 指定されたグレードからランダムに1件取得します。
-     * 一度でも出題されたものは mastery レコードが作成されるため、
-     * ここでは純粋に未遭遇の単語のみが対象となります。
+     * 指定されたグレードから優先順位に従って1件取得します。
+     * 優先順位: frequency DESC, difficulty ASC, no ASC
      */
     @Query("""
         SELECT w.*
@@ -51,10 +50,29 @@ interface WordDao {
         LEFT JOIN word_mastery m ON w.no = m.wordId
         WHERE w.grade = :grade
           AND m.wordId IS NULL
-        ORDER BY RANDOM()
+        ORDER BY 
+            COALESCE(w.frequency, 0) DESC,
+            COALESCE(w.difficulty, 999999) ASC,
+            w.no ASC
         LIMIT 1
     """)
-    suspend fun getRandomNewWordByGrade(grade: Int): WordEntity?
+    suspend fun getPriorityNewWordByGrade(grade: Int): WordEntity?
+
+    /**
+     * 全グレードから未学習の単語を優先順位に従って1件取得します。
+     */
+    @Query("""
+        SELECT w.*
+        FROM words w
+        LEFT JOIN word_mastery m ON w.no = m.wordId
+        WHERE m.wordId IS NULL
+        ORDER BY 
+            COALESCE(w.frequency, 0) DESC,
+            COALESCE(w.difficulty, 999999) ASC,
+            w.no ASC
+        LIMIT 1
+    """)
+    suspend fun getPriorityNewWordFromAnyGrade(): WordEntity?
 
     @Query("""
         SELECT japanese FROM words 
