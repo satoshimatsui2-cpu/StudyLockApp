@@ -3,16 +3,20 @@ package com.example.studylockapp.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.databinding.ActivityPronunciationCheckBinding
 import kotlinx.coroutines.Dispatchers
@@ -25,10 +29,23 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     private lateinit var binding: ActivityPronunciationCheckBinding
     private var speechRecognizer: SpeechRecognizer? = null
     private var tts: TextToSpeech? = null
+    private var ttsReady = false
 
     private var wordId: Long = -1L
     private var wordText: String = ""
     private var wordMeaning: String = ""
+
+    // 効果音再生用
+    private lateinit var soundPool: SoundPool
+    private var soundSuccess: Int = 0
+    private var soundFailure: Int = 0
+
+    enum class UIState {
+        IDLE,       // 待機中
+        RECORDING,  // 録音中
+        SUCCESS,    // 判定OK
+        FAILURE     // 判定NG
+    }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -58,24 +75,101 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         binding.textWord.text = wordText
         binding.textMeaning.text = wordMeaning
 
-        // 4. TTS初期化前はお手本再生ボタンを無効化
-        binding.buttonSpeakMaster.isEnabled = false
-
+        setupSoundPool()
         tts = TextToSpeech(this, this)
 
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             Toast.makeText(this, "音声認識が利用できません", Toast.LENGTH_SHORT).show()
-            binding.fabMic.isEnabled = false
+            binding.buttonStartPronounce.isEnabled = false
         } else {
             setupSpeechRecognizer()
         }
 
-        binding.buttonSpeakMaster.setOnClickListener {
+        binding.buttonListen.setOnClickListener {
             speakMaster()
         }
 
-        binding.fabMic.setOnClickListener {
+        binding.buttonStartPronounce.setOnClickListener {
             checkPermissionAndStart()
+        }
+
+        binding.buttonRetry.setOnClickListener {
+            checkPermissionAndStart()
+        }
+
+        binding.buttonClose.setOnClickListener {
+            finish()
+        }
+
+        updateUI(UIState.IDLE)
+    }
+
+    private fun setupSoundPool() {
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(1)
+            .setAudioAttributes(audioAttributes)
+            .build()
+        
+        // res/raw にファイルがあることを想定
+        soundSuccess = soundPool.load(this, R.raw.se_correct, 1)
+        soundFailure = soundPool.load(this, R.raw.se_wrong, 1)
+    }
+
+    private fun playSound(isSuccess: Boolean) {
+        val soundId = if (isSuccess) soundSuccess else soundFailure
+        if (soundId != 0) {
+            soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
+        }
+    }
+
+    private fun updateUI(state: UIState, recognizedText: String = "") {
+        when (state) {
+            UIState.IDLE -> {
+                binding.layoutActionButtons.visibility = View.VISIBLE
+                binding.buttonStartPronounce.isEnabled = true
+                binding.buttonStartPronounce.text = "発音する"
+                binding.buttonListen.isEnabled = ttsReady
+                
+                binding.textInstruction.visibility = View.VISIBLE
+                binding.textInstruction.text = "ボタンを押して発音してください"
+                binding.resultCard.visibility = View.GONE
+            }
+            UIState.RECORDING -> {
+                binding.layoutActionButtons.visibility = View.VISIBLE
+                binding.buttonStartPronounce.isEnabled = false
+                binding.buttonStartPronounce.text = "聞き取り中..."
+                binding.buttonListen.isEnabled = false
+                
+                binding.textInstruction.visibility = View.VISIBLE
+                binding.textInstruction.text = "\"$wordText\" と発音してください"
+                binding.resultCard.visibility = View.GONE
+            }
+            UIState.SUCCESS -> {
+                binding.layoutActionButtons.visibility = View.GONE
+                binding.textInstruction.visibility = View.GONE
+                binding.resultCard.visibility = View.VISIBLE
+                binding.textResultStatus.text = "✅ 発音できました！"
+                binding.textResultStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+                binding.textRecognizedValue.text = recognizedText
+                binding.textResultMessage.text = "🎉 発音OKバッジを獲得しました"
+                
+                playSound(true)
+            }
+            UIState.FAILURE -> {
+                binding.layoutActionButtons.visibility = View.GONE
+                binding.textInstruction.visibility = View.GONE
+                binding.resultCard.visibility = View.VISIBLE
+                binding.textResultStatus.text = "😅 もう少し！"
+                binding.textResultStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_orange_dark))
+                binding.textRecognizedValue.text = if (recognizedText.isEmpty()) "(聞き取れませんでした)" else recognizedText
+                binding.textResultMessage.text = "お手本を聞いて、もう一度チャレンジしてみよう"
+                
+                playSound(false)
+            }
         }
     }
 
@@ -83,14 +177,12 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
             setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
-                    binding.textStatus.text = "聞いています..."
+                    updateUI(UIState.RECORDING)
                 }
                 override fun onBeginningOfSpeech() {}
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onEndOfSpeech() {
-                    binding.textStatus.text = "判定中..."
-                }
+                override fun onEndOfSpeech() {}
                 override fun onError(error: Int) {
                     val message = when (error) {
                         SpeechRecognizer.ERROR_NO_MATCH -> "聞き取れませんでした"
@@ -98,35 +190,23 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                         SpeechRecognizer.ERROR_NETWORK -> "ネットワークエラー"
                         else -> "エラーが発生しました ($error)"
                     }
-                    binding.textStatus.text = "ボタンを押して発音してください"
-                    binding.textResult.text = message
-                    
-                    // 3. エラー時に録音ボタンを再有効化
-                    binding.fabMic.isEnabled = true
-                    
+                    updateUI(UIState.FAILURE, message)
                     recordResult(false, 0f)
                 }
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
                     val confidences = results?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)
                     
-                    // 2. 全候補を確認して判定
-                    val isSuccess = matches.any { checkPronunciation(it, wordText) }
-                    val input = matches.firstOrNull() ?: ""
+                    val matchedText = matches.find { checkPronunciation(it, wordText) }
+                    val displayText = matchedText ?: matches.firstOrNull().orEmpty()
+                    val isSuccess = matchedText != null
                     val confidence = confidences?.firstOrNull() ?: 0f
                     
                     if (isSuccess) {
-                        binding.textResult.text = "発音OK！"
-                        binding.textResult.setTextColor(ContextCompat.getColor(this@PronunciationCheckActivity, android.R.color.holo_green_dark))
+                        updateUI(UIState.SUCCESS, displayText)
                     } else {
-                        binding.textResult.text = "もう一回！: $input"
-                        binding.textResult.setTextColor(ContextCompat.getColor(this@PronunciationCheckActivity, android.R.color.holo_red_dark))
+                        updateUI(UIState.FAILURE, displayText)
                     }
-                    binding.textStatus.text = "ボタンを押して発音してください"
-                    
-                    // 3. 判定終了後に録音ボタンを再有効化
-                    binding.fabMic.isEnabled = true
-
                     recordResult(isSuccess, confidence)
                 }
                 override fun onPartialResults(partialResults: Bundle?) {}
@@ -147,9 +227,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     }
 
     private fun startListening() {
-        // 3. 録音開始時にボタンを無効化（連打対策）
-        binding.fabMic.isEnabled = false
-
+        updateUI(UIState.RECORDING)
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
@@ -164,9 +242,13 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = tts?.setLanguage(Locale.US)
-            // 4. Locale.US が利用可能な場合のみボタンを有効化
             if (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED) {
-                binding.buttonSpeakMaster.isEnabled = true
+                ttsReady = true
+                runOnUiThread {
+                    if (binding.resultCard.visibility != View.VISIBLE) {
+                        binding.buttonListen.isEnabled = true
+                    }
+                }
             }
         }
     }
@@ -199,6 +281,9 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         tts?.apply {
             stop()
             shutdown()
+        }
+        if (::soundPool.isInitialized) {
+            soundPool.release()
         }
         super.onDestroy()
     }
