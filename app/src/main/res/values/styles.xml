@@ -137,9 +137,24 @@
         <item name="autoSizeStepGranularity">1sp</item>
     </style>
 
-    <!-- ダイアログの文字色を強制的に見えるようにする -->
-    <style name="ThemeOverlay.MyDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
-        <!-- ダイアログの本文・タイトルの文字色 -->
+    <!-- ダイアログ共通テーマ (AlertDialog / MaterialAlertDialog 両対応) -->
+    <style name="App.AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <!-- 背景色 (濃いグレー) -->
+        <item name="colorSurface">@color/dialog_background_dark</item>
+        <!-- タイトル・本文の文字色 (白) -->
         <item name="colorOnSurface">@android:color/white</item>
+        <item name="colorOnSurfaceVariant">@android:color/white</item>
+        <!-- ボタンの文字色 (明るい水色) -->
+        <item name="colorPrimary">@color/dialog_button_light_blue</item>
+
+        <!-- Legacy AlertDialog 互換 -->
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="buttonBarPositiveButtonStyle">@style/App.Dialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/App.Dialog.Button</item>
+        <item name="buttonBarNeutralButtonStyle">@style/App.Dialog.Button</item>
+    </style>
+
+    <style name="App.Dialog.Button" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/dialog_button_light_blue</item>
     </style>
 </resources>

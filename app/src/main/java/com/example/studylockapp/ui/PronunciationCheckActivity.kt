@@ -1,6 +1,7 @@
 package com.example.studylockapp.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -22,10 +23,15 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
+import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.PointHistoryEntity
+import com.example.studylockapp.data.PointManager
+import com.example.studylockapp.data.StudyHistoryRepository
 import com.example.studylockapp.databinding.ActivityPronunciationCheckBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.util.*
 
 class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -40,11 +46,16 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     private var wordMeaning: String = ""
     private var wordSentence: String = ""
     private var wordSentenceJa: String = ""
+    private var wordGrade: String = ""
     private var checkType: String = "word" // "word" or "sentence"
 
     // 短い単語救済モード用フラグ
     private var isRescueMode = false
     private var rescueSuggestionVisible = false
+
+    // ボーナスポイント二重付与防止フラグ
+    private var wordBonusGrantedInThisSession = false
+    private var sentenceBonusGrantedInThisSession = false
 
     // 効果音再生用
     private lateinit var soundPool: SoundPool
@@ -78,6 +89,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         wordMeaning = intent.getStringExtra("WORD_MEANING") ?: ""
         wordSentence = intent.getStringExtra("WORD_SENTENCE") ?: ""
         wordSentenceJa = intent.getStringExtra("WORD_SENTENCE_JA") ?: ""
+        wordGrade = intent.getStringExtra("WORD_GRADE") ?: ""
         checkType = intent.getStringExtra("CHECK_TYPE") ?: "word"
 
         if (wordId == -1L || wordText.isBlank()) {
@@ -120,7 +132,6 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         }
 
         binding.buttonRetry.setOnClickListener {
-            // rescueSuggestionVisible フラグで分岐
             if (rescueSuggestionVisible) {
                 startRescueSentenceMode()
             } else {
@@ -200,7 +211,17 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         }
     }
 
-    private fun updateUI(state: UIState, recognizedText: String = "") {
+    private fun updateUI(
+        state: UIState,
+        recognizedText: String = "",
+        bonusPoints: Int = 0,
+        newlyWord: Boolean = false,
+        newlySentence: Boolean = false,
+        hadWord: Boolean = false,
+        hadSentence: Boolean = false
+    ) {
+        val isFromBonus = intent.getBooleanExtra("FROM_LEVEL5_BONUS", false)
+
         when (state) {
             UIState.IDLE -> {
                 rescueSuggestionVisible = false
@@ -235,14 +256,33 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                 binding.textResultStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
                 binding.textRecognizedValue.text = recognizedText
                 
-                val badgeName = if (checkType == "sentence") "例文" else "単語"
-                binding.textResultMessage.text = "🎉 ${badgeName}OKバッジを獲得しました"
                 binding.textResultMessage.setTextColor(Color.parseColor("#424242"))
                 binding.textResultMessage.setTypeface(null, android.graphics.Typeface.BOLD)
+
+                // バッジ獲得メッセージの構築
+                val badgeMsg = when {
+                    newlyWord && newlySentence -> "🎙 単語OK + 📖 例文OK バッジを獲得しました"
+                    newlyWord -> "🎙 単語OKバッジを獲得しました"
+                    newlySentence -> "📖 例文OKバッジを獲得しました"
+                    else -> {
+                        val name = if (checkType == "sentence") "📖 例文" else "🎙 単語"
+                        "$name バッジ取得済み"
+                    }
+                }
+
+                // ポイント表示の構築
+                val pointsMsg = if (bonusPoints > 0) {
+                    "🎁 ボーナス +${bonusPoints}pt"
+                } else {
+                    "追加ポイントはありません"
+                }
+
+                binding.textResultMessage.text = "$badgeMsg\n$pointsMsg"
 
                 binding.buttonResultListen.visibility = View.GONE
                 binding.buttonSecondaryRetry.visibility = View.GONE
                 
+                // 成功時ボタン優先度
                 binding.buttonRetry.apply {
                     visibility = View.VISIBLE
                     text = "もう一度試す"
@@ -256,7 +296,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
 
                 binding.buttonClose.apply {
                     visibility = View.VISIBLE
-                    text = "戻る"
+                    text = if (isFromBonus) "学習に戻る" else "戻る"
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor("#3F51B5"))
                     setTextColor(Color.WHITE)
                     strokeWidth = 0
@@ -279,14 +319,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
 
                 if (canRescue) {
                     binding.textResultMessage.text = "短い単語は聞き取りが不安定なことがあります。\n例文でチェックしてみよう。"
-                    
-                    binding.buttonResultListen.apply {
-                        visibility = View.VISIBLE
-                        text = "例文を聞く"
-                        backgroundTintList = ColorStateList.valueOf(Color.parseColor("#3F51B5"))
-                        setTextColor(Color.WHITE)
-                        strokeWidth = 0
-                    }
+                    binding.buttonResultListen.visibility = View.GONE
 
                     binding.buttonRetry.apply {
                         visibility = View.VISIBLE
@@ -333,7 +366,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
 
                 binding.buttonClose.apply {
                     visibility = View.VISIBLE
-                    text = "戻る"
+                    text = if (isFromBonus) "学習に戻る" else "戻る"
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor("#EEEEEE"))
                     setTextColor(Color.parseColor("#757575"))
                     strokeWidth = 0
@@ -362,7 +395,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                         else -> "エラーが発生しました ($error)"
                     }
                     updateUI(UIState.FAILURE, message)
-                    recordResult(false, 0f)
+                    recordResultInternal(false, 0f)
                 }
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
@@ -385,15 +418,96 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                     Log.d("PronunciationCheck", "Final Result: isSuccess=$isSuccess, displayText=$displayText")
 
                     if (isSuccess) {
-                        updateUI(UIState.SUCCESS, displayText)
+                        handleProcessResult(true, displayText, confidence)
                     } else {
                         updateUI(UIState.FAILURE, displayText)
+                        handleProcessResult(false, displayText, confidence)
                     }
-                    recordResult(isSuccess, confidence)
                 }
                 override fun onPartialResults(partialResults: Bundle?) {}
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             })
+        }
+    }
+
+    private fun handleProcessResult(isSuccess: Boolean, displayText: String, confidence: Float) {
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@PronunciationCheckActivity)
+            val pm = PointManager(this@PronunciationCheckActivity)
+            val settings = AppSettings(this@PronunciationCheckActivity)
+
+            val result = withContext(Dispatchers.IO) {
+                // 1. 既存状態を取得
+                val existingWordBefore = db.voiceCheckDao().getResult(wordId, "word")
+                val existingSentenceBefore = db.voiceCheckDao().getResult(wordId, "sentence")
+
+                val alreadyWordChecked = existingWordBefore?.checked == true
+                val alreadySentenceChecked = existingSentenceBefore?.checked == true
+
+                // 2. 今回成功でどのバッジが新たに checked になるか
+                val willMarkWordAsChecked = isSuccess && (checkType == "word" || (isRescueMode && checkType == "sentence"))
+                val willMarkSentenceAsChecked = isSuccess && checkType == "sentence"
+
+                val shouldGiveWordBonus = willMarkWordAsChecked && !alreadyWordChecked && !wordBonusGrantedInThisSession
+                val shouldGiveSentenceBonus = willMarkSentenceAsChecked && !alreadySentenceChecked && !sentenceBonusGrantedInThisSession
+
+                val totalBonus = (if (shouldGiveWordBonus) 10 else 0) + (if (shouldGiveSentenceBonus) 10 else 0)
+
+                // 3. recordResult を実行
+                db.voiceCheckDao().recordResult(wordId, isSuccess, confidence, checkType)
+                if (isSuccess && checkType == "sentence" && isRescueMode) {
+                    db.voiceCheckDao().recordResult(wordId, true, confidence, "word")
+                }
+
+                // 4. ボーナス付与
+                if (totalBonus > 0) {
+                    pm.add(totalBonus)
+                    val zone = settings.getAppZoneId()
+                    val todayEpochDay = LocalDate.now(zone).toEpochDay()
+                    
+                    if (shouldGiveWordBonus) {
+                        wordBonusGrantedInThisSession = true
+                        db.pointHistoryDao().insert(PointHistoryEntity(mode = "voice_bonus", dateEpochDay = todayEpochDay, delta = 10))
+                        StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "word")
+                    }
+                    if (shouldGiveSentenceBonus) {
+                        sentenceBonusGrantedInThisSession = true
+                        db.pointHistoryDao().insert(PointHistoryEntity(mode = "voice_bonus", dateEpochDay = todayEpochDay, delta = 10))
+                        StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "sentence")
+                    }
+
+                    setResult(Activity.RESULT_OK, Intent().apply { putExtra("VOICE_BONUS_POINTS", totalBonus) })
+                }
+                
+                object {
+                    val bonusPoints = totalBonus
+                    val newlyWord = shouldGiveWordBonus
+                    val newlySentence = shouldGiveSentenceBonus
+                    val hadWord = alreadyWordChecked
+                    val hadSentence = alreadySentenceChecked
+                }
+            }
+            
+            if (isSuccess) {
+                updateUI(
+                    UIState.SUCCESS, 
+                    displayText, 
+                    bonusPoints = result.bonusPoints,
+                    newlyWord = result.newlyWord,
+                    newlySentence = result.newlySentence,
+                    hadWord = result.hadWord,
+                    hadSentence = result.hadSentence
+                )
+            }
+        }
+    }
+
+    private fun recordResultInternal(isSuccess: Boolean, confidence: Float) {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val db = AppDatabase.getInstance(this@PronunciationCheckActivity)
+                db.voiceCheckDao().recordResult(wordId, isSuccess, confidence, checkType)
+            }
         }
     }
 
@@ -456,7 +570,6 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     }
 
     private fun isShortWord(word: String): Boolean {
-        // 4文字以下の単語も救済対象にする (kick, book, make 等)
         return normalizeMinimal(word).length <= 4
     }
 
@@ -474,18 +587,12 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     }
 
     private fun checkSentencePronunciation(recognized: String, targetSentence: String, targetWord: String): Boolean {
-        Log.d("PronunciationCheck", "--- Start Sentence Check ---")
-        
         fun normalize(s: String) = s.lowercase().replace(Regex("[^a-z]"), " ").replace(Regex("\\s+"), " ").trim()
-        
         val normRecognized = normalize(recognized)
         val normTarget = normalize(targetSentence)
         val normWord = normalize(targetWord).replace(" ", "")
 
-        if (normRecognized == normTarget) {
-            Log.d("PronunciationCheck", "Exact normalized match! SUCCESS")
-            return true
-        }
+        if (normRecognized == normTarget) return true
 
         val recognizedWords = normRecognized.split(" ").filter { it.isNotBlank() }.toSet()
         val allTargetWords = normTarget.split(" ").filter { it.isNotBlank() }
@@ -501,24 +608,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         val containsTargetWord = recognizedWords.any {
             it == normWord || it == "${normWord}s" || it == "${normWord}es"
         }
-        Log.d("PronunciationCheck", "matchRate=$matchRate (matched=$matchedCount / total=${wordsToMatch.size})")
-        Log.d("PronunciationCheck", "containsTargetWord=$containsTargetWord")
-        
         return matchRate >= 0.7f && containsTargetWord
-    }
-
-    private fun recordResult(isSuccess: Boolean, confidence: Float) {
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val db = AppDatabase.getInstance(this@PronunciationCheckActivity)
-                db.voiceCheckDao().recordResult(wordId, isSuccess, confidence, checkType)
-                
-                if (isSuccess && checkType == "sentence" && isRescueMode) {
-                    Log.d("PronunciationCheck", "Rescue Mode Success: Saving word result too.")
-                    db.voiceCheckDao().recordResult(wordId, true, confidence, "word")
-                }
-            }
-        }
     }
 
     override fun onDestroy() {

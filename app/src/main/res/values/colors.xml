@@ -28,6 +28,10 @@
     <color name="text_main">#142033</color>
     <color name="text_sub">#5B667A</color>
 
+    <!-- ダイアログ用カラー -->
+    <color name="dialog_button_light_blue">#90CAF9</color>
+    <color name="dialog_background_dark">#323232</color>
+
     <!-- 補助ボタン無効時カラー -->
     <color name="assist_disabled">#A8B0BD</color>
     <color name="assist_disabled_bg">#F1F3F6</color>

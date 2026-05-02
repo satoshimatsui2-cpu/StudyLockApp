@@ -171,6 +171,8 @@ class LearningViewModel(
 
             _uiState.update { state -> 
                 state.copy(
+                    comboCount = state.comboCount,
+                    totalPoints = pointManager.getTotal(), // ここで最新ポイントを反映しておく
                     quiz = quiz, 
                     isLoading = false,
                     currentStep = solvedInSession + 1,
@@ -196,6 +198,17 @@ class LearningViewModel(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * ポイントを最新の状態に更新します。
+     */
+    fun refreshPoints() {
+        viewModelScope.launch {
+            val total = withContext(Dispatchers.IO) { pointManager.getTotal() }
+            _uiState.update { it.copy(totalPoints = total) }
+            Log.d(TAG, "Points refreshed: $total")
         }
     }
 
@@ -278,6 +291,11 @@ class LearningViewModel(
             val isLevelUp = newLevel > oldLevel
             if (isLevelUp) levelUpsInSession++
             
+            // LV5到達検知（初回のみ）
+            if (oldLevel < 5 && newLevel == 5) {
+                _uiEvent.send(LearningUiEvent.ShowLevel5BonusInduction(currentQuiz.word))
+            }
+
             if (oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER) {
                 basicMastersInSession++
                 _uiEvent.send(LearningUiEvent.ShowBasicMasterCelebration)

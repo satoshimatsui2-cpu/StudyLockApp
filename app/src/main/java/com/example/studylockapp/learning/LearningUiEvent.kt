@@ -1,5 +1,7 @@
 package com.example.studylockapp.learning
 
+import com.example.studylockapp.data.WordEntity
+
 sealed class LearningUiEvent {
     data class ShowCorrect(
         val gainedPoints: Int,
@@ -39,4 +41,9 @@ sealed class LearningUiEvent {
 
     // 出題可能な単語がない場合のイベント
     object NoAvailableWords : LearningUiEvent()
+
+    // LV5到達時のボーナス誘導
+    data class ShowLevel5BonusInduction(
+        val word: WordEntity
+    ) : LearningUiEvent()
 }

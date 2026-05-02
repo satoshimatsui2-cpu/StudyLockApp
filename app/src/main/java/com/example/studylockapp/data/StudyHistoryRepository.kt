@@ -91,6 +91,49 @@ object StudyHistoryRepository {
     }
 
     /**
+     * 音声チェックによるボーナスポイントを加算する。
+     * 学習回数(studyCount)等には影響を与えず、ポイントと個別レコードのみを保存する。
+     */
+    fun addVoiceBonusPoints(
+        grade: String,
+        word: String,
+        points: Int,
+        checkType: String? = null
+    ) {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+        val todayStr = todayTokyoStr()
+
+        val record: MutableMap<String, Any> = hashMapOf(
+            "type" to "voice_bonus",
+            "grade" to grade,
+            "word" to word,
+            "earnedPoints" to points.toLong(),
+            "timestamp" to Date()
+        )
+        if (checkType != null) {
+            record["checkType"] = checkType
+        }
+
+        val docRef = db.collection("users").document(user.uid)
+            .collection("dailyStats").document(todayStr)
+
+        val updates: Map<String, Any> = hashMapOf(
+            "points" to FieldValue.increment(points.toLong()),
+            "studyRecords" to FieldValue.arrayUnion(record),
+            "updatedAt" to Date()
+        )
+
+        docRef.set(updates, SetOptions.merge())
+            .addOnSuccessListener {
+                updateLastActiveStatus()
+            }
+            .addOnFailureListener { e ->
+                Log.e("StudyLog", "音声ボーナスの保存に失敗しました($todayStr)", e)
+            }
+    }
+
+    /**
      * アプリ解放に使用したポイントを保存する。
      */
     fun addUsedPoints(usedPoints: Int, packageName: String, appLabel: String, unlockedMinutes: Int) {

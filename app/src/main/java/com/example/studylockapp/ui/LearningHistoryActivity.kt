@@ -86,6 +86,7 @@ class LearningHistoryActivity : AppCompatActivity() {
             putExtra("WORD_MEANING", item.japanese)
             putExtra("WORD_SENTENCE", item.sentence)
             putExtra("WORD_SENTENCE_JA", item.japaneseSentence)
+            putExtra("WORD_GRADE", item.grade.toString()) // 2. WORD_GRADE を追加
             putExtra("CHECK_TYPE", type)
         }
         startActivity(intent)
