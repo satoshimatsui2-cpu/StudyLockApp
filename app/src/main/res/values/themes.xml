@@ -13,7 +13,8 @@
 
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowBackground">@color/md_surface</item>
+        <!-- ウィンドウ全体の背景を水玉模様にする -->
+        <item name="android:windowBackground">@drawable/bg_pattern_tile_repeat</item>
 
         <!-- ダイアログの共通修正 -->
         <item name="alertDialogTheme">@style/App.AlertDialogTheme</item>

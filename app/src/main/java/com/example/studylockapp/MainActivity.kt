@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.StudyHistoryRepository
@@ -28,11 +31,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge-to-Edgeを有効化して、背景をステータスバー領域まで広げる
+        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
         appSettings = AppSettings(this)
         pointManager = PointManager(this)
         notificationHelper = NotificationPermissionHelper(this)
+
+        // システムバーのインセット（ステータスバー等）に合わせてコンテンツのパディングを調整
+        val rootLayout = findViewById<View>(R.id.root_layout_main)
+        if (rootLayout != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                // 背景は全体に広げたいので、root自体にはパディングをつけず、
+                // 内部のコンテンツ（ImageButton等）にインセットを考慮したマージンを適用する
+                // activity_main.xml 側で調整しやすいように、ここではインセット情報のみ保持させるか、
+                // 必要なViewにのみ適用する。
+                insets
+            }
+        }
 
         setupGradeSection()
         setupLearningStart()

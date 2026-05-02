@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -68,6 +69,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        setupStatusBarIcons()
 
         binding = ActivityLearningBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -91,6 +93,16 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         }
 
         setupListeners()
+    }
+
+    /**
+     * ステータスバーのアイコン（時計、電池、電波）を濃い色に設定します。
+     * 背景が明るい色や水玉模様でも視認性を確保するためです。
+     */
+    private fun setupStatusBarIcons() {
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = true
+        }
     }
 
     private fun setupListeners() {

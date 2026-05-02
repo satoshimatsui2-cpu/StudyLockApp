@@ -19,7 +19,7 @@
             android:id="@+id/text_target_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_sub"
+            android:textColor="#616161"
             android:textSize="11sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -54,14 +54,14 @@
                         android:layout_width="16dp"
                         android:layout_height="16dp"
                         android:src="@drawable/ic_round_stars_24"
-                        app:tint="@color/mustard_dark"
+                        app:tint="#424242"
                         android:contentDescription="@null" />
                     <TextView
                         android:id="@+id/text_count_basic"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="3dp"
-                        android:textColor="@color/mustard_dark"
+                        android:textColor="#424242"
                         android:textSize="15sp"
                         android:textStyle="bold"
                         tools:text="12" />
@@ -85,14 +85,14 @@
                         android:layout_width="16dp"
                         android:layout_height="16dp"
                         android:src="@drawable/ic_mastery_diamond_24"
-                        app:tint="@color/text_main"
+                        app:tint="#424242"
                         android:contentDescription="@null" />
                     <TextView
                         android:id="@+id/text_count_longterm"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="3dp"
-                        android:textColor="@color/text_main"
+                        android:textColor="#424242"
                         android:textSize="15sp"
                         android:textStyle="bold"
                         tools:text="3" />
@@ -104,7 +104,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:textColor="@color/navy_primary"
+                android:textColor="#424242"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 tools:text="120PT" />
