@@ -41,7 +41,7 @@
                 tools:text="異なる、違った" />
         </LinearLayout>
 
-        <!-- メイン操作ボタン群 (画面の下寄り bias 0.85 に配置) -->
+        <!-- メイン操作ボタン群 (待機中/録音中) -->
         <LinearLayout
             android:id="@+id/layoutActionButtons"
             android:layout_width="match_parent"
@@ -87,7 +87,7 @@
                 tools:text="ボタンを押して発音してください" />
         </LinearLayout>
 
-        <!-- 結果表示カード (操作ボタンと同じくらいの高さ bias 0.8 に表示) -->
+        <!-- 結果表示カード -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/resultCard"
             android:layout_width="match_parent"
@@ -111,9 +111,9 @@
                     android:id="@+id/textResultStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="26sp"
+                    android:textSize="28sp"
                     android:textStyle="bold"
-                    tools:text="✅ 発音できました！" />
+                    tools:text="✅ 発音クリア！" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -139,23 +139,52 @@
                     android:layout_marginTop="20dp"
                     android:textAlignment="center"
                     android:textSize="16sp"
-                    tools:text="🎉 発音OKバッジを獲得しました" />
+                    android:textColor="#424242"
+                    android:textStyle="bold"
+                    tools:text="🎉 単語OKバッジを獲得しました" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonRetry"
+                <LinearLayout
+                    android:id="@+id/layoutResultButtons"
                     android:layout_width="match_parent"
-                    android:layout_height="64dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
-                    android:text="もう一回チャレンジ"
-                    app:cornerRadius="12dp" />
+                    android:orientation="vertical">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonClose"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:layout_marginTop="8dp"
-                    android:text="閉じる" />
+                    <!-- お手本を聞く (失敗時メイン) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonResultListen"
+                        style="@style/Widget.MaterialComponents.Button.Icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:text="お手本を聞く"
+                        android:textSize="16sp"
+                        app:cornerRadius="12dp"
+                        app:icon="@android:drawable/ic_lock_silent_mode_off" />
+
+                    <!-- もう一度発音する/もう一度試す (リトライ) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonRetry"
+                        style="@style/Widget.MaterialComponents.Button.Icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_marginTop="12dp"
+                        android:text="もう一度発音する"
+                        android:textSize="16sp"
+                        app:cornerRadius="12dp"
+                        app:icon="@android:drawable/ic_btn_speak_now" />
+
+                    <!-- 戻る (成功時メイン) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonClose"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_marginTop="12dp"
+                        android:text="戻る"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="12dp" />
+
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

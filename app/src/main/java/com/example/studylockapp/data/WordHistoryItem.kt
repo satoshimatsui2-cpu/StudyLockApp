@@ -24,5 +24,6 @@ data class WordHistoryItem(
     val failureCount: Int,
     val isNew: Boolean,
     val isReviewWaiting: Boolean,
-    val isVoiceChecked: Boolean = false // 音声チェック済みフラグを追加
+    val isWordVoiceChecked: Boolean = false,
+    val isSentenceVoiceChecked: Boolean = false
 )

@@ -7,6 +7,9 @@ interface VoiceCheckDao {
     @Query("SELECT * FROM voice_check_results WHERE wordId IN (:wordIds) AND checkType = :checkType")
     suspend fun getResultsByIds(wordIds: List<Long>, checkType: String = "word"): List<VoiceCheckResultEntity>
 
+    @Query("SELECT * FROM voice_check_results WHERE wordId IN (:wordIds)")
+    suspend fun getAllResultsByIds(wordIds: List<Long>): List<VoiceCheckResultEntity>
+
     @Query("SELECT * FROM voice_check_results WHERE wordId = :wordId AND checkType = :checkType")
     suspend fun getResult(wordId: Long, checkType: String = "word"): VoiceCheckResultEntity?
 

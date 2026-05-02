@@ -66,19 +66,29 @@ class LearningHistoryActivity : AppCompatActivity() {
             onEditClick = { item ->
                 // Edit action if needed
             },
-            onVoiceCheckClick = { item ->
-                val intent = Intent(this, PronunciationCheckActivity::class.java).apply {
-                    putExtra("WORD_ID", item.id)
-                    putExtra("WORD_TEXT", item.word)
-                    putExtra("WORD_MEANING", item.japanese)
-                }
-                startActivity(intent)
+            onWordCheckClick = { item ->
+                startVoiceCheck(item, "word")
+            },
+            onSentenceCheckClick = { item ->
+                startVoiceCheck(item, "sentence")
             }
         )
         binding.recyclerHistory.apply {
             layoutManager = LinearLayoutManager(this@LearningHistoryActivity)
             adapter = this@LearningHistoryActivity.adapter
         }
+    }
+
+    private fun startVoiceCheck(item: WordHistoryItem, type: String) {
+        val intent = Intent(this, PronunciationCheckActivity::class.java).apply {
+            putExtra("WORD_ID", item.id)
+            putExtra("WORD_TEXT", item.word)
+            putExtra("WORD_MEANING", item.japanese)
+            putExtra("WORD_SENTENCE", item.sentence)
+            putExtra("WORD_SENTENCE_JA", item.japaneseSentence)
+            putExtra("CHECK_TYPE", type)
+        }
+        startActivity(intent)
     }
 
     private fun setupFilters() {
@@ -138,7 +148,6 @@ class LearningHistoryActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 戻ってきたときに音声チェック結果を反映するため再読み込み
         loadHistory()
     }
 
@@ -151,19 +160,23 @@ class LearningHistoryActivity : AppCompatActivity() {
                 }
                 
                 val itemsWithoutVoice = results.map { mapper.map(it) }
-                
-                // 音声チェック結果をまとめて取得してマージ
                 val wordIds = itemsWithoutVoice.map { it.id }
+
                 val voiceResults = if (wordIds.isNotEmpty()) {
                     withContext(Dispatchers.IO) {
-                        db.voiceCheckDao().getResultsByIds(wordIds)
+                        db.voiceCheckDao().getAllResultsByIds(wordIds)
                     }
                 } else emptyList()
                 
-                val voiceCheckedMap = voiceResults.associate { it.wordId to it.checked }
+                // Group results by wordId and checkType
+                val wordCheckedSet = voiceResults.filter { it.checkType == "word" && it.checked }.map { it.wordId }.toSet()
+                val sentenceCheckedSet = voiceResults.filter { it.checkType == "sentence" && it.checked }.map { it.wordId }.toSet()
                 
                 allHistoryItems = itemsWithoutVoice.map { item ->
-                    item.copy(isVoiceChecked = voiceCheckedMap[item.id] ?: false)
+                    item.copy(
+                        isWordVoiceChecked = wordCheckedSet.contains(item.id),
+                        isSentenceVoiceChecked = sentenceCheckedSet.contains(item.id)
+                    )
                 }
 
                 applyFilters()
