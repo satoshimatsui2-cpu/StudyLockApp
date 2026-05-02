@@ -94,21 +94,23 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
 
     private fun showReward(point: Int) {
         binding.textRewardPopup.apply {
-            text = "+$point PT"
+            // 表示文言を +10pt に統一
+            text = "+${point}pt"
             alpha = 0f
             translationY = 0f
             visibility = View.VISIBLE
             animate()
                 .alpha(1f)
-                .translationY(-40f)
+                .translationY(-30f) // 移動量を -40f -> -30f に調整
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .withEndAction {
                     animate()
                         .alpha(0f)
-                        .translationY(-60f)
+                        .translationY(-50f) // 最終到達を -60f -> -50f に調整
                         .setDuration(300)
                         .setStartDelay(400)
+                        .withEndAction { visibility = View.GONE } // 終了後に隠す
                         .start()
                 }
                 .start()

@@ -176,7 +176,7 @@
                         app:iconGravity="textStart" />
                 </LinearLayout>
 
-                <!-- 目標・学習レベル表示 -->
+                <!-- 目標・学習レベル表示 (ブランドオレンジ) -->
                 <TextView
                     android:id="@+id/text_target_grade"
                     android:layout_width="match_parent"
@@ -184,11 +184,11 @@
                     android:layout_marginBottom="8dp"
                     android:gravity="center_horizontal"
                     android:textSize="14sp"
-                    android:textColor="@color/navy_primary"
+                    android:textColor="@color/brand_orange"
                     android:textStyle="bold"
                     tools:text="目標：3級 / 学習：5級（復習）" />
 
-                <!-- 級選択ボタン (オレンジ) -->
+                <!-- 級選択ボタン (ブランドオレンジ) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -209,7 +209,7 @@
                         app:iconSize="32dp" />
                 </LinearLayout>
 
-                <!-- STARTボタン (オレンジ) -->
+                <!-- STARTボタン (ブランドオレンジ) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -255,10 +255,12 @@
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
+        <!-- 管理者設定アイコン: サイズ微調整と位置調整 -->
         <ImageButton
             android:id="@+id/button_admin_settings_top"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="8dp"
             android:src="@drawable/ic_settings"
             android:scaleType="fitCenter"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -269,8 +271,8 @@
             app:tint="@color/navy_primary"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="50dp"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginTop="36dp"
+            android:layout_marginEnd="12dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

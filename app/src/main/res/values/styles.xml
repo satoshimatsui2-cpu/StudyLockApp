@@ -30,9 +30,9 @@
         <item name="iconSize">24dp</item>
     </style>
 
-    <!-- オレンジボタン用 (オレンジ背景・白文字・紺色太枠) -->
+    <!-- オレンジボタン用 (指定色背景・白文字・紺色太枠) -->
     <style name="App.OrangeButton" parent="Widget.MaterialComponents.Button">
-        <item name="backgroundTint">@color/orange_accent</item>
+        <item name="backgroundTint">@color/brand_orange</item>
         <item name="strokeColor">@color/navy_primary</item>
         <item name="strokeWidth">3dp</item>
         <item name="android:textColor">@color/white</item>

@@ -6,7 +6,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/app_background"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <!-- 1. Mastery Journey Card (Header) -->
     <include
@@ -299,17 +301,21 @@
         android:id="@+id/text_reward_popup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginEnd="32dp"
         android:alpha="0"
         android:background="@drawable/shape_reward_pill"
         android:elevation="10dp"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="6dp"
+        android:paddingVertical="8dp"
         android:textColor="@color/navy_dark"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="@id/layout_journey_header"
-        app:layout_constraintTop_toTopOf="@id/layout_journey_header" />
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="+10pt"
+        tools:visibility="visible" />
 
     <!-- 補助操作 学習補助パネル (チップ列) -->
     <com.google.android.material.card.MaterialCardView
