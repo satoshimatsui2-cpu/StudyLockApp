@@ -590,25 +590,44 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         fun normalize(s: String) = s.lowercase().replace(Regex("[^a-z]"), " ").replace(Regex("\\s+"), " ").trim()
         val normRecognized = normalize(recognized)
         val normTarget = normalize(targetSentence)
-        val normWord = normalize(targetWord).replace(" ", "")
 
+        // 1. 完全一致は即OK
         if (normRecognized == normTarget) return true
 
         val recognizedWords = normRecognized.split(" ").filter { it.isNotBlank() }.toSet()
         val allTargetWords = normTarget.split(" ").filter { it.isNotBlank() }
         if (allTargetWords.isEmpty()) return false
 
+        // 2. 重要語リストの作成 (機能語を除外)
         val functionalWords = setOf("a", "an", "the", "is", "am", "are", "to", "of", "in", "on", "at")
         val filteredTargetWords = allTargetWords.filter { it !in functionalWords }
         val wordsToMatch = if (filteredTargetWords.size < 2) allTargetWords else filteredTargetWords
         
-        val matchedCount = wordsToMatch.count { it in recognizedWords }
-        val matchRate = matchedCount.toFloat() / wordsToMatch.size.toFloat()
-        
-        val containsTargetWord = recognizedWords.any {
-            it == normWord || it == "${normWord}s" || it == "${normWord}es"
+        // 3 & 4. 許容される欠損数の決定 (厳格化)
+        val allowedMissing = when {
+            wordsToMatch.size <= 5 -> 0
+            wordsToMatch.size <= 8 -> 1
+            else -> 2
         }
-        return matchRate >= 0.7f && containsTargetWord
+
+        val missingWords = wordsToMatch.filter { it !in recognizedWords }
+        
+        // 6. 対象単語が含まれているか (単語単位、フレーズ対応)
+        val normTargetWordList = normalize(targetWord).split(" ").filter { it.isNotBlank() }
+        val containsTargetWord = normTargetWordList.all { tw ->
+            recognizedWords.any { rw ->
+                rw == tw || rw == "${tw}s" || rw == "${tw}es"
+            }
+        }
+
+        // 5. 最後の重要語が含まれているか
+        val lastImportantWord = wordsToMatch.lastOrNull()
+        val containsLastImportantWord = lastImportantWord == null || lastImportantWord in recognizedWords
+
+        Log.d("PronunciationCheck", "wordsToMatch=$wordsToMatch recognizedWords=$recognizedWords missingWords=$missingWords allowedMissing=$allowedMissing containsTargetWord=$containsTargetWord containsLastImportantWord=$containsLastImportantWord")
+
+        // 判定 (欠損数ベース)
+        return missingWords.size <= allowedMissing && containsTargetWord && containsLastImportantWord
     }
 
     override fun onDestroy() {

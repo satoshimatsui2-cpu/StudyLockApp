@@ -11,6 +11,7 @@ class ChoiceQuizRenderer : QuizRenderer {
         ui.setQuestionBodyTextScale(1.0f)
 
         val title = when (quiz.mode) {
+            QuizMode.JP_TO_EN -> ui.getString(R.string.question_title_ja_to_en)
             QuizMode.EN_TO_JP -> ui.getString(R.string.question_title_en_to_jp)
             QuizMode.LISTEN_EN -> ui.getString(R.string.question_title_listening)
             QuizMode.SYNONYM_PICK -> "この類義語を選んでください。"

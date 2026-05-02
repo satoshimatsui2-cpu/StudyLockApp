@@ -22,8 +22,9 @@ data class LearningUiState(
     
     val audioWarning: AudioWarningState? = null,
 
-    // 他級復習設定
+    // 設定の永続化対象
     val includeOtherGradeReviews: Boolean = false,
+    val choicesInitiallyVisible: Boolean = true,
     
     // Mastery Info
     val basicCount: Int = 0,

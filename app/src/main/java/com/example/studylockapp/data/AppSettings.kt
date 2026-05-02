@@ -241,13 +241,19 @@ class AppSettings(context: Context) {
         get() = prefs.getString(KEY_LEARNING_MODE, "meaning") ?: "meaning"
         set(value) { prefs.edit().putString(KEY_LEARNING_MODE, value).apply() }
 
-    var learningIncludeOtherGrades: Boolean
+    /**
+     * 他級復習のON/OFF設定
+     */
+    var includeOtherGrades: Boolean
         get() = prefs.getBoolean(KEY_INCLUDE_OTHER_GRADES, false)
         set(value) { prefs.edit().putBoolean(KEY_INCLUDE_OTHER_GRADES, value).apply() }
 
-    var learningHideChoices: Boolean
-        get() = prefs.getBoolean(KEY_HIDE_CHOICES, false)
-        set(value) { prefs.edit().putBoolean(KEY_HIDE_CHOICES, value).apply() }
+    /**
+     * 選択肢表示のON/OFF設定 (内部的には KEY_HIDE_CHOICES を反転させて管理)
+     */
+    var choiceModeEnabled: Boolean
+        get() = !prefs.getBoolean(KEY_HIDE_CHOICES, false)
+        set(value) { prefs.edit().putBoolean(KEY_HIDE_CHOICES, !value).apply() }
 
     var lastGradeFilter: String
         get() = prefs.getString(KEY_LAST_GRADE_FILTER, "") ?: ""

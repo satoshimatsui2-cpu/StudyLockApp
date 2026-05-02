@@ -63,8 +63,19 @@ class LearningViewModel(
     init {
         // 設定の同期
         val currentSilent = appSettings.silentMode
+        val currentOtherGrades = appSettings.includeOtherGrades
+        val currentChoiceMode = appSettings.choiceModeEnabled
+        
         quizManager.silentMode = currentSilent
-        _uiState.update { state -> state.copy(silentMode = currentSilent) }
+        quizManager.includeOtherGradeReviews = currentOtherGrades
+        
+        _uiState.update { state -> 
+            state.copy(
+                silentMode = currentSilent,
+                includeOtherGradeReviews = currentOtherGrades,
+                choicesInitiallyVisible = currentChoiceMode
+            ) 
+        }
     }
 
     /**
@@ -116,8 +127,14 @@ class LearningViewModel(
     }
 
     fun setIncludeOtherGradeReviews(enabled: Boolean) {
-        _uiState.update { it.copy(includeOtherGradeReviews = enabled) }
+        appSettings.includeOtherGrades = enabled
         quizManager.includeOtherGradeReviews = enabled
+        _uiState.update { it.copy(includeOtherGradeReviews = enabled) }
+    }
+    
+    fun setChoicesInitiallyVisible(enabled: Boolean) {
+        appSettings.choiceModeEnabled = enabled
+        _uiState.update { it.copy(choicesInitiallyVisible = enabled) }
     }
 
     private fun getReviewTimingSettings(): ReviewTimingSettings {
@@ -130,10 +147,14 @@ class LearningViewModel(
 
     fun loadNextQuiz() {
         if (solvedInSession == 0) quizManager.resetSessionStats()
+        
+        // 10問制限を撤廃し、継続して学習できるように変更
+        /*
         if (solvedInSession >= totalCount) {
             finishSession()
             return
         }
+        */
 
         viewModelScope.launch {
             _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
@@ -172,11 +193,11 @@ class LearningViewModel(
             _uiState.update { state -> 
                 state.copy(
                     comboCount = state.comboCount,
-                    totalPoints = pointManager.getTotal(), // ここで最新ポイントを反映しておく
+                    totalPoints = pointManager.getTotal(), 
                     quiz = quiz, 
                     isLoading = false,
                     currentStep = solvedInSession + 1,
-                    progress = (solvedInSession * 100) / totalCount,
+                    progress = ((solvedInSession * 100) / totalCount).coerceAtMost(100), // 100%で止める
                     audioWarning = warning,
                     basicMasterCount = basicCount,
                     longTermMasterCount = longTermCount,
@@ -214,11 +235,6 @@ class LearningViewModel(
 
     /**
      * モードごとに問題文として再生すべきテキストを決定します。
-     * 固定仕様：
-     * - EN_TO_JP: word
-     * - LISTEN_EN: word
-     * - LISTEN_FILL_BLANK: sentence
-     * - その他: null (再生しない)
      */
     private fun getQuestionAudioTextForMode(quiz: QuizData): String? {
         val word = quiz.word
@@ -360,7 +376,7 @@ class LearningViewModel(
                 state.copy(
                     comboCount = if (isCorrect) state.comboCount + 1 else 0, 
                     totalPoints = latestTotal,
-                    progress = (solvedInSession * 100) / totalCount,
+                    progress = ((solvedInSession * 100) / totalCount).coerceAtMost(100),
                     currentTier = newTier,
                     currentLevel = newLevel,
                     isLevelJustIncreased = isLevelUp,
