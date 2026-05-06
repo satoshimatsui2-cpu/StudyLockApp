@@ -91,6 +91,46 @@ object StudyHistoryRepository {
     }
 
     /**
+     * 発音チェックの試行を記録する。
+     * ポイントや学習回数には影響を与えず、履歴のみを保存する。
+     */
+    fun addVoiceCheckRecord(
+        grade: String,
+        word: String,
+        checkType: String,
+        success: Boolean
+    ) {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+        val todayStr = todayTokyoStr()
+
+        val record: Map<String, Any> = hashMapOf(
+            "type" to "voice_check",
+            "checkType" to checkType,
+            "word" to word,
+            "grade" to grade,
+            "success" to success,
+            "timestamp" to Date()
+        )
+
+        val docRef = db.collection("users").document(user.uid)
+            .collection("dailyStats").document(todayStr)
+
+        val updates: Map<String, Any> = hashMapOf(
+            "studyRecords" to FieldValue.arrayUnion(record),
+            "updatedAt" to Date()
+        )
+
+        docRef.set(updates, SetOptions.merge())
+            .addOnSuccessListener {
+                updateLastActiveStatus()
+            }
+            .addOnFailureListener { e ->
+                Log.e("StudyLog", "発音チェック記録の保存に失敗しました($todayStr)", e)
+            }
+    }
+
+    /**
      * 音声チェックによるボーナスポイントを加算する。
      * 学習回数(studyCount)等には影響を与えず、ポイントと個別レコードのみを保存する。
      */

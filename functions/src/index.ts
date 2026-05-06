@@ -216,24 +216,56 @@ export const sendDailyReport = functions
         continue;
       }
 
-      // --- 4. 通常レポート送信処理 (dailyStatsがなくても継続) ---
+      // --- 4. 通常レポート送信処理 ---
       const statsDoc = await db.collection("users").doc(uid).collection("dailyStats").doc(dateStr).get();
       const stats = statsDoc.data() || {};
       const records = Array.isArray(stats.studyRecords) ? stats.studyRecords : [];
+
+      // 調査用一時ログ
+      console.log(`[DailyReport] uid: ${uid}, date: ${dateStr}`);
+      console.log(`stats: points=${stats.points}, studyCount=${stats.studyCount}, recordsLength=${records.length}`);
+      const studySample = records.filter((r: any) => r.type === "study").slice(0, 3);
+      console.log("study records sample:", JSON.stringify(studySample));
 
       // 獲得/使用ポイント
       const points = stats.points || 0;
       const usedPoints = stats.usedPoints || stats.pointsUsed || 0;
 
-      // 級ごとの学習集計
+      // 各種集計用
       const gradeMap: Record<string, { total: number, correct: number }> = {};
+      let voiceCheckCount = 0;
+      let voiceWordCheckCount = 0;
+      let voiceSentenceCheckCount = 0;
+      let voiceBadgeCount = 0;
+      let voiceWordBadges = 0;
+      let voiceSentenceBadges = 0;
+      let voiceBonusPoints = 0;
+      const unlockMap: Record<string, number> = {};
+
       records.forEach((r: any) => {
-        if (r.type === "study" && r.grade !== undefined) {
+        if (r.type === "study" && r.grade !== undefined && r.grade !== null) {
+          // 通常学習集計
           const rawGrade = String(r.grade);
           const g = rawGrade.endsWith("級") ? rawGrade : `${rawGrade}級`;
           if (!gradeMap[g]) gradeMap[g] = { total: 0, correct: 0 };
           gradeMap[g].total++;
-          if (r.isCorrect) gradeMap[g].correct++;
+          if (r.isCorrect === true) gradeMap[g].correct++;
+        } else if (r.type === "voice_check") {
+          // 発音チェック回数集計
+          voiceCheckCount++;
+          if (r.checkType === "word") voiceWordCheckCount++;
+          if (r.checkType === "sentence") voiceSentenceCheckCount++;
+        } else if (r.type === "voice_bonus") {
+          // 発音バッジ・ボーナス集計
+          voiceBadgeCount++;
+          voiceBonusPoints += Number(r.earnedPoints || r.points || 0);
+          if (r.checkType === "word") voiceWordBadges++;
+          if (r.checkType === "sentence") voiceSentenceBadges++;
+        } else if (r.type === "unlock") {
+          // アプリ解放集計
+          const label = r.appLabel || r.packageName?.split('.').pop() || "不明";
+          const mins = r.unlockedMinutes || Math.floor((r.usedPoints || 0) / 2);
+          unlockMap[label] = (unlockMap[label] || 0) + mins;
         }
       });
 
@@ -247,19 +279,14 @@ export const sendDailyReport = functions
         }).join("\n");
       }
 
+      let voiceText = "発音: なし";
+      if (voiceCheckCount > 0 || voiceBadgeCount > 0) {
+        voiceText = `発音: チェック${voiceCheckCount}回（単語${voiceWordCheckCount} / 例文${voiceSentenceCheckCount}） / バッジ${voiceBadgeCount}個（単語${voiceWordBadges} / 例文${voiceSentenceBadges}、+${voiceBonusPoints}pt）`;
+      }
+
       // マスター累計
       const sMaster = stats.shortMasterCount || 0;
       const lMaster = stats.longMasterCount || 0;
-
-      // アプリ解放集計
-      const unlockMap: Record<string, number> = {};
-      records.forEach((r: any) => {
-        if (r.type === "unlock") {
-          const label = r.appLabel || r.packageName?.split('.').pop() || "不明";
-          const mins = r.unlockedMinutes || Math.floor((r.usedPoints || 0) / 2);
-          unlockMap[label] = (unlockMap[label] || 0) + mins;
-        }
-      });
 
       let unlockText = "解放: なし";
       const unlockEntries = Object.entries(unlockMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -281,7 +308,7 @@ export const sendDailyReport = functions
               token: parentData.fcmToken,
               notification: {
                 title: `📅 ${displayDate} ${childName}の学習レポート`,
-                body: `獲得: ${points}pt / 使用: ${usedPoints}pt\n${studyText}\nマスター累計: 短期${sMaster}語 / 長期${lMaster}語\n${unlockText}\n監視: アクセシビリティ${accEnabled}`,
+                body: `獲得: ${points}pt / 使用: ${usedPoints}pt\n${studyText}\n${voiceText}\nマスター累計: 短期${sMaster}語 / 長期${lMaster}語\n${unlockText}\n監視: アクセシビリティ${accEnabled}`,
               },
               android: { priority: "high" },
             }).catch((e) => console.error("Report FCM failed", e))

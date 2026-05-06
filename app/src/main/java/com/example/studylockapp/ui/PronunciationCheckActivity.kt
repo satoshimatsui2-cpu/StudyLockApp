@@ -57,6 +57,9 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     private var wordBonusGrantedInThisSession = false
     private var sentenceBonusGrantedInThisSession = false
 
+    // 発音チェック記録の二重保存防止フラグ（1回の録音につき1レコード）
+    private var voiceCheckRecordedForCurrentAttempt = false
+
     // 効果音再生用
     private lateinit var soundPool: SoundPool
     private var soundSuccess: Int = 0
@@ -395,6 +398,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                         else -> "エラーが発生しました ($error)"
                     }
                     updateUI(UIState.FAILURE, message)
+                    recordVoiceCheck(false) // 失敗として記録
                     recordResultInternal(false, 0f)
                 }
                 override fun onResults(results: Bundle?) {
@@ -416,6 +420,8 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                     val confidence = confidences?.firstOrNull() ?: 0f
                     
                     Log.d("PronunciationCheck", "Final Result: isSuccess=$isSuccess, displayText=$displayText")
+
+                    recordVoiceCheck(isSuccess) // 成功/失敗を記録
 
                     if (isSuccess) {
                         handleProcessResult(true, displayText, confidence)
@@ -511,6 +517,22 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         }
     }
 
+    /**
+     * Firestoreに発音チェックの試行を記録する。
+     * 1回の録音セッションにつき1件のみ保存する。
+     */
+    private fun recordVoiceCheck(success: Boolean) {
+        if (!voiceCheckRecordedForCurrentAttempt) {
+            voiceCheckRecordedForCurrentAttempt = true
+            StudyHistoryRepository.addVoiceCheckRecord(
+                grade = wordGrade,
+                word = wordText,
+                checkType = checkType,
+                success = success
+            )
+        }
+    }
+
     private fun checkPermissionAndStart() {
         when {
             ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED -> {
@@ -523,6 +545,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     }
 
     private fun startListening() {
+        voiceCheckRecordedForCurrentAttempt = false // フラグリセット
         updateUI(UIState.RECORDING)
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
