@@ -25,6 +25,9 @@ object ReviewCardBinder {
             binding.layoutReviewPhoneticRow.visibility = View.GONE
             binding.layoutListeningCompare.visibility = View.VISIBLE
             
+            // 「わからない」の場合は、ユーザー回答(左側)を非表示にする
+            binding.includeWrong.root.visibility = if (model.isUnknownAnswer) View.GONE else View.VISIBLE
+            
             binding.includeWrong.apply {
                 labelCompare.text = context.getString(R.string.review_label_your_answer)
                 labelCompare.setTextColor(ContextCompat.getColor(context, R.color.choice_wrong))
@@ -42,7 +45,10 @@ object ReviewCardBinder {
             binding.layoutReviewPhoneticRow.visibility = View.GONE
             binding.layoutListeningCompare.visibility = View.GONE
 
-            binding.layoutResultWrong.visibility = if (model.showWrongResult) View.VISIBLE else View.GONE
+            // 通常の4択などで「わからない」の場合は、誤答表示ブロック全体を非表示にする
+            val showWrong = model.showWrongResult && !model.isUnknownAnswer
+            binding.layoutResultWrong.visibility = if (showWrong) View.VISIBLE else View.GONE
+
             binding.textReviewAnswerWrong.text = model.wrongAnswerText
             binding.textReviewAnswerCorrect.text = model.correctAnswerText
         }

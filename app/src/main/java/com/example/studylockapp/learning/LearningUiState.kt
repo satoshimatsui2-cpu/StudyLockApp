@@ -39,6 +39,7 @@ data class LearningUiState(
 
     // Review Info
     val isLastAnswerCorrect: Boolean = false,
+    val isUnknownAnswer: Boolean = false,
     val reviewModeLabel: String = "",
     val reviewQuestionText: String = "",
     val reviewUserAnswerText: String = "",

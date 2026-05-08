@@ -475,12 +475,16 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                     if (shouldGiveWordBonus) {
                         wordBonusGrantedInThisSession = true
                         db.pointHistoryDao().insert(PointHistoryEntity(mode = "voice_bonus", dateEpochDay = todayEpochDay, delta = 10))
-                        StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "word")
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "word")
+                        }
                     }
                     if (shouldGiveSentenceBonus) {
                         sentenceBonusGrantedInThisSession = true
                         db.pointHistoryDao().insert(PointHistoryEntity(mode = "voice_bonus", dateEpochDay = todayEpochDay, delta = 10))
-                        StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "sentence")
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "sentence")
+                        }
                     }
 
                     setResult(Activity.RESULT_OK, Intent().apply { putExtra("VOICE_BONUS_POINTS", totalBonus) })
@@ -525,7 +529,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     private fun recordVoiceCheck(success: Boolean) {
         if (!voiceCheckRecordedForCurrentAttempt) {
             voiceCheckRecordedForCurrentAttempt = true
-            lifecycleScope.launch {
+            lifecycleScope.launch(Dispatchers.IO) {
                 StudyHistoryRepository.addVoiceCheckRecord(
                     grade = wordGrade,
                     word = wordText,
@@ -596,14 +600,76 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         }
     }
 
-    private fun normalizeMinimal(s: String): String {
-        return s.lowercase().replace(Regex("[^a-z]"), "").trim()
+    /**
+     * 数字および時刻表現の表記ゆれを正規化する。
+     * 例: "7:00", "7.00", "7 o'clock" -> "seven"
+     */
+    private fun normalizeNumberAndTime(text: String): String {
+        var s = text.lowercase()
+
+        val numWords = mapOf(
+            "0" to "zero",
+            "1" to "one",
+            "2" to "two",
+            "3" to "three",
+            "4" to "four",
+            "5" to "five",
+            "6" to "six",
+            "7" to "seven",
+            "8" to "eight",
+            "9" to "nine",
+            "10" to "ten",
+            "11" to "eleven",
+            "12" to "twelve"
+        )
+
+        // 7:00 / 7.00 → seven
+        s = s.replace(Regex("\\b(1[0-2]|[0-9])[:.](00)\\b")) { match ->
+            numWords[match.groupValues[1]] ?: match.value
+        }
+
+        // 7:30 / 7.30 → seven thirty
+        s = s.replace(Regex("\\b(1[0-2]|[0-9])[:.](30)\\b")) { match ->
+            val hour = numWords[match.groupValues[1]] ?: match.groupValues[1]
+            "$hour thirty"
+        }
+
+        // 7 o'clock → seven
+        s = s.replace(Regex("\\b(1[0-2]|[0-9])\\s*o'?clock\\b")) { match ->
+            numWords[match.groupValues[1]] ?: match.value
+        }
+
+        // seven o'clock → seven
+        s = s.replace(Regex("\\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\\s*o'?clock\\b"), "$1")
+
+        // standalone 7 → seven
+        s = s.replace(Regex("\\b(1[0-2]|[0-9])\\b")) { match ->
+            numWords[match.groupValues[1]] ?: match.value
+        }
+
+        return s
     }
 
-    private fun normalizeForWords(s: String): String {
-        return s.lowercase()
-            .replace(Regex("[^a-z\\s]"), " ")
-            .trim()
+    /**
+     * 比較用の正規化処理。
+     * 数字正規化、句読点除去、小文字化、空白の整理を行う。
+     */
+    private fun normalizeForComparison(s: String): String {
+        // 1. 小文字化
+        var normalized = s.lowercase()
+        // 2. 数字・時刻の正規化 (記号除去前に実行)
+        normalized = normalizeNumberAndTime(normalized)
+        // 3. 記号除去 (アルファベットとスペースのみ残す)
+        normalized = normalized.replace(Regex("[^a-z\\s]"), " ")
+        // 4. 空白の正規化
+        normalized = normalized.replace(Regex("\\s+"), " ").trim()
+        return normalized
+    }
+
+    private fun normalizeMinimal(s: String): String {
+        // 単語チェック用：数字正規化も含めた最小化
+        val withNumbers = normalizeNumberAndTime(s.lowercase())
+        return withNumbers.replace(Regex("[^a-z]"), "").trim()
     }
 
     private fun isShortWord(word: String): Boolean {
@@ -611,7 +677,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     }
 
     private fun hasValidSentence(): Boolean {
-        val words = normalizeForWords(wordSentence)
+        val words = normalizeForComparison(wordSentence)
             .split(Regex("\\s+"))
             .filter { it.isNotBlank() }
         return words.size >= 3
@@ -624,9 +690,8 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     }
 
     private fun checkSentencePronunciation(recognized: String, targetSentence: String, targetWord: String): Boolean {
-        fun normalize(s: String) = s.lowercase().replace(Regex("[^a-z]"), " ").replace(Regex("\\s+"), " ").trim()
-        val normRecognized = normalize(recognized)
-        val normTarget = normalize(targetSentence)
+        val normRecognized = normalizeForComparison(recognized)
+        val normTarget = normalizeForComparison(targetSentence)
 
         // 1. 完全一致は即OK
         if (normRecognized == normTarget) return true
@@ -650,7 +715,8 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         val missingWords = wordsToMatch.filter { it !in recognizedWords }
         
         // 6. 対象単語が含まれているか (単語単位、フレーズ対応)
-        val normTargetWordList = normalize(targetWord).split(" ").filter { it.isNotBlank() }
+        val normTargetWord = normalizeForComparison(targetWord)
+        val normTargetWordList = normTargetWord.split(" ").filter { it.isNotBlank() }
         val containsTargetWord = normTargetWordList.all { tw ->
             recognizedWords.any { rw ->
                 rw == tw || rw == "${tw}s" || rw == "${tw}es"

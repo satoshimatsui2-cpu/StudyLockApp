@@ -149,14 +149,6 @@ class LearningViewModel(
     fun loadNextQuiz() {
         if (solvedInSession == 0) quizManager.resetSessionStats()
         
-        // 10問制限を撤廃し、継続して学習できるように変更
-        /*
-        if (solvedInSession >= totalCount) {
-            finishSession()
-            return
-        }
-        */
-
         viewModelScope.launch {
             _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
             
@@ -175,6 +167,21 @@ class LearningViewModel(
                 appSettings.safeTargetLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
             } else 0
 
+            // IO
+            val counts = withContext(Dispatchers.IO) {
+                val b = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
+                val l = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
+                val m = masteryDao.getMastery(quiz.word.no) ?: WordMasteryEntity(wordId = quiz.word.no)
+                val total = pointManager.getTotal()
+                Triple(Triple(b, l, m), total, null)
+            }
+            
+            val basicCount = counts.first.first
+            val longTermCount = counts.first.second
+            val mastery = counts.first.third
+            val currentTier = MasteryScheduler.getTier(mastery)
+            val currentTotalPoints = counts.second
+
             val importance = quiz.mode.getAudioImportance()
             val hasRisk = audioChecker.isSilenceRisk()
             val isSilent = _uiState.value.silentMode == SilentMode.ON
@@ -186,19 +193,14 @@ class LearningViewModel(
                 )
             } else null
 
-            val basicCount = quizManager.getMasteryCount(MasteryTier.BASIC_MASTER)
-            val longTermCount = quizManager.getMasteryCount(MasteryTier.LONG_TERM_MASTER)
-            val mastery = withContext(Dispatchers.IO) { masteryDao.getMastery(quiz.word.no) } ?: WordMasteryEntity(wordId = quiz.word.no)
-            val currentTier = MasteryScheduler.getTier(mastery)
-
             _uiState.update { state -> 
                 state.copy(
                     comboCount = state.comboCount,
-                    totalPoints = pointManager.getTotal(), 
+                    totalPoints = currentTotalPoints, 
                     quiz = quiz, 
                     isLoading = false,
                     currentStep = solvedInSession + 1,
-                    progress = ((solvedInSession * 100) / totalCount).coerceAtMost(100), // 100%で止める
+                    progress = ((solvedInSession * 100) / totalCount).coerceAtMost(100),
                     audioWarning = warning,
                     basicMasterCount = basicCount,
                     longTermMasterCount = longTermCount,
@@ -211,7 +213,6 @@ class LearningViewModel(
                 ) 
             }
             
-            // 自動再生の制御
             if (!isSilent) {
                 if (shouldAutoPlayQuestionAudio(quiz.mode)) {
                     val audioText = getQuestionAudioTextForMode(quiz)
@@ -223,20 +224,13 @@ class LearningViewModel(
         }
     }
 
-    /**
-     * ポイントを最新の状態に更新します。
-     */
     fun refreshPoints() {
         viewModelScope.launch {
             val total = withContext(Dispatchers.IO) { pointManager.getTotal() }
             _uiState.update { it.copy(totalPoints = total) }
-            Log.d(TAG, "Points refreshed: $total")
         }
     }
 
-    /**
-     * モードごとに問題文として再生すべきテキストを決定します。
-     */
     private fun getQuestionAudioTextForMode(quiz: QuizData): String? {
         val word = quiz.word
         return when (quiz.mode) {
@@ -247,9 +241,6 @@ class LearningViewModel(
         }
     }
 
-    /**
-     * 自動再生を行うべきモードかを判定します。
-     */
     private fun shouldAutoPlayQuestionAudio(mode: QuizMode): Boolean {
         return when (mode) {
             QuizMode.EN_TO_JP,
@@ -264,9 +255,6 @@ class LearningViewModel(
         loadNextQuiz()
     }
 
-    /**
-     * 音声再生をリクエストします。
-     */
     fun requestAudioPlayback(text: String? = null) {
         if (_uiState.value.silentMode == SilentMode.ON) return
 
@@ -287,6 +275,8 @@ class LearningViewModel(
     fun submitAnswer(selectedAnswer: String) {
         val currentQuiz = _uiState.value.quiz ?: return
         if (_uiState.value.isAnswering || _uiState.value.isReviewing) return
+        
+        // 1. 状態を「解答中」にする
         _uiState.update { state -> state.copy(isAnswering = true) }
         
         viewModelScope.launch {
@@ -299,8 +289,23 @@ class LearningViewModel(
             val isCorrect = !isUnknown && (selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase())
 
             val timingSettings = getReviewTimingSettings()
-            quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode, timingSettings, isUnknown)
+            
+            var gainedPoints = 0
+            if (isCorrect) {
+                val basePoint = appSettings.getBasePoint(currentQuiz.mode)
+                val targetGradeInt = appSettings.safeTargetLearningGrade.toIntOrNull() ?: 3
+                gainedPoints = RewardPointCalculator.calculate(basePoint, currentQuiz.word.grade, targetGradeInt)
+            }
 
+            // 2. ローカルDBの更新 (Roomは十分高速とみなすが、Firestoreは待たない)
+            withContext(Dispatchers.IO) {
+                quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode, timingSettings, isUnknown)
+                if (isCorrect) {
+                    pointManager.add(gainedPoints)
+                }
+            }
+
+            // 3. 更新後のマスタリー状態を取得
             val newMastery = withContext(Dispatchers.IO) { masteryDao.getMastery(wordId) } ?: WordMasteryEntity(wordId = wordId)
             val newLevel = newMastery.level
             val newTier = MasteryScheduler.getTier(newMastery)
@@ -308,7 +313,6 @@ class LearningViewModel(
             val isLevelUp = newLevel > oldLevel
             if (isLevelUp) levelUpsInSession++
             
-            // LV5到達検知（初回のみ）
             if (oldLevel < 5 && newLevel == 5) {
                 _uiEvent.send(LearningUiEvent.ShowLevel5BonusInduction(currentQuiz.word))
             }
@@ -363,26 +367,10 @@ class LearningViewModel(
                 }
             }
 
-            var gainedPoints = 0
-            if (isCorrect) {
-                val basePoint = appSettings.getBasePoint(currentQuiz.mode)
-                val targetGradeStr = appSettings.safeTargetLearningGrade
-                val targetGradeInt = targetGradeStr.toIntOrNull() ?: 3
-                gainedPoints = RewardPointCalculator.calculate(basePoint, currentQuiz.word.grade, targetGradeInt)
-                withContext(Dispatchers.IO) { pointManager.add(gainedPoints) }
-            }
+            // DBから再取得せず、現在の状態に加算してUIに即時反映
+            val latestTotal = _uiState.value.totalPoints + gainedPoints
 
-            // ★ 親向け日次レポート用：Firestoreへ「獲得ポイント」と「学習履歴」を記録
-            StudyHistoryRepository.save(
-                grade = currentQuiz.word.grade.toString(),
-                mode = currentQuiz.mode.name,
-                isCorrect = isCorrect,
-                points = gainedPoints,
-                word = currentQuiz.word.word
-            )
-
-            val latestTotal = withContext(Dispatchers.IO) { pointManager.getTotal() }
-
+            // 4. UI状態の更新 (判定表示)
             _uiState.update { state -> 
                 state.copy(
                     comboCount = if (isCorrect) state.comboCount + 1 else 0, 
@@ -392,6 +380,7 @@ class LearningViewModel(
                     currentLevel = newLevel,
                     isLevelJustIncreased = if (isCorrect) isLevelUp else false,
                     isLastAnswerCorrect = isCorrect,
+                    isUnknownAnswer = isUnknown,
                     reviewModeLabel = modeLabel,
                     reviewQuestionText = questionText,
                     reviewUserAnswerText = selectedAnswer,
@@ -404,12 +393,29 @@ class LearningViewModel(
                 ) 
             }
 
+            // 5. 解答イベントの送信 (正解/不正解アニメーション等)
             if (isCorrect) {
                 if (newLevel - oldLevel >= 2) _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
                 _uiEvent.send(LearningUiEvent.ShowCorrect(gainedPoints, currentQuiz.answer, oldTier != newTier))
                 if (oldTier != newTier) _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
             } else {
                 _uiEvent.send(LearningUiEvent.ShowWrong(selectedAnswer, currentQuiz.answer, isUnknown))
+            }
+
+            // 6. Firestoreへの保存 (バックグラウンドで fire-and-forget)
+            // viewModelScope.launch(Dispatchers.IO) により、現在のコルーチンの完了を待たずに実行される
+            val gradeStr = currentQuiz.word.grade.toString()
+            val modeName = currentQuiz.mode.name
+            val wordText = currentQuiz.word.word
+            val gp = gainedPoints
+            viewModelScope.launch(Dispatchers.IO) {
+                StudyHistoryRepository.save(
+                    grade = gradeStr,
+                    mode = modeName,
+                    isCorrect = isCorrect,
+                    points = gp,
+                    word = wordText
+                )
             }
         }
     }
