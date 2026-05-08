@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.StudyHistoryRepository
@@ -15,6 +16,7 @@ import com.example.studylockapp.service.NotificationPermissionHelper
 import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
+import kotlinx.coroutines.launch
 
 /**
  * アプリ起動時のメイン画面。
@@ -78,9 +80,11 @@ class MainActivity : AppCompatActivity() {
         val now = System.currentTimeMillis()
         val sixHoursMillis = 6 * 60 * 60 * 1000L
         if (now - appSettings.lastActiveUpdateMillis > sixHoursMillis) {
-            StudyHistoryRepository.updateLastActiveStatus {
-                // サーバー書き込み成功時のみ、ローカルの次回判定用時刻を更新
-                appSettings.lastActiveUpdateMillis = now
+            lifecycleScope.launch {
+                StudyHistoryRepository.updateLastActiveStatus {
+                    // サーバー書き込み成功時のみ、ローカルの次回判定用時刻を更新
+                    appSettings.lastActiveUpdateMillis = now
+                }
             }
         }
 

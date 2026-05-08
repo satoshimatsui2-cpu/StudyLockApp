@@ -2,6 +2,7 @@ package com.example.studylockapp
 
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.text.InputType
@@ -109,6 +110,17 @@ class AdminSettingsActivity : AppCompatActivity() {
         }
         findViewById<TextView>(R.id.text_privacy_policy)?.setOnClickListener {
             startActivity(Intent(this, com.example.studylockapp.ui.PrivacyPolicyActivity::class.java))
+        }
+
+        findViewById<TextView>(R.id.text_privacy_policy_web)?.setOnClickListener {
+            val url = "https://eigoforslacker-tokyo.web.app/privacy-policy.html"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "ブラウザを開けませんでした", Toast.LENGTH_SHORT).show()
+                Log.e("AdminSettings", "Failed to open browser", e)
+            }
         }
 
         ensureFirebaseAuthenticated()

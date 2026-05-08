@@ -38,9 +38,19 @@
     <string name="block_invalid_points">有効なポイント数を入力してください</string>
     <string name="block_points_info">所持: %1$dpt / 使用: %2$dpt（%3$.1f分解放, 10pt=%4$d分）</string>
     <string name="block_unlocked_message">%1$.1f分 開放</string>
+
+    <!-- Accessibility Prominent Disclosure -->
+    <string name="accessibility_disclosure_title">アクセシビリティ（ユーザー補助）機能の利用について</string>
+    <string name="accessibility_disclosure_message">本アプリでは、学習習慣のサポートおよび「アプリロック（ペアレンタルコントロール）」機能を実現するために、AccessibilityService APIを利用します。\n\n【利用目的】\n・学習ポイントが不足している際のアプリ起動を検知し、制限画面を表示するため\n・制限設定に関わるシステム設定画面へのアクセスを検知し、保護者の設定を守るため\n\n【プライバシーの保護】\nこの機能を通じて、入力内容、パスワード、メッセージ内容、会話履歴などの個人情報を収集・共有することは一切ありません。取得するのはアプリの起動イベント等、制限機能に必要な情報のみです。</string>
+    <string name="accessibility_service_description">学習習慣のサポートおよびペアレンタルコントロール機能（アプリの利用制限）を提供するために使用します。起動中のアプリや、制限に関連する一部のシステム設定画面を検知します。入力内容や個人情報の収集は行いません。</string>
+
+    <!-- Recording Disclosure -->
+    <string name="recording_disclosure_title">録音権限（マイク）の使用について</string>
+    <string name="recording_disclosure_message">英語の発音チェック機能において、あなたの音声を認識するためにマイクを利用します。本アプリは、音声データそのものを保存・送信する目的では使用しません。解析されたテキスト情報のみが学習記録として使用されます。</string>
+
     <string name="app_lock_accessibility_message">このアプリは、あなたが設定した“利用制限（対象アプリ）”を実行するために、アクセシビリティ権限を使用します。</string>
-    <string name="app_lock_accessibility_go_settings">同意して次へ</string>
-    <string name="app_lock_accessibility_disable_all">同意しない（後で）</string>
+    <string name="app_lock_accessibility_go_settings">同意して設定へ</string>
+    <string name="app_lock_accessibility_disable_all">今は設定しない</string>
     <string name="app_lock_accessibility_title">アクセシビリティ権限のお願い</string>
     <string name="privacy_policy">プライバシーポリシー</string>
     <string name="app_lock_accessibility_intro">アプリロック機能を利用するにはアクセシビリティサービスを許可する必要があります。</string>

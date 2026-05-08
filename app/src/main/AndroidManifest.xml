@@ -40,6 +40,11 @@
         </activity>
 
         <activity
+            android:name=".ui.AccessibilityDisclosureActivity"
+            android:exported="false"
+            android:label="@string/accessibility_disclosure_title" />
+
+        <activity
             android:name=".ui.restricted.RestrictedAccessActivity"
             android:exported="false"
             android:excludeFromRecents="true"

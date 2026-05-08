@@ -528,7 +528,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:background="?attr/colorOutlineVariant"
-                            android:layout_marginBottom="16dp"/>
+                            android:layout_marginVertical="16dp"/>
 
                         <TextView
                             android:id="@+id/text_interval"
@@ -917,21 +917,43 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/text_privacy_policy"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="24dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:minWidth="48dp"
-                android:minHeight="48dp"
-                android:padding="8dp"
-                android:text="プライバシーポリシー"
-                android:textColor="#D32F2F" />
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="24dp">
+
+                <TextView
+                    android:id="@+id/text_privacy_policy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:padding="8dp"
+                    android:text="プライバシーポリシー"
+                    android:textColor="#D32F2F" />
+
+                <TextView
+                    android:id="@+id/text_privacy_policy_web"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:padding="8dp"
+                    android:text="Web版プライバシーポリシーを開く"
+                    android:textColor="#1976D2"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

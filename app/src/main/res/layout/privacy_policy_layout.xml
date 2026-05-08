@@ -2,7 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,120 +14,100 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="プライバシーポリシー"
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline5" />
+            android:textColor="#212121"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="本アプリは、学習機能および利用制限機能を提供するため、以下の情報を取り扱います。" />
+            android:textColor="#424242"
+            android:text="EikenForSlacker（以下「本アプリ」）は、個人の学習習慣サポートおよび保護者による見守り対応を実現するため、以下の通りプライバシーポリシーを定めます。" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="取得する情報："
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline6" />
+            android:layout_marginTop="24dp"
+            android:text="1. 収集する情報と利用目的"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="・アカウント識別子（例：Firebase AuthenticationのUID）\n・学習履歴（正誤、学習回数、習熟度、獲得ポイント等）\n・アプリ設定情報（利用制限の設定、通知設定等）\n・通知配信用トークン（Firebase Cloud Messaging トークン）" />
+            android:textColor="#424242"
+            android:text="本アプリは、サービスの提供にあたり以下の情報を取得・利用します。\n\n・アカウント情報：Firebase Auth（匿名認証を含む）によるユーザー識別子。\n・学習データ：学習履歴、正誤情報、獲得・使用ポイント、習熟度、発音チェックの結果。\n・見守り情報：ペアリングされた親端末への学習進捗の共有。\n・デバイス情報：通知用トークン（FCM）、プッシュ通知の配信に使用。" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="取得しない情報："
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline6" />
+            android:layout_marginTop="24dp"
+            android:text="2. AccessibilityService API の利用"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="・キーボード入力内容（パスワード、メッセージ本文等）\n・通話内容、連絡先、写真・動画等（本アプリが要求していない範囲）" />
+            android:textColor="#424242"
+            android:text="本アプリは、ユーザーが設定した利用制限を実行するためにアクセシビリティ権限を使用します。\n・目的：学習ポイント不足時のアプリ起動検知、および制限設定を守るためのシステム設定画面へのアクセス検知。\n・非収集情報：キーボード入力内容（パスワード、メッセージ本文等）、通話内容、会話履歴を収集・共有することは一切ありません。" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="アクセシビリティ権限について："
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline6" />
+            android:layout_marginTop="24dp"
+            android:text="3. マイク権限と音声データ"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="本アプリは、ユーザーが設定した利用制限（対象アプリの検知と制限画面への切替）を実行するためにアクセシビリティ権限を利用します。\n取得した情報を広告目的で利用したり、入力内容を収集したりすることはありません。" />
+            android:textColor="#424242"
+            android:text="・利用目的：英語の発音チェック機能において音声を認識するために利用します。\n・取り扱い：音声データそのものを本アプリのサーバーへ保存・送信することはありません。認識されたテキスト結果および判定結果のみを学習記録として保存します。" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="外部サービスの利用："
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline6" />
+            android:layout_marginTop="24dp"
+            android:text="4. 外部サービスの利用"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="本アプリは Firebase（Firestore/FCM 等）を利用してデータ保存や通知送信を行う場合があります。" />
+            android:textColor="#424242"
+            android:text="本アプリは Google Firebase（Auth, Firestore, Cloud Functions, Messaging）を利用してデータの安全な保存と機能提供を行っています。" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="データの削除："
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline6" />
+            android:layout_marginTop="24dp"
+            android:text="5. データの削除依頼と問い合わせ"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="ユーザーは [問い合わせ窓口] からデータ削除を申請できます。" />
+            android:textColor="#424242"
+            android:text="ユーザーは、本アプリ内の問い合わせ、または以下のメールアドレスよりご自身のデータの削除を依頼することができます。\nお問い合わせ先：studylocking@gmail.com" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="お問い合わせ先："
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline6" />
-
-        <TextView
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="[studylocking@gmail.com]" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="改定："
-            android:textColor="?attr/colorOnSurface"
-            android:textAppearance="?attr/textAppearanceHeadline6" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurface"
-            android:text="本ポリシーは必要に応じて改定されます。" />
+            android:layout_height="48dp" />
 
     </LinearLayout>
 </ScrollView>

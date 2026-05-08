@@ -12,6 +12,7 @@ import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.SilentMode
 import com.example.studylockapp.data.db.WordMasteryDao
 import com.example.studylockapp.data.db.WordMasteryEntity
+import com.example.studylockapp.data.StudyHistoryRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -365,10 +366,20 @@ class LearningViewModel(
             var gainedPoints = 0
             if (isCorrect) {
                 val basePoint = appSettings.getBasePoint(currentQuiz.mode)
-                val targetGrade = appSettings.safeTargetLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
-                gainedPoints = RewardPointCalculator.calculate(basePoint, currentQuiz.word.grade, targetGrade)
+                val targetGradeStr = appSettings.safeTargetLearningGrade
+                val targetGradeInt = targetGradeStr.toIntOrNull() ?: 3
+                gainedPoints = RewardPointCalculator.calculate(basePoint, currentQuiz.word.grade, targetGradeInt)
                 withContext(Dispatchers.IO) { pointManager.add(gainedPoints) }
             }
+
+            // ★ 親向け日次レポート用：Firestoreへ「獲得ポイント」と「学習履歴」を記録
+            StudyHistoryRepository.save(
+                grade = currentQuiz.word.grade.toString(),
+                mode = currentQuiz.mode.name,
+                isCorrect = isCorrect,
+                points = gainedPoints,
+                word = currentQuiz.word.word
+            )
 
             val latestTotal = withContext(Dispatchers.IO) { pointManager.getTotal() }
 
@@ -379,7 +390,7 @@ class LearningViewModel(
                     progress = ((solvedInSession * 100) / totalCount).coerceAtMost(100),
                     currentTier = newTier,
                     currentLevel = newLevel,
-                    isLevelJustIncreased = isLevelUp,
+                    isLevelJustIncreased = if (isCorrect) isLevelUp else false,
                     isLastAnswerCorrect = isCorrect,
                     reviewModeLabel = modeLabel,
                     reviewQuestionText = questionText,

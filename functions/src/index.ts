@@ -144,7 +144,7 @@ export const sendDailyReport = functions
     const now = admin.firestore.Timestamp.now();
     const sevenDaysMillis = 7 * 24 * 60 * 60 * 1000;
 
-    // レポート対象は昨日分のみ
+    // レポート対象は昨日分
     const yesterday = new Date(now.toMillis() - 24 * 60 * 60 * 1000);
     const dateStr = formatTokyoDateYYYYMMDD(yesterday);
 
@@ -152,33 +152,24 @@ export const sendDailyReport = functions
     const [_, mm, dd] = dateStr.split("-");
     const displayDate = `${Number(mm)}/${Number(dd)}`;
 
-    const promises: Promise<any>[] = [];
-
     for (const userDoc of usersSnapshot.docs) {
       const uid = userDoc.id;
       const userData = userDoc.data() || {};
 
-      // 1. 既に停止中なら即スキップ
       if (userData.dailyReportPaused === true) continue;
 
-      // 2. 最終アクティブ日時の確認 (toMillis有無で判定)
       let lastActive = userData.lastActiveAt;
       if (!lastActive || typeof lastActive.toMillis !== "function") {
         await userDoc.ref.set({ lastActiveAt: now }, { merge: true });
         lastActive = now;
       }
 
-      // 3. 7日間チェック (一定期間未使用なら停止通知を送ってスキップ)
       const diffMillis = now.toMillis() - lastActive.toMillis();
       if (diffMillis >= sevenDaysMillis) {
         const parentsSnapshot = await db.collection("users").doc(uid).collection("parents").get();
-        let sentCount = 0;
-        let failCount = 0;
-
         for (const parentDoc of parentsSnapshot.docs) {
           const parentData = parentDoc.data();
           const childName = parentData.childDisplayName || userData.displayName || "お子様";
-
           if (parentData.fcmToken) {
             try {
               await admin.messaging().send({
@@ -189,134 +180,159 @@ export const sendDailyReport = functions
                 },
                 android: { priority: "high" },
               });
-              sentCount++;
-            } catch (e) {
-              console.error(`Final notice failed for parent ${parentDoc.id}:`, e);
-              failCount++;
-            }
+            } catch (e) { console.error("Final notice failed", e); }
           }
         }
-
-        if (sentCount > 0) {
-          console.log(`Sent inactivity notice for ${uid}: ${sentCount} parents notified.`);
-        } else if (failCount > 0 || !parentsSnapshot.empty) {
-          console.warn(`Failed to send inactivity notice for ${uid}. Check parent tokens.`);
-        }
-
-        // ステータスを停止中に更新
-        const pauseUpdate: any = {
+        await userDoc.ref.set({
           dailyReportPaused: true,
           dailyReportPausedAt: now,
           dailyReportPauseReason: "inactive",
-        };
-        if (sentCount > 0) {
-          pauseUpdate.inactivityNoticeSentAt = now;
-        }
-        await userDoc.ref.set(pauseUpdate, { merge: true });
+        }, { merge: true });
         continue;
       }
 
-      // --- 4. 通常レポート送信処理 ---
+      // --- 通常レポート送信処理 ---
       const statsDoc = await db.collection("users").doc(uid).collection("dailyStats").doc(dateStr).get();
+      if (!statsDoc.exists) {
+        console.log(`[DailyReport] No stats for uid: ${uid}, date: ${dateStr}. Skipping.`);
+        continue;
+      }
+
       const stats = statsDoc.data() || {};
-      const records = Array.isArray(stats.studyRecords) ? stats.studyRecords : [];
 
-      // 調査用一時ログ
-      console.log(`[DailyReport] uid: ${uid}, date: ${dateStr}`);
-      console.log(`stats: points=${stats.points}, studyCount=${stats.studyCount}, recordsLength=${records.length}`);
-      const studySample = records.filter((r: any) => r.type === "study").slice(0, 3);
-      console.log("study records sample:", JSON.stringify(studySample));
+      // 1万人規模を見据えた明細削除後の考慮
+      // 1. すでに詳細削除済みなら保存されたレポートテキストを再利用可能にする（今回は新規送信）
+      if (stats.detailDeleted === true && stats.reportText) {
+         console.log(`[DailyReport] Detailed records already deleted for uid: ${uid}. Skipping.`);
+         continue;
+      }
 
-      // 獲得/使用ポイント
+      const studyRecords = Array.isArray(stats.studyRecords) ? stats.studyRecords : [];
+      const usedRecords = Array.isArray(stats.usedRecords) ? stats.usedRecords : [];
+      const unlockRecords = Array.isArray(stats.unlockRecords) ? stats.unlockRecords : [];
+      const allRecords = [...studyRecords, ...usedRecords, ...unlockRecords];
+
+      console.log(`[DailyReport] uid=${uid}, targetDate=${dateStr}`);
+
       const points = stats.points || 0;
       const usedPoints = stats.usedPoints || stats.pointsUsed || 0;
 
-      // 各種集計用
       const gradeMap: Record<string, { total: number, correct: number }> = {};
       let voiceCheckCount = 0;
       let voiceWordCheckCount = 0;
       let voiceSentenceCheckCount = 0;
       let voiceBadgeCount = 0;
-      let voiceWordBadges = 0;
-      let voiceSentenceBadges = 0;
       let voiceBonusPoints = 0;
-      const unlockMap: Record<string, number> = {};
+      const unlockMap: Record<string, { mins: number, pts: number }> = {};
 
-      records.forEach((r: any) => {
-        if (r.type === "study" && r.grade !== undefined && r.grade !== null) {
-          // 通常学習集計
-          const rawGrade = String(r.grade);
-          const g = rawGrade.endsWith("級") ? rawGrade : `${rawGrade}級`;
+      allRecords.forEach((r: any) => {
+        const type = r.type || r.mode;
+        if (type === "study") {
+          const rawGrade = r.grade !== undefined && r.grade !== null ? String(r.grade) : "不明";
+          const g = (rawGrade === "不明" || rawGrade.endsWith("級")) ? rawGrade : `${rawGrade}級`;
           if (!gradeMap[g]) gradeMap[g] = { total: 0, correct: 0 };
           gradeMap[g].total++;
           if (r.isCorrect === true) gradeMap[g].correct++;
-        } else if (r.type === "voice_check") {
-          // 発音チェック回数集計
+        } else if (type === "voice_check") {
           voiceCheckCount++;
           if (r.checkType === "word") voiceWordCheckCount++;
           if (r.checkType === "sentence") voiceSentenceCheckCount++;
-        } else if (r.type === "voice_bonus") {
-          // 発音バッジ・ボーナス集計
+        } else if (type === "voice_bonus") {
           voiceBadgeCount++;
           voiceBonusPoints += Number(r.earnedPoints || r.points || 0);
-          if (r.checkType === "word") voiceWordBadges++;
-          if (r.checkType === "sentence") voiceSentenceBadges++;
-        } else if (r.type === "unlock") {
-          // アプリ解放集計
-          const label = r.appLabel || r.packageName?.split('.').pop() || "不明";
-          const mins = r.unlockedMinutes || Math.floor((r.usedPoints || 0) / 2);
-          unlockMap[label] = (unlockMap[label] || 0) + mins;
+        } else if (type === "unlock" || type === "used_points") {
+          const label = r.appLabel || r.packageName?.split('.').pop() || "不明アプリ";
+          const mins = Number(r.unlockedMinutes || 0);
+          const pts = Number(r.usedPoints || r.pointsUsed || 0);
+          if (!unlockMap[label]) unlockMap[label] = { mins: 0, pts: 0 };
+          unlockMap[label].mins += mins;
+          unlockMap[label].pts += pts;
         }
       });
 
       let studyText = "学習: なし";
-      const gradeEntries = Object.entries(gradeMap).sort().slice(0, 3);
+      const gradeEntries = Object.entries(gradeMap).sort();
       if (gradeEntries.length > 0) {
         studyText = gradeEntries.map(([g, s], i) => {
-          const acc = Math.round((s.correct / s.total) * 100);
+          const acc = Math.round((s.correct / (s.total || 1)) * 100);
           const line = `${g}：${s.total}問（正解${s.correct} / 不正解${s.total - s.correct}、正解率${acc}%）`;
           return i === 0 ? `学習: ${line}` : `　　  ${line}`;
         }).join("\n");
+      } else if ((stats.studyCount || 0) > 0) {
+        studyText = `学習: ${stats.studyCount}問（正解${stats.correctCount || 0} / 不正解${(stats.studyCount || 0) - (stats.correctCount || 0)}）`;
       }
 
       let voiceText = "発音: なし";
       if (voiceCheckCount > 0 || voiceBadgeCount > 0) {
-        voiceText = `発音: チェック${voiceCheckCount}回（単語${voiceWordCheckCount} / 例文${voiceSentenceCheckCount}） / バッジ${voiceBadgeCount}個（単語${voiceWordBadges} / 例文${voiceSentenceBadges}、+${voiceBonusPoints}pt）`;
+        voiceText = `発音: チェック${voiceCheckCount}回 / バッジ${voiceBadgeCount}個（+${voiceBonusPoints}pt）`;
       }
-
-      // マスター累計
-      const sMaster = stats.shortMasterCount || 0;
-      const lMaster = stats.longMasterCount || 0;
 
       let unlockText = "解放: なし";
-      const unlockEntries = Object.entries(unlockMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const unlockEntries = Object.entries(unlockMap).sort((a, b) => b[1].pts - a[1].pts);
       if (unlockEntries.length > 0) {
-        unlockText = `解放: ` + unlockEntries.map(([label, min]) => `${label} ${min}分`).join(", ");
+        unlockText = `解放: ` + unlockEntries.map(([label, data]) => `${label} ${data.mins}分（${data.pts}pt）`).join(", ");
+      } else if (usedPoints > 0) {
+        unlockText = `解放: あり（${usedPoints}pt使用）`;
       }
 
-      // アクセシビリティ状態
+      const sMaster = stats.shortMasterCount || 0;
+      const lMaster = stats.longMasterCount || 0;
       const accEnabled = userData.accessibilityEnabled ? "ON" : "OFF";
 
+      // 送信・保存用の全文レポートテキストを生成
+      const reportText = `獲得: ${points}pt / 使用: ${usedPoints}pt\n${studyText}\n${voiceText}\nマスター累計: 短期${sMaster}語 / 長期${lMaster}語\n${unlockText}\n監視: アクセシビリティ${accEnabled}`;
+
+      const reportSummary = {
+        points,
+        usedPoints,
+        studyCount: stats.studyCount || 0,
+        voiceCheckCount,
+        unlockCount: unlockEntries.length,
+        shortMasterCount: sMaster,
+        longMasterCount: lMaster
+      };
+
       const parentsSnapshotInner = await db.collection("users").doc(uid).collection("parents").get();
+      const sendPromises: Promise<any>[] = [];
+
       parentsSnapshotInner.forEach((parentDoc) => {
         const parentData = parentDoc.data();
-        const childName = parentData.childDisplayName || "お子様";
-
         if (parentData.fcmToken) {
-          promises.push(
+          const childName = parentData.childDisplayName || userData.displayName || "お子様";
+          sendPromises.push(
             admin.messaging().send({
               token: parentData.fcmToken,
               notification: {
                 title: `📅 ${displayDate} ${childName}の学習レポート`,
-                body: `獲得: ${points}pt / 使用: ${usedPoints}pt\n${studyText}\n${voiceText}\nマスター累計: 短期${sMaster}語 / 長期${lMaster}語\n${unlockText}\n監視: アクセシビリティ${accEnabled}`,
+                body: reportText,
               },
               android: { priority: "high" },
-            }).catch((e) => console.error("Report FCM failed", e))
+            })
           );
         }
       });
+
+      if (sendPromises.length > 0) {
+        try {
+          await Promise.all(sendPromises);
+
+          // 送信成功時のみ明細を削除し、結果を保存
+          // detailDeleted: true は「旧形式の配列明細を削除済み」を意味する
+          await statsDoc.ref.update({
+            reportText: reportText,
+            reportSummary: reportSummary,
+            reportSentAt: admin.firestore.FieldValue.serverTimestamp(),
+            detailDeleted: true,
+            studyRecords: admin.firestore.FieldValue.delete(),
+            unlockRecords: admin.firestore.FieldValue.delete(),
+            usedRecords: admin.firestore.FieldValue.delete(),
+          });
+          console.log(`[DailyReport] Sent and cleaned up uid: ${uid}`);
+        } catch (e) {
+          console.error(`[DailyReport] Failed to send or cleanup uid: ${uid}`, e);
+        }
+      }
     }
 
-    await Promise.all(promises);
     return null;
   });
