@@ -13,6 +13,8 @@ import android.view.accessibility.AccessibilityManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.studylockapp.R
@@ -39,14 +41,24 @@ class AppLockSettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_app_lock_settings)
 
+        val mainLayout = findViewById<View>(R.id.main_app_lock_layout)
+        val initialTop = mainLayout.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(mainLayout) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                initialTop + bars.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
+
         settings = AppSettings(this)
         
-        // AdminSettingsActivity からの認証状態を引き継ぐ。画面回転等にも対応。
+        // AdminSettingsActivity からの認証状態を引き継ぐ
         isAuthenticatedLocally = savedInstanceState?.getBoolean("isAuth")
             ?: intent.getBooleanExtra("isAuthenticated", false)
-
-        // 必須ONなら「ロック設定を全て解除する」テキストを非表示
-        hideDisableAllIfRequired()
 
         // UIから削除（非表示）されたマスタースイッチ
         val switchEnable = findViewById<MaterialSwitch>(R.id.switch_enable_lock)
@@ -73,28 +85,6 @@ class AppLockSettingsActivity : AppCompatActivity() {
         super.onResume()
         // アクセシビリティOFF & ロック対象あり なら誘導
         maybeShowAccessibilityDialog()
-        hideDisableAllIfRequired()
-    }
-
-    private fun hideDisableAllIfRequired() {
-        val isRequired = AdminAuthManager.isAppLockRequired(this)
-        if (!isRequired) return
-        val root = findViewById<ViewGroup>(android.R.id.content) ?: return
-        val targetText = getString(R.string.app_lock_accessibility_disable_all)
-        val target = findViewWithText(root, targetText)
-        target?.visibility = View.GONE
-    }
-
-    private fun findViewWithText(view: View, text: String): View? {
-        if (view is TextView && view.text == text) return view
-        if (view is ViewGroup) {
-            for (i in 0 until view.childCount) {
-                val child = view.getChildAt(i)
-                val found = findViewWithText(child, text)
-                if (found != null) return found
-            }
-        }
-        return null
     }
 
     private suspend fun loadApps() {
@@ -143,13 +133,11 @@ class AppLockSettingsActivity : AppCompatActivity() {
     }
 
     private fun onToggleLock(item: AppLockDisplayItem, checked: Boolean) {
-        val isRequired = AdminAuthManager.isAppLockRequired(this)
-        
-        // 設定保護が有効かつ未認証（子ども等）の場合
-        if (isRequired && !isAuthenticatedLocally) {
-            Toast.makeText(this, "設定を保護しています。管理者画面でPIN認証を完了してください。", Toast.LENGTH_SHORT).show()
+        // 管理者ロックが有効で、かつ認証されていない場合は変更不可
+        if (AdminAuthManager.isAdminLockEnabled(this) && !isAuthenticatedLocally) {
+            Toast.makeText(this, "管理者認証が必要です。", Toast.LENGTH_SHORT).show()
             lifecycleScope.launch {
-                loadApps() // 元に戻す（再描画）
+                loadApps() // 元に戻す
             }
             return
         }
@@ -172,7 +160,7 @@ class AppLockSettingsActivity : AppCompatActivity() {
         if (isAccessibilityDialogOpen) return
 
         val svcEnabled = isAppLockServiceEnabled()
-        if (svcEnabled) return // すでにONなら何もしない
+        if (svcEnabled) return 
 
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppDatabase.getInstance(this@AppLockSettingsActivity)
@@ -181,12 +169,16 @@ class AppLockSettingsActivity : AppCompatActivity() {
             if (shouldForce) {
                 withContext(Dispatchers.Main) {
                     isAccessibilityDialogOpen = true
+                    
+                    // 管理者ロックが有効なら「全て解除（今は設定しない）」を許容しない
+                    val isAdminLocked = AdminAuthManager.isAdminLockEnabled(this@AppLockSettingsActivity)
+                    
                     AppDialogHelper.showConfirm(
                         context = this@AppLockSettingsActivity,
                         title = getString(R.string.app_lock_accessibility_title),
                         message = getString(R.string.app_lock_accessibility_message),
                         positiveText = getString(R.string.app_lock_accessibility_go_settings),
-                        negativeText = if (AdminAuthManager.isAppLockRequired(this@AppLockSettingsActivity)) "" else getString(R.string.app_lock_accessibility_disable_all),
+                        negativeText = if (isAdminLocked) "" else getString(R.string.app_lock_accessibility_disable_all),
                         onPositive = {
                             isAccessibilityDialogOpen = false
                             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
@@ -195,7 +187,7 @@ class AppLockSettingsActivity : AppCompatActivity() {
                         },
                         onNegative = {
                             isAccessibilityDialogOpen = false
-                            if (!AdminAuthManager.isAppLockRequired(this@AppLockSettingsActivity)) {
+                            if (!isAdminLocked) {
                                 lifecycleScope.launch(Dispatchers.IO) {
                                     db.lockedAppDao().disableAllLocks()
                                     withContext(Dispatchers.Main) {

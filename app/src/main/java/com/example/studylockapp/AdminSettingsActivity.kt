@@ -20,6 +20,8 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.studylockapp.ads.AdAudioManager
 import com.example.studylockapp.data.AdminAuthManager
 import com.example.studylockapp.data.AppSettings
@@ -85,6 +87,20 @@ class AdminSettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_settings)
+
+        val root = findViewById<View>(R.id.admin_settings_root)
+        val initialTop = root.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                initialTop + bars.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
+
         settings = AppSettings(this)
         scrollView = findViewById(R.id.scroll_admin)
 
@@ -92,10 +108,6 @@ class AdminSettingsActivity : AppCompatActivity() {
         containerManagedChildren = findViewById(R.id.container_managed_children)
 
         isAuthenticated = savedInstanceState?.getBoolean("authenticated", false) ?: false
-
-        if (intent.getBooleanExtra("isLongPressRoute", false)) {
-            isAuthenticated = true
-        }
 
         setupAdminSecurityViews()
         setupExistingControls()
@@ -145,7 +157,6 @@ class AdminSettingsActivity : AppCompatActivity() {
     private fun setupAccordions() {
         val groups = listOf(
             Triple(R.id.header_study_points, R.id.content_study_points, R.id.arrow_study_points),
-            Triple(R.id.header_test_points, R.id.content_test_points, R.id.arrow_test_points),
             Triple(R.id.header_time_settings, R.id.content_time_settings, R.id.arrow_time_settings),
             Triple(R.id.header_app_lock_block, R.id.content_app_lock_block, R.id.arrow_app_lock_block),
             Triple(R.id.header_pairing, R.id.content_pairing, R.id.arrow_pairing),
@@ -181,6 +192,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         ensureAuthenticatedOrFinish()
         updateConnectionStatus()
         refreshGradeSpinner()
+        updateRecoveryStatusDisplay()
     }
 
     private fun refreshGradeSpinner() {
@@ -214,6 +226,7 @@ class AdminSettingsActivity : AppCompatActivity() {
                     textManager.text = getString(R.string.pairing_parent_device, count)
                     settings.setParentUid(snapshot.documents[0].id)
                 }
+                updateRecoveryStatusDisplay()
             }
             .addOnFailureListener { e ->
                 textManager.text = getString(R.string.pairing_parent_error)
@@ -424,8 +437,6 @@ class AdminSettingsActivity : AppCompatActivity() {
             QuizMode.JP_TO_EN to (findViewById<TextView>(R.id.text_point_ja_to_en) to findViewById<SeekBar>(R.id.seek_point_ja_to_en)),
             QuizMode.SYNONYM_PICK to (findViewById<TextView>(R.id.text_point_en_en_1) to findViewById<SeekBar>(R.id.seek_point_en_en_1)),
             QuizMode.ANTONYM_PICK to (findViewById<TextView>(R.id.text_point_en_en_2) to findViewById<SeekBar>(R.id.seek_point_en_en_2)),
-            QuizMode.FILL_BLANK to (findViewById<TextView>(R.id.text_point_test_fill_blank) to findViewById<SeekBar>(R.id.seek_point_test_fill_blank)),
-            QuizMode.SENTENCE_SORT to (findViewById<TextView>(R.id.text_point_test_sort) to findViewById<SeekBar>(R.id.seek_point_test_sort)),
         )
 
         fun progressToPoint(progress: Int): Int = 4 + progress * 4
@@ -461,7 +472,6 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.button_app_lock_settings)?.setOnClickListener {
             val intent = Intent(this, AppLockSettingsActivity::class.java).apply {
-                // PINロックが無効（未設定）もしくは認証済みなら編集可能とする
                 val isAuth = isAuthenticated || !AdminAuthManager.isAdminLockEnabled(this@AdminSettingsActivity)
                 putExtra("isAuthenticated", isAuth)
             }
@@ -474,7 +484,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         fun minPer10PtToProgress(value: Int): Int = value.coerceIn(1, 10) - 1
         fun progressToMinPer10Pt(progress: Int): Int = progress.coerceIn(0, 9) + 1
         fun dontKnowSecToProgress(sec: Long): Int = ((sec.coerceIn(5L, 100L) - 5L) / 5L).toInt()
-        fun progressToDontKnowSec(progress: Int): Long = 5L + (progress.coerceIn(0, 19) * 5L)
+        fun progressToSecForDontKnow(progress: Int): Long = 5L + (progress.coerceIn(0, 19) * 5L)
 
         seekWrongRetry.progress = secToProgress(settings.wrongRetrySec)
         seekLevel1Retry.progress = secToProgress(settings.level1RetrySec)
@@ -484,7 +494,7 @@ class AdminSettingsActivity : AppCompatActivity() {
         fun refreshLabels() {
             textWrongRetry.text = "当日再出題（不正解）: ${progressToSec(seekWrongRetry.progress)} 秒"
             textLevel1Retry.text = "当日再出題（正解済）: ${progressToSec(seekLevel1Retry.progress)} 秒"
-            textDontKnowRetry.text = "当日再出題（わからない）: ${progressToDontKnowSec(seekDontKnowRetry.progress)} 秒"
+            textDontKnowRetry.text = "当日再出題（わからない）: ${progressToSecForDontKnow(seekDontKnowRetry.progress)} 秒"
             textUnlockMinPer10Pt.text = getString(R.string.admin_label_unlock_min_per_10pt_value, progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
         }
         refreshLabels()
@@ -502,7 +512,7 @@ class AdminSettingsActivity : AppCompatActivity() {
             modes.forEach { (mode, views) -> views.second?.let { settings.setBasePoint(mode, progressToPoint(it.progress)) } }
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
-            settings.dontKnowRetrySec = progressToDontKnowSec(seekDontKnowRetry.progress)
+            settings.dontKnowRetrySec = progressToSecForDontKnow(seekDontKnowRetry.progress)
             settings.setUnlockMinutesPer10Pt(progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
             AdAudioManager.apply(settings)
             finish()
@@ -523,51 +533,122 @@ class AdminSettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateRecoveryStatusDisplay() {
+        val textParent = findViewById<TextView>(R.id.text_recovery_status_parent) ?: return
+        val textAuthApp = findViewById<TextView>(R.id.text_recovery_status_auth_app) ?: return
+
+        val parentConfigured = settings.hasParent()
+        val authAppConfigured = AdminAuthManager.isTotpSet(this)
+
+        textParent.text = getString(R.string.admin_recovery_parent, if (parentConfigured) getString(R.string.admin_status_configured) else getString(R.string.admin_status_not_configured))
+        textParent.setTextColor(if (parentConfigured) Color.parseColor("#4CAF50") else Color.GRAY)
+
+        textAuthApp.text = getString(R.string.admin_recovery_auth_app, if (authAppConfigured) getString(R.string.admin_status_configured) else getString(R.string.admin_status_not_configured))
+        textAuthApp.setTextColor(if (authAppConfigured) Color.parseColor("#4CAF50") else Color.GRAY)
+    }
+
     private fun setupAdminSecurityViews() {
         val switchAdminLock = findViewById<SwitchMaterial>(R.id.switch_admin_lock) ?: return
-        val switchAppLockRequired = findViewById<SwitchMaterial>(R.id.switch_app_lock_required)
         val buttonChangePin = findViewById<MaterialButton>(R.id.button_change_pin) ?: return
-        val switchEnableLongPress = findViewById<SwitchMaterial>(R.id.switch_enable_long_press) ?: return
+        val buttonDeletePin = findViewById<MaterialButton>(R.id.button_delete_pin) ?: return
         val buttonSetupAuthenticator = findViewById<MaterialButton>(R.id.button_setup_authenticator)
         val switchAccessibilityLock = findViewById<SwitchMaterial>(R.id.switch_accessibility_lock)
         val switchUninstallLock = findViewById<SwitchMaterial>(R.id.switch_uninstall_lock)
 
         switchAdminLock.setTextColor(switchTextColor)
-        switchAppLockRequired?.setTextColor(switchTextColor)
-        switchEnableLongPress.setTextColor(switchTextColor)
         switchAccessibilityLock?.setTextColor(switchTextColor)
         switchUninstallLock?.setTextColor(switchTextColor)
 
         switchAdminLock.isChecked = AdminAuthManager.isAdminLockEnabled(this)
-        switchAppLockRequired?.isChecked = AdminAuthManager.isAppLockRequired(this)
-        switchEnableLongPress.isChecked = settings.isEnableAdminLongPress()
         switchAccessibilityLock?.isChecked = settings.isAccessibilityLockEnabled
         switchUninstallLock?.isChecked = settings.isUninstallLockEnabled()
 
         switchAdminLock.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 if (!AdminAuthManager.isPinSet(this)) {
-                    promptSetNewPin(onSuccess = { AdminAuthManager.setAdminLockEnabled(this, true); showToast(getString(R.string.admin_lock_enabled)) }, onCancel = { switchAdminLock.isChecked = false })
-                } else { AdminAuthManager.setAdminLockEnabled(this, true); showToast(getString(R.string.admin_lock_enabled)) }
+                    promptSetNewPin(onSuccess = { 
+                        AdminAuthManager.setAdminLockEnabled(this, true)
+                        showToast(getString(R.string.admin_lock_enabled))
+                    }, onCancel = { switchAdminLock.isChecked = false })
+                } else {
+                    val hasRecovery = settings.hasParent() || AdminAuthManager.isTotpSet(this)
+                    if (!hasRecovery) {
+                        showNoRecoveryWarning(
+                            onConfirm = {
+                                AdminAuthManager.setAdminLockEnabled(this, true)
+                                showToast(getString(R.string.admin_lock_enabled))
+                            },
+                            onCancel = { switchAdminLock.isChecked = false }
+                        )
+                    } else {
+                        AdminAuthManager.setAdminLockEnabled(this, true)
+                        showToast(getString(R.string.admin_lock_enabled))
+                    }
+                }
             } else {
-                promptPinAndDo(title = getString(R.string.admin_enter_pin_title), onSuccess = { AdminAuthManager.setAdminLockEnabled(this, false); showToast(getString(R.string.admin_lock_disabled)) }, onFailure = { switchAdminLock.isChecked = true; showToast(getString(R.string.admin_pin_incorrect)) }, onCancel = { switchAdminLock.isChecked = true })
+                promptPinAndDo(
+                    title = getString(R.string.admin_enter_pin_title),
+                    onSuccess = { 
+                        AdminAuthManager.setAdminLockEnabled(this, false)
+                        showToast(getString(R.string.admin_lock_disabled))
+                    },
+                    onFailure = { 
+                        switchAdminLock.isChecked = true
+                        showToast(getString(R.string.admin_pin_incorrect))
+                    },
+                    onCancel = { switchAdminLock.isChecked = true }
+                )
             }
         }
 
-        switchAppLockRequired?.setOnCheckedChangeListener { _, isChecked ->
-            AdminAuthManager.setAppLockRequired(this, isChecked)
-            if (isChecked && !AccessibilityUtils.isServiceEnabled(this, AppLockAccessibilityService::class.java)) {
-                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            }
-            if (isChecked) showToast(getString(R.string.admin_app_lock_required_on))
-        }
-
-        switchEnableLongPress.setOnCheckedChangeListener { _, isChecked -> settings.setEnableAdminLongPress(isChecked) }
         switchAccessibilityLock?.setOnCheckedChangeListener { _, isChecked -> settings.isAccessibilityLockEnabled = isChecked }
         switchUninstallLock?.setOnCheckedChangeListener { _, isChecked -> settings.setUninstallLockEnabled(isChecked) }
 
-        buttonChangePin.setOnClickListener { promptPinAndDo(title = getString(R.string.admin_enter_pin_title), onSuccess = { promptSetNewPin() }, onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }) }
+        buttonChangePin.setOnClickListener {
+            promptPinAndDo(
+                title = getString(R.string.admin_enter_pin_title),
+                onSuccess = { promptSetNewPin() },
+                onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }
+            )
+        }
+
+        buttonDeletePin.setOnClickListener {
+            promptPinAndDo(
+                title = getString(R.string.admin_enter_pin_title),
+                onSuccess = { promptDeletePin() },
+                onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }
+            )
+        }
+
         buttonSetupAuthenticator?.setOnClickListener { startActivity(Intent(this, AuthenticatorSetupActivity::class.java)) }
+    }
+
+    private fun showNoRecoveryWarning(onConfirm: () -> Unit, onCancel: () -> Unit) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(coloredTitle(getString(R.string.admin_warning_no_recovery_title)))
+            .setMessage(getString(R.string.admin_warning_no_recovery_msg))
+            .setPositiveButton(R.string.admin_action_enable_anyway) { _, _ -> onConfirm() }
+            .setNeutralButton(R.string.admin_action_setup_recovery) { _, _ -> onCancel() /* User wants to setup first */ }
+            .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
+            .setOnCancelListener { onCancel() }
+            .show()
+    }
+
+    private fun promptDeletePin() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(coloredTitle(getString(R.string.admin_delete_pin_confirm_title)))
+            .setMessage(getString(R.string.admin_delete_pin_confirm_msg))
+            .setPositiveButton(R.string.admin_delete_pin_action) { _, _ ->
+                AdminAuthManager.clearPinAndRecovery(this)
+                AdminAuthManager.setAdminLockEnabled(this, false)
+                isAuthenticated = false
+                showToast(getString(R.string.admin_delete_pin_success))
+                // Refresh views
+                findViewById<SwitchMaterial>(R.id.switch_admin_lock)?.isChecked = false
+                updateRecoveryStatusDisplay()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun promptPinAndDo(title: String, onSuccess: () -> Unit, onFailure: (() -> Unit)? = null, onCancel: (() -> Unit)? = null) {
@@ -575,8 +656,51 @@ class AdminSettingsActivity : AppCompatActivity() {
         val edit = TextInputEditText(inputLayout.context).apply { inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD; setTextColor(dialogTextColor); setHintTextColor(dialogHintColor) }
         inputLayout.addView(edit)
         val dialog = MaterialAlertDialogBuilder(this).setTitle(coloredTitle(title)).setView(inputLayout).setPositiveButton(R.string.ok) { _, _ -> if (AdminAuthManager.verifyPin(this, edit.text?.toString().orEmpty())) onSuccess() else onFailure?.invoke() }.setNegativeButton(R.string.cancel) { _, _ -> onCancel?.invoke() }.setOnCancelListener { onCancel?.invoke() }
-        if (settings.hasParent()) { dialog.setNeutralButton("管理者に聞く") { _, _ -> promptRemoteUnlock(onSuccess) } } else if (AdminAuthManager.isTotpSet(this)) { dialog.setNeutralButton(R.string.admin_forgot_pin) { _, _ -> promptTotpAndResetPin(onSuccess) } }
+        
+        val hasParent = settings.hasParent()
+        val hasTotp = AdminAuthManager.isTotpSet(this)
+        
+        if (hasParent || hasTotp) {
+            dialog.setNeutralButton(R.string.admin_forgot_pin) { _, _ -> 
+                showRecoveryChoiceDialog(onSuccess)
+            }
+        } else {
+            // Optional: show a message that no recovery is set
+            // dialog.setNeutralButton("復旧不可", null)
+        }
         dialog.show()
+    }
+
+    private fun showRecoveryChoiceDialog(onSuccess: () -> Unit) {
+        val hasParent = settings.hasParent()
+        val hasTotp = AdminAuthManager.isTotpSet(this)
+        
+        val options = mutableListOf<String>()
+        if (hasParent) options.add(getString(R.string.admin_recovery_method_parent))
+        if (hasTotp) options.add(getString(R.string.admin_recovery_method_auth_app))
+        
+        if (options.isEmpty()) {
+            showToast(getString(R.string.admin_recovery_no_methods))
+            return
+        }
+        
+        if (options.size == 1) {
+            if (hasParent) promptRemoteUnlock(onSuccess) else promptTotpAndResetPin(onSuccess)
+            return
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(coloredTitle(getString(R.string.admin_recovery_choice_title)))
+            .setItems(options.toTypedArray()) { _, which ->
+                val selected = options[which]
+                if (selected == getString(R.string.admin_recovery_method_parent)) {
+                    promptRemoteUnlock(onSuccess)
+                } else {
+                    promptTotpAndResetPin(onSuccess)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun promptRemoteUnlock(onSuccess: () -> Unit) {
@@ -645,10 +769,10 @@ class AdminSettingsActivity : AppCompatActivity() {
     }
 
     private fun validateAndNormalizeChildName(input: String): Pair<String?, String?> {
-        val raw = input.trim().replace(Regex("""[ 　]+"""), " ")
+        val raw = input.trim().replace(Regex("""[ 1-9]+"""), " ")
         if (raw.isEmpty()) return Pair(null, "名前を入力してください。")
         if (raw.length !in 1..15) return Pair(null, "名前は1〜15文字で入力してください。")
-        if (!Regex("""^[0-9A-Za-zぁ-んァ-ン一-龥ー・ 　]+$""").matches(raw)) return Pair(null, "使える文字は「英数字/ひらがな/カタカナ/漢字/スペース/・/ー」のみです。")
+        if (!Regex("""^[0-9A-Za-zぁ-んァ-ン一-龥ー・ 1-9]+$""").matches(raw)) return Pair(null, "使える文字は「英数字/ひらがな/カタカナ/漢字/スペース/・/ー」のみです。")
         return Pair(raw, null)
     }
 }

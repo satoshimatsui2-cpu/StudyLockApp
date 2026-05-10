@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/admin_settings_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
@@ -114,7 +115,6 @@
                         android:gravity="center_vertical"
                         android:padding="16dp">
 
-                        <!-- 先頭アイコン：ボタンと同じ鍵アイコン -->
                         <ImageView
                             android:id="@+id/icon_app_lock_block"
                             android:layout_width="20dp"
@@ -127,7 +127,6 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:contentDescription="TODO"
                             android:text="他のアプリをロックする"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
@@ -161,13 +160,12 @@
                             android:textColor="?attr/colorOnSurface"
                             tools:ignore="HardcodedText" />
 
-                        <!-- 「ロックするアプリを選択する」ボタン -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_app_lock_settings"
                             style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp"
+                            android:layout_marginBottom="4dp"
                             android:gravity="center"
                             android:text="@string/admin_select_lock_apps"
                             android:textAlignment="center"
@@ -176,25 +174,6 @@
                             app:iconGravity="textStart"
                             app:iconPadding="8dp"
                             app:iconTint="?attr/colorOnSecondaryContainer" />
-
-                        <!-- アプリロック設定を保護する -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_app_lock_required"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_app_lock_required_title"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnSurface" />
-
-                        <TextView
-                            android:id="@+id/text_app_lock_required_desc"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/admin_app_lock_required_desc"
-                            android:textSize="12sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:paddingBottom="12dp" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -334,115 +313,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- テストポイント -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="1dp"
-                app:strokeColor="?attr/colorOutline"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <LinearLayout
-                        android:id="@+id/header_test_points"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/colorSurfaceVariant"
-                        android:gravity="center_vertical"
-                        android:padding="16dp"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:id="@+id/icon_test_points"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_marginEnd="12dp"
-                            android:src="@drawable/ic_quiz_24"
-                            app:tint="?attr/colorOnSurfaceVariant" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="テストモード 獲得ポイント"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textStyle="bold"
-                            tools:ignore="HardcodedText" />
-
-                        <ImageView
-                            android:id="@+id/arrow_test_points"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@android:drawable/arrow_down_float"
-                            app:tint="?attr/colorOnSurfaceVariant" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/content_test_points"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:id="@+id/text_point_test_fill_blank"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="?attr/colorOnSurface"
-                            tools:text="穴埋め: 10 pt" />
-                        <SeekBar
-                            android:id="@+id/seek_point_test_fill_blank"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-
-                        <TextView
-                            android:id="@+id/text_point_test_sort"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="8dp"
-                            android:textColor="?attr/colorOnSurface"
-                            tools:text="並べ替え: 10 pt" />
-                        <SeekBar
-                            android:id="@+id/seek_point_test_sort"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-
-                        <TextView
-                            android:id="@+id/text_point_test_listen_q1"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="8dp"
-                            android:textColor="?attr/colorOnSurface"
-                            tools:text="リスニング質問: 10 pt" />
-                        <SeekBar
-                            android:id="@+id/seek_point_test_listen_q1"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-
-                        <TextView
-                            android:id="@+id/text_point_test_listen_q2"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingTop="8dp"
-                            android:textColor="?attr/colorOnSurface"
-                            tools:text="会話文リスニング: 10 pt" />
-                        <SeekBar
-                            android:id="@+id/seek_point_test_listen_q2"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- 時間制限 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -473,7 +343,6 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginEnd="12dp"
-                            android:importantForAccessibility="no"
                             android:src="@drawable/ic_timer_24"
                             app:tint="?attr/colorOnSurfaceVariant" />
 
@@ -628,7 +497,6 @@
                         android:gravity="center_vertical"
                         android:padding="16dp">
 
-                        <!-- 追加：先頭アイコン -->
                         <ImageView
                             android:id="@+id/icon_pairing"
                             android:layout_width="20dp"
@@ -761,7 +629,6 @@
                         android:clickable="true"
                         android:focusable="true">
 
-                        <!-- 追加：先頭アイコン -->
                         <ImageView
                             android:id="@+id/icon_security"
                             android:layout_width="20dp"
@@ -815,7 +682,8 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="8dp">
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/button_change_pin"
@@ -831,18 +699,65 @@
                                 app:iconTint="?attr/colorOnSurface" />
 
                             <com.google.android.material.button.MaterialButton
-                                android:id="@+id/button_setup_authenticator"
+                                android:id="@+id/button_delete_pin"
                                 style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="4dp"
-                                android:text="2段階認証"
-                                app:icon="@drawable/ic_security_24"
-                                app:iconGravity="textStart"
-                                app:iconPadding="6dp"
-                                app:iconTint="?attr/colorOnSurface" />
+                                android:text="@string/admin_delete_pin"
+                                android:textColor="?attr/colorError"
+                                app:strokeColor="?attr/colorError" />
                         </LinearLayout>
+
+                        <!-- Recovery Methods Section -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/admin_recovery_title"
+                            android:textStyle="bold"
+                            android:textSize="14sp"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <TextView
+                            android:id="@+id/text_recovery_status_parent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="親端末で復旧: 未設定"
+                            android:textSize="12sp"
+                            tools:ignore="HardcodedText" />
+
+                        <TextView
+                            android:id="@+id/text_recovery_status_auth_app"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="認証アプリで復旧: 未設定"
+                            android:textSize="12sp"
+                            tools:ignore="HardcodedText" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_setup_authenticator"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/admin_setup_authenticator"
+                            app:icon="@drawable/ic_security_24"
+                            app:iconGravity="textStart"
+                            app:iconPadding="6dp"
+                            app:iconTint="?attr/colorOnSurface" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/admin_setup_authenticator_desc"
+                            android:textSize="11sp"
+                            android:paddingTop="4dp"
+                            android:paddingBottom="12dp"
+                            android:textColor="?attr/colorOnSurface"/>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_accessibility_lock"
@@ -877,28 +792,6 @@
                             android:textColor="?attr/colorOnSurface"
                             tools:ignore="HardcodedText" />
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="?attr/colorOutlineVariant"
-                            android:layout_marginVertical="8dp"/>
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_enable_long_press"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="タイトル長押しで管理画面"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnSurface"/>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="ONにすると、TOP画面のタイトルを長押しでPIN入力なしでこの画面を開けます。"
-                            android:textSize="12sp"
-                            android:paddingBottom="16dp"
-                            android:textColor="?attr/colorOnSurface"
-                            tools:ignore="HardcodedText" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

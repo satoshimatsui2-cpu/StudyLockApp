@@ -85,9 +85,9 @@
     <string name="label_auto_play_audio">自動再生</string>
 
     <string name="admin_lock_title">管理者画面のロック</string>
-    <string name="admin_lock_desc">毎回PINを要求します</string>
+    <string name="admin_lock_desc">設定変更にPIN入力を必要にします</string>
     <string name="admin_lock_enabled">管理者画面のロックを有効にしました</string>
-    <string name="admin_lock_disabled">管理者画面のロックを無効にしました</string>
+    <string name="admin_lock_disabled">管理者画面のロックを一時的に無効にしました</string>
     <string name="admin_hide_button_enabled">管理者設定ボタンを隠しました</string>
     <string name="admin_hide_button_disabled">管理者設定ボタンを表示します</string>
 
@@ -118,16 +118,39 @@
     <string name="admin_select_lock_apps">ロックするアプリを選択する</string>
     <string name="admin_open_timezone_settings">タイムゾーン設定を開く</string>
     
-    <string name="admin_setup_authenticator">Authenticator設定</string>
-    <string name="admin_setup_authenticator_desc">PINを忘れた場合のリセット手段</string>
-    <string name="totp_setup_title">Authenticator設定</string>
+    <string name="admin_setup_authenticator">復旧用認証アプリの設定</string>
+    <string name="admin_setup_authenticator_desc">Google Authenticator等の認証アプリを使って、PINを忘れた時に解除できるようにします。</string>
+    <string name="totp_setup_title">復旧用認証アプリの設定</string>
     <string name="totp_setup_desc">Google Authenticator等のアプリでQRコードをスキャンしてください。</string>
     <string name="totp_verify_hint">6桁のコード</string>
     <string name="totp_verify_btn">確認して有効化</string>
     <string name="totp_incorrect">コードが違います</string>
-    <string name="totp_setup_complete">Authenticatorを設定しました</string>
+    <string name="totp_setup_complete">認証アプリを設定しました</string>
     <string name="totp_enter_code_title">認証コード入力</string>
     <string name="totp_reset_pin_success">認証成功: PINをリセットしました。</string>
+
+    <!-- Admin Security Redesign -->
+    <string name="admin_delete_pin">管理者ロックを解除（PINを削除）</string>
+    <string name="admin_delete_pin_confirm_title">管理者ロックを解除しますか？</string>
+    <string name="admin_delete_pin_confirm_msg">解除すると、誰でもポイント還元率や制限アプリを変更できるようになります。PINおよび復旧用の設定もすべて削除されます。</string>
+    <string name="admin_delete_pin_action">解除する</string>
+    <string name="admin_delete_pin_success">管理者ロックを解除し、PINを削除しました</string>
+
+    <string name="admin_recovery_title">復旧方法の状況</string>
+    <string name="admin_recovery_parent">親端末で復旧: %1$s</string>
+    <string name="admin_recovery_auth_app">認証アプリで復旧: %1$s</string>
+    <string name="admin_status_configured">設定済み</string>
+    <string name="admin_status_not_configured">未設定</string>
+
+    <string name="admin_warning_no_recovery_title">復旧方法が設定されていません</string>
+    <string name="admin_warning_no_recovery_msg">復旧方法が設定されていません。PINを忘れると、管理者設定を開けなくなる可能性があります。親端末の連携、または認証アプリの設定をおすすめします。</string>
+    <string name="admin_action_setup_recovery">復旧方法を設定する</string>
+    <string name="admin_action_enable_anyway">リスクを理解してONにする</string>
+
+    <string name="admin_recovery_choice_title">復旧方法を選択</string>
+    <string name="admin_recovery_method_parent">親端末に一時PINを送信</string>
+    <string name="admin_recovery_method_auth_app">認証アプリの6桁コードを入力</string>
+    <string name="admin_recovery_no_methods">復旧方法が設定されていません</string>
 
     <!-- Learning Modes -->
     <string name="mode_meaning">英単語→日本語</string>

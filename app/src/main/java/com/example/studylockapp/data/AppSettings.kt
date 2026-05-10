@@ -43,7 +43,6 @@ class AppSettings(context: Context) {
         // --- Administrative ---
         private const val KEY_UNINSTALL_LOCK = "key_uninstall_lock"
         private const val KEY_HAS_SHOWN_ACCESSIBILITY_INTRO = "hasShownAccessibilityIntro"
-        private const val KEY_ENABLE_ADMIN_LONG_PRESS = "enable_admin_long_press"
         private const val KEY_ACCESSIBILITY_ENABLED_NOTIFIED = "accessibility_enabled_notified"
         private const val KEY_LAST_ACCESSIBILITY_ENABLED = "last_accessibility_enabled"
 
@@ -139,11 +138,6 @@ class AppSettings(context: Context) {
     var hasResetMasteryForFix: Boolean
         get() = prefs.getBoolean(KEY_HAS_RESET_MASTERY_FOR_FIX, false)
         set(value) = prefs.edit { putBoolean(KEY_HAS_RESET_MASTERY_FOR_FIX, value) }
-
-    fun isEnableAdminLongPress(): Boolean = prefs.getBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, true)
-    fun setEnableAdminLongPress(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_ENABLE_ADMIN_LONG_PRESS, enabled) }
-    }
 
     private fun readVolumePercent(key: String, defaultPercent: Int): Int {
         val v = prefs.all[key]

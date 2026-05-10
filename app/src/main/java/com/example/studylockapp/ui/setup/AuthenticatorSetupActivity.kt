@@ -6,11 +6,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
-import android.view.inputmethod.InputMethodManager
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AdminAuthManager
 import com.google.android.material.button.MaterialButton
@@ -28,6 +31,14 @@ class AuthenticatorSetupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authenticator_setup)
 
+        val root = findViewById<View>(R.id.authenticator_setup_root)
+        val initialPaddingTop = root.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.updatePadding(top = initialPaddingTop + statusBars.top)
+            insets
+        }
+
         // Generate new secret (not saved yet)
         secretKey = AdminAuthManager.generateTotpSecretKey()
 
@@ -43,7 +54,6 @@ class AuthenticatorSetupActivity : AppCompatActivity() {
         val btnCancel = findViewById<MaterialButton>(R.id.btn_cancel)
 
         // Build otpauth URI
-        // URI Format: otpauth://totp/Label:Account?secret=Secret&issuer=Issuer
         val appName = getString(R.string.app_name)
         val secretBase32 = AdminAuthManager.toBase32(secretKey)
         val uri = "otpauth://totp/$appName:Admin?secret=$secretBase32&issuer=$appName"
@@ -73,25 +83,6 @@ class AuthenticatorSetupActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Verify using the temporary secret
-            // We need to temporarily set the secret to verify, or we need to expose verify method that takes secret
-            // Since AdminAuthManager.verifyTotp reads from Prefs, we should verify manually here using internal method logic
-            // But AdminAuthManager.verifyTotp is tied to prefs.
-            // Let's use a trick: save it temporarily? No, unsafe.
-            // Better: Add a verify method that takes secret in AdminAuthManager or just use the logic here?
-            // To keep encapsulation, let's just save it. If verify fails, user won't leave screen anyway?
-            // Actually better to verify BEFORE saving to avoid overwriting existing valid secret with invalid one.
-            
-            // Let's allow saving first? No.
-            // Let's implement a verify helper in AdminAuthManager that accepts secret.
-            // For now, I'll temporarily save it, verify, and if fail revert? No complex.
-            // I'll update AdminAuthManager to have a verify method accepting secret bytes.
-            
-            // Wait, I can't easily modify AdminAuthManager again in this single step. 
-            // I will save it. If the user doesn't complete verification, they have a set secret they don't know?
-            // True. 
-            // Let's replicate the verify logic locally here since it's simple.
-            
             if (verifyTotpLocally(secretKey, code)) {
                 // Success! Save permanently
                 AdminAuthManager.setTotpSecret(this, secretKey)

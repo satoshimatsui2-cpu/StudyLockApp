@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_app_lock_layout"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:paddingTop="32dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp"
     android:background="?attr/colorSurface">
 
     <!-- UI簡略化のため非表示。内部的には lockedApps の有無で判定する -->
@@ -12,7 +14,7 @@
         android:id="@+id/switch_enable_lock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="24dp"
         android:layout_gravity="start"
         android:text="@string/app_lock_enable"
         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
@@ -23,7 +25,7 @@
         android:id="@+id/text_lock_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="16dp"
+        android:paddingTop="8dp"
         android:text="@string/app_lock_hint"
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
         android:textStyle="bold"

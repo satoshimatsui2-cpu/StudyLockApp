@@ -5,6 +5,9 @@ import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.studylockapp.R
@@ -38,6 +41,13 @@ class LearningHistoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLearningHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Status bar inset handling
+        ViewCompat.setOnApplyWindowInsetsListener(binding.appBar) { view, insets ->
+            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.updatePadding(top = statusBars.top)
+            insets
+        }
 
         mapper = WordHistoryMapper(this)
         
@@ -86,7 +96,7 @@ class LearningHistoryActivity : AppCompatActivity() {
             putExtra("WORD_MEANING", item.japanese)
             putExtra("WORD_SENTENCE", item.sentence)
             putExtra("WORD_SENTENCE_JA", item.japaneseSentence)
-            putExtra("WORD_GRADE", item.grade.toString()) // 2. WORD_GRADE を追加
+            putExtra("WORD_GRADE", item.grade.toString())
             putExtra("CHECK_TYPE", type)
         }
         startActivity(intent)
@@ -169,7 +179,6 @@ class LearningHistoryActivity : AppCompatActivity() {
                     }
                 } else emptyList()
                 
-                // Group results by wordId and checkType
                 val wordCheckedSet = voiceResults.filter { it.checkType == "word" && it.checked }.map { it.wordId }.toSet()
                 val sentenceCheckedSet = voiceResults.filter { it.checkType == "sentence" && it.checked }.map { it.wordId }.toSet()
                 
