@@ -1,19 +1,16 @@
 package com.example.studylockapp.service
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.studylockapp.ui.alert.AppDialogHelper
 
 /**
  * 通知権限の確認と誘導を行うヘルパー
@@ -58,16 +55,18 @@ class NotificationPermissionHelper(private val activity: AppCompatActivity) {
     }
 
     private fun showSettingsGuidanceDialog() {
-        MaterialAlertDialogBuilder(activity)
-            .setTitle("通知をオンにしてください")
-            .setMessage("学習リマインダーやロック解除に関するお知らせを受け取るため、通知をオンにしてください。")
-            .setPositiveButton("設定を開く") { _, _ ->
+        AppDialogHelper.showConfirm(
+            context = activity,
+            title = "通知をオンにしてください",
+            message = "学習リマインダーやロック解除に関するお知らせを受け取るため、通知をオンにしてください。",
+            positiveText = "設定を開く",
+            negativeText = "あとで",
+            onPositive = {
                 val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                     putExtra(Settings.EXTRA_APP_PACKAGE, activity.packageName)
                 }
                 activity.startActivity(intent)
             }
-            .setNegativeButton("あとで", null)
-            .show()
+        )
     }
 }

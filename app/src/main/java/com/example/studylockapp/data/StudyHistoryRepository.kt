@@ -214,7 +214,7 @@ object StudyHistoryRepository {
 
             val updates: Map<String, Any> = hashMapOf(
                 "usedPoints" to FieldValue.increment(usedPoints.toLong()),
-                "unlockRecords" to FieldValue.arrayUnion(record), // 新形式: unlockRecordsに保存
+                "unlockRecords" to FieldValue.arrayUnion(record),
                 "updatedAt" to FieldValue.serverTimestamp()
             )
 
@@ -229,12 +229,21 @@ object StudyHistoryRepository {
     /**
      * マスター数を保存する。
      */
-    suspend fun updateMasteryCounts(shortCount: Int, longCount: Int) {
+    suspend fun updateMasteryCounts(
+        lv1: Int,
+        lv2: Int,
+        lv3: Int,
+        shortCount: Int,
+        longCount: Int
+    ) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
         val todayStr = todayTokyoStr()
 
         val updates = hashMapOf(
+            "lv1Count" to lv1.toLong(),
+            "lv2Count" to lv2.toLong(),
+            "lv3Count" to lv3.toLong(),
             "shortMasterCount" to shortCount.toLong(),
             "longMasterCount" to longCount.toLong(),
             "updatedAt" to FieldValue.serverTimestamp()

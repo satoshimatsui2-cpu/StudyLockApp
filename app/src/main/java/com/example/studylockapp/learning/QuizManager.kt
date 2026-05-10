@@ -199,11 +199,7 @@ class QuizManager(
 
         masteryDao.insertOrUpdate(mastery)
 
-        // 3. マスター累計数をFirestoreに同期
-        // TODO: 毎問書き込みは負荷が高いため、将来的には学習セッション終了時などにまとめて保存することを検討
-        val short = getMasteryCount(MasteryTier.BASIC_MASTER)
-        val long = getMasteryCount(MasteryTier.LONG_TERM_MASTER)
-        StudyHistoryRepository.updateMasteryCounts(short, long)
+        // 3. マスター累計数のFirestore同期は ViewModel で非同期に実行するためここでは行わない
     }
 
     suspend fun getMasteryCount(tier: MasteryTier): Int = withContext(Dispatchers.IO) {

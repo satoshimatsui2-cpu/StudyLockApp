@@ -4,7 +4,7 @@ import * as admin from "firebase-admin";
 admin.initializeApp();
 const db = admin.firestore();
 
-// ===== 共通ユーティリティ（Tokyo固定）=====
+// ===== 共通ユーティリティ =====
 function formatTokyoDateYYYYMMDD(dateObj: Date): string {
   const fmt = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -21,6 +21,32 @@ function formatTokyoDateYYYYMMDD(dateObj: Date): string {
 
 function formatTokyoTimestamp(): string {
   return new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+}
+
+/**
+ * グレード表示の変換
+ * 1 -> 5級, 2 -> 4級, 3 -> 3級, 4 -> 準2級, 5 -> 2級, 6 -> 準1級, 7 -> 1級
+ */
+function formatGradeLabel(rawGrade: any): string {
+  const raw = String(rawGrade ?? "").trim();
+
+  // すでに表示名で来た場合
+  if (raw === "5級" || raw === "4級" || raw === "3級" || raw === "準2級" || raw === "2級" || raw === "準1級" || raw === "1級") {
+    return raw;
+  }
+
+  const g = raw.replace("級", "").trim();
+
+  switch (g) {
+    case "1": return "5級";
+    case "2": return "4級";
+    case "3": return "3級";
+    case "4": return "準2級";
+    case "5": return "2級";
+    case "6": return "準1級";
+    case "7": return "1級";
+    default: return raw ? `${raw}級` : "不明";
+  }
 }
 
 // ■ 1. 解除コード通知（子供→親）
@@ -148,7 +174,6 @@ export const sendDailyReport = functions
     const yesterday = new Date(now.toMillis() - 24 * 60 * 60 * 1000);
     const dateStr = formatTokyoDateYYYYMMDD(yesterday);
 
-    // 東京日付ベースの表示用日付 (M/D)
     const [_, mm, dd] = dateStr.split("-");
     const displayDate = `${Number(mm)}/${Number(dd)}`;
 
@@ -200,8 +225,6 @@ export const sendDailyReport = functions
 
       const stats = statsDoc.data() || {};
 
-      // 1万人規模を見据えた明細削除後の考慮
-      // 1. すでに詳細削除済みなら保存されたレポートテキストを再利用可能にする（今回は新規送信）
       if (stats.detailDeleted === true && stats.reportText) {
          console.log(`[DailyReport] Detailed records already deleted for uid: ${uid}. Skipping.`);
          continue;
@@ -219,24 +242,19 @@ export const sendDailyReport = functions
 
       const gradeMap: Record<string, { total: number, correct: number }> = {};
       let voiceCheckCount = 0;
-      let voiceWordCheckCount = 0;
-      let voiceSentenceCheckCount = 0;
       let voiceBadgeCount = 0;
       let voiceBonusPoints = 0;
       const unlockMap: Record<string, { mins: number, pts: number }> = {};
 
       allRecords.forEach((r: any) => {
         const type = r.type || r.mode;
-        if (type === "study") {
-          const rawGrade = r.grade !== undefined && r.grade !== null ? String(r.grade) : "不明";
-          const g = (rawGrade === "不明" || rawGrade.endsWith("級")) ? rawGrade : `${rawGrade}級`;
+        if (type === "study" || type === "EN_TO_JP" || type === "JP_TO_EN") {
+          const g = formatGradeLabel(r.grade);
           if (!gradeMap[g]) gradeMap[g] = { total: 0, correct: 0 };
           gradeMap[g].total++;
           if (r.isCorrect === true) gradeMap[g].correct++;
         } else if (type === "voice_check") {
           voiceCheckCount++;
-          if (r.checkType === "word") voiceWordCheckCount++;
-          if (r.checkType === "sentence") voiceSentenceCheckCount++;
         } else if (type === "voice_bonus") {
           voiceBadgeCount++;
           voiceBonusPoints += Number(r.earnedPoints || r.points || 0);
@@ -275,12 +293,17 @@ export const sendDailyReport = functions
         unlockText = `解放: あり（${usedPoints}pt使用）`;
       }
 
-      const sMaster = stats.shortMasterCount || 0;
-      const lMaster = stats.longMasterCount || 0;
+      // マスター累計の拡張
+      const lv1 = Number(stats.lv1Count ?? stats.masteryLevelCounts?.lv1 ?? 0);
+      const lv2 = Number(stats.lv2Count ?? stats.masteryLevelCounts?.lv2 ?? 0);
+      const lv3 = Number(stats.lv3Count ?? stats.masteryLevelCounts?.lv3 ?? 0);
+      const shortMaster = Number(stats.shortMasterCount ?? stats.masteryLevelCounts?.shortMaster ?? 0);
+      const longMaster = Number(stats.longMasterCount ?? stats.masteryLevelCounts?.longMaster ?? 0);
+      const masterText = `マスター累計: Lv1：${lv1}語 / Lv2：${lv2}語 / Lv3：${lv3}語 / ★${shortMaster}語 / 🏆${longMaster}語`;
+
       const accEnabled = userData.accessibilityEnabled ? "ON" : "OFF";
 
-      // 送信・保存用の全文レポートテキストを生成
-      const reportText = `獲得: ${points}pt / 使用: ${usedPoints}pt\n${studyText}\n${voiceText}\nマスター累計: 短期${sMaster}語 / 長期${lMaster}語\n${unlockText}\n監視: アクセシビリティ${accEnabled}`;
+      const reportText = `獲得: ${points}pt / 使用: ${usedPoints}pt\n${studyText}\n${voiceText}\n${masterText}\n${unlockText}\n監視: アクセシビリティ${accEnabled}`;
 
       const reportSummary = {
         points,
@@ -288,8 +311,11 @@ export const sendDailyReport = functions
         studyCount: stats.studyCount || 0,
         voiceCheckCount,
         unlockCount: unlockEntries.length,
-        shortMasterCount: sMaster,
-        longMasterCount: lMaster
+        lv1Count: lv1,
+        lv2Count: lv2,
+        lv3Count: lv3,
+        shortMasterCount: shortMaster,
+        longMasterCount: longMaster
       };
 
       const parentsSnapshotInner = await db.collection("users").doc(uid).collection("parents").get();
@@ -315,9 +341,6 @@ export const sendDailyReport = functions
       if (sendPromises.length > 0) {
         try {
           await Promise.all(sendPromises);
-
-          // 送信成功時のみ明細を削除し、結果を保存
-          // detailDeleted: true は「旧形式の配列明細を削除済み」を意味する
           await statsDoc.ref.update({
             reportText: reportText,
             reportSummary: reportSummary,

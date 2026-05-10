@@ -8,10 +8,14 @@ import com.example.studylockapp.databinding.LayoutReviewCardBinding
 
 /**
  * レビューカードの表示（バインド）を担当するクラス。
- * synonyms / antonyms の表示ロジックを追加しました。
  */
 object ReviewCardBinder {
-    fun bind(binding: LayoutReviewCardBinding, model: ReviewCardUiModel) {
+    fun bind(
+        binding: LayoutReviewCardBinding, 
+        model: ReviewCardUiModel,
+        onPlayUserAnswer: (String) -> Unit,
+        onPlayCorrectAnswer: (String) -> Unit
+    ) {
         val context = binding.root.context
         
         // 1. 基本情報
@@ -19,39 +23,48 @@ object ReviewCardBinder {
         binding.chipReviewMode.setChipIconResource(model.modeChipIconRes)
         binding.textReviewQuestionText.text = model.questionText
 
-        // 2. 排他表示制御 (リスニング不正解 vs 通常)
-        if (model.showListeningCompare) {
-            binding.containerResults.visibility = View.GONE
-            binding.layoutReviewPhoneticRow.visibility = View.GONE
-            binding.layoutListeningCompare.visibility = View.VISIBLE
-            
-            // 「わからない」の場合は、ユーザー回答(左側)を非表示にする
-            binding.includeWrong.root.visibility = if (model.isUnknownAnswer) View.GONE else View.VISIBLE
-            
-            binding.includeWrong.apply {
-                labelCompare.text = context.getString(R.string.review_label_your_answer)
-                labelCompare.setTextColor(ContextCompat.getColor(context, R.color.choice_wrong))
-                textWord.text = model.wrongAnswerText
-                textPhonetic.visibility = View.GONE
-            }
-            binding.includeCorrect.apply {
-                labelCompare.text = context.getString(R.string.review_label_correct_answer)
-                labelCompare.setTextColor(ContextCompat.getColor(context, R.color.choice_correct))
-                textWord.text = model.correctAnswerText
-                textPhonetic.visibility = View.GONE
+        // 2. 排他表示制御
+        // 旧来の「聞き比べエリア」は結果エリアに統合されたため、常に非表示
+        binding.layoutListeningCompare.visibility = View.GONE
+        binding.containerResults.visibility = View.VISIBLE
+        binding.layoutReviewPhoneticRow.visibility = View.GONE
+
+        // 正誤ブロックの表示制御
+        val showWrong = model.showWrongResult && !model.isUnknownAnswer
+        binding.layoutResultWrong.visibility = if (showWrong) View.VISIBLE else View.GONE
+        binding.textReviewAnswerWrong.text = model.wrongAnswerText
+        binding.textReviewAnswerCorrect.text = model.correctAnswerText
+
+        // --- 結果エリアの音声再生制御 (QuizModeに基づく判定) ---
+
+        // 正解エリア
+        if (model.canPlayCorrectAnswer) {
+            binding.iconPlayCorrect.visibility = View.VISIBLE
+            binding.layoutResultCorrect.isClickable = true
+            binding.layoutResultCorrect.setOnClickListener {
+                onPlayCorrectAnswer(model.correctAnswerText)
             }
         } else {
-            binding.containerResults.visibility = View.VISIBLE
-            binding.layoutReviewPhoneticRow.visibility = View.GONE
-            binding.layoutListeningCompare.visibility = View.GONE
-
-            // 通常の4択などで「わからない」の場合は、誤答表示ブロック全体を非表示にする
-            val showWrong = model.showWrongResult && !model.isUnknownAnswer
-            binding.layoutResultWrong.visibility = if (showWrong) View.VISIBLE else View.GONE
-
-            binding.textReviewAnswerWrong.text = model.wrongAnswerText
-            binding.textReviewAnswerCorrect.text = model.correctAnswerText
+            binding.iconPlayCorrect.visibility = View.GONE
+            binding.layoutResultCorrect.setOnClickListener(null)
+            binding.layoutResultCorrect.isClickable = false
         }
+
+        // 不正解エリア
+        if (model.canPlayWrongAnswer && showWrong) {
+            binding.iconPlayWrong.visibility = View.VISIBLE
+            binding.layoutResultWrong.isClickable = true
+            binding.layoutResultWrong.setOnClickListener {
+                onPlayUserAnswer(model.wrongAnswerText)
+            }
+        } else {
+            binding.iconPlayWrong.visibility = View.GONE
+            binding.layoutResultWrong.setOnClickListener(null)
+            binding.layoutResultWrong.isClickable = false
+        }
+
+        // 結果エリア外の単語音声コントロール (EN_TO_JP等、結果エリアで再生できない場合に表示)
+        binding.layoutAudioControls.visibility = if (model.showAudioControls) View.VISIBLE else View.GONE
 
         // 3. 惜しい不正解 (Synonym Hint)
         if (!model.synonymHintTitle.isNullOrEmpty()) {
@@ -83,13 +96,11 @@ object ReviewCardBinder {
         binding.textReviewSentence.text = model.sentence
         binding.textReviewSentenceJp.text = model.sentenceJp
 
-        // 6. 再生ボタン制御
+        // 6. 再生ボタン制御 (例文再生など)
         val alpha = if (model.playButtonsEnabled) 1.0f else 0.3f
         listOf(
             binding.buttonPlayReviewWord,
-            binding.buttonPlayReviewSentence,
-            binding.includeWrong.buttonPlay,
-            binding.includeCorrect.buttonPlay
+            binding.buttonPlayReviewSentence
         ).forEach {
             it.isEnabled = model.playButtonsEnabled
             it.alpha = alpha

@@ -30,6 +30,9 @@
     <color name="text_sub">#5B667A</color>
 
     <!-- ダイアログ用カラー -->
+    <color name="dialog_surface">#FFFDF7</color>
+    <color name="dialog_text_primary">#1F2937</color>
+    <color name="dialog_text_secondary">#374151</color>
     <color name="dialog_button_light_blue">#90CAF9</color>
     <color name="dialog_background_dark">#323232</color>
 

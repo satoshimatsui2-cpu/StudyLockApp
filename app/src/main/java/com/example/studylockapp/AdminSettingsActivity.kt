@@ -27,6 +27,7 @@ import com.example.studylockapp.learning.QuizMode
 import com.example.studylockapp.service.AccessibilityUtils
 import com.example.studylockapp.service.AppLockAccessibilityService
 import com.example.studylockapp.ui.QrCodeActivity
+import com.example.studylockapp.ui.alert.AppDialogHelper
 import com.example.studylockapp.ui.applock.AppLockSettingsActivity
 import com.example.studylockapp.ui.setup.AuthenticatorSetupActivity
 import com.google.android.material.button.MaterialButton
@@ -243,16 +244,19 @@ class AdminSettingsActivity : AppCompatActivity() {
 
                         itemView.findViewById<View>(R.id.btn_delete_child).setOnClickListener {
                             it.isEnabled = false
-                            MaterialAlertDialogBuilder(this)
-                                .setTitle(coloredTitle(getString(R.string.pairing_delete_confirm_title)))
-                                .setMessage(getString(R.string.pairing_delete_confirm_msg, childName))
-                                .setPositiveButton(R.string.pairing_delete_action) { _, _ ->
+                            AppDialogHelper.showConfirm(
+                                context = this,
+                                title = getString(R.string.pairing_delete_confirm_title),
+                                message = getString(R.string.pairing_delete_confirm_msg, childName),
+                                positiveText = getString(R.string.pairing_delete_action),
+                                negativeText = getString(R.string.cancel),
+                                onPositive = {
                                     deleteChildRelationship(myUid, childId)
-                                }
-                                .setNegativeButton(R.string.cancel) { _, _ ->
+                                },
+                                onNegative = {
                                     it.isEnabled = true
                                 }
-                                .show()
+                            )
                         }
                         containerManagedChildren.addView(itemView)
                     }

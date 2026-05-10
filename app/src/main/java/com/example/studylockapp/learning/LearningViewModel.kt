@@ -409,12 +409,27 @@ class LearningViewModel(
             val wordText = currentQuiz.word.word
             val gp = gainedPoints
             viewModelScope.launch(Dispatchers.IO) {
+                // 学習結果の保存
                 StudyHistoryRepository.save(
                     grade = gradeStr,
                     mode = modeName,
                     isCorrect = isCorrect,
                     points = gp,
                     word = wordText
+                )
+                
+                // マスター累計の同期 (拡張版)
+                val lv1 = masteryDao.countByLevel(1)
+                val lv2 = masteryDao.countByLevel(2)
+                val lv3 = masteryDao.countByLevel(3)
+                val short = masteryDao.countBasicMastered()
+                val long = masteryDao.countLongTermMastered()
+                StudyHistoryRepository.updateMasteryCounts(
+                    lv1 = lv1,
+                    lv2 = lv2,
+                    lv3 = lv3,
+                    shortCount = short,
+                    longCount = long
                 )
             }
         }

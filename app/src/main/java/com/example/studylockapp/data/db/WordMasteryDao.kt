@@ -14,6 +14,12 @@ interface WordMasteryDao {
     suspend fun getDueMasteries(now: Long): List<WordMasteryEntity>
 
     /**
+     * 指定レベルの単語数をカウント
+     */
+    @Query("SELECT COUNT(*) FROM word_mastery WHERE level = :level")
+    suspend fun countByLevel(level: Int): Int
+
+    /**
      * 基礎マスター数の集計
      * フラグではなく実力値（レベル5以上 + 全モード最低正解数）を直接カウントする
      */
@@ -21,7 +27,7 @@ interface WordMasteryDao {
         SELECT COUNT(*) FROM word_mastery 
         WHERE level >= 5 
         AND enToJpCorrects >= 1 
-        AND jpToEnCorrects >= 2 
+        AND jpToEnCorrects >= 1
         AND listenCorrects >= 1
     """)
     suspend fun countBasicMastered(): Int

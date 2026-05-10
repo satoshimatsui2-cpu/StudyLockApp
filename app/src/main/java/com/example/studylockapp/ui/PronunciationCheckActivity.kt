@@ -28,7 +28,7 @@ import com.example.studylockapp.data.PointHistoryEntity
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.StudyHistoryRepository
 import com.example.studylockapp.databinding.ActivityPronunciationCheckBinding
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.studylockapp.ui.alert.AppDialogHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -552,14 +552,16 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     }
 
     private fun showRecordingDisclosure() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.recording_disclosure_title)
-            .setMessage(R.string.recording_disclosure_message)
-            .setPositiveButton(R.string.ok) { _, _ ->
+        AppDialogHelper.showConfirm(
+            context = this,
+            title = getString(R.string.recording_disclosure_title),
+            message = getString(R.string.recording_disclosure_message),
+            positiveText = getString(R.string.ok),
+            negativeText = getString(R.string.cancel),
+            onPositive = {
                 requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        )
     }
 
     private fun startListening() {

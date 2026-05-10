@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -24,6 +23,7 @@ import com.example.studylockapp.learning.*
 import com.example.studylockapp.data.SilentMode
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.ui.PronunciationCheckActivity
+import com.example.studylockapp.ui.alert.AppDialogHelper
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -200,10 +200,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             binding.cardQuestion.visibility = View.GONE
             binding.layoutReviewCard.rootReviewCard.visibility = View.VISIBLE
             binding.layoutAssistButtons.visibility = View.GONE 
-            ReviewCardBinder.bind(binding.layoutReviewCard, ReviewCardMapper.map(state))
-            
-            val isSortMode = state.quiz?.mode == QuizMode.SENTENCE_SORT
-            binding.layoutReviewCard.buttonPlayReviewWord.visibility = if (isSortMode) View.GONE else View.VISIBLE
+            ReviewCardBinder.bind(
+                binding.layoutReviewCard, 
+                ReviewCardMapper.map(state),
+                onPlayUserAnswer = { text -> viewModel.requestAudioPlayback(text) },
+                onPlayCorrectAnswer = { text -> viewModel.requestAudioPlayback(text) }
+            )
         } else {
             binding.layoutReviewCard.rootReviewCard.visibility = View.GONE
             binding.cardQuestion.visibility = View.VISIBLE
@@ -390,18 +392,22 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun showSilentModeExplanationDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.silent_mode_explanation_title)
-            .setMessage(R.string.silent_mode_explanation_body)
-            .setPositiveButton(R.string.ok, null)
-            .show()
+        AppDialogHelper.showInfo(
+            context = this,
+            title = getString(R.string.silent_mode_explanation_title),
+            message = getString(R.string.silent_mode_explanation_body),
+            positiveText = getString(R.string.ok)
+        )
     }
 
     private fun showLevel5BonusInductionDialog(word: WordEntity) {
-        AlertDialog.Builder(this)
-            .setTitle("🎉 LV5達成！")
-            .setMessage("発音チェックに挑戦すると、🎙 発音OKバッジと10ptがもらえます。\nあとで履歴画面から挑戦することもできます。")
-            .setPositiveButton("発音チェックする") { _, _ ->
+        AppDialogHelper.showConfirm(
+            context = this,
+            title = "🎉 LV5達成！",
+            message = "発音チェックに挑戦すると、🎙 発音OKバッジと10ptがもらえます。\nあとで履歴画面から挑戦することもできます。",
+            positiveText = "発音チェックする",
+            negativeText = "あとで",
+            onPositive = {
                 val intent = Intent(this, PronunciationCheckActivity::class.java).apply {
                     putExtra("WORD_ID", word.no.toLong())
                     putExtra("WORD_TEXT", word.word)
@@ -414,8 +420,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
                 pronunciationLauncher.launch(intent)
             }
-            .setNegativeButton("あとで", null)
-            .show()
+        )
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -460,7 +465,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         }
     }
 
-    // --- 選択肢カバー関連のメソッド ---
+    // --- 選択肢カバー関連 of theメソッド ---
 
     private fun toggleChoicesInitialVisibility() {
         val nextValue = !viewModel.uiState.value.choicesInitiallyVisible

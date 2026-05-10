@@ -26,10 +26,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_sub"
-                android:textSize="11sp"
+                android:textSize="14sp"
                 app:chipBackgroundColor="@color/app_background"
-                app:chipIcon="@drawable/ic_hearing_24"
-                app:chipIconSize="14dp"
+                app:chipIcon="@drawable/ic_headphones_24"
+                app:chipIconSize="20dp"
+                app:chipIconTint="@color/text_sub"
                 app:chipStrokeWidth="0dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -60,23 +61,39 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:background="@drawable/shape_result_card_wrong"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:padding="12dp">
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="@string/review_label_your_answer"
-                        android:textColor="@color/choice_wrong"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:id="@+id/text_review_answer_wrong"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/text_main"
-                        android:textSize="16sp"
-                        tools:text="永続的な" />
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/review_label_your_answer"
+                            android:textColor="@color/choice_wrong"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/text_review_answer_wrong"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/text_main"
+                            android:textSize="18sp"
+                            tools:text="永続的な" />
+                    </LinearLayout>
+                    <ImageView
+                        android:id="@+id/icon_play_wrong"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_volume_up_24"
+                        app:tint="@color/choice_wrong"
+                        android:visibility="gone"
+                        tools:visibility="visible"
+                        android:contentDescription="@null" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -84,24 +101,40 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/shape_result_card_correct"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:padding="12dp">
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="@string/review_label_correct_answer"
-                        android:textColor="@color/choice_correct"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:id="@+id/text_review_answer_correct"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/text_main"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        tools:text="持続する" />
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/review_label_correct_answer"
+                            android:textColor="@color/choice_correct"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/text_review_answer_correct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/text_main"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            tools:text="持続する" />
+                    </LinearLayout>
+                    <ImageView
+                        android:id="@+id/icon_play_correct"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_volume_up_24"
+                        app:tint="@color/choice_correct"
+                        android:visibility="gone"
+                        tools:visibility="visible"
+                        android:contentDescription="@null" />
                 </LinearLayout>
 
                 <!-- 惜しい不正解の説明 -->
@@ -134,6 +167,7 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- 削除予定/非表示の比較エリア -->
             <LinearLayout
                 android:id="@+id/layout_listening_compare"
                 android:layout_width="match_parent"
@@ -141,8 +175,7 @@
                 android:layout_marginTop="16dp"
                 android:orientation="vertical"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/container_results"
-                tools:visibility="visible">
+                app:layout_constraintTop_toBottomOf="@id/container_results">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -207,7 +240,9 @@
                         tools:text="/pərˈsɪstənt/" />
                 </LinearLayout>
 
+                <!-- 通常モード用の音声コントロール -->
                 <LinearLayout
+                    android:id="@+id/layout_audio_controls"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
@@ -228,68 +263,79 @@
                         android:textSize="14sp" />
                     <ImageButton
                         android:id="@+id/button_play_review_word"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_volume_up_24"
                         app:tint="@color/navy_primary"
                         android:contentDescription="@null" />
                 </LinearLayout>
 
+                <!-- English Sentence -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="20dp"
                     android:orientation="horizontal">
                     <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_marginTop="2dp"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginTop="4dp"
                         android:src="@drawable/ic_chat_bubble_outline_24"
                         app:tint="@color/text_sub"
                         android:contentDescription="@null" />
                     <TextView
                         android:id="@+id/text_review_sentence"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
                         android:textColor="@color/text_main"
-                        android:textSize="15sp"
+                        android:textSize="19sp"
                         tools:text="She was persistent in her efforts to learn English." />
                 </LinearLayout>
 
+                <!-- Japanese Translation & Play Button -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
+                    android:gravity="top"
                     android:orientation="horizontal">
                     <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_marginTop="2dp"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginTop="4dp"
                         android:src="@drawable/ic_translate_24"
                         app:tint="@color/text_sub"
                         android:contentDescription="@null" />
-                    <TextView
-                        android:id="@+id/text_review_sentence_jp"
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:textColor="@color/text_sub"
-                        android:textSize="13sp"
-                        tools:text="彼女は英語を学ぶために粘り強く努力した。" />
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_play_review_sentence"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:minHeight="0dp"
-                        android:padding="0dp"
-                        android:text="再生"
-                        android:textSize="12sp"
-                        app:icon="@drawable/ic_volume_up_24"
-                        app:iconSize="14dp" />
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/text_review_sentence_jp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_sub"
+                            android:textSize="17sp"
+                            tools:text="彼女は英語を学ぶために粘り強く努力した。" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_play_review_sentence"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:layout_gravity="end"
+                            android:minHeight="0dp"
+                            android:padding="0dp"
+                            android:text="再生"
+                            android:textSize="15sp"
+                            app:icon="@drawable/ic_volume_up_24"
+                            app:iconSize="20dp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- 反対の意味 -->

@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +20,7 @@ import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.db.LockedAppEntity
 import com.example.studylockapp.service.AppLockAccessibilityService
+import com.example.studylockapp.ui.alert.AppDialogHelper
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,7 +31,7 @@ class AppLockSettingsActivity : AppCompatActivity() {
 
     private lateinit var adapter: AppLockListAdapter
     private lateinit var settings: AppSettings
-    private var accessibilityDialog: AlertDialog? = null
+    private var isAccessibilityDialogOpen: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -159,7 +159,7 @@ class AppLockSettingsActivity : AppCompatActivity() {
     // --- アクセシビリティ誘導 ---
     private fun maybeShowAccessibilityDialog() {
         // すでに表示中なら再表示しない
-        if (accessibilityDialog?.isShowing == true) return
+        if (isAccessibilityDialogOpen) return
 
         val svcEnabled = isAppLockServiceEnabled()
         val isRequired = AdminAuthManager.isAppLockRequired(this)
@@ -170,26 +170,29 @@ class AppLockSettingsActivity : AppCompatActivity() {
             val shouldForce = settings.isAppLockEnabled() || lockedCount > 0
             if (!svcEnabled && shouldForce) {
                 withContext(Dispatchers.Main) {
-                    val msg = getString(R.string.app_lock_accessibility_message)
-                    val builder = AlertDialog.Builder(this@AppLockSettingsActivity)
-                        .setTitle(R.string.app_lock_accessibility_title)
-                        .setMessage(msg)
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.app_lock_accessibility_go_settings) { _, _ ->
+                    isAccessibilityDialogOpen = true
+                    AppDialogHelper.showConfirm(
+                        context = this@AppLockSettingsActivity,
+                        title = getString(R.string.app_lock_accessibility_title),
+                        message = getString(R.string.app_lock_accessibility_message),
+                        positiveText = getString(R.string.app_lock_accessibility_go_settings),
+                        negativeText = if (isRequired) "" else getString(R.string.app_lock_accessibility_disable_all),
+                        onPositive = {
+                            isAccessibilityDialogOpen = false
                             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             })
-                        }
-                    // 必須ONなら全解除ボタンを出さない
-                    if (!isRequired) {
-                        builder.setNegativeButton(R.string.app_lock_accessibility_disable_all) { _, _ ->
-                            lifecycleScope.launch(Dispatchers.IO) {
-                                settings.setAppLockEnabled(false)
-                                db.lockedAppDao().disableAllLocks()
+                        },
+                        onNegative = {
+                            isAccessibilityDialogOpen = false
+                            if (!isRequired) {
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    settings.setAppLockEnabled(false)
+                                    db.lockedAppDao().disableAllLocks()
+                                }
                             }
                         }
-                    }
-                    accessibilityDialog = builder.show()
+                    )
                 }
             }
         }

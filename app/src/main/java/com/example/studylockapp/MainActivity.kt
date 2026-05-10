@@ -16,6 +16,7 @@ import com.example.studylockapp.service.NotificationPermissionHelper
 import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
+import com.example.studylockapp.ui.alert.AppDialogHelper
 import kotlinx.coroutines.launch
 
 /**
@@ -96,14 +97,16 @@ class MainActivity : AppCompatActivity() {
      * 目標級設定を促すアラートを表示
      */
     private fun showTargetGradeSetupAlert() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("目標設定が必要です")
-            .setMessage("学習を始める前に、管理者設定から目標とする級を設定してください。")
-            .setPositiveButton("設定へ") { _, _ ->
+        AppDialogHelper.showConfirm(
+            context = this,
+            title = "目標設定が必要です",
+            message = "学習を始める前に、管理者設定から目標とする級を設定してください。",
+            positiveText = "設定へ",
+            negativeText = "あとで",
+            onPositive = {
                 startActivity(Intent(this, AdminSettingsActivity::class.java))
             }
-            .setNegativeButton("あとで", null)
-            .show()
+        )
     }
 
     /**
