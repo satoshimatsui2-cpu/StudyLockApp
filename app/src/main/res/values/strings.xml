@@ -41,7 +41,7 @@
 
     <!-- Accessibility Prominent Disclosure -->
     <string name="accessibility_disclosure_title">アクセシビリティ（ユーザー補助）機能の利用について</string>
-    <string name="accessibility_disclosure_message">本アプリでは、学習習慣のサポートおよび「アプリロック（ペアレンタルコントロール）」機能を実現するために、AccessibilityService APIを利用します。\n\n【利用目的】\n・学習ポイントが不足している際のアプリ起動を検知し、制限画面を表示するため\n・制限設定に関わるシステム設定画面へのアクセスを検知し、保護者の設定を守るため\n\n【プライバシーの保護】\nこの機能を通じて、入力内容、パスワード、メッセージ内容、会話履歴などの個人情報を収集・共有することは一切ありません。取得するのはアプリの起動イベント等、制限機能に必要な情報のみです。</string>
+    <string name="accessibility_disclosure_message">本アプリでは、学習習慣のサポートおよび「アプリロック（ペアレンタルコントロール）」機能を実現するために、AccessibilityService APIを利用します。\n\n【利用目的】\n・学習ポイントが不足している際のアプリ起動を検知し、制限画面を表示するため\n・制限設定に関わる一部のシステム設定画面へのアクセスを検知し、保護者の設定を守るため\n\n【プライバシーの保護】\nこの機能を通じて、入力内容、パスワード、メッセージ内容、会話履歴などの個人情報を収集・共有することは一切ありません。取得するのはアプリの起動イベント等、制限機能に必要な情報のみです。</string>
     <string name="accessibility_service_description">学習習慣のサポートおよびペアレンタルコントロール機能（アプリの利用制限）を提供するために使用します。起動中のアプリや、制限に関連する一部のシステム設定画面を検知します。入力内容や個人情報の収集は行いません。</string>
 
     <!-- Recording Disclosure -->
@@ -57,7 +57,8 @@
     <string name="go_to_settings">設定へ</string>
     <string name="not_now">今は設定しない</string>
     <string name="app_lock_enable">アプリロックを有効にする</string>
-    <string name="app_lock_hint">ロック対象にしたいアプリを選んでください</string>
+    <string name="app_lock_hint">ロックしたいアプリをONにしてください。</string>
+    <string name="app_lock_desc">ONにしたアプリは、学習ポイントが不足しているときに制限されます。</string>
     <string name="time_zone_setup_label">タイムゾーンを選択</string>
     <string name="time_zone_setup_description">タイムゾーンを選択してください</string>
     <string name="time_zone_setup_decide">決定</string>
@@ -108,9 +109,9 @@
 
     <string name="ok">OK</string>
     <string name="cancel">キャンセル</string>
-    <string name="admin_app_lock_required_title">アプリロック機能を必須にする</string>
-    <string name="admin_app_lock_required_desc">アクセシビリティを許可しないと利用できない</string>
-    <string name="admin_app_lock_required_on">アプリロック必須をONにしました</string>
+    <string name="admin_app_lock_required_title">アプリロック設定を保護する</string>
+    <string name="admin_app_lock_required_desc">ONにすると、子どもがロック対象アプリや設定を変更できないようにします。</string>
+    <string name="admin_app_lock_required_on">アプリロック設定の保護を有効にしました</string>
 
     <string name="admin_settings_title">管理者設定</string>
     <string name="admin_save_and_return">保存して戻る</string>
@@ -141,8 +142,6 @@
     <string name="mode_test_listen_q1">リスニング質問テスト</string>
     <string name="admin_accessibility_lock_title">アクセシビリティ設定画面アクセス禁止</string>
     <string name="admin_accessibility_lock_desc">「設定」＞「ユーザー補助」画面へのアクセス禁止</string>
-    <string name="admin_tethering_lock_title">テザリング設定画面へのアクセス禁止</string>
-    <string name="admin_tethering_lock_desc">１．「設定」＞「ネットワークとインターネット」へのアクセス禁止</string>
     <string name="restricted_access_icon_desc">Restricted Access Icon</string>
 
     <string name="pairing_parent_device">親端末: 接続済み (%1$d)</string>

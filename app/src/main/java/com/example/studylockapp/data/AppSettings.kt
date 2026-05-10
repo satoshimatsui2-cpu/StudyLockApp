@@ -38,6 +38,7 @@ class AppSettings(context: Context) {
         private const val KEY_APP_LOCK_ENABLED = "appLockEnabled"
         private const val KEY_UNLOCK_COST_POINTS_10MIN = "unlockCostPoints10Min"
         private const val KEY_UNLOCK_MIN_PER_10PT = "unlock_min_per_10pt"
+        private const val KEY_MIGRATED_APP_LOCK_V2 = "migrated_app_lock_v2"
 
         // --- Administrative ---
         private const val KEY_UNINSTALL_LOCK = "key_uninstall_lock"
@@ -203,6 +204,9 @@ class AppSettings(context: Context) {
     fun isAppLockEnabled(): Boolean = prefs.getBoolean(KEY_APP_LOCK_ENABLED, false)
     fun setAppLockEnabled(enabled: Boolean) { prefs.edit { putBoolean(KEY_APP_LOCK_ENABLED, enabled) } }
 
+    fun isMigratedAppLockV2(): Boolean = prefs.getBoolean(KEY_MIGRATED_APP_LOCK_V2, false)
+    fun setMigratedAppLockV2(migrated: Boolean) { prefs.edit { putBoolean(KEY_MIGRATED_APP_LOCK_V2, migrated) } }
+
     fun isUninstallLockEnabled(): Boolean = prefs.getBoolean(KEY_UNINSTALL_LOCK, false)
     fun setUninstallLockEnabled(enabled: Boolean) { prefs.edit { putBoolean(KEY_UNINSTALL_LOCK, enabled) } }
 
@@ -264,8 +268,8 @@ class AppSettings(context: Context) {
         set(value) = prefs.edit { putBoolean("accessibility_lock", value) }
 
     var isTetheringLockEnabled: Boolean
-        get() = prefs.getBoolean("tethering_lock", false)
-        set(value) = prefs.edit { putBoolean("tethering_lock", value) }
+        get() = false
+        set(value) { /* No-op, always false for Google Play compatibility */ }
         
     var lastActiveUpdateMillis: Long
         get() = prefs.getLong(KEY_LAST_ACTIVE_UPDATE_MILLIS, 0L)

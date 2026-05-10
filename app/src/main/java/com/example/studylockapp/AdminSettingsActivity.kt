@@ -459,7 +459,14 @@ class AdminSettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.seek_interval)?.visibility = View.GONE
         findViewById<View>(R.id.button_open_timezone_setup)?.visibility = View.GONE
 
-        findViewById<View>(R.id.button_app_lock_settings)?.setOnClickListener { startActivity(Intent(this, AppLockSettingsActivity::class.java)) }
+        findViewById<View>(R.id.button_app_lock_settings)?.setOnClickListener {
+            val intent = Intent(this, AppLockSettingsActivity::class.java).apply {
+                // PINロックが無効（未設定）もしくは認証済みなら編集可能とする
+                val isAuth = isAuthenticated || !AdminAuthManager.isAdminLockEnabled(this@AdminSettingsActivity)
+                putExtra("isAuthenticated", isAuth)
+            }
+            startActivity(intent)
+        }
         findViewById<View>(R.id.button_show_qr)?.setOnClickListener { startActivity(Intent(this, QrCodeActivity::class.java)) }
 
         fun secToProgress(sec: Long): Int = ((sec.coerceIn(10L, 600L) - 10L) / 5L).toInt()
@@ -523,21 +530,18 @@ class AdminSettingsActivity : AppCompatActivity() {
         val switchEnableLongPress = findViewById<SwitchMaterial>(R.id.switch_enable_long_press) ?: return
         val buttonSetupAuthenticator = findViewById<MaterialButton>(R.id.button_setup_authenticator)
         val switchAccessibilityLock = findViewById<SwitchMaterial>(R.id.switch_accessibility_lock)
-        val switchTetheringLock = findViewById<SwitchMaterial>(R.id.switch_tethering_lock)
         val switchUninstallLock = findViewById<SwitchMaterial>(R.id.switch_uninstall_lock)
 
         switchAdminLock.setTextColor(switchTextColor)
         switchAppLockRequired?.setTextColor(switchTextColor)
         switchEnableLongPress.setTextColor(switchTextColor)
         switchAccessibilityLock?.setTextColor(switchTextColor)
-        switchTetheringLock?.setTextColor(switchTextColor)
         switchUninstallLock?.setTextColor(switchTextColor)
 
         switchAdminLock.isChecked = AdminAuthManager.isAdminLockEnabled(this)
         switchAppLockRequired?.isChecked = AdminAuthManager.isAppLockRequired(this)
         switchEnableLongPress.isChecked = settings.isEnableAdminLongPress()
         switchAccessibilityLock?.isChecked = settings.isAccessibilityLockEnabled
-        switchTetheringLock?.isChecked = settings.isTetheringLockEnabled
         switchUninstallLock?.isChecked = settings.isUninstallLockEnabled()
 
         switchAdminLock.setOnCheckedChangeListener { _, isChecked ->
@@ -552,14 +556,14 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         switchAppLockRequired?.setOnCheckedChangeListener { _, isChecked ->
             AdminAuthManager.setAppLockRequired(this, isChecked)
-            if (isChecked) settings.setAppLockEnabled(true)
-            if (isChecked && !AccessibilityUtils.isServiceEnabled(this, AppLockAccessibilityService::class.java)) startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            if (isChecked && !AccessibilityUtils.isServiceEnabled(this, AppLockAccessibilityService::class.java)) {
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            }
             if (isChecked) showToast(getString(R.string.admin_app_lock_required_on))
         }
 
         switchEnableLongPress.setOnCheckedChangeListener { _, isChecked -> settings.setEnableAdminLongPress(isChecked) }
         switchAccessibilityLock?.setOnCheckedChangeListener { _, isChecked -> settings.isAccessibilityLockEnabled = isChecked }
-        switchTetheringLock?.setOnCheckedChangeListener { _, isChecked -> settings.isTetheringLockEnabled = isChecked }
         switchUninstallLock?.setOnCheckedChangeListener { _, isChecked -> settings.setUninstallLockEnabled(isChecked) }
 
         buttonChangePin.setOnClickListener { promptPinAndDo(title = getString(R.string.admin_enter_pin_title), onSuccess = { promptSetNewPin() }, onFailure = { showToast(getString(R.string.admin_pin_incorrect)) }) }

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.StudyHistoryRepository
@@ -17,6 +18,7 @@ import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.alert.AppDialogHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
@@ -42,15 +44,14 @@ class MainActivity : AppCompatActivity() {
         pointManager = PointManager(this)
         notificationHelper = NotificationPermissionHelper(this)
 
+        // アプリロック V2 への移行処理
+        migrateAppLockV2()
+
         // システムバーのインセット（ステータスバー等）に合わせてコンテンツのパディングを調整
         val rootLayout = findViewById<View>(R.id.root_layout_main)
         if (rootLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                // 背景は全体に広げたいので、root自体にはパディングをつけず、
-                // 内部のコンテンツ（ImageButton等）にインセットを考慮したマージンを適用する
-                // activity_main.xml 側で調整しやすいように、ここではインセット情報のみ保持させるか、
-                // 必要なViewにのみ適用する。
                 insets
             }
         }
@@ -61,6 +62,25 @@ class MainActivity : AppCompatActivity() {
         setupAdminSettingsNavigation()
         setupLearningHistoryNavigation()
         updatePointDisplay()
+    }
+
+    /**
+     * アプリロック V2 への移行処理 (1回のみ)
+     * 旧マスタースイッチがOFFだった場合、既存のロック対象をすべて解除する。
+     */
+    private fun migrateAppLockV2() {
+        if (appSettings.isMigratedAppLockV2()) return
+
+        val oldEnabled = appSettings.isAppLockEnabled()
+        if (!oldEnabled) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                val db = AppDatabase.getInstance(this@MainActivity)
+                db.lockedAppDao().disableAllLocks()
+            }
+        }
+        // 移行後は内部的に true 扱い（UIでは非表示）
+        appSettings.setAppLockEnabled(true)
+        appSettings.setMigratedAppLockV2(true)
     }
 
     override fun onResume() {

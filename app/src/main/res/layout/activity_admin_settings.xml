@@ -156,11 +156,28 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:layout_marginBottom="8dp"
-                            android:text="ロックするアプリの選択と、選択したアプリのロックと、稼いだポイントでロックの解除の機能が使用できます。"
+                            android:text="ロックするアプリの選択と、選択したアプリのロック、稼いだポイントでの一時解除機能が使用できます。"
                             android:textSize="12sp"
                             android:textColor="?attr/colorOnSurface"
                             tools:ignore="HardcodedText" />
-                        <!-- アプリロック機能を必須にする -->
+
+                        <!-- 「ロックするアプリを選択する」ボタン -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_app_lock_settings"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+                            android:gravity="center"
+                            android:text="@string/admin_select_lock_apps"
+                            android:textAlignment="center"
+                            android:textColor="?attr/colorOnSecondaryContainer"
+                            app:icon="@drawable/ic_lock_24"
+                            app:iconGravity="textStart"
+                            app:iconPadding="8dp"
+                            app:iconTint="?attr/colorOnSecondaryContainer" />
+
+                        <!-- アプリロック設定を保護する -->
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_app_lock_required"
                             android:layout_width="match_parent"
@@ -178,21 +195,6 @@
                             android:textSize="12sp"
                             android:textColor="?attr/colorOnSurface"
                             android:paddingBottom="12dp" />
-                        <!-- 「ロックするアプリを選択する」ボタン -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_app_lock_settings"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp"
-                            android:gravity="center"
-                            android:text="@string/admin_select_lock_apps"
-                            android:textAlignment="center"
-                            android:textColor="?attr/colorOnSecondaryContainer"
-                            app:icon="@drawable/ic_lock_24"
-                            app:iconGravity="textStart"
-                            app:iconPadding="8dp"
-                            app:iconTint="?attr/colorOnSecondaryContainer" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -408,7 +410,7 @@
                             android:layout_height="wrap_content"
                             android:paddingTop="8dp"
                             android:textColor="?attr/colorOnSurface"
-                            tools:text="並び替え: 10 pt" />
+                            tools:text="並べ替え: 10 pt" />
                         <SeekBar
                             android:id="@+id/seek_point_test_sort"
                             android:layout_width="match_parent"
@@ -874,22 +876,6 @@
                             android:paddingBottom="12dp"
                             android:textColor="?attr/colorOnSurface"
                             tools:ignore="HardcodedText" />
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switch_tethering_lock"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_tethering_lock_title"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnSurface"/>
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/admin_tethering_lock_desc"
-                            android:textSize="12sp"
-                            android:paddingBottom="12dp"
-                            android:textColor="?attr/colorOnSurface"/>
 
                         <View
                             android:layout_width="match_parent"

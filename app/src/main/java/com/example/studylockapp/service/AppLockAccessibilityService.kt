@@ -16,12 +16,9 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.app.NotificationCompat
-import com.example.studylockapp.PrefsManager
 import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.AppSettings
-import com.example.studylockapp.data.StudyHistoryRepository
-import com.example.studylockapp.ui.alert.BlockedAlertActivity
 import com.example.studylockapp.ui.applock.AppLockBlockActivity
 import com.example.studylockapp.ui.restricted.RestrictedAccessActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -77,8 +74,6 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     private val settingsHomeKeywords = listOf("Settings", "設定")
     private val appsListKeywords = listOf("Apps", "アプリ", "Applications", "App list", "アプリリスト")
-    private val tetheringKeywords = listOf("Tethering", "テザリング", "Hotspot", "アクセスポイント", "アクセス ポイント")
-    private val networkMenuKeywords = listOf("Network & internet", "ネットワークとインターネット")
     private val accessibilityKeywords = listOf("Accessibility", "ユーザー補助", "Accessibility settings", "ユーザー補助設定", "Security & privacy", "セキュリティとプライバシー")
     private val launcherMenuKeywords = listOf("Pause app", "アプリを一時停止", "App info", "アプリ情報")
     private val appInfoKeywords = listOf("Uninstall", "アンインストール", "Force stop", "強制停止")
@@ -115,8 +110,6 @@ class AppLockAccessibilityService : AccessibilityService() {
         if (wasEnabled == false) {
             Log.w("AppLockDebug", "Accessibility state transition: OFF -> ON. Sending alert.")
             sendSecurityAlertToFunctions("accessibility_enabled")
-        } else {
-            Log.w("AppLockDebug", "Skipping ON alert. recorded_wasEnabled: $wasEnabled")
         }
         settings.setLastAccessibilityEnabled(true)
     }
@@ -129,6 +122,18 @@ class AppLockAccessibilityService : AccessibilityService() {
         if (!::settings.isInitialized) settings = AppSettings(this)
         if (!::db.isInitialized) db = AppDatabase.getInstance(this)
 
+        // 設定画面やアンインストール制限のロジック (維持)
+        handleSecurityLock(event, eventType, pkgName)
+
+        if (System.currentTimeMillis() < skipLockUntilMs) return
+        if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        lastForegroundPkg = pkgName
+        
+        // マスタースイッチを無視してDBの個別設定を確認
+        checkAndBlockApp(pkgName)
+    }
+
+    private fun handleSecurityLock(event: AccessibilityEvent, eventType: Int, pkgName: String) {
         if (launcherPackages.any { pkgName.contains(it, ignoreCase = true) }) {
             if (settings.isUninstallLockEnabled()) {
                 if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED ||
@@ -151,8 +156,7 @@ class AppLockAccessibilityService : AccessibilityService() {
                                 val isRecent = (System.currentTimeMillis() - lastTouchedTime) < 3000
                                 val isTarget = lastTouchedIconName?.contains(myAppName, ignoreCase = true) == true
                                 if (isRecent && isTarget) {
-                                    skipLockUntilMs = System.currentTimeMillis() + 1500L
-                                    performGlobalAction(GLOBAL_ACTION_BACK)
+                                    backAndCooldown(1500L)
                                     return
                                 }
                             }
@@ -168,13 +172,6 @@ class AppLockAccessibilityService : AccessibilityService() {
             if (System.currentTimeMillis() < skipLockUntilMs) return
             if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 val clickedText = event.text?.joinToString("") ?: ""
-                if (settings.isTetheringLockEnabled) {
-                    if (checkKeywords(clickedText, tetheringKeywords) || checkKeywords(clickedText, networkMenuKeywords)) {
-                        backAndCooldown()
-                        showRestrictedScreen(pkgName)
-                        return
-                    }
-                }
                 if (settings.isUninstallLockEnabled()) {
                     if (checkKeywords(clickedText, appsListKeywords)) {
                         backAndCooldown()
@@ -214,55 +211,25 @@ class AppLockAccessibilityService : AccessibilityService() {
                                 return
                             }
                         }
-                        if (settings.isTetheringLockEnabled) {
-                            if (findAndValidateTitle(rootNode, networkMenuKeywords) || findAndValidateTitle(rootNode, tetheringKeywords)) {
-                                backAndCooldown()
-                                showRestrictedScreen(pkgName)
-                                return
-                            }
-                        }
                     } finally {
                         rootNode.recycle()
                     }
                 }
             }
         }
+    }
 
-        if (pkgName == "com.android.systemui") {
-            if (System.currentTimeMillis() < skipLockUntilMs) return
-            if (settings.isTetheringLockEnabled) {
-                val rootNode = rootInActiveWindow
-                if (rootNode != null) {
-                    try {
-                        if (rootNode.packageName?.toString() != "com.android.systemui") return
-                        if (recursiveCheckForTile(rootNode, tetheringKeywords)) {
-                            if (Build.VERSION.SDK_INT >= 31) {
-                                performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)
-                            } else {
-                                performGlobalAction(GLOBAL_ACTION_BACK)
-                            }
-                            showAlertActivity()
-                            return
-                        }
-                    } finally {
-                        rootNode.recycle()
-                    }
-                }
-            }
-        }
-
-        if (System.currentTimeMillis() < skipLockUntilMs) return
-        if (eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        lastForegroundPkg = pkgName
-        if (!settings.isAppLockEnabled()) return
+    private fun checkAndBlockApp(pkgName: String) {
         serviceScope.launch(Dispatchers.IO) {
             val locked = db.lockedAppDao().get(pkgName)
             if (locked?.isLocked != true) return@launch
+            
             val nowSec = Instant.now().epochSecond
             db.appUnlockDao().clearExpired(nowSec)
             val unlockEntry = db.appUnlockDao().get(pkgName)
             val unlockUntil = unlockEntry?.unlockedUntilSec ?: 0L
             if (unlockUntil > nowSec) return@launch
+            
             val label = locked.label.ifBlank { pkgName }
             Handler(Looper.getMainLooper()).post {
                 backAndCooldown()
@@ -419,13 +386,6 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun showAlertActivity() {
-        val intent = Intent(this, BlockedAlertActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        Handler(Looper.getMainLooper()).postDelayed({ startActivity(intent) }, 400)
-    }
-
     private fun startExpiryWatcher() {
         val runnable = object : Runnable {
             override fun run() {
@@ -433,10 +393,7 @@ class AppLockAccessibilityService : AccessibilityService() {
                     expiryHandler.postDelayed(this, 1000L)
                     return
                 }
-                if (!::settings.isInitialized || !settings.isAppLockEnabled()) {
-                    expiryHandler.postDelayed(this, 2000L)
-                    return
-                }
+                
                 val rootPkg = rootInActiveWindow?.packageName?.toString()
                 val candidate = when {
                     rootPkg != null && rootPkg !in IGNORE_FOREGROUND_PKGS -> rootPkg
@@ -467,7 +424,6 @@ class AppLockAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onDestroy() {
-        Log.w("AppLockDebug", "Accessibility onDestroy called. Cleanup only.")
         expiryRunnable?.let { expiryHandler.removeCallbacks(it) }
         serviceJob.cancel()
         super.onDestroy()
@@ -475,7 +431,6 @@ class AppLockAccessibilityService : AccessibilityService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         if (!::settings.isInitialized) settings = AppSettings(this)
-        Log.w("AppLockDebug", "Accessibility onUnbind called. Handling disabled state.")
         handleAccessibilityDisabled("onUnbind")
         return super.onUnbind(intent)
     }
@@ -489,18 +444,9 @@ class AppLockAccessibilityService : AccessibilityService() {
 
         val wasEnabled = if (settings.hasAccessibilityStateRecorded()) settings.isLastAccessibilityEnabled() else null
         if (wasEnabled == true) {
-            Log.w("AppLockDebug", "Accessibility state transition: ON -> OFF (source: $source). Sending alert.")
             sendSecurityAlertToFunctions("accessibility_disabled")
-        } else {
-            Log.w("AppLockDebug", "Skipping OFF alert. source: $source, wasEnabled: $wasEnabled")
         }
         settings.setLastAccessibilityEnabled(false)
-    }
-
-    private fun isServiceEnabled(context: Context): Boolean {
-        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        return am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-            .any { it.id.contains(context.packageName) }
     }
 
     private fun showAccessibilityOffNotification() {
@@ -508,13 +454,7 @@ class AppLockAccessibilityService : AccessibilityService() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "セキュリティ警告",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "アクセシビリティ設定の変更を通知します"
-            }
+            val channel = NotificationChannel(channelId, "セキュリティ警告", NotificationManager.IMPORTANCE_HIGH)
             notificationManager.createNotificationChannel(channel)
         }
 
@@ -537,30 +477,11 @@ class AppLockAccessibilityService : AccessibilityService() {
         notificationManager.notify(1001, builder.build())
     }
 
-    private fun sendSecurityAlertToFunctions(alertType: String, callback: ((Boolean) -> Unit)? = null) {
-        if (FirebaseAuth.getInstance().currentUser == null) {
-            callback?.invoke(false)
-            return
-        }
+    private fun sendSecurityAlertToFunctions(alertType: String) {
+        if (FirebaseAuth.getInstance().currentUser == null) return
         val functions = FirebaseFunctions.getInstance("asia-northeast1")
-        val data = hashMapOf(
-            "alertType" to alertType
-        )
-
+        val data = hashMapOf("alertType" to alertType)
         functions.getHttpsCallable("sendSecurityAlert").call(data)
-            .addOnSuccessListener { result ->
-                val map = result.getData() as? Map<*, *>
-                val success = map?.get("success") as? Boolean ?: false
-                val message = map?.get("message") as? String
-                if (!success && message != null) {
-                    Log.w("AppLockDebug", "★警告送信失敗通知: $message")
-                }
-                callback?.invoke(success)
-            }
-            .addOnFailureListener { e ->
-                Log.e("AppLockDebug", "★警告送信失敗", e)
-                callback?.invoke(false)
-            }
     }
 
     private fun updateAccessibilityStatus(enabled: Boolean) {
@@ -571,8 +492,5 @@ class AppLockAccessibilityService : AccessibilityService() {
             "accessibilityUpdatedAt" to FieldValue.serverTimestamp()
         )
         db.collection("users").document(uid).set(data, SetOptions.merge())
-            .addOnFailureListener { e ->
-                Log.e("AppLockDebug", "Failed to update accessibility status", e)
-            }
     }
 }

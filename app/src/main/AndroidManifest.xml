@@ -51,13 +51,6 @@
             android:theme="@style/Theme.StudyLockApp" />
 
         <activity
-            android:name=".ui.alert.BlockedAlertActivity"
-            android:theme="@style/Theme.App.Transparent"
-            android:launchMode="singleInstance"
-            android:excludeFromRecents="true"
-            android:exported="false" />
-
-        <activity
             android:name=".ui.PointHistoryActivity"
             android:exported="false" />
 
