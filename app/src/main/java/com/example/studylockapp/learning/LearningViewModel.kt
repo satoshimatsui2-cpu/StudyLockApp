@@ -367,8 +367,8 @@ class LearningViewModel(
                 }
             }
 
-            // DBから再取得せず、現在の状態に加算してUIに即時反映
-            val latestTotal = _uiState.value.totalPoints + gainedPoints
+            // 加算後の総保有ポイントを取得
+            val latestTotal = pointManager.getTotal()
 
             // 4. UI状態の更新 (判定表示)
             _uiState.update { state -> 
@@ -403,19 +403,19 @@ class LearningViewModel(
             }
 
             // 6. Firestoreへの保存 (バックグラウンドで fire-and-forget)
-            // viewModelScope.launch(Dispatchers.IO) により、現在のコルーチンの完了を待たずに実行される
             val gradeStr = currentQuiz.word.grade.toString()
             val modeName = currentQuiz.mode.name
             val wordText = currentQuiz.word.word
             val gp = gainedPoints
             viewModelScope.launch(Dispatchers.IO) {
-                // 学習結果の保存
+                // 学習結果の保存 (最新の保有ポイントをスナップショットとして渡す)
                 StudyHistoryRepository.save(
                     grade = gradeStr,
                     mode = modeName,
                     isCorrect = isCorrect,
                     points = gp,
-                    word = wordText
+                    word = wordText,
+                    currentTotalPoints = latestTotal
                 )
                 
                 // マスター累計の同期 (拡張版)
@@ -428,8 +428,8 @@ class LearningViewModel(
                     lv1 = lv1,
                     lv2 = lv2,
                     lv3 = lv3,
-                    shortCount = short,
-                    longCount = long
+                    shortMasterCount = short,
+                    longMasterCount = long
                 )
             }
         }

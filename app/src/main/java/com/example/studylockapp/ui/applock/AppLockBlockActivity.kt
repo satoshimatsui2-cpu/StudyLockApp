@@ -56,7 +56,7 @@ class AppLockBlockActivity : AppCompatActivity() {
             pointManager = PointManager(this)
             imageGeorge = findViewById(R.id.image_george_reaction)
 
-            // ★修正: Service側のキー名 (package_name, app_label) と一致させる
+            // Service側のキー名 (package_name, app_label) と一致させる
             lockedPkg = intent.getStringExtra("package_name") ?: ""
             lockedLabel = intent.getStringExtra("app_label")?.takeIf { it.isNotBlank() } ?: run {
                 try {
@@ -236,9 +236,18 @@ class AppLockBlockActivity : AppCompatActivity() {
             )
         }
 
-        // ★親向け日次レポート用：Firestoreへ「使用ポイント」を加算
+        // 最新の保有ポイントを取得
+        val latestTotal = pointManager.getTotal()
+
+        // ★親向け日次レポート用：Firestoreへ「使用ポイント」を加算（スナップショット付き）
         val unlockedMinutes = ceil(durationSec / 60.0).toInt()
-        StudyHistoryRepository.addUsedPoints(usePoints, lockedPkg, lockedLabel, unlockedMinutes)
+        StudyHistoryRepository.addUsedPoints(
+            usedPoints = usePoints,
+            packageName = lockedPkg,
+            appLabel = lockedLabel,
+            unlockedMinutes = unlockedMinutes,
+            currentTotalPoints = latestTotal
+        )
 
         // 画面を閉じて元アプリに戻る
         runOnUiThread {

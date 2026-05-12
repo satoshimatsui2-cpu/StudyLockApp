@@ -50,13 +50,15 @@ object StudyHistoryRepository {
 
     /**
      * 学習結果を保存する。
+     * @param currentTotalPoints 保存時点でのユーザーの総保有ポイント（スナップショット）
      */
     suspend fun save(
         grade: String,
         mode: String,
         isCorrect: Boolean,
         points: Int = 0,
-        word: String? = null
+        word: String? = null,
+        currentTotalPoints: Int? = null
     ) {
         val user = FirebaseAuth.getInstance().currentUser ?: run {
             Log.w("DailyStats", "save study skipped: user is null")
@@ -83,7 +85,7 @@ object StudyHistoryRepository {
             val docRef = db.collection("users").document(uid)
                 .collection("dailyStats").document(todayStr)
 
-            val updates: Map<String, Any> = hashMapOf(
+            val updates: MutableMap<String, Any> = hashMapOf(
                 "points" to FieldValue.increment(points.toLong()),
                 "studyCount" to FieldValue.increment(1L),
                 "correctCount" to FieldValue.increment(if (isCorrect) 1L else 0L),
@@ -92,6 +94,11 @@ object StudyHistoryRepository {
                 "studyRecords" to FieldValue.arrayUnion(record),
                 "updatedAt" to FieldValue.serverTimestamp()
             )
+
+            // 総保有ポイントのスナップショットを保存
+            if (currentTotalPoints != null) {
+                updates["lastKnownPoints"] = currentTotalPoints.toLong()
+            }
 
             docRef.set(updates, SetOptions.merge()).await()
             updateLastActiveStatus()
@@ -143,12 +150,14 @@ object StudyHistoryRepository {
 
     /**
      * 音声チェックによるボーナスポイントを加算する。
+     * @param currentTotalPoints ポイント加算後の総保有ポイント
      */
     suspend fun addVoiceBonusPoints(
         grade: String,
         word: String,
         points: Int,
-        checkType: String? = null
+        checkType: String? = null,
+        currentTotalPoints: Int? = null
     ) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
@@ -170,11 +179,15 @@ object StudyHistoryRepository {
             val docRef = db.collection("users").document(user.uid)
                 .collection("dailyStats").document(todayStr)
 
-            val updates: Map<String, Any> = hashMapOf(
+            val updates: MutableMap<String, Any> = hashMapOf(
                 "points" to FieldValue.increment(points.toLong()),
                 "studyRecords" to FieldValue.arrayUnion(record),
                 "updatedAt" to FieldValue.serverTimestamp()
             )
+
+            if (currentTotalPoints != null) {
+                updates["lastKnownPoints"] = currentTotalPoints.toLong()
+            }
 
             docRef.set(updates, SetOptions.merge()).await()
             updateLastActiveStatus()
@@ -186,8 +199,15 @@ object StudyHistoryRepository {
 
     /**
      * アプリ解放に使用したポイントを保存する。
+     * @param currentTotalPoints ポイント使用後の総保有ポイント
      */
-    suspend fun addUsedPoints(usedPoints: Int, packageName: String, appLabel: String, unlockedMinutes: Int) {
+    suspend fun addUsedPoints(
+        usedPoints: Int,
+        packageName: String,
+        appLabel: String,
+        unlockedMinutes: Int,
+        currentTotalPoints: Int? = null
+    ) {
         val user = FirebaseAuth.getInstance().currentUser ?: run {
             Log.w("DailyStats", "save unlock skipped: user is null")
             return
@@ -212,11 +232,15 @@ object StudyHistoryRepository {
             val docRef = db.collection("users").document(uid)
                 .collection("dailyStats").document(todayStr)
 
-            val updates: Map<String, Any> = hashMapOf(
+            val updates: MutableMap<String, Any> = hashMapOf(
                 "usedPoints" to FieldValue.increment(usedPoints.toLong()),
                 "unlockRecords" to FieldValue.arrayUnion(record),
                 "updatedAt" to FieldValue.serverTimestamp()
             )
+
+            if (currentTotalPoints != null) {
+                updates["lastKnownPoints"] = currentTotalPoints.toLong()
+            }
 
             docRef.set(updates, SetOptions.merge()).await()
             updateLastActiveStatus()
@@ -227,14 +251,38 @@ object StudyHistoryRepository {
     }
 
     /**
+     * 総保有ポイントのスナップショットのみを更新する（ポイント返却時などに使用）。
+     */
+    suspend fun updatePointSnapshot(currentTotalPoints: Int) {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+        val todayStr = todayTokyoStr()
+
+        try {
+            val docRef = db.collection("users").document(user.uid)
+                .collection("dailyStats").document(todayStr)
+
+            val updates = mapOf(
+                "lastKnownPoints" to currentTotalPoints.toLong(),
+                "updatedAt" to FieldValue.serverTimestamp()
+            )
+
+            docRef.set(updates, SetOptions.merge()).await()
+            Log.d("DailyStats", "updatePointSnapshot success: $currentTotalPoints")
+        } catch (e: Exception) {
+            Log.e("DailyStats", "updatePointSnapshot failed", e)
+        }
+    }
+
+    /**
      * マスター数を保存する。
      */
     suspend fun updateMasteryCounts(
         lv1: Int,
         lv2: Int,
         lv3: Int,
-        shortCount: Int,
-        longCount: Int
+        shortMasterCount: Int,
+        longMasterCount: Int
     ) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
@@ -244,8 +292,8 @@ object StudyHistoryRepository {
             "lv1Count" to lv1.toLong(),
             "lv2Count" to lv2.toLong(),
             "lv3Count" to lv3.toLong(),
-            "shortMasterCount" to shortCount.toLong(),
-            "longMasterCount" to longCount.toLong(),
+            "shortMasterCount" to shortMasterCount.toLong(),
+            "longMasterCount" to longMasterCount.toLong(),
             "updatedAt" to FieldValue.serverTimestamp()
         )
         try {

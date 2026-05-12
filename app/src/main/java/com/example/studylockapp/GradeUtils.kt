@@ -8,9 +8,10 @@ object GradeUtils {
     /**
      * 内部値（"1"〜"7"）を表示用（"5級"〜"1級"）に変換
      * 1:5級, 2:4級, 3:3級, 4:準2級, 5:2級, 6:準1級, 7:1級
+     * マッピング外は "不明" を返し、誤表示を防止する。
      */
     fun toDisplay(grade: String?): String {
-        return when (grade) {
+        return when (grade?.trim()) {
             "1" -> "5級"
             "2" -> "4級"
             "3" -> "3級"
@@ -18,7 +19,7 @@ object GradeUtils {
             "5" -> "2級"
             "6" -> "準1級"
             "7" -> "1級"
-            else -> "未設定"
+            else -> "不明"
         }
     }
 

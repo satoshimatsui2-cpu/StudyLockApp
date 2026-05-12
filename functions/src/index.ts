@@ -24,141 +24,89 @@ function formatTokyoTimestamp(): string {
 }
 
 /**
- * グレード表示の変換
- * 1 -> 5級, 2 -> 4級, 3 -> 3級, 4 -> 準2級, 5 -> 2級, 6 -> 準1級, 7 -> 1級
+ * グレード表示の変換（GradeUtils.kt と完全に同期）
  */
 function formatGradeLabel(rawGrade: any): string {
   const raw = String(rawGrade ?? "").trim();
-
-  // すでに表示名で来た場合
-  if (raw === "5級" || raw === "4級" || raw === "3級" || raw === "準2級" || raw === "2級" || raw === "準1級" || raw === "1級") {
-    return raw;
-  }
-
+  const mapping: Record<string, string> = {
+    "1": "5級", "2": "4級", "3": "3級", "4": "準2級", "5": "2級", "6": "準1級", "7": "1級"
+  };
+  if (Object.values(mapping).includes(raw)) return raw;
   const g = raw.replace("級", "").trim();
-
-  switch (g) {
-    case "1": return "5級";
-    case "2": return "4級";
-    case "3": return "3級";
-    case "4": return "準2級";
-    case "5": return "2級";
-    case "6": return "準1級";
-    case "7": return "1級";
-    default: return raw ? `${raw}級` : "不明";
-  }
+  return mapping[g] || "不明";
 }
 
-// ■ 1. 解除コード通知（子供→親）
+/**
+ * 集計・ソート用に級キーを正規化する
+ */
+function normalizeGradeKey(rawGrade: any): string {
+  const raw = String(rawGrade ?? "").trim();
+  const displayToKey: Record<string, string> = {
+    "5級": "1", "4級": "2", "3級": "3", "準2級": "4", "2級": "5", "準1級": "6", "1級": "7",
+  };
+  if (/^[1-7]$/.test(raw)) return raw;
+  return displayToKey[raw] || "unknown";
+}
+
+// ■ 1. 解除コード通知
 export const requestUnlockCode = functions
   .region("asia-northeast1")
   .https.onCall(async (data: any, context: any) => {
     const uid = context.auth?.uid;
-    if (!uid) {
-      throw new functions.https.HttpsError("unauthenticated", "Authentication required");
-    }
-
+    if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
     const code = data.code;
-    if (typeof code !== 'string' || !/^\d{6}$/.test(code)) {
-      throw new functions.https.HttpsError("invalid-argument", "Invalid code format (6 digits required)");
-    }
+    if (typeof code !== 'string' || !/^\d{6}$/.test(code)) throw new functions.https.HttpsError("invalid-argument", "Invalid code");
 
-    const parentsRef = db.collection("users").doc(uid).collection("parents");
-    const parentsSnapshot = await parentsRef.get();
-
-    if (parentsSnapshot.empty) {
-      return { success: false, message: "保護者が登録されていません" };
-    }
+    const parentsSnapshot = await db.collection("users").doc(uid).collection("parents").get();
+    if (parentsSnapshot.empty) return { success: false, message: "保護者が登録されていません" };
 
     const messages: admin.messaging.Message[] = [];
     parentsSnapshot.forEach((doc) => {
       const parentData = doc.data();
-      const childName = parentData.childDisplayName || "お子様";
-
       if (parentData.fcmToken) {
         messages.push({
           token: parentData.fcmToken,
           notification: {
             title: "🔑 解除コード",
-            body: `コード: ${code}\n${childName}が管理画面へのアクセスを求めています。`,
+            body: `コード: ${code}\n${parentData.childDisplayName || "お子様"}が管理画面へのアクセスを求めています。`,
           },
           android: { priority: "high" },
         });
       }
     });
-
-    if (messages.length === 0) {
-      return { success: false, message: "通知可能な親端末が見つかりません (FCMトークン未設定)" };
-    }
-
-    await Promise.all(messages.map((msg) =>
-      admin.messaging().send(msg).catch((e) => console.error("FCM send failed", e))
-    ));
-
+    await Promise.all(messages.map((msg) => admin.messaging().send(msg).catch((e) => console.error("FCM failed", e))));
     return { success: true };
   });
 
-// ■ 2. セキュリティ警告（不正検知→親）
+// ■ 2. セキュリティ警告
 export const sendSecurityAlert = functions
   .region("asia-northeast1")
   .https.onCall(async (data: any, context: any) => {
     const uid = context.auth?.uid;
-    if (!uid) {
-      throw new functions.https.HttpsError("unauthenticated", "Authentication required");
-    }
-
+    if (!uid) throw new functions.https.HttpsError("unauthenticated", "Authentication required");
     const alertType = data.alertType || "unknown";
     const timestamp = formatTokyoTimestamp();
 
-    const parentsRef = db.collection("users").doc(uid).collection("parents");
-    const parentsSnapshot = await parentsRef.get();
-
-    if (parentsSnapshot.empty) {
-      return { success: false, message: "保護者が登録されていません" };
-    }
+    const parentsSnapshot = await db.collection("users").doc(uid).collection("parents").get();
+    if (parentsSnapshot.empty) return { success: false };
 
     const messages: admin.messaging.Message[] = [];
     parentsSnapshot.forEach((doc) => {
       const parentData = doc.data();
       const childName = parentData.childDisplayName || "お子様";
-
-      const title = "⚠️ セキュリティアラート";
       let body = `${childName}が設定を変更しました。\n時刻: ${timestamp}`;
-
-      if (alertType === "accessibility_disabled") {
-        body = `⚠️ ${childName}が「アクセシビリティ権限」をOFFにしました！監視が無効化されています。\n時刻: ${timestamp}`;
-      } else if (alertType === "accessibility_enabled") {
-        body = `${childName}が「アクセシビリティ権限」をONにしました。\n時刻: ${timestamp}`;
-      }
+      if (alertType === "accessibility_disabled") body = `⚠️ ${childName}が「アクセシビリティ権限」をOFFにしました！監視が無効です。\n時刻: ${timestamp}`;
+      else if (alertType === "accessibility_enabled") body = `${childName}が「アクセシビリティ権限」をONにしました。\n時刻: ${timestamp}`;
 
       if (parentData.fcmToken) {
-        messages.push({
-          token: parentData.fcmToken,
-          notification: { title, body },
-          android: { priority: "high" },
-        });
+        messages.push({ token: parentData.fcmToken, notification: { title: "⚠️ セキュリティアラート", body }, android: { priority: "high" } });
       }
     });
-
-    if (messages.length === 0) {
-      return { success: false, message: "通知可能な親端末が見つかりません" };
-    }
-
-    let successCount = 0;
-    await Promise.all(messages.map((msg) =>
-      admin.messaging().send(msg)
-        .then(() => { successCount++; })
-        .catch((e) => console.error("Security alert FCM failed", e))
-    ));
-
-    if (successCount === 0) {
-      return { success: false, message: "全通知の送信に失敗しました" };
-    }
-
+    await Promise.all(messages.map((msg) => admin.messaging().send(msg).catch((e) => console.error("FCM failed", e))));
     return { success: true };
   });
 
-// ■ 3. 日次レポート（毎日 朝7:30 / Tokyo基準）
+// ■ 3. 日次レポート
 export const sendDailyReport = functions
   .region("asia-northeast1")
   .pubsub.schedule("every day 07:30")
@@ -168,77 +116,28 @@ export const sendDailyReport = functions
     if (usersSnapshot.empty) return null;
 
     const now = admin.firestore.Timestamp.now();
-    const sevenDaysMillis = 7 * 24 * 60 * 60 * 1000;
-
-    // レポート対象は昨日分
     const yesterday = new Date(now.toMillis() - 24 * 60 * 60 * 1000);
     const dateStr = formatTokyoDateYYYYMMDD(yesterday);
-
-    const [_, mm, dd] = dateStr.split("-");
-    const displayDate = `${Number(mm)}/${Number(dd)}`;
+    const displayDate = `${Number(dateStr.split("-")[1])}/${Number(dateStr.split("-")[2])}`;
 
     for (const userDoc of usersSnapshot.docs) {
       const uid = userDoc.id;
-      const userData = userDoc.data() || {};
-
+      const userData = userDoc.data();
       if (userData.dailyReportPaused === true) continue;
 
-      let lastActive = userData.lastActiveAt;
-      if (!lastActive || typeof lastActive.toMillis !== "function") {
-        await userDoc.ref.set({ lastActiveAt: now }, { merge: true });
-        lastActive = now;
-      }
-
-      const diffMillis = now.toMillis() - lastActive.toMillis();
-      if (diffMillis >= sevenDaysMillis) {
-        const parentsSnapshot = await db.collection("users").doc(uid).collection("parents").get();
-        for (const parentDoc of parentsSnapshot.docs) {
-          const parentData = parentDoc.data();
-          const childName = parentData.childDisplayName || userData.displayName || "お子様";
-          if (parentData.fcmToken) {
-            try {
-              await admin.messaging().send({
-                token: parentData.fcmToken,
-                notification: {
-                  title: "日次レポートの一旦停止",
-                  body: `${childName}のアプリ起動が7日間ないため、日次レポート通知を一旦停止します。子端末でアプリを起動すると自動で再開されます。`,
-                },
-                android: { priority: "high" },
-              });
-            } catch (e) { console.error("Final notice failed", e); }
-          }
-        }
-        await userDoc.ref.set({
-          dailyReportPaused: true,
-          dailyReportPausedAt: now,
-          dailyReportPauseReason: "inactive",
-        }, { merge: true });
-        continue;
-      }
-
-      // --- 通常レポート送信処理 ---
       const statsDoc = await db.collection("users").doc(uid).collection("dailyStats").doc(dateStr).get();
-      if (!statsDoc.exists) {
-        console.log(`[DailyReport] No stats for uid: ${uid}, date: ${dateStr}. Skipping.`);
-        continue;
-      }
-
+      if (!statsDoc.exists) continue;
       const stats = statsDoc.data() || {};
-
-      if (stats.detailDeleted === true && stats.reportText) {
-         console.log(`[DailyReport] Detailed records already deleted for uid: ${uid}. Skipping.`);
-         continue;
-      }
+      if (stats.reportSent === true) continue;
 
       const studyRecords = Array.isArray(stats.studyRecords) ? stats.studyRecords : [];
-      const usedRecords = Array.isArray(stats.usedRecords) ? stats.usedRecords : [];
       const unlockRecords = Array.isArray(stats.unlockRecords) ? stats.unlockRecords : [];
-      const allRecords = [...studyRecords, ...usedRecords, ...unlockRecords];
+      const allRecords = [...studyRecords, ...unlockRecords];
 
-      console.log(`[DailyReport] uid=${uid}, targetDate=${dateStr}`);
-
-      const points = stats.points || 0;
-      const usedPoints = stats.usedPoints || stats.pointsUsed || 0;
+      const dailyEarned = stats.points || 0;
+      const dailyUsed = stats.usedPoints || 0;
+      const lastKnownPoints = stats.lastKnownPoints;
+      const pointsDisplay = (lastKnownPoints !== undefined && lastKnownPoints !== null) ? `${lastKnownPoints}pt` : "未記録";
 
       const gradeMap: Record<string, { total: number, correct: number }> = {};
       let voiceCheckCount = 0;
@@ -247,37 +146,37 @@ export const sendDailyReport = functions
       const unlockMap: Record<string, { mins: number, pts: number }> = {};
 
       allRecords.forEach((r: any) => {
-        const type = r.type || r.mode;
-        if (type === "study" || type === "EN_TO_JP" || type === "JP_TO_EN") {
-          const g = formatGradeLabel(r.grade);
-          if (!gradeMap[g]) gradeMap[g] = { total: 0, correct: 0 };
-          gradeMap[g].total++;
-          if (r.isCorrect === true) gradeMap[g].correct++;
-        } else if (type === "voice_check") {
+        if (r.type === "study") {
+          const gKey = normalizeGradeKey(r.grade);
+          if (!gradeMap[gKey]) gradeMap[gKey] = { total: 0, correct: 0 };
+          gradeMap[gKey].total++;
+          if (r.isCorrect === true) gradeMap[gKey].correct++;
+        } else if (r.type === "voice_check") {
           voiceCheckCount++;
-        } else if (type === "voice_bonus") {
+        } else if (r.type === "voice_bonus") {
           voiceBadgeCount++;
-          voiceBonusPoints += Number(r.earnedPoints || r.points || 0);
-        } else if (type === "unlock" || type === "used_points") {
-          const label = r.appLabel || r.packageName?.split('.').pop() || "不明アプリ";
-          const mins = Number(r.unlockedMinutes || 0);
-          const pts = Number(r.usedPoints || r.pointsUsed || 0);
+          voiceBonusPoints += Number(r.earnedPoints || 0);
+        } else if (r.type === "unlock") {
+          const label = r.appLabel || "不明アプリ";
           if (!unlockMap[label]) unlockMap[label] = { mins: 0, pts: 0 };
-          unlockMap[label].mins += mins;
-          unlockMap[label].pts += pts;
+          unlockMap[label].mins += Number(r.unlockedMinutes || 0);
+          unlockMap[label].pts += Number(r.usedPoints || 0);
         }
       });
 
       let studyText = "学習: なし";
-      const gradeEntries = Object.entries(gradeMap).sort();
+      const gradeEntries = Object.entries(gradeMap).sort((a, b) => {
+        if (a[0] === "unknown") return 1;
+        if (b[0] === "unknown") return -1;
+        return Number(a[0]) - Number(b[0]);
+      });
       if (gradeEntries.length > 0) {
-        studyText = gradeEntries.map(([g, s], i) => {
+        studyText = gradeEntries.map(([gKey, s], i) => {
+          const gLabel = gKey === "unknown" ? "不明" : formatGradeLabel(gKey);
           const acc = Math.round((s.correct / (s.total || 1)) * 100);
-          const line = `${g}：${s.total}問（正解${s.correct} / 不正解${s.total - s.correct}、正解率${acc}%）`;
+          const line = `${gLabel}：${s.total}問（正解${s.correct} / 不正解${s.total - s.correct}、正解率${acc}%）`;
           return i === 0 ? `学習: ${line}` : `　　  ${line}`;
         }).join("\n");
-      } else if ((stats.studyCount || 0) > 0) {
-        studyText = `学習: ${stats.studyCount}問（正解${stats.correctCount || 0} / 不正解${(stats.studyCount || 0) - (stats.correctCount || 0)}）`;
       }
 
       let voiceText = "発音: なし";
@@ -288,53 +187,29 @@ export const sendDailyReport = functions
       let unlockText = "解放: なし";
       const unlockEntries = Object.entries(unlockMap).sort((a, b) => b[1].pts - a[1].pts);
       if (unlockEntries.length > 0) {
-        unlockText = `解放: ` + unlockEntries.map(([label, data]) => `${label} ${data.mins}分（${data.pts}pt）`).join(", ");
-      } else if (usedPoints > 0) {
-        unlockText = `解放: あり（${usedPoints}pt使用）`;
+        unlockText = `解放: ` + unlockEntries.map(([label, data]) => `${label} ${data.mins}分解放 / ${data.pts}pt使用`).join(", ");
       }
 
-      // マスター累計の拡張
-      const lv1 = Number(stats.lv1Count ?? stats.masteryLevelCounts?.lv1 ?? 0);
-      const lv2 = Number(stats.lv2Count ?? stats.masteryLevelCounts?.lv2 ?? 0);
-      const lv3 = Number(stats.lv3Count ?? stats.masteryLevelCounts?.lv3 ?? 0);
-      const shortMaster = Number(stats.shortMasterCount ?? stats.masteryLevelCounts?.shortMaster ?? 0);
-      const longMaster = Number(stats.longMasterCount ?? stats.masteryLevelCounts?.longMaster ?? 0);
+      const lv1 = Number(stats.lv1Count ?? 0);
+      const lv2 = Number(stats.lv2Count ?? 0);
+      const lv3 = Number(stats.lv3Count ?? 0);
+      const shortMaster = Number(stats.shortMasterCount ?? 0);
+      const longMaster = Number(stats.longMasterCount ?? 0);
       const masterText = `マスター累計: Lv1：${lv1}語 / Lv2：${lv2}語 / Lv3：${lv3}語 / ★${shortMaster}語 / 🏆${longMaster}語`;
 
       const accEnabled = userData.accessibilityEnabled ? "ON" : "OFF";
+      const reportText = `保有ポイント: ${pointsDisplay} (本日獲得:${dailyEarned} / 使用:${dailyUsed})\n${studyText}\n${voiceText}\n${masterText}\n${unlockText}\n監視: アクセシビリティ${accEnabled}`;
 
-      const reportText = `獲得: ${points}pt / 使用: ${usedPoints}pt\n${studyText}\n${voiceText}\n${masterText}\n${unlockText}\n監視: アクセシビリティ${accEnabled}`;
-
-      const reportSummary = {
-        points,
-        usedPoints,
-        studyCount: stats.studyCount || 0,
-        voiceCheckCount,
-        unlockCount: unlockEntries.length,
-        lv1Count: lv1,
-        lv2Count: lv2,
-        lv3Count: lv3,
-        shortMasterCount: shortMaster,
-        longMasterCount: longMaster
-      };
-
-      const parentsSnapshotInner = await db.collection("users").doc(uid).collection("parents").get();
+      const parentsSnapshot = await db.collection("users").doc(uid).collection("parents").get();
       const sendPromises: Promise<any>[] = [];
-
-      parentsSnapshotInner.forEach((parentDoc) => {
+      parentsSnapshot.forEach((parentDoc) => {
         const parentData = parentDoc.data();
         if (parentData.fcmToken) {
-          const childName = parentData.childDisplayName || userData.displayName || "お子様";
-          sendPromises.push(
-            admin.messaging().send({
-              token: parentData.fcmToken,
-              notification: {
-                title: `📅 ${displayDate} ${childName}の学習レポート`,
-                body: reportText,
-              },
-              android: { priority: "high" },
-            })
-          );
+          sendPromises.push(admin.messaging().send({
+            token: parentData.fcmToken,
+            notification: { title: `📅 ${displayDate} ${parentData.childDisplayName || userData.displayName || "お子様"}の学習レポート`, body: reportText },
+            android: { priority: "high" },
+          }));
         }
       });
 
@@ -343,19 +218,11 @@ export const sendDailyReport = functions
           await Promise.all(sendPromises);
           await statsDoc.ref.update({
             reportText: reportText,
-            reportSummary: reportSummary,
+            reportSent: true,
             reportSentAt: admin.firestore.FieldValue.serverTimestamp(),
-            detailDeleted: true,
-            studyRecords: admin.firestore.FieldValue.delete(),
-            unlockRecords: admin.firestore.FieldValue.delete(),
-            usedRecords: admin.firestore.FieldValue.delete(),
           });
-          console.log(`[DailyReport] Sent and cleaned up uid: ${uid}`);
-        } catch (e) {
-          console.error(`[DailyReport] Failed to send or cleanup uid: ${uid}`, e);
-        }
+        } catch (e) { console.error(`Failed for uid: ${uid}`, e); }
       }
     }
-
     return null;
   });

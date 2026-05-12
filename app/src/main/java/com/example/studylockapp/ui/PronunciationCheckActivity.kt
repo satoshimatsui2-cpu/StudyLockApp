@@ -471,19 +471,20 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
                     pm.add(totalBonus)
                     val zone = settings.getAppZoneId()
                     val todayEpochDay = LocalDate.now(zone).toEpochDay()
+                    val latestTotal = pm.getTotal()
                     
                     if (shouldGiveWordBonus) {
                         wordBonusGrantedInThisSession = true
                         db.pointHistoryDao().insert(PointHistoryEntity(mode = "voice_bonus", dateEpochDay = todayEpochDay, delta = 10))
                         lifecycleScope.launch(Dispatchers.IO) {
-                            StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "word")
+                            StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "word", latestTotal)
                         }
                     }
                     if (shouldGiveSentenceBonus) {
                         sentenceBonusGrantedInThisSession = true
                         db.pointHistoryDao().insert(PointHistoryEntity(mode = "voice_bonus", dateEpochDay = todayEpochDay, delta = 10))
                         lifecycleScope.launch(Dispatchers.IO) {
-                            StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "sentence")
+                            StudyHistoryRepository.addVoiceBonusPoints(wordGrade, wordText, 10, "sentence", latestTotal)
                         }
                     }
 
