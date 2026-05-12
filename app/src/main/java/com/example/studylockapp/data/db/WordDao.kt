@@ -4,14 +4,15 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.data.WordHistoryQueryResult
 
 @Dao
 interface WordDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(words: List<WordEntity>)
+    @Upsert
+    suspend fun upsertAll(words: List<WordEntity>)
 
     @Query("SELECT COUNT(*) FROM words")
     suspend fun countAllWords(): Int
@@ -104,4 +105,16 @@ interface WordDao {
         ORDER BY m.lastSeen DESC, w.no ASC
     """)
     suspend fun getLearningHistory(): List<WordHistoryQueryResult>
+
+    @Query("DELETE FROM words")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM word_mastery")
+    suspend fun deleteAllMastery()
+
+    @Query("DELETE FROM study_logs")
+    suspend fun deleteAllStudyLogs()
+
+    @Query("DELETE FROM voice_check_results")
+    suspend fun deleteAllVoiceCheckResults()
 }

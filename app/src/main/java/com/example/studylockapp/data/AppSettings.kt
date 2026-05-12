@@ -65,6 +65,8 @@ class AppSettings(context: Context) {
         
         private const val KEY_LAST_ACTIVE_UPDATE_MILLIS = "last_active_update_millis"
 
+        private const val KEY_WORD_DATA_VERSION = "word_data_version"
+
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
@@ -268,4 +270,8 @@ class AppSettings(context: Context) {
     var lastActiveUpdateMillis: Long
         get() = prefs.getLong(KEY_LAST_ACTIVE_UPDATE_MILLIS, 0L)
         set(value) = prefs.edit { putLong(KEY_LAST_ACTIVE_UPDATE_MILLIS, value) }
+
+    var wordDataVersion: Int
+        get() = prefs.getInt(KEY_WORD_DATA_VERSION, 0)
+        set(value) = prefs.edit { putInt(KEY_WORD_DATA_VERSION, value) }
 }

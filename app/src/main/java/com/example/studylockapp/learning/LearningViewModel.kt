@@ -107,7 +107,7 @@ class LearningViewModel(
                     appSettings.hasResetMasteryForFix = true
                 }
                 
-                TsvImporter(context, wordDao).seedIfNeeded()
+                TsvImporter(context, wordDao, appSettings).seedIfNeeded()
                 wordDao.countAllWords()
             }
             loadNextQuiz()
