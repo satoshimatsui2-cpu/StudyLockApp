@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.studylockapp.GradeLabelFormatter
 import com.example.studylockapp.R
 import com.example.studylockapp.databinding.ActivityPracticalTestBinding
 import com.google.android.material.button.MaterialButton
@@ -41,6 +42,9 @@ class PracticalTestActivity : AppCompatActivity() {
         )
     }
 
+    // A. B. C. D. ラベル用のリスト
+    private val choiceLabels = listOf("A. ", "B. ", "C. ", "D. ")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -49,7 +53,8 @@ class PracticalTestActivity : AppCompatActivity() {
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.rootLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            // 下部のボタンエリアを考慮しつつPaddingを設定
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
             insets
         }
 
@@ -57,21 +62,23 @@ class PracticalTestActivity : AppCompatActivity() {
         observeViewModel()
 
         if (savedInstanceState == null) {
-            // Intent から grade を取得し、ViewModel に渡す
             val grade = intent.getIntExtra(EXTRA_GRADE, 3)
             viewModel.loadQuestion(grade)
+            // ヘッダーの級表示をフォーマッターを使用して設定
+            binding.textGradeLabel.text = GradeLabelFormatter.format(grade)
         }
     }
 
     private fun setupListeners() {
         choiceButtons.forEach { button ->
             button.setOnClickListener {
-                viewModel.submitAnswer(button.text.toString())
+                // 表示テキスト（ラベル付き）ではなく、Tagに保存した元の値を使用する
+                val rawText = button.tag as? String ?: return@setOnClickListener
+                viewModel.submitAnswer(rawText)
             }
         }
 
         binding.buttonFinish.setOnClickListener {
-            // 正常終了時は RESULT_OK を設定して閉じる
             setResult(RESULT_OK)
             finish()
         }
@@ -89,7 +96,6 @@ class PracticalTestActivity : AppCompatActivity() {
 
     private fun updateUi(state: PracticalUiState) {
         if (state.error) {
-            // 問題がない、読み込み失敗などの場合は RESULT_CANCELED で戻る
             setResult(RESULT_CANCELED)
             finish()
             return
@@ -98,15 +104,17 @@ class PracticalTestActivity : AppCompatActivity() {
         binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
 
         state.question?.let { q ->
-            binding.textQuestionBody.text = q.question
+            binding.textQuestionBody.text = q.question.replace("\\n", "\n")
             
-            // 選択肢の表示
             state.shuffledChoices.forEachIndexed { index, choice ->
                 if (index < choiceButtons.size) {
                     val btn = choiceButtons[index]
-                    btn.text = choice
+                    // 表示はラベル付き
+                    btn.text = "${choiceLabels[index]}$choice"
+                    // 回答判定用に元の値をTagに保持
+                    btn.tag = choice
+                    
                     btn.visibility = View.VISIBLE
-                    // 回答後はActivity側でもボタンを無効化
                     btn.isEnabled = !state.isAnswered
                     
                     if (state.isAnswered) {
@@ -127,7 +135,7 @@ class PracticalTestActivity : AppCompatActivity() {
                     text = "正解！ (+${state.pointsGained}pt)"
                     setTextColor(ContextCompat.getColor(context, R.color.choice_correct_text))
                 } else {
-                    text = "不正解"
+                    text = "不正解..."
                     setTextColor(ContextCompat.getColor(context, R.color.choice_wrong_text))
                 }
             }
@@ -146,31 +154,33 @@ class PracticalTestActivity : AppCompatActivity() {
     ) {
         when {
             choice == correctChoice -> {
-                // 正解の選択肢
+                // 正解の選択肢：緑背景 + 太い枠線
                 button.backgroundTintList = ColorStateList.valueOf(
                     ContextCompat.getColor(this, R.color.choice_correct_bg)
                 )
                 button.strokeColor = ColorStateList.valueOf(
                     ContextCompat.getColor(this, R.color.choice_correct_stroke)
                 )
+                button.strokeWidth = dp(2)
                 button.setTextColor(ContextCompat.getColor(this, R.color.choice_correct_text))
                 button.alpha = 1.0f
             }
             choice == selectedAnswer && choice != correctChoice -> {
-                // 自分が選んだ不正解
+                // 自分が選んだ不正解：赤背景
                 button.backgroundTintList = ColorStateList.valueOf(
                     ContextCompat.getColor(this, R.color.choice_wrong_bg)
                 )
                 button.strokeColor = ColorStateList.valueOf(
                     ContextCompat.getColor(this, R.color.choice_wrong_stroke)
                 )
+                button.strokeWidth = dp(1)
                 button.setTextColor(ContextCompat.getColor(this, R.color.choice_wrong_text))
                 button.alpha = 1.0f
             }
             else -> {
-                // それ以外の選択肢は半透明に
+                // それ以外の選択肢は薄く表示
                 resetButtonStyle(button)
-                button.alpha = 0.5f
+                button.alpha = 0.4f
             }
         }
     }
@@ -178,7 +188,12 @@ class PracticalTestActivity : AppCompatActivity() {
     private fun resetButtonStyle(button: MaterialButton) {
         button.alpha = 1.0f
         button.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
-        button.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.navy_primary))
+        button.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.app_outline))
+        button.strokeWidth = dp(1)
         button.setTextColor(ContextCompat.getColor(this, R.color.navy_primary))
+    }
+
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
     }
 }

@@ -8,63 +8,109 @@
     android:background="@color/app_background"
     tools:context=".learning.practical.PracticalTestActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <!-- Header Section -->
+    <LinearLayout
+        android:id="@+id/layoutHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/navy_primary"
-        app:layout_constraintTop_toTopOf="parent"
-        app:title="実践テスト"
-        app:titleTextColor="@color/white" />
+        android:background="@color/white"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="実践テスト"
+            android:textColor="@color/navy_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textGradeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_badge_navy_soft"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:text="第3級"
+                android:textColor="@color/navy_primary"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textQuestionType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="穴埋め問題"
+                android:textColor="@color/text_sub"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/layoutBottom"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
+        app:layout_constraintTop_toBottomOf="@id/layoutHeader">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="20dp">
 
+            <!-- Question Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/app_outline">
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/app_outline"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <TextView
-                        android:id="@+id/textQuestionType"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="穴埋め問題"
-                        android:textColor="@color/navy_primary"
-                        android:textSize="14sp"
+                        android:text="Q."
+                        android:textColor="@color/mustard_accent"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/textQuestionBody"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:lineSpacingExtra="4dp"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingMultiplier="1.3"
                         android:textColor="@color/text_main"
-                        android:textSize="20sp" />
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="A : What is Emma doing now? \nB : She is _____ her dog in the garden." />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Choices Container -->
             <LinearLayout
                 android:id="@+id/choicesContainer"
                 android:layout_width="match_parent"
@@ -76,57 +122,76 @@
                     android:id="@+id/buttonChoice1"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:padding="16dp"
+                    android:layout_height="72dp"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical|start"
+                    android:paddingHorizontal="20dp"
                     android:textAllCaps="false"
-                    android:textSize="18sp"
-                    app:strokeColor="@color/navy_primary" />
+                    android:textColor="@color/navy_primary"
+                    android:textSize="17sp"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/app_outline"
+                    tools:text="A. washing" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonChoice2"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:padding="16dp"
+                    android:layout_height="72dp"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical|start"
+                    android:paddingHorizontal="20dp"
                     android:textAllCaps="false"
-                    android:textSize="18sp"
-                    app:strokeColor="@color/navy_primary" />
+                    android:textColor="@color/navy_primary"
+                    android:textSize="17sp"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/app_outline"
+                    tools:text="B. reading" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonChoice3"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:padding="16dp"
+                    android:layout_height="72dp"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical|start"
+                    android:paddingHorizontal="20dp"
                     android:textAllCaps="false"
-                    android:textSize="18sp"
-                    app:strokeColor="@color/navy_primary" />
+                    android:textColor="@color/navy_primary"
+                    android:textSize="17sp"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/app_outline"
+                    tools:text="C. sleeping" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonChoice4"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:padding="16dp"
+                    android:layout_height="72dp"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical|start"
+                    android:paddingHorizontal="20dp"
                     android:textAllCaps="false"
-                    android:textSize="18sp"
-                    app:strokeColor="@color/navy_primary" />
+                    android:textColor="@color/navy_primary"
+                    android:textSize="17sp"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/app_outline"
+                    tools:text="D. drinking" />
             </LinearLayout>
 
+            <!-- Result Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardExplanation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="24dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="@color/app_surface"
-                app:cardCornerRadius="16dp"
-                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
                 app:strokeColor="@color/app_outline"
+                app:strokeWidth="1dp"
                 tools:visibility="visible">
 
                 <LinearLayout
@@ -139,17 +204,35 @@
                         android:id="@+id/textResultHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="18sp"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="正解！ (+10pt)"
+                        tools:textColor="@color/choice_correct_text" />
+
+                    <View
+                        android:layout_width="40dp"
+                        android:layout_height="3dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/app_outline" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="解説"
+                        android:textColor="@color/text_sub"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/textExplanationBody"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:lineSpacingExtra="2dp"
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingMultiplier="1.4"
                         android:textColor="@color/text_main"
-                        android:textSize="16sp" />
+                        android:textSize="15sp"
+                        tools:text="「犬を庭で洗っている」なので washing が自然です。進行形（is + -ing）にも合います。" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -157,28 +240,34 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Bottom Action Area -->
     <LinearLayout
         android:id="@+id/layoutBottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:padding="20dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonFinish"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="終了して次へ"
+            android:layout_height="60dp"
+            android:text="次の学習へ"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:visibility="gone"
-            app:cornerRadius="12dp"
+            app:cornerRadius="16dp"
             tools:visibility="visible" />
     </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminateTint="@color/navy_primary"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
