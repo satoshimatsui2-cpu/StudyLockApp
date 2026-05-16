@@ -19,20 +19,33 @@ interface PracticalHistoryDao {
     suspend fun getAllHistory(): List<PracticalHistoryEntity>
 
     /**
-     * 間違えた問題を、直近のものから順に取得します。
+     * 明確に「間違い」と判定された問題を、直近のものから順に取得します。
+     * リプレイによる「採点対象外(UNSCORED)」は含めません。
      */
-    @Query("SELECT * FROM practical_history WHERE isCorrect = 0 ORDER BY answeredAt DESC")
+    @Query("SELECT * FROM practical_history WHERE resultStatus = 'WRONG' ORDER BY answeredAt DESC")
     suspend fun getWrongAnswers(): List<PracticalHistoryEntity>
 
     /**
      * 正解した問題の総数を取得します。
      */
-    @Query("SELECT COUNT(*) FROM practical_history WHERE isCorrect = 1")
+    @Query("SELECT COUNT(*) FROM practical_history WHERE resultStatus = 'CORRECT'")
     suspend fun getCorrectCount(): Int
 
     /**
-     * 実践テストでの合計獲得ポイントを取得します。履歴がない場合は 0 を返します。
+     * 実践テストでの合計獲得ポイントを取得します。
      */
     @Query("SELECT COALESCE(SUM(points), 0) FROM practical_history")
     suspend fun getTotalPoints(): Int
+
+    /**
+     * 採点対象の履歴のみを取得します。
+     */
+    @Query("SELECT * FROM practical_history WHERE isScored = 1 ORDER BY answeredAt DESC")
+    suspend fun getScoredHistory(): List<PracticalHistoryEntity>
+
+    /**
+     * 採点対象外（もう一度聞いた等）の履歴のみを取得します。
+     */
+    @Query("SELECT * FROM practical_history WHERE isScored = 0 ORDER BY answeredAt DESC")
+    suspend fun getUnscoredHistory(): List<PracticalHistoryEntity>
 }

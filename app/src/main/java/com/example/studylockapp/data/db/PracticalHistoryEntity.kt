@@ -21,5 +21,13 @@ data class PracticalHistoryEntity(
     val points: Int,
     val explanation: String,
     val answeredAt: Long,
-    val sessionId: String
+    val sessionId: String,
+
+    // --- リスニング対応で追加 ---
+    /** 採点対象かどうか（「もう一度聞く」を使用すると false） */
+    val isScored: Boolean = true,
+    /** 「もう一度聞く」を使用したかどうか */
+    val usedReplay: Boolean = false,
+    /** 結果ステータス (CORRECT, WRONG, UNSCORED) */
+    val resultStatus: String = "UNSCORED"
 )

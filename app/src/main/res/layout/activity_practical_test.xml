@@ -60,6 +60,7 @@
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
@@ -74,6 +75,7 @@
 
             <!-- Question Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardQuestion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="@color/white"
@@ -89,6 +91,7 @@
                     android:padding="24dp">
 
                     <TextView
+                        android:id="@+id/textQuestionLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Q."
@@ -96,6 +99,7 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
+                    <!-- Normal Question Body -->
                     <TextView
                         android:id="@+id/textQuestionBody"
                         android:layout_width="match_parent"
@@ -106,6 +110,68 @@
                         android:textSize="20sp"
                         android:textStyle="bold"
                         tools:text="A : What is Emma doing now? \nB : She is _____ her dog in the garden." />
+
+                    <!-- Listening Controls (Initial) -->
+                    <LinearLayout
+                        android:id="@+id/layoutListeningInitial"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/textListeningGuidance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="音声を聞いて、最も適切なものを選んでください。"
+                            android:textColor="@color/text_main"
+                            android:textSize="15sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonPlayFirst"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20dp"
+                            android:paddingHorizontal="32dp"
+                            android:text="問題を再生する"
+                            android:textAllCaps="false"
+                            android:textStyle="bold"
+                            app:cornerRadius="24dp"
+                            app:icon="@drawable/ic_hearing_24" />
+
+                        <TextView
+                            android:id="@+id/textRepeatNotice"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="※この問題は2回再生されます"
+                            android:textColor="@color/text_sub"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Listening Controls (Answering Phase) -->
+                    <LinearLayout
+                        android:id="@+id/layoutListeningAnswering"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonReplayQuestion"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="もう一度聞く (ポイント対象外)"
+                            android:textAllCaps="false"
+                            android:textColor="@color/text_sub"
+                            app:icon="@drawable/ic_headphones_24" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -209,7 +275,57 @@
                         tools:text="正解！ (+10pt)"
                         tools:textColor="@color/choice_correct_text" />
 
+                    <!-- Listening Script Section (After answering) -->
+                    <LinearLayout
+                        android:id="@+id/layoutListeningScript"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="スクリプト"
+                                android:textColor="@color/text_sub"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/buttonPlayScript"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:minHeight="0dp"
+                                android:text="音声を再生"
+                                android:textAllCaps="false"
+                                android:textSize="12sp"
+                                app:icon="@drawable/ic_headphones_24"
+                                app:iconSize="16dp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/containerScriptLines"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@color/app_background"
+                            android:orientation="vertical"
+                            android:padding="12dp" />
+
+                    </LinearLayout>
+
                     <View
+                        android:id="@+id/dividerExplanation"
                         android:layout_width="40dp"
                         android:layout_height="3dp"
                         android:layout_marginTop="12dp"

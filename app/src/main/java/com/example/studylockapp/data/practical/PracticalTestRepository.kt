@@ -50,26 +50,52 @@ class PracticalTestRepository(
 
                 for (i in 1 until rows.size) {
                     val columns = rows[i]
-                    // 10カラム（no, grade, unit, question, choice1..4, correct_option, explanation）必須
-                    if (columns.size < 10) continue
+                    
+                    if (type == PracticalQuizMode.LISTENING) {
+                        // リスニング形式: 11カラム（id, grade, part, tts_script, question_text, option_1..4, correct_option, explanation）
+                        if (columns.size < 11) continue
 
-                    val qGrade = columns[1].trim().toIntOrNull() ?: -1
-                    val correctOption = columns[8].trim().toIntOrNull() ?: -1
+                        val qGrade = columns[1].trim().toIntOrNull() ?: -1
+                        val correctOption = columns[9].trim().toIntOrNull() ?: -1
 
-                    // グレード一致チェック ＆ 正解インデックス(1..4)の範囲チェック
-                    if (qGrade == grade && correctOption in 1..4) {
-                        questions.add(
-                            PracticalQuestion(
-                                no = columns[0].trim(),
-                                grade = qGrade,
-                                unit = columns[2].trim(),
-                                question = formatText(columns[3]),
-                                choices = listOf(columns[4], columns[5], columns[6], columns[7]).map { it.trim() },
-                                correctOptionIndex = correctOption,
-                                explanation = formatText(columns[9]),
-                                type = type
+                        if (qGrade == grade && correctOption in 1..4) {
+                            questions.add(
+                                PracticalQuestion(
+                                    no = columns[0].trim(),
+                                    grade = qGrade,
+                                    unit = columns[2].trim(), // part
+                                    question = formatText(columns[4]), // 互換性のために question_text を保持
+                                    ttsScript = formatText(columns[3]),
+                                    questionText = formatText(columns[4]),
+                                    choices = listOf(columns[5], columns[6], columns[7], columns[8]).map { it.trim() },
+                                    correctOptionIndex = correctOption,
+                                    explanation = formatText(columns[10]),
+                                    type = type
+                                )
                             )
-                        )
+                        }
+                    } else {
+                        // 既存形式: 10カラム（no, grade, unit, question, choice1..4, correct_option, explanation）必須
+                        if (columns.size < 10) continue
+
+                        val qGrade = columns[1].trim().toIntOrNull() ?: -1
+                        val correctOption = columns[8].trim().toIntOrNull() ?: -1
+
+                        // グレード一致チェック ＆ 正解インデックス(1..4)の範囲チェック
+                        if (qGrade == grade && correctOption in 1..4) {
+                            questions.add(
+                                PracticalQuestion(
+                                    no = columns[0].trim(),
+                                    grade = qGrade,
+                                    unit = columns[2].trim(),
+                                    question = formatText(columns[3]),
+                                    choices = listOf(columns[4], columns[5], columns[6], columns[7]).map { it.trim() },
+                                    correctOptionIndex = correctOption,
+                                    explanation = formatText(columns[9]),
+                                    type = type
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -141,22 +167,27 @@ class PracticalTestRepository(
     }
 
     /**
-     * 解答履歴を保存します。不正なデータでクラッシュしないよう保護します。
+     * 解答履歴を保存します。
      */
     suspend fun saveHistory(
         question: PracticalQuestion,
         selectedAnswer: String,
         isCorrect: Boolean,
         points: Int,
-        sessionId: String
+        sessionId: String,
+        isScored: Boolean = true,
+        usedReplay: Boolean = false,
+        resultStatus: String? = null
     ) = withContext(Dispatchers.IO) {
         try {
+            val status = resultStatus ?: if (isCorrect) "CORRECT" else "WRONG"
+            
             val history = PracticalHistoryEntity(
                 questionNo = question.no,
                 questionType = question.type.name,
                 grade = question.grade,
                 unit = question.unit,
-                questionText = question.question,
+                questionText = question.questionText ?: question.question,
                 choicesJson = JSONArray(question.choices).toString(),
                 correctAnswer = question.choices[question.correctOptionIndex - 1],
                 selectedAnswer = selectedAnswer,
@@ -164,7 +195,10 @@ class PracticalTestRepository(
                 points = points,
                 explanation = question.explanation,
                 answeredAt = System.currentTimeMillis(),
-                sessionId = sessionId
+                sessionId = sessionId,
+                isScored = isScored,
+                usedReplay = usedReplay,
+                resultStatus = status
             )
             historyDao.insert(history)
         } catch (e: Exception) {

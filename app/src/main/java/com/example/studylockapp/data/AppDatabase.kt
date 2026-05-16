@@ -21,7 +21,7 @@ import com.example.studylockapp.data.db.*
         VoiceCheckResultEntity::class,
         PracticalHistoryEntity::class
     ],
-    version = 23,
+    version = 24,
     exportSchema = false
 )
 @TypeConverters(WordConverters::class)
@@ -80,6 +80,24 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_23_24 = object : Migration(23, 24) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. カラムの追加
+                db.execSQL("ALTER TABLE practical_history ADD COLUMN isScored INTEGER NOT NULL DEFAULT 1")
+                db.execSQL("ALTER TABLE practical_history ADD COLUMN usedReplay INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE practical_history ADD COLUMN resultStatus TEXT NOT NULL DEFAULT 'UNSCORED'")
+
+                // 2. 既存データの移行: isCorrect に基づいて CORRECT / WRONG を割り振る
+                db.execSQL("""
+                    UPDATE practical_history
+                    SET resultStatus = CASE
+                        WHEN isCorrect = 1 THEN 'CORRECT'
+                        ELSE 'WRONG'
+                    END
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -87,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app-db"
                 )
-                    .addMigrations(MIGRATION_21_22, MIGRATION_22_23)
+                    .addMigrations(MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24)
                     .build()
                     .also { INSTANCE = it }
             }
