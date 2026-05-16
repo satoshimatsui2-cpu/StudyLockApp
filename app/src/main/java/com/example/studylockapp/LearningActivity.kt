@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.studylockapp.databinding.ActivityLearningBinding
 import com.example.studylockapp.learning.*
+import com.example.studylockapp.learning.practical.PracticalTestActivity
 import com.example.studylockapp.data.SilentMode
 import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.ui.PronunciationCheckActivity
@@ -60,6 +61,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private val pronunciationLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
             viewModel.refreshPoints()
+        }
+
+    private val practicalTestLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+            // 実践テスト終了後は、自動的に次の単語学習セッションを開始する
+            viewModel.startNextSessionAfterPracticalTest()
         }
 
     // Rendererから安全にアクセスするためのブリッジメソッド
@@ -382,6 +389,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 }
             }
             is LearningUiEvent.QuizFinished -> finish()
+            is LearningUiEvent.NavigateToPracticalTest -> {
+                val intent = Intent(this, PracticalTestActivity::class.java).apply {
+                    putExtra(PracticalTestActivity.EXTRA_GRADE, event.grade)
+                }
+                practicalTestLauncher.launch(intent)
+            }
             is LearningUiEvent.ShowMasteryBadge -> animationManager.playTierUpAnimation(event.tier.label)
             is LearningUiEvent.ShowSilentModeExplanation -> showSilentModeExplanationDialog()
             is LearningUiEvent.ShowFlyingLevelUp -> animationManager.playFlyingLevelUp(event.oldLevel, event.newLevel)

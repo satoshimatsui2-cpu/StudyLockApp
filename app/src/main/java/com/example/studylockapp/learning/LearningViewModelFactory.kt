@@ -7,29 +7,34 @@ import com.example.studylockapp.R
 import com.example.studylockapp.data.AppDatabase
 import com.example.studylockapp.data.PointManager
 import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.practical.PracticalTestRepository
 
 class LearningViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LearningViewModel::class.java)) {
-            val db = AppDatabase.getInstance(context.applicationContext)
+            val appContext = context.applicationContext
+            val db = AppDatabase.getInstance(appContext)
+            
             val wordDao = db.wordDao()
             val masteryDao = db.wordMasteryDao()
             val studyLogDao = db.studyLogDao()
+            val historyDao = db.practicalHistoryDao()
             
-            val appSettings = AppSettings(context.applicationContext)
+            val appSettings = AppSettings(appContext)
             // AppSettings.safeLearningGrade は "1"〜"7" を返すため、Intに変換して QuizManager に渡す
             val userLevel = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
             
             val quizManager = QuizManager(wordDao, masteryDao, studyLogDao, userLevel = userLevel)
-            val pointManager = PointManager(context.applicationContext)
-            val audioChecker = LearningAudioStateChecker(context.applicationContext)
+            val pointManager = PointManager(appContext)
+            val audioChecker = LearningAudioStateChecker(appContext)
+            val practicalRepo = PracticalTestRepository(appContext, historyDao)
             
             val requiredWarningText = context.getString(R.string.warning_audio_required)
             val optionalWarningText = context.getString(R.string.warning_audio_optional)
             
             return LearningViewModel(
-                context.applicationContext,
+                appContext,
                 wordDao,
                 masteryDao,
                 quizManager,
@@ -37,9 +42,10 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
                 audioChecker,
                 requiredWarningText,
                 optionalWarningText,
-                appSettings
+                appSettings,
+                practicalRepo
             ) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

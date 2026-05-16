@@ -18,9 +18,10 @@ import com.example.studylockapp.data.db.*
         UnlockHistoryEntity::class,
         WordStudyLogEntity::class,
         WordMasteryEntity::class,
-        VoiceCheckResultEntity::class
+        VoiceCheckResultEntity::class,
+        PracticalHistoryEntity::class
     ],
-    version = 22,
+    version = 23,
     exportSchema = false
 )
 @TypeConverters(WordConverters::class)
@@ -33,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun studyLogDao(): StudyLogDao
     abstract fun wordMasteryDao(): WordMasteryDao
     abstract fun voiceCheckDao(): VoiceCheckDao
+    abstract fun practicalHistoryDao(): PracticalHistoryDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -55,6 +57,29 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_22_23 = object : Migration(22, 23) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `practical_history` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                        `questionNo` TEXT NOT NULL, 
+                        `questionType` TEXT NOT NULL, 
+                        `grade` INTEGER NOT NULL, 
+                        `unit` TEXT NOT NULL, 
+                        `questionText` TEXT NOT NULL, 
+                        `choicesJson` TEXT NOT NULL, 
+                        `correctAnswer` TEXT NOT NULL, 
+                        `selectedAnswer` TEXT NOT NULL, 
+                        `isCorrect` INTEGER NOT NULL, 
+                        `points` INTEGER NOT NULL, 
+                        `explanation` TEXT NOT NULL, 
+                        `answeredAt` INTEGER NOT NULL, 
+                        `sessionId` TEXT NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -62,7 +87,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app-db"
                 )
-                    .addMigrations(MIGRATION_21_22)
+                    .addMigrations(MIGRATION_21_22, MIGRATION_22_23)
                     .build()
                     .also { INSTANCE = it }
             }

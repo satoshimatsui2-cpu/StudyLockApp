@@ -80,6 +80,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".learning.practical.PracticalTestActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.QrCodeActivity"
             android:exported="false" />
 

@@ -13,6 +13,8 @@ import com.example.studylockapp.data.SilentMode
 import com.example.studylockapp.data.db.WordMasteryDao
 import com.example.studylockapp.data.db.WordMasteryEntity
 import com.example.studylockapp.data.StudyHistoryRepository
+import com.example.studylockapp.data.practical.PracticalQuizMode
+import com.example.studylockapp.data.practical.PracticalTestRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +36,8 @@ class LearningViewModel(
     private val audioChecker: LearningAudioStateChecker,
     private val requiredWarningText: String,
     private val optionalWarningText: String,
-    private val appSettings: AppSettings
+    private val appSettings: AppSettings,
+    private val practicalRepo: PracticalTestRepository
 ) : ViewModel() {
 
     private val totalCount = 10
@@ -147,6 +150,12 @@ class LearningViewModel(
     }
 
     fun loadNextQuiz() {
+        // 10問終了判定
+        if (solvedInSession >= totalCount) {
+            finishSession()
+            return
+        }
+        
         if (solvedInSession == 0) quizManager.resetSessionStats()
         
         viewModelScope.launch {
@@ -449,6 +458,53 @@ class LearningViewModel(
                 sessionLongTermMasterGained = longTermMastersInSession
             ) 
         }
-        viewModelScope.launch { _uiEvent.send(LearningUiEvent.QuizFinished) }
+        
+        viewModelScope.launch {
+            try {
+                // 学習中のグレードを取得 (QuizManager に渡しているものと同じ値)
+                val grade = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
+
+                // 実践テスト問題があるか確認
+                val hasPractical = withContext(Dispatchers.IO) {
+                    practicalRepo.hasQuestions(PracticalQuizMode.FILL_BLANK, grade)
+                }
+                
+                if (hasPractical) {
+                    _uiEvent.send(LearningUiEvent.NavigateToPracticalTest(grade))
+                } else {
+                    _uiEvent.send(LearningUiEvent.QuizFinished)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error checking practical questions", e)
+                // エラー時は通常終了へ
+                _uiEvent.send(LearningUiEvent.QuizFinished)
+            }
+        }
+    }
+
+    /**
+     * 実践テスト終了後、次の学習セッションを開始する。
+     */
+    fun startNextSessionAfterPracticalTest() {
+        solvedInSession = 0
+        levelUpsInSession = 0
+        basicMastersInSession = 0
+        longTermMastersInSession = 0
+
+        _uiState.update { state ->
+            state.copy(
+                isFinished = false,
+                isReviewing = false,
+                isAnswering = false,
+                progress = 0,
+                currentStep = 1,
+                sessionLevelUpCount = 0,
+                sessionBasicMasterGained = 0,
+                sessionLongTermMasterGained = 0,
+                totalPoints = pointManager.getTotal()
+            )
+        }
+
+        loadNextQuiz()
     }
 }

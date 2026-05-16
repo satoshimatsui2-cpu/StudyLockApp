@@ -2,6 +2,9 @@ package com.example.studylockapp.learning
 
 import com.example.studylockapp.data.WordEntity
 
+/**
+ * 学習画面（LearningActivity）で発生するイベントを定義する密封クラス。
+ */
 sealed class LearningUiEvent {
     data class ShowCorrect(
         val gainedPoints: Int,
@@ -20,6 +23,14 @@ sealed class LearningUiEvent {
     ) : LearningUiEvent()
 
     object QuizFinished : LearningUiEvent()
+
+    /**
+     * 実践テスト画面へ遷移するためのイベント。
+     * 単語学習で選択していたグレードを引き継ぎます。
+     */
+    data class NavigateToPracticalTest(
+        val grade: Int
+    ) : LearningUiEvent()
 
     data class ShowMasteryBadge(
         val tier: MasteryTier
