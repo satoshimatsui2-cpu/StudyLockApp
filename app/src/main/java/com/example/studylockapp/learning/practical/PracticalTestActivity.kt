@@ -175,6 +175,7 @@ class PracticalTestActivity : AppCompatActivity() {
                 Log.d("PracticalTestActivity", "render fill/rearrange UI")
                 binding.layoutListeningInitial.visibility = View.GONE
                 binding.layoutListeningAnswering.visibility = View.GONE
+                binding.textReplayPenaltyNote.visibility = View.GONE
             }
 
             // 選択肢の表示・有効化制御
@@ -225,7 +226,7 @@ class PracticalTestActivity : AppCompatActivity() {
             }
             binding.textExplanationBody.text = state.question?.explanation
 
-            // 回答後のスクリプト表示
+            // 回答後はスクリプト表示
             if (state.isListeningQuestion) {
                 binding.layoutListeningScript.visibility = View.VISIBLE
                 renderScriptLines(state)
@@ -244,6 +245,7 @@ class PracticalTestActivity : AppCompatActivity() {
             ListeningPlaybackState.WAITING_TO_START -> {
                 binding.layoutListeningInitial.visibility = View.VISIBLE
                 binding.layoutListeningAnswering.visibility = View.GONE
+                binding.textReplayPenaltyNote.visibility = View.GONE
                 binding.buttonPlayFirst.visibility = View.VISIBLE
                 binding.buttonPlayFirst.isEnabled = true
                 binding.buttonPlayFirst.text = "問題を再生する"
@@ -259,12 +261,14 @@ class PracticalTestActivity : AppCompatActivity() {
             ListeningPlaybackState.PLAYING_AGAIN -> {
                 binding.layoutListeningInitial.visibility = View.VISIBLE
                 binding.layoutListeningAnswering.visibility = View.GONE
+                binding.textReplayPenaltyNote.visibility = View.GONE
                 binding.buttonPlayFirst.isEnabled = false
                 binding.buttonPlayFirst.text = "再生中..."
             }
             ListeningPlaybackState.ANSWERING -> {
                 binding.layoutListeningInitial.visibility = View.GONE
                 binding.layoutListeningAnswering.visibility = View.VISIBLE
+                binding.textReplayPenaltyNote.visibility = View.VISIBLE
                 
                 binding.buttonReplayQuestion.isEnabled = true
                 if (state.hasUsedReplay) {
@@ -278,6 +282,7 @@ class PracticalTestActivity : AppCompatActivity() {
             ListeningPlaybackState.FINISHED -> {
                 binding.layoutListeningInitial.visibility = View.GONE
                 binding.layoutListeningAnswering.visibility = View.GONE
+                binding.textReplayPenaltyNote.visibility = View.GONE
             }
             else -> {}
         }

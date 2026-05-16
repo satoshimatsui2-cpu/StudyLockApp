@@ -167,10 +167,21 @@
                             style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="もう一度聞く (ポイント対象外)"
+                            android:text="もう一度聞く"
                             android:textAllCaps="false"
                             android:textColor="@color/text_sub"
                             app:icon="@drawable/ic_headphones_24" />
+
+                        <TextView
+                            android:id="@+id/textReplayPenaltyNote"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="-4dp"
+                            android:text="もう一度聞くと採点対象外になり、ポイントは入りません"
+                            android:textColor="@color/text_sub"
+                            android:textSize="11sp"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
                     </LinearLayout>
 
                 </LinearLayout>
