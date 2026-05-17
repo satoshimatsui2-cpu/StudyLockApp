@@ -149,7 +149,7 @@ class PracticalTestActivity : AppCompatActivity() {
 
         binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
 
-        // 1. 表示タイプの設定 (state.isListeningQuestionを優先)
+        // 1. 表示タイプの判定 (state.isListeningQuestionを優先)
         binding.textQuestionType.text = when {
             state.isListeningQuestion -> "リスニング問題"
             state.question?.type == PracticalQuizMode.REARRANGE -> "並べ替え問題"
@@ -178,7 +178,7 @@ class PracticalTestActivity : AppCompatActivity() {
                 binding.textReplayPenaltyNote.visibility = View.GONE
             }
 
-            // 選択肢の表示・有効化制御
+            // 選択肢の制御
             state.shuffledChoices.forEachIndexed { index, choice ->
                 if (index < choiceButtons.size) {
                     val btn = choiceButtons[index]
@@ -186,7 +186,7 @@ class PracticalTestActivity : AppCompatActivity() {
                     btn.tag = choice
                     btn.visibility = View.VISIBLE
 
-                    // リスニング再生中は回答不可
+                    // リスニング再生中、または回答前かつ再生未開始の場合は無効化
                     val isListeningLocked = state.isListeningQuestion && (
                         state.listeningPlaybackState == ListeningPlaybackState.WAITING_TO_START ||
                         state.listeningPlaybackState == ListeningPlaybackState.PLAYING_FIRST ||

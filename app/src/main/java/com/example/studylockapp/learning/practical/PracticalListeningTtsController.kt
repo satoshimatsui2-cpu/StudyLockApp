@@ -220,6 +220,18 @@ class PracticalListeningTtsController(
         }
     }
 
+    /**
+     * 略語（Mr., Mrs., Ms., Dr.）をTTS用に正規化します。
+     * ピリオドによる不自然な間を防ぐため、フルスペルに変換します。
+     */
+    private fun normalizeForTts(text: String): String {
+        return text
+            .replace(Regex("\\bMr\\.\\s*", RegexOption.IGNORE_CASE), "Mister ")
+            .replace(Regex("\\bMrs\\.\\s*", RegexOption.IGNORE_CASE), "Misses ")
+            .replace(Regex("\\bMs\\.\\s*", RegexOption.IGNORE_CASE), "Miz ")
+            .replace(Regex("\\bDr\\.\\s*", RegexOption.IGNORE_CASE), "Doctor ")
+    }
+
     private fun executeSegment(segment: ListeningTtsSegment) {
         val ttsInstance = tts ?: return
         
@@ -241,12 +253,13 @@ class PracticalListeningTtsController(
         ttsInstance.setSpeechRate(baseRate * profile.rateMultiplier)
         ttsInstance.setLanguage(profile.locale)
 
-        // 再生実行
+        // 略語を正規化して再生
+        val textForSpeech = normalizeForTts(segment.speakText)
         val utteranceId = "seg_${segment.id}_text_${System.currentTimeMillis()}"
         val params = Bundle().apply {
             putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
         }
-        ttsInstance.speak(segment.speakText, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        ttsInstance.speak(textForSpeech, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
     }
 
     /**

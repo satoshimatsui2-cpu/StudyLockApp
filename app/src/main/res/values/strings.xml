@@ -297,4 +297,24 @@
     <string name="label_graph_period_change">グラフ表示の切り替え</string>
     <string name="label_grade_filter">級フィルタ</string>
 
+    <!-- 実践テスト履歴用 -->
+    <string name="practical_history_type_grade">%1$s問題 / %2$d級</string>
+    <string name="practical_history_points_format">%1$s pt</string>
+    <string name="practical_history_your_answer">あなたの答え: %1$s</string>
+    <string name="practical_history_correct_answer">正解: %1$s</string>
+    <string name="practical_history_explanation_format">解説: %1$s</string>
+    <string name="practical_history_unscored_label">対象外</string>
+    <string name="practical_history_filter_all">すべて</string>
+    <string name="practical_history_filter_wrong">間違い</string>
+    <string name="practical_history_filter_unscored">対象外</string>
+    <string name="practical_history_empty">テスト履歴はありません</string>
+    <string name="practical_history_detail_title">見直し詳細</string>
+    <string name="practical_history_label_question">問題文</string>
+    <string name="practical_history_label_explanation">解説</string>
+    <string name="practical_history_label_script">スクリプト</string>
+    <string name="practical_history_action_replay">音声を再生</string>
+    <string name="practical_history_status_correct">正解</string>
+    <string name="practical_history_status_wrong">不正解</string>
+    <string name="practical_history_status_unscored">ポイント対象外</string>
+
 </resources>

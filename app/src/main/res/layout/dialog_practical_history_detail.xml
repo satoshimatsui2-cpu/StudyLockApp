@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Header Info -->
+        <TextView
+            android:id="@+id/textDetailMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            tools:text="リスニング問題 (3級) / 2024/05/20 14:30" />
+
+        <TextView
+            android:id="@+id/textDetailStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="#212121"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="判定: 正解 (+20 pt)" />
+
+        <View
+            android:layout_width="40dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="16dp"
+            android:background="#EEEEEE" />
+
+        <!-- Question Body Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="問題内容"
+            android:textColor="#757575"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textDetailQuestion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingMultiplier="1.3"
+            android:textColor="#212121"
+            android:textSize="16sp"
+            tools:text="Question text here..." />
+
+        <!-- User Answer Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="#F5F5F5"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/textDetailYourAnswer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#424242"
+                android:textSize="14sp"
+                tools:text="あなたの答え: A" />
+
+            <TextView
+                android:id="@+id/textDetailCorrectAnswer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#1B5E20"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="正解: A" />
+        </LinearLayout>
+
+        <!-- Explanation Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="解説"
+            android:textColor="#757575"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textDetailExplanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingMultiplier="1.4"
+            android:textColor="#424242"
+            android:textSize="14sp"
+            tools:text="Explanation text goes here..." />
+
+        <!-- Listening Script Section -->
+        <LinearLayout
+            android:id="@+id/layoutListeningScript"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="スクリプト"
+                    android:textColor="#757575"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonPlayHistoryScript"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:text="音声を再生"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    android:textColor="@color/navy_primary"
+                    app:icon="@drawable/ic_headphones_24"
+                    app:iconSize="16dp"
+                    app:iconTint="@color/navy_primary" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/containerHistoryScriptLines"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="#F8F8F8"
+                android:orientation="vertical"
+                android:padding="12dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

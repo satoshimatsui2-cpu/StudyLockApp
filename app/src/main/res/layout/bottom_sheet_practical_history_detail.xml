@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_bottom_sheet_handle">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Handle Indicator -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:background="#DDDDDD" />
+
+        <!-- Header -->
+        <TextView
+            android:id="@+id/text_detail_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/navy_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="リスニング問題 / 4級" />
+
+        <TextView
+            android:id="@+id/text_detail_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp"
+            tools:text="2024/05/20 14:30" />
+
+        <!-- Result Status Badge Area -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/text_detail_result_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_badge_navy_soft"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:textColor="@color/navy_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="正解" />
+
+            <TextView
+                android:id="@+id/text_detail_points"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:textColor="#1A237E"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="+20 pt" />
+        </LinearLayout>
+
+        <!-- Question Text (Snapshot) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="問題文"
+            android:textColor="@color/text_sub"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_detail_question_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingMultiplier="1.3"
+            android:textColor="@color/text_main"
+            android:textSize="16sp"
+            tools:text="What time will they meet?" />
+
+        <!-- Answers -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="#F5F5F5"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/text_detail_your_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#424242"
+                android:textSize="14sp"
+                tools:text="あなたの答え: At 2:30" />
+
+            <TextView
+                android:id="@+id/text_detail_correct_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#1B5E20"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="正解: At 2:30" />
+        </LinearLayout>
+
+        <!-- Explanation -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="解説"
+            android:textColor="@color/text_sub"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_detail_explanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingMultiplier="1.4"
+            android:textColor="@color/text_main"
+            android:textSize="15sp"
+            tools:text="男の子が「3時開始」と言い、女の子が「2時半(two thirty)に会おう」と提案し、合意しています。" />
+
+        <!-- Listening Section (Script & Re-play) -->
+        <LinearLayout
+            android:id="@+id/layout_detail_listening"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="スクリプト"
+                    android:textColor="@color/text_sub"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_replay_detail"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:text="音声を再生"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
+                    app:icon="@drawable/ic_headphones_24"
+                    app:iconSize="16dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_detail_script"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@color/app_background"
+                android:orientation="vertical"
+                android:padding="16dp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="48dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

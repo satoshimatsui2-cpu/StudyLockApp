@@ -21,7 +21,7 @@ import com.example.studylockapp.data.db.*
         VoiceCheckResultEntity::class,
         PracticalHistoryEntity::class
     ],
-    version = 24,
+    version = 25,
     exportSchema = false
 )
 @TypeConverters(WordConverters::class)
@@ -98,6 +98,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_24_25 = object : Migration(24, 25) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE practical_history ADD COLUMN ttsScriptSnapshot TEXT")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -105,7 +111,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app-db"
                 )
-                    .addMigrations(MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24)
+                    .addMigrations(MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25)
                     .build()
                     .also { INSTANCE = it }
             }

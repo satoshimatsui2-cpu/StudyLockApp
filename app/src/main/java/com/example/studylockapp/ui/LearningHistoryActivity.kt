@@ -3,8 +3,10 @@ package com.example.studylockapp.ui
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -52,6 +54,7 @@ class LearningHistoryActivity : AppCompatActivity() {
         mapper = WordHistoryMapper(this)
         
         setupToolbar()
+        setupNavigationTabs()
         setupRecyclerView()
         setupFilters()
         setupChart()
@@ -64,6 +67,29 @@ class LearningHistoryActivity : AppCompatActivity() {
         setSupportActionBar(null) 
         title = getString(R.string.learning_history_title)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    /**
+     * 単語/テストの切り替えタブを設定
+     */
+    private fun setupNavigationTabs() {
+        // [単語] タブを現在地（選択状態）にする
+        binding.layoutTabs.buttonWordHistory.apply {
+            setBackgroundResource(R.drawable.bg_badge_navy_soft)
+            setTextColor(ContextCompat.getColor(context, R.color.navy_primary))
+        }
+
+        // [テスト] タブをクリックして遷移
+        binding.layoutTabs.buttonTestHistory.apply {
+            setBackgroundResource(R.drawable.sl_button_bg)
+            setTextColor(Color.GRAY)
+            setOnClickListener {
+                Log.d("HistoryTabs", "Test tab clicked")
+                val intent = Intent(this@LearningHistoryActivity, PracticalHistoryActivity::class.java)
+                startActivity(intent)
+                overridePendingTransition(0, 0)
+            }
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

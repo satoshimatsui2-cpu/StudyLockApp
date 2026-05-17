@@ -48,4 +48,50 @@ interface PracticalHistoryDao {
      */
     @Query("SELECT * FROM practical_history WHERE isScored = 0 ORDER BY answeredAt DESC")
     suspend fun getUnscoredHistory(): List<PracticalHistoryEntity>
+
+    // --- 一覧表示用（問題ごとに最新1件のみ取得） ---
+
+    /**
+     * 各問題の最新履歴をすべて取得します。
+     */
+    @Query("""
+        SELECT * FROM practical_history
+        WHERE id IN (
+            SELECT MAX(id)
+            FROM practical_history
+            GROUP BY questionNo, questionType
+        )
+        ORDER BY answeredAt DESC
+    """)
+    suspend fun getLatestHistoryByQuestion(): List<PracticalHistoryEntity>
+
+    /**
+     * 最新の解答結果が「間違い」の問題のみを取得します。
+     */
+    @Query("""
+        SELECT * FROM practical_history
+        WHERE id IN (
+            SELECT MAX(id)
+            FROM practical_history
+            GROUP BY questionNo, questionType
+        )
+        AND resultStatus = 'WRONG'
+        ORDER BY answeredAt DESC
+    """)
+    suspend fun getLatestWrongAnswersByQuestion(): List<PracticalHistoryEntity>
+
+    /**
+     * 最新の解答結果が「採点対象外」の問題のみを取得します。
+     */
+    @Query("""
+        SELECT * FROM practical_history
+        WHERE id IN (
+            SELECT MAX(id)
+            FROM practical_history
+            GROUP BY questionNo, questionType
+        )
+        AND (resultStatus = 'UNSCORED' OR isScored = 0)
+        ORDER BY answeredAt DESC
+    """)
+    suspend fun getLatestUnscoredHistoryByQuestion(): List<PracticalHistoryEntity>
 }

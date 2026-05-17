@@ -59,6 +59,12 @@
             android:exported="false"
             android:label="学習履歴" />
 
+        <!-- 実践テスト履歴画面 -->
+        <activity
+            android:name=".ui.PracticalHistoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StudyLockApp" />
+
         <activity
             android:name=".ui.applock.AppLockSettingsActivity"
             android:exported="false"

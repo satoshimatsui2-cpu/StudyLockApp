@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#EEEEEE"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Row: Status Icon, Type, Grade, Points -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/image_result_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                tools:src="@drawable/ic_round_stars_24"
+                tools:tint="#4CAF50"
+                android:contentDescription="@null" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/text_type_and_grade"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="リスニング問題 / 4級"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/navy_primary"/>
+
+                <TextView
+                    android:id="@+id/text_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="2024/05/20 14:30"
+                    android:textSize="11sp"
+                    android:textColor="#9E9E9E"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/text_points"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="+20 pt"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"/>
+        </LinearLayout>
+
+        <!-- Answer Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:background="#F5F5F5"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/text_selected_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="あなたの答え: washing"
+                android:textSize="13sp"
+                android:textColor="#424242"/>
+
+            <TextView
+                android:id="@+id/text_correct_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                tools:text="正解: washing"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#1B5E20"/>
+        </LinearLayout>
+
+        <!-- Explanation Section (Always visible for now) -->
+        <TextView
+            android:id="@+id/text_explanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            tools:text="解説: 文脈から進行形が適切です。"
+            android:textSize="13sp"
+            android:textColor="#616161"
+            android:lineSpacingMultiplier="1.3"/>
+
+        <!-- Listening Script Shortcut (Optional) -->
+        <TextView
+            android:id="@+id/text_listening_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="※詳細はタップして確認"
+            android:textSize="11sp"
+            android:textColor="@color/navy_primary"
+            android:gravity="end"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutHistoryTabs"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="8dp">
+
+    <TextView
+        android:id="@+id/buttonWordHistory"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_badge_navy_soft"
+        android:gravity="center"
+        android:text="単語"
+        android:textColor="@color/navy_primary"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="8dp"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/buttonTestHistory"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:background="@drawable/sl_button_bg"
+        android:gravity="center"
+        android:text="テスト"
+        android:textColor="@color/navy_primary"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

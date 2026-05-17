@@ -29,5 +29,7 @@ data class PracticalHistoryEntity(
     /** 「もう一度聞く」を使用したかどうか */
     val usedReplay: Boolean = false,
     /** 結果ステータス (CORRECT, WRONG, UNSCORED) */
-    val resultStatus: String = "UNSCORED"
+    val resultStatus: String = "UNSCORED",
+    /** リスニング用読み上げ台本のスナップショット */
+    val ttsScriptSnapshot: String? = null
 )
