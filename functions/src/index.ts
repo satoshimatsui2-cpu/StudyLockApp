@@ -132,20 +132,43 @@ export const sendDailyReport = functions
 
       const studyRecords = Array.isArray(stats.studyRecords) ? stats.studyRecords : [];
       const unlockRecords = Array.isArray(stats.unlockRecords) ? stats.unlockRecords : [];
-      const allRecords = [...studyRecords, ...unlockRecords];
 
-      const dailyEarned = stats.points || 0;
-      const dailyUsed = stats.usedPoints || 0;
-      const lastKnownPoints = stats.lastKnownPoints;
-      const pointsDisplay = (lastKnownPoints !== undefined && lastKnownPoints !== null) ? `${lastKnownPoints}pt` : "未記録";
+      // --- 1. ポイント集計ロジック ---
+      const calculatedEarnedPoints = studyRecords.reduce(
+        (sum: number, r: any) => sum + Number(r.earnedPoints ?? 0),
+        0
+      );
+      const calculatedUsedPoints = unlockRecords.reduce(
+        (sum: number, r: any) =>
+          r.type === "unlock" ? sum + Number(r.usedPoints ?? 0) : sum,
+        0
+      );
 
+      const hasTopLevelPoints = stats.points !== undefined && stats.points !== null;
+      const hasTopLevelUsed = stats.usedPoints !== undefined && stats.usedPoints !== null;
+
+      const dailyEarned = hasTopLevelPoints ? Number(stats.points) : calculatedEarnedPoints;
+      const displayUsedPoints = hasTopLevelUsed ? Number(stats.usedPoints) : calculatedUsedPoints;
+
+      let ownedPoints: number;
+      if (stats.lastKnownPoints !== undefined && stats.lastKnownPoints !== null) {
+        ownedPoints = Number(stats.lastKnownPoints);
+      } else if (hasTopLevelPoints && hasTopLevelUsed) {
+        ownedPoints = dailyEarned - displayUsedPoints;
+      } else {
+        ownedPoints = calculatedEarnedPoints - calculatedUsedPoints;
+      }
+
+      // ポイント:60【獲得:148/使用:170】
+      const pointsDisplay = `ポイント:${ownedPoints}【獲得:${dailyEarned}/使用:${displayUsedPoints}】`;
+
+      // --- 2. 学習・発音集計 ---
       const gradeMap: Record<string, { total: number, correct: number }> = {};
       let voiceCheckCount = 0;
       let voiceBadgeCount = 0;
       let voiceBonusPoints = 0;
-      const unlockMap: Record<string, { mins: number, pts: number }> = {};
 
-      allRecords.forEach((r: any) => {
+      studyRecords.forEach((r: any) => {
         if (r.type === "study") {
           const gKey = normalizeGradeKey(r.grade);
           if (!gradeMap[gKey]) gradeMap[gKey] = { total: 0, correct: 0 };
@@ -156,15 +179,10 @@ export const sendDailyReport = functions
         } else if (r.type === "voice_bonus") {
           voiceBadgeCount++;
           voiceBonusPoints += Number(r.earnedPoints || 0);
-        } else if (r.type === "unlock") {
-          const label = r.appLabel || "不明アプリ";
-          if (!unlockMap[label]) unlockMap[label] = { mins: 0, pts: 0 };
-          unlockMap[label].mins += Number(r.unlockedMinutes || 0);
-          unlockMap[label].pts += Number(r.usedPoints || 0);
         }
       });
 
-      let studyText = "学習: なし";
+      let studyText = "学習:なし";
       const gradeEntries = Object.entries(gradeMap).sort((a, b) => {
         if (a[0] === "unknown") return 1;
         if (b[0] === "unknown") return -1;
@@ -174,31 +192,49 @@ export const sendDailyReport = functions
         studyText = gradeEntries.map(([gKey, s], i) => {
           const gLabel = gKey === "unknown" ? "不明" : formatGradeLabel(gKey);
           const acc = Math.round((s.correct / (s.total || 1)) * 100);
-          const line = `${gLabel}：${s.total}問（正解${s.correct} / 不正解${s.total - s.correct}、正解率${acc}%）`;
-          return i === 0 ? `学習: ${line}` : `　　  ${line}`;
+          // 5級:10問 〇8/×2 80%
+          const line = `${gLabel}:${s.total}問 〇${s.correct}/×${s.total - s.correct} ${acc}%`;
+          return i === 0 ? `学習:${line}` : `     ${line}`;
         }).join("\n");
       }
 
-      let voiceText = "発音: なし";
+      let voiceText = "発音:なし";
       if (voiceCheckCount > 0 || voiceBadgeCount > 0) {
-        voiceText = `発音: チェック${voiceCheckCount}回 / バッジ${voiceBadgeCount}個（+${voiceBonusPoints}pt）`;
+        voiceText = `発音:チェック${voiceCheckCount}/バッジ${voiceBadgeCount}(+${voiceBonusPoints}pt)`;
       }
 
-      let unlockText = "解放: なし";
-      const unlockEntries = Object.entries(unlockMap).sort((a, b) => b[1].pts - a[1].pts);
-      if (unlockEntries.length > 0) {
-        unlockText = `解放: ` + unlockEntries.map(([label, data]) => `${label} ${data.mins}分解放 / ${data.pts}pt使用`).join(", ");
-      }
-
+      // --- 3. マスター累計 ---
       const lv1 = Number(stats.lv1Count ?? 0);
       const lv2 = Number(stats.lv2Count ?? 0);
       const lv3 = Number(stats.lv3Count ?? 0);
       const shortMaster = Number(stats.shortMasterCount ?? 0);
       const longMaster = Number(stats.longMasterCount ?? 0);
-      const masterText = `マスター累計: Lv1：${lv1}語 / Lv2：${lv2}語 / Lv3：${lv3}語 / ★${shortMaster}語 / 🏆${longMaster}語`;
+      // Lv:1=15/2=7/3=0 ★0 🏆0
+      const masterText = `Lv:1=${lv1}/2=${lv2}/3=${lv3} ★${shortMaster} 🏆${longMaster}`;
+
+      // --- 4. 解放履歴の構築 ---
+      let totalUnlockMins = 0;
+      const unlockDetails: string[] = [];
+
+      unlockRecords.forEach((r: any) => {
+        if (r.type === "unlock") {
+          const pts = Number(r.usedPoints || 0);
+          const mins = Number(r.unlockedMinutes || 0);
+          totalUnlockMins += mins;
+          // - Chrome 1分 10pt
+          unlockDetails.push(`- ${r.appLabel || "不明"} ${mins}分 ${pts}pt`);
+        }
+      });
+
+      let unlockText = "解放:なし";
+      if (unlockDetails.length > 0) {
+        // 解放:1回/1分/10pt
+        const unlockSummaryShort = `解放:${unlockDetails.length}回/${totalUnlockMins}分/${displayUsedPoints}pt`;
+        unlockText = `${unlockSummaryShort}\n${unlockDetails.join("\n")}`;
+      }
 
       const accEnabled = userData.accessibilityEnabled ? "ON" : "OFF";
-      const reportText = `保有ポイント: ${pointsDisplay} (本日獲得:${dailyEarned} / 使用:${dailyUsed})\n${studyText}\n${voiceText}\n${masterText}\n${unlockText}\n監視: アクセシビリティ${accEnabled}`;
+      const reportText = `${pointsDisplay}\n${studyText}\n${voiceText}\n${masterText}\n${unlockText}\n監視:${accEnabled}`;
 
       const parentsSnapshot = await db.collection("users").doc(uid).collection("parents").get();
       const sendPromises: Promise<any>[] = [];
@@ -207,7 +243,7 @@ export const sendDailyReport = functions
         if (parentData.fcmToken) {
           sendPromises.push(admin.messaging().send({
             token: parentData.fcmToken,
-            notification: { title: `📅 ${displayDate} ${parentData.childDisplayName || userData.displayName || "お子様"}の学習レポート`, body: reportText },
+            notification: { title: `📅 ${displayDate} ${parentData.childDisplayName || userData.displayName || "お子様"}のレポート`, body: reportText },
             android: { priority: "high" },
           }));
         }
