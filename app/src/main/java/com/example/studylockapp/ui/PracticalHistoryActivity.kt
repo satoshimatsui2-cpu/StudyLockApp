@@ -8,10 +8,14 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -41,9 +45,20 @@ class PracticalHistoryActivity : AppCompatActivity() {
     private var ttsController: PracticalListeningTtsController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityPracticalHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Status bar & Display cutout handling
+        val initialAppBarTopPadding = binding.appBar.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            binding.appBar.updatePadding(top = initialAppBarTopPadding + bars.top)
+            insets
+        }
 
         // TTSコントローラの初期化
         ttsController = PracticalListeningTtsController(this)

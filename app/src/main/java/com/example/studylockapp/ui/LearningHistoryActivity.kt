@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -40,14 +41,18 @@ class LearningHistoryActivity : AppCompatActivity() {
     private var currentSearchQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityLearningHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Status bar inset handling
-        ViewCompat.setOnApplyWindowInsetsListener(binding.appBar) { view, insets ->
-            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            view.updatePadding(top = statusBars.top)
+        // Status bar & Display cutout handling (Maintaining initial padding)
+        val initialAppBarTopPadding = binding.appBar.paddingTop
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            binding.appBar.updatePadding(top = initialAppBarTopPadding + bars.top)
             insets
         }
 
