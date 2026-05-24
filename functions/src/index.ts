@@ -214,22 +214,32 @@ export const sendDailyReport = functions
 
       // --- 4. 解放履歴の構築 ---
       let totalUnlockMins = 0;
-      const unlockDetails: string[] = [];
+      let unlockCount = 0;
+      const unlockAppMap: Record<string, { minutes: number; points: number }> = {};
 
       unlockRecords.forEach((r: any) => {
         if (r.type === "unlock") {
+          unlockCount++;
           const pts = Number(r.usedPoints || 0);
           const mins = Number(r.unlockedMinutes || 0);
           totalUnlockMins += mins;
-          // - Chrome 1分 10pt
-          unlockDetails.push(`- ${r.appLabel || "不明"} ${mins}分 ${pts}pt`);
+
+          const appName = r.appLabel || r.packageName || "不明";
+          if (!unlockAppMap[appName]) {
+            unlockAppMap[appName] = { minutes: 0, points: 0 };
+          }
+          unlockAppMap[appName].minutes += mins;
+          unlockAppMap[appName].points += pts;
         }
       });
 
+      const unlockDetails = Object.entries(unlockAppMap)
+        .sort((a, b) => b[1].minutes - a[1].minutes)
+        .map(([appName, v]) => `- ${appName} ${v.minutes}分 ${v.points}pt`);
+
       let unlockText = "解放:なし";
-      if (unlockDetails.length > 0) {
-        // 解放:1回/1分/10pt
-        const unlockSummaryShort = `解放:${unlockDetails.length}回/${totalUnlockMins}分/${displayUsedPoints}pt`;
+      if (unlockCount > 0) {
+        const unlockSummaryShort = `解放:${unlockCount}回/${totalUnlockMins}分/${displayUsedPoints}pt`;
         unlockText = `${unlockSummaryShort}\n${unlockDetails.join("\n")}`;
       }
 
