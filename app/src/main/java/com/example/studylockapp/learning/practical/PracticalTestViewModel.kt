@@ -85,10 +85,23 @@ class PracticalTestViewModel(
             
             // 候補モードからランダムに選び、問題が存在するかチェック
             for (mode in possibleModes.shuffled()) {
-                val questions = repository.getQuestions(mode, grade)
-                if (questions.isNotEmpty()) {
-                    selectedQuestion = questions.random()
-                    break
+                val allQuestions = repository.getQuestions(mode, grade)
+                if (allQuestions.isNotEmpty()) {
+                    // 除外条件：正解済み、または1週間以内に間違えた
+                    val oneWeekAgo = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+                    val excludedNos = repository.getExcludedQuestionNos(mode, grade, oneWeekAgo)
+                    
+                    // まだ正解しておらず、かつ直近で間違えていない問題を抽出
+                    val candidatePool = allQuestions.filter { it.no !in excludedNos }
+                    
+                    selectedQuestion = if (candidatePool.isNotEmpty()) {
+                        candidatePool.random()
+                    } else {
+                        // 条件に合う問題がない場合は、全ての中からランダム（リセット）
+                        allQuestions.random()
+                    }
+                    
+                    if (selectedQuestion != null) break
                 }
             }
 

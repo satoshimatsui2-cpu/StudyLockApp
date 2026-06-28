@@ -5,7 +5,6 @@ import android.view.View
 import android.widget.TextView
 import com.example.studylockapp.R
 import com.example.studylockapp.LearningActivity
-import com.example.studylockapp.GradeLabelFormatter
 
 class SortRenderer : QuizRenderer {
 
@@ -22,15 +21,10 @@ class SortRenderer : QuizRenderer {
         availableTokens.clear()
         availableTokens.addAll(quiz.sortTokens ?: emptyList())
 
-        // UIの初期化
-        binding.textQuestionTitle.text = "正しい英文の順番に並べてください。"
-        binding.textQuestionBody.text = quiz.question // 日本語文
-        
-        // Gradeバッジの設定
-        binding.textQuestionGradeBadge.text = GradeLabelFormatter.format(quiz.word.grade)
-        binding.cardQuestionGradeBadge.visibility = View.VISIBLE
+        // UIの初期化 - showBasicQuizを呼び出すことで言語判定と文字サイズ設定を共通化する
+        ui.showBasicQuiz("正しい英文の順番に並べてください。", quiz.question, emptyList())
 
-        // 既存の4択を隠し、並び替え用エリアを表示
+        // 並び替え用エリアを表示し、4択エリアを隠す
         binding.choicesContainer.visibility = View.GONE
         binding.layoutSortContainer.visibility = View.VISIBLE
         

@@ -53,7 +53,7 @@
         <item name="strokeWidth">1dp</item>
         <item name="cornerRadius">18dp</item>
         <item name="android:textColor">@color/choice_normal_text</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:minHeight">60dp</item>
         <item name="android:paddingTop">12dp</item>
@@ -93,6 +93,7 @@
         <item name="backgroundTint">@color/unknown_bg</item>
         <item name="strokeColor">@color/unknown_stroke</item>
         <item name="android:textColor">@color/unknown_text</item>
+        <item name="android:textSize">12sp</item>
         <item name="rippleColor">#F3E3A4</item>
     </style>
 

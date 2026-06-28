@@ -26,7 +26,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_sub"
-                android:textSize="14sp"
+                android:textSize="10sp"
                 app:chipBackgroundColor="@color/app_background"
                 app:chipIcon="@drawable/ic_headphones_24"
                 app:chipIconSize="20dp"
@@ -36,16 +36,36 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="リスニング" />
 
-            <TextView
-                android:id="@+id/text_review_question_text"
+            <LinearLayout
+                android:id="@+id/layout_review_question_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="@color/text_main"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                app:layout_constraintTop_toBottomOf="@id/chip_review_mode"
-                tools:text="persistent" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@id/chip_review_mode">
+
+                <TextView
+                    android:id="@+id/text_review_question_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/text_main"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="persistent" />
+
+                <ImageButton
+                    android:id="@+id/button_play_question_inline"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_volume_up_24"
+                    android:visibility="gone"
+                    app:tint="@color/navy_primary"
+                    tools:visibility="visible" />
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/container_results"
@@ -53,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:orientation="vertical"
-                app:layout_constraintTop_toBottomOf="@id/text_review_question_text">
+                app:layout_constraintTop_toBottomOf="@id/layout_review_question_header">
 
                 <LinearLayout
                     android:id="@+id/layout_result_wrong"
@@ -82,7 +102,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:textColor="@color/text_main"
-                            android:textSize="18sp"
+                            android:textSize="15sp"
                             tools:text="永続的な" />
                     </LinearLayout>
                     <ImageView
@@ -122,7 +142,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:textColor="@color/text_main"
-                            android:textSize="20sp"
+                            android:textSize="18sp"
                             android:textStyle="bold"
                             tools:text="持続する" />
                     </LinearLayout>
@@ -216,6 +236,7 @@
                 android:orientation="vertical"
                 app:layout_constraintTop_toBottomOf="@id/layout_listening_compare">
 
+                <!-- 発音記号 (表示される場合のみ) -->
                 <LinearLayout
                     android:id="@+id/layout_review_phonetic_row"
                     android:layout_width="match_parent"
@@ -236,39 +257,8 @@
                         android:layout_marginStart="8dp"
                         android:layout_weight="1"
                         android:textColor="@color/text_sub"
-                        android:textSize="14sp"
+                        android:textSize="11sp"
                         tools:text="/pərˈsɪstənt/" />
-                </LinearLayout>
-
-                <!-- 通常モード用の音声コントロール -->
-                <LinearLayout
-                    android:id="@+id/layout_audio_controls"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:src="@drawable/ic_volume_up_24"
-                        app:tint="@color/text_sub"
-                        android:contentDescription="@null" />
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:text="単語音声"
-                        android:textColor="@color/text_sub"
-                        android:textSize="14sp" />
-                    <ImageButton
-                        android:id="@+id/button_play_review_word"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_volume_up_24"
-                        app:tint="@color/navy_primary"
-                        android:contentDescription="@null" />
                 </LinearLayout>
 
                 <!-- English Sentence -->
@@ -291,7 +281,7 @@
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
                         android:textColor="@color/text_main"
-                        android:textSize="19sp"
+                        android:textSize="15sp"
                         tools:text="She was persistent in her efforts to learn English." />
                 </LinearLayout>
 
@@ -320,7 +310,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textColor="@color/text_sub"
-                            android:textSize="17sp"
+                            android:textSize="13sp"
                             tools:text="彼女は英語を学ぶために粘り強く努力した。" />
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_play_review_sentence"
@@ -352,7 +342,7 @@
                         android:layout_height="wrap_content"
                         android:text="参考: 反対の意味"
                         android:textColor="@color/text_sub"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
                     <LinearLayout
                         android:id="@+id/container_antonyms"
@@ -371,7 +361,7 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="16dp"
                 android:text="@string/action_go_next"
-                android:textSize="18sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layout_word_info" />

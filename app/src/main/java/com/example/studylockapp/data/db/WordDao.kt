@@ -52,8 +52,9 @@ interface WordDao {
         WHERE w.grade = :grade
           AND m.wordId IS NULL
         ORDER BY 
-            COALESCE(w.frequency, 0) DESC,
-            COALESCE(w.difficulty, 999999) ASC,
+            (CASE WHEN COALESCE(w.frequency, 0) >= 3 THEN 0 ELSE 1 END) ASC,
+            (CASE WHEN COALESCE(w.difficulty, 0) < 5 THEN 0 ELSE 1 END) ASC,
+            RANDOM(),
             w.no ASC
         LIMIT 1
     """)
@@ -68,8 +69,9 @@ interface WordDao {
         LEFT JOIN word_mastery m ON w.no = m.wordId
         WHERE m.wordId IS NULL
         ORDER BY 
-            COALESCE(w.frequency, 0) DESC,
-            COALESCE(w.difficulty, 999999) ASC,
+            (CASE WHEN COALESCE(w.frequency, 0) >= 3 THEN 0 ELSE 1 END) ASC,
+            (CASE WHEN COALESCE(w.difficulty, 0) < 5 THEN 0 ELSE 1 END) ASC,
+            RANDOM(),
             w.no ASC
         LIMIT 1
     """)

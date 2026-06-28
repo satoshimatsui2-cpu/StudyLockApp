@@ -29,6 +29,13 @@ class PracticalTestRepository(
     }
 
     /**
+     * 除外すべき問題No（正解済み or 直近の不正解）を取得します。
+     */
+    suspend fun getExcludedQuestionNos(type: PracticalQuizMode, grade: Int, recentlySince: Long): List<String> {
+        return historyDao.getExcludedQuestionNos(grade, type.name, recentlySince)
+    }
+
+    /**
      * 指定されたグレードとタイプに一致する問題をTSVから取得します。
      * ファイル全文を読み込み、状態遷移型パーサで処理することで、セル内の改行やクォートを安全に扱います。
      */

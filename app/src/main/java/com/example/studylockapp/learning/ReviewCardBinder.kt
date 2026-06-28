@@ -64,7 +64,12 @@ object ReviewCardBinder {
         }
 
         // 結果エリア外の単語音声コントロール (EN_TO_JP等、結果エリアで再生できない場合に表示)
-        binding.layoutAudioControls.visibility = if (model.showAudioControls) View.VISIBLE else View.GONE
+        binding.buttonPlayQuestionInline.visibility = if (model.showAudioControls) View.VISIBLE else View.GONE
+        if (model.showAudioControls) {
+            binding.buttonPlayQuestionInline.setOnClickListener {
+                onPlayCorrectAnswer(model.questionText) // 問題文(英語)を再生
+            }
+        }
 
         // 3. 惜しい不正解 (Synonym Hint)
         if (!model.synonymHintTitle.isNullOrEmpty()) {
@@ -99,7 +104,7 @@ object ReviewCardBinder {
         // 6. 再生ボタン制御 (例文再生など)
         val alpha = if (model.playButtonsEnabled) 1.0f else 0.3f
         listOf(
-            binding.buttonPlayReviewWord,
+            binding.buttonPlayQuestionInline,
             binding.buttonPlayReviewSentence
         ).forEach {
             it.isEnabled = model.playButtonsEnabled

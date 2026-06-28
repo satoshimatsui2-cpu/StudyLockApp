@@ -19,7 +19,7 @@ class TsvImporter(
 ) {
     companion object {
         private const val TAG = "TsvImporter"
-        private const val CURRENT_WORD_DATA_VERSION = 2
+        private const val CURRENT_WORD_DATA_VERSION = 3
     }
 
     suspend fun seedIfNeeded() {
@@ -29,6 +29,14 @@ class TsvImporter(
         // 初回、またはデータバージョンが上がった場合にインポートを実行
         if (count == 0 || savedVersion < CURRENT_WORD_DATA_VERSION) {
             Log.d(TAG, "Starting word data import. Reason: count=$count, savedVersion=$savedVersion, targetVersion=$CURRENT_WORD_DATA_VERSION")
+            
+            // 重要：ID体系が変わった場合（採番し直し等）は既存の古い単語を一旦削除してクリーンにする
+            // （CASCADEにより学習進捗もリセットされますが、ID不整合によるゴミデータを防ぐため）
+            if (savedVersion > 0 && savedVersion < CURRENT_WORD_DATA_VERSION) {
+                Log.d(TAG, "Clearing old word data for fresh start (version mismatch)")
+                wordDao.deleteAll()
+            }
+
             val success = importAllGrades()
             if (success) {
                 appSettings.wordDataVersion = CURRENT_WORD_DATA_VERSION

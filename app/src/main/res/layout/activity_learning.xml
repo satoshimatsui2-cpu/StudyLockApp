@@ -67,38 +67,49 @@
                 android:layout_height="match_parent"
                 android:padding="20dp">
 
-                <TextView
-                    android:id="@+id/text_question_title"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/layout_question_header_row"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_sub"
-                    android:textSize="18sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    app:layout_constraintTop_toTopOf="parent">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_question_grade_badge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:cardBackgroundColor="@color/navy_soft"
-                    app:cardCornerRadius="6dp"
-                    app:strokeWidth="0dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/text_question_title">
-                    <TextView
-                        android:id="@+id/text_question_grade_badge"
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_question_grade_badge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="4dp"
-                        android:textColor="@color/navy_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        tools:text="4級" />
-                </com.google.android.material.card.MaterialCardView>
+                        android:layout_marginEnd="8dp"
+                        app:cardBackgroundColor="@color/navy_soft"
+                        app:cardCornerRadius="6dp"
+                        app:strokeWidth="0dp">
+
+                        <TextView
+                            android:id="@+id/text_question_grade_badge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:textColor="@color/navy_primary"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            tools:text="4級" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:id="@+id/text_question_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:maxLines="2"
+                        android:textColor="@color/text_sub"
+                        android:textSize="12sp"
+                        app:autoSizeMaxTextSize="12sp"
+                        app:autoSizeMinTextSize="10sp"
+                        app:autoSizeStepGranularity="1sp"
+                        app:autoSizeTextType="uniform" />
+
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/text_question_body"
@@ -106,10 +117,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:gravity="center"
+                    android:maxLines="5"
                     android:textColor="@color/text_main"
-                    android:textSize="22sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
-                    app:layout_constraintTop_toBottomOf="@id/card_question_grade_badge" />
+                    app:autoSizeMaxTextSize="16sp"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeStepGranularity="1sp"
+                    app:autoSizeTextType="uniform"
+                    app:layout_constraintTop_toBottomOf="@id/layout_question_header_row" />
 
                 <!-- Sentence Sorting UI -->
                 <androidx.constraintlayout.widget.ConstraintLayout

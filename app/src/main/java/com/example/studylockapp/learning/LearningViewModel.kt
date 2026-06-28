@@ -464,9 +464,10 @@ class LearningViewModel(
                 // 学習中のグレードを取得 (QuizManager に渡しているものと同じ値)
                 val grade = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
 
-                // 実践テスト問題があるか確認
+                // 実践テスト問題があるか確認 (穴埋め または リスニング)
                 val hasPractical = withContext(Dispatchers.IO) {
-                    practicalRepo.hasQuestions(PracticalQuizMode.FILL_BLANK, grade)
+                    practicalRepo.hasQuestions(PracticalQuizMode.FILL_BLANK, grade) ||
+                    (appSettings.silentMode == SilentMode.OFF && practicalRepo.hasQuestions(PracticalQuizMode.LISTENING, grade))
                 }
                 
                 if (hasPractical) {

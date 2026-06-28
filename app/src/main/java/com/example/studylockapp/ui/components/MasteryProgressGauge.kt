@@ -101,13 +101,13 @@ fun MasteryProgressGauge(
     }
 
     // UIサイズ定数
-    val nodeSize = 24.dp // アイコンサイズの基準
+    val nodeSize = 21.dp // 24dp -> 21dp (約2sp/3dp縮小)
     val accentColor = if (isLongTerm) NavyPrimary else MustardAccent
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(vertical = 3.dp), // 5.dp -> 3.dp (約半分)
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // --- ノードとセグメント化された線の描画 (Row で水平に並べる) ---
@@ -136,20 +136,20 @@ fun MasteryProgressGauge(
                 ) {
                     // ラベル領域
                     Box(
-                        modifier = Modifier.height(24.dp),
+                        modifier = Modifier.height(20.dp), // 24dp -> 20dp に微調整
                         contentAlignment = Alignment.BottomCenter
                     ) {
                         if (nodeLevel == absoluteLevel && absoluteLevel != 0) {
                             Text(
                                 text = "LV$nodeLevel",
-                                fontSize = 13.sp,
+                                fontSize = 11.sp, // 13sp -> 11sp
                                 fontWeight = FontWeight.Bold,
                                 color = NavyPrimary
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp)) // 8dp -> 6dp
 
                     // ノード本体
                     Box(
@@ -164,7 +164,7 @@ fun MasteryProgressGauge(
                                     painter = painterResource(id = R.drawable.ic_headphones_24),
                                     contentDescription = null,
                                     tint = nodeColor,
-                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    modifier = Modifier.fillMaxSize().scale(1.1f) // 1.2f -> 1.1f
                                 )
                             }
                             4 -> {
@@ -173,7 +173,7 @@ fun MasteryProgressGauge(
                                     painter = painterResource(id = R.drawable.outline_blender_24),
                                     contentDescription = null,
                                     tint = nodeColor,
-                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    modifier = Modifier.fillMaxSize().scale(1.1f) // 1.2f -> 1.1f
                                 )
                             }
                             5 -> {
@@ -181,7 +181,7 @@ fun MasteryProgressGauge(
                                     painter = painterResource(id = R.drawable.ic_round_stars_24),
                                     contentDescription = null,
                                     tint = nodeColor,
-                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    modifier = Modifier.fillMaxSize().scale(1.1f) // 1.2f -> 1.1f
                                 )
                             }
                             10 -> {
@@ -190,15 +190,14 @@ fun MasteryProgressGauge(
                                     painter = painterResource(id = R.drawable.ic_emoji_events_24),
                                     contentDescription = null,
                                     tint = nodeColor,
-                                    modifier = Modifier.fillMaxSize().scale(1.2f)
+                                    modifier = Modifier.fillMaxSize().scale(1.1f) // 1.2f -> 1.1f
                                 )
                             }
                             else -> {
                                 // 通常LV (1, 3, 8) は「●」
-                                // アイコンに対して視覚的バランスを整えたサイズ (80% 程度)
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxSize(0.64f)
+                                        .fillMaxSize(0.6f) // 0.64f -> 0.6f
                                         .background(nodeColor, CircleShape)
                                 )
                             }

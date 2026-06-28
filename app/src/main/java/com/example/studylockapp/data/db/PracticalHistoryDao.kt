@@ -49,6 +49,17 @@ interface PracticalHistoryDao {
     @Query("SELECT * FROM practical_history WHERE isScored = 0 ORDER BY answeredAt DESC")
     suspend fun getUnscoredHistory(): List<PracticalHistoryEntity>
 
+    /**
+     * 指定された級とタイプで、除外すべき問題のNoを取得します。
+     * 条件: 正解したことがある、または指定した時間以降に間違えた。
+     */
+    @Query("""
+        SELECT DISTINCT questionNo FROM practical_history 
+        WHERE grade = :grade AND questionType = :type 
+        AND (resultStatus = 'CORRECT' OR (resultStatus = 'WRONG' AND answeredAt > :recentlySince))
+    """)
+    suspend fun getExcludedQuestionNos(grade: Int, type: String, recentlySince: Long): List<String>
+
     // --- 一覧表示用（問題ごとに最新1件のみ取得） ---
 
     /**

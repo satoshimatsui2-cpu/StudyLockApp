@@ -40,7 +40,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private lateinit var ttsController: LearningTtsController
     
     private var currentQuizId: String? = null
-    private var defaultQuestionBodyTextSize: Float = 0f
+    private var currentBaseQuestionSizeSp: Float = 16f
+    private var currentQuestionScale: Float = 1.0f
 
     // 選択肢表示状態管理 (Persistence は ViewModel/State 側で実施)
     private var choicesRevealedForCurrentQuiz: Boolean = true
@@ -91,8 +92,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         soundEffectManager = SoundEffectManager(this)
         ttsController = LearningTtsController(this)
 
-        defaultQuestionBodyTextSize = binding.textQuestionBody.textSize
-
         observeViewModel()
 
         if (savedInstanceState == null) {
@@ -128,12 +127,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             viewModel.onNextAfterReview()
         }
 
-        binding.layoutReviewCard.buttonPlayReviewWord.setOnClickListener {
+        binding.layoutReviewCard.buttonPlayQuestionInline.setOnClickListener {
             viewModel.requestAudioPlayback()
         }
 
         binding.layoutReviewCard.buttonPlayReviewSentence.setOnClickListener {
-            viewModel.uiState.value.currentWord?.sentence?.let { 
+            viewModel.uiState.value.quiz?.word?.sentence?.let {
                 viewModel.requestAudioPlayback(it) 
             }
         }
@@ -351,23 +350,48 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 finish()
             }
             is LearningUiEvent.ShowCorrect -> {
-                if (viewModel.uiState.value.silentMode == SilentMode.OFF) {
+                val state = viewModel.uiState.value
+                if (state.silentMode == SilentMode.OFF) {
                     soundEffectManager.playCorrect()
+
+                    // SEと重ならないよう、少し遅らせて音声を自動再生
+                    lifecycleScope.launch {
+                        kotlinx.coroutines.delay(600) // 0.6秒待機
+                        val audioText = when (state.quiz?.mode) {
+                            QuizMode.EN_TO_JP -> state.currentWord?.word
+                            QuizMode.JP_TO_EN -> state.currentWord?.word
+                            QuizMode.FILL_BLANK -> state.currentWord?.word
+                            QuizMode.LISTEN_FILL_BLANK -> state.currentWord?.sentence
+                            else -> state.currentWord?.word
+                        }
+                        audioText?.let { ttsController.speak(it) }
+                    }
                 }
-                if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
+                if (state.quiz?.mode == QuizMode.SENTENCE_SORT) {
                     viewModel.startReview()
                 } else {
                     val correctBtn = choiceButtons.find { it.text == event.answer }
-                    animationManager.playCorrectSequence(correctBtn, event.gainedPoints, event.tierChanged, viewModel.uiState.value.currentTier.label) {
+                    animationManager.playCorrectSequence(correctBtn, event.gainedPoints, event.tierChanged, state.currentTier.label) {
                         viewModel.startReview()
                     }
                 }
             }
             is LearningUiEvent.ShowWrong -> {
-                if (!event.isUnknown && viewModel.uiState.value.silentMode == SilentMode.OFF) {
+                val state = viewModel.uiState.value
+                if (!event.isUnknown && state.silentMode == SilentMode.OFF) {
                     soundEffectManager.playWrong()
+
+                    // 不正解時もSEの後に音声を自動再生
+                    lifecycleScope.launch {
+                        kotlinx.coroutines.delay(800) // 不正解SEは少し長めなので0.8秒待機
+                        val audioText = when (state.quiz?.mode) {
+                            QuizMode.LISTEN_FILL_BLANK -> state.currentWord?.sentence
+                            else -> state.currentWord?.word
+                        }
+                        audioText?.let { ttsController.speak(it) }
+                    }
                 }
-                if (viewModel.uiState.value.quiz?.mode == QuizMode.SENTENCE_SORT) {
+                if (state.quiz?.mode == QuizMode.SENTENCE_SORT) {
                     viewModel.startReview()
                 } else {
                     val selectedBtn = choiceButtons.find { it.text == event.selected }
@@ -439,6 +463,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     @SuppressLint("ClickableViewAccessibility")
     override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
         binding.textQuestionTitle.text = title
+
+        // 言語判定（日本語が含まれるか）
+        val hasJapanese = body.any { it.code in 0x3040..0x309F || it.code in 0x30A0..0x30FF || it.code in 0x4E00..0x9FFF }
+        currentBaseQuestionSizeSp = if (hasJapanese) 15f else 16f
+        updateQuestionBodyTextSize()
+
         binding.textQuestionBody.text = body
         
         viewModel.uiState.value.quiz?.word?.let { word ->
@@ -451,8 +481,14 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         
         choiceButtons.forEachIndexed { i, btn ->
             if (i < choices.size) {
-                btn.text = choices[i]
+                val choice = choices[i]
+                btn.text = choice
                 btn.visibility = View.VISIBLE
+                
+                // 選択肢の言語判定
+                val choiceHasJa = choice.any { it.code in 0x3040..0x309F || it.code in 0x30A0..0x30FF || it.code in 0x4E00..0x9FFF }
+                btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, if (choiceHasJa) 14f else 16f)
+
                 btn.setOnClickListener {
                     if (!viewModel.uiState.value.isAnswering && !viewModel.uiState.value.isReviewing) {
                         viewModel.submitAnswer(btn.text.toString())
@@ -469,7 +505,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     override fun setQuestionBodyTextScale(scale: Float) {
-        binding.textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_PX, defaultQuestionBodyTextSize * scale)
+        currentQuestionScale = scale
+        updateQuestionBodyTextSize()
+    }
+
+    private fun updateQuestionBodyTextSize() {
+        binding.textQuestionBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, currentBaseQuestionSizeSp * currentQuestionScale)
     }
 
     override fun playAudio(text: String) {
