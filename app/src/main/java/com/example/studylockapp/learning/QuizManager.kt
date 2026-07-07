@@ -16,7 +16,8 @@ import java.util.*
 class QuizManager(
     private val wordDao: WordDao,
     private val masteryDao: WordMasteryDao,
-    private val studyLogDao: StudyLogDao, // 追加
+    private val studyLogDao: StudyLogDao,
+    private val appSettings: com.example.studylockapp.data.AppSettings, // 追加
     private var userLevel: Int = 3
 ) {
     private val choiceGenerator = ChoiceGenerator()
@@ -166,7 +167,25 @@ class QuizManager(
             }
         }
         
-        return wordDao.getPriorityNewWordByGrade(userLevel)
+        // 新規単語の出題制限チェック
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        val startOfDay = cal.timeInMillis
+        
+        val startedTodayCount = masteryDao.countStartedNewWordsToday(startOfDay)
+        val dailyTarget = appSettings.dailyNewWordTarget
+        
+        if (startedTodayCount < dailyTarget) {
+            val newWord = wordDao.getPriorityNewWordByGrade(userLevel)
+            if (newWord != null) return newWord
+        } else {
+            Log.d(TAG, "New word limit reached: $startedTodayCount / $dailyTarget. Skipping new words.")
+        }
+        
+        return null
     }
 
     suspend fun submitAnswer(

@@ -25,6 +25,17 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="目標: 準2級" />
 
+        <TextView
+            android:id="@+id/text_daily_quota_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#616161"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_target_level"
+            tools:text="本日の学習残り　新規: 3  復習: 15" />
+
         <LinearLayout
             android:id="@+id/layout_meta_chips"
             android:layout_width="wrap_content"
@@ -36,7 +47,7 @@
             app:layout_constraintEnd_toStartOf="@+id/layout_header_actions"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_target_level">
+            app:layout_constraintTop_toBottomOf="@id/text_daily_quota_header">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"

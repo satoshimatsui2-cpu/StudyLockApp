@@ -10,6 +10,7 @@ data class JourneyHeaderUiModel(
     val longTermCountText: String,
     val sessionPointsText: String,
     val goalText: String,
+    val quotaText: String, // 追加
     val currentLevel: Int,
     val currentWordId: Int // アニメーション制御用のキーとして使用
 )
@@ -21,6 +22,7 @@ object JourneyHeaderMapper {
             longTermCountText = state.longTermMasterCount.toString(),
             sessionPointsText = "${state.totalPoints}PT", // sessionPoints から totalPoints (累計) に変更
             goalText = "目標: ${GradeLabelFormatter.format(state.targetLevel)}",
+            quotaText = "本日の学習残り　新規: ${state.newWordsRemaining}  復習: ${state.reviewWordsRemaining}",
             currentLevel = state.currentLevel,
             currentWordId = state.quiz?.word?.no ?: -1
         )

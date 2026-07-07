@@ -82,27 +82,27 @@ class PracticalTestViewModel(
             }
 
             var selectedQuestion: PracticalQuestion? = null
-            
-            // 候補モードからランダムに選び、問題が存在するかチェック
-            for (mode in possibleModes.shuffled()) {
-                val allQuestions = repository.getQuestions(mode, grade)
-                if (allQuestions.isNotEmpty()) {
-                    // 除外条件：正解済み、または1週間以内に間違えた
-                    val oneWeekAgo = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
-                    val excludedNos = repository.getExcludedQuestionNos(mode, grade, oneWeekAgo)
-                    
-                    // まだ正解しておらず、かつ直近で間違えていない問題を抽出
-                    val candidatePool = allQuestions.filter { it.no !in excludedNos }
-                    
-                    selectedQuestion = if (candidatePool.isNotEmpty()) {
-                        candidatePool.random()
-                    } else {
-                        // 条件に合う問題がない場合は、全ての中からランダム（リセット）
-                        allQuestions.random()
-                    }
-                    
-                    if (selectedQuestion != null) break
-                }
+
+            // モードごとの全問題と、除外されていない候補をまず収集する
+            val modePools = possibleModes.map { mode ->
+                val all = repository.getQuestions(mode, grade)
+                val oneWeekAgo = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+                val excludedNos = repository.getExcludedQuestionNos(mode, grade, oneWeekAgo)
+                val candidates = all.filter { it.no !in excludedNos }
+                Triple(mode, all, candidates)
+            }.filter { it.second.isNotEmpty() }
+
+            // 1. まず、いずれかのモードに「未正解・非直近間違い」の問題があれば、そこからランダムに選ぶ
+            val modesWithCandidates = modePools.filter { it.third.isNotEmpty() }
+            if (modesWithCandidates.isNotEmpty()) {
+                val selectedPool = modesWithCandidates.random()
+                selectedQuestion = selectedPool.third.random()
+                Log.d("PracticalTestViewModel", "Selected from candidate pool. Mode=${selectedPool.first}")
+            } else if (modePools.isNotEmpty()) {
+                // 2. 全ての問題が除外対象（正解済み等）の場合は、全てのプールを統合してランダムに1問選ぶ（リセット）
+                val selectedPool = modePools.random()
+                selectedQuestion = selectedPool.second.random()
+                Log.d("PracticalTestViewModel", "Candidate pool exhausted. Resetting and picking from all. Mode=${selectedPool.first}")
             }
 
             if (selectedQuestion == null) {

@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
+import java.util.UUID
 
 /**
  * 学習画面のメイン ViewModel。
@@ -40,7 +42,7 @@ class LearningViewModel(
     private val practicalRepo: PracticalTestRepository
 ) : ViewModel() {
 
-    private val totalCount = 10
+    private val totalCount = 20
     private var solvedInSession = 0
     
     private var levelUpsInSession = 0
@@ -230,7 +232,42 @@ class LearningViewModel(
                     }
                 }
             }
+            
+            updateQuotaInternal()
         }
+    }
+
+    private suspend fun updateQuotaInternal() {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        val startOfDay = cal.timeInMillis
+
+        val (newDone, reviewRemaining) = withContext(Dispatchers.IO) {
+            val startedToday = masteryDao.countStartedNewWordsToday(startOfDay)
+            
+            val currentGrade = appSettings.safeLearningGrade.toIntOrNull() ?: 3
+            val includeOthers = if (appSettings.includeOtherGrades) 1 else 0
+            val isSilent = if (appSettings.silentMode == SilentMode.ON) 1 else 0
+
+            val remaining = masteryDao.countRemainingReviewsAvailable(
+                now = System.currentTimeMillis(),
+                currentGrade = currentGrade,
+                includeOtherGrades = includeOthers,
+                isSilentMode = isSilent
+            )
+            Pair(startedToday, remaining)
+        }
+
+        val target = appSettings.dailyNewWordTarget
+        val newRemaining = (target - newDone).coerceAtLeast(0)
+
+        _uiState.update { it.copy(
+            newWordsRemaining = newRemaining,
+            reviewWordsRemaining = reviewRemaining
+        ) }
     }
 
     fun refreshPoints() {
@@ -441,6 +478,8 @@ class LearningViewModel(
                     longMasterCount = long
                 )
             }
+            
+            updateQuotaInternal()
         }
     }
 

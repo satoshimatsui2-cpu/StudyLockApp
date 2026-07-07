@@ -2,6 +2,7 @@ package com.example.studylockapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +21,8 @@ import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.alert.AppDialogHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 /**
  * アプリ起動時のメイン画面。
@@ -111,6 +114,54 @@ class MainActivity : AppCompatActivity() {
 
         updateGradeDisplay()
         updatePointDisplay()
+        updateQuotaDisplay()
+    }
+
+    /**
+     * 本日のノルマ残り表示を更新
+     */
+    private fun updateQuotaDisplay() {
+        val quotaText = findViewById<TextView>(R.id.text_daily_quota) ?: return
+
+        lifecycleScope.launch {
+            val db = AppDatabase.getInstance(this@MainActivity)
+            val cal = Calendar.getInstance()
+            
+            // 今日の開始時刻 (00:00:00.000)
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            val startOfDay = cal.timeInMillis
+
+            // 今日の終了時刻 (23:59:59.999)
+            cal.set(Calendar.HOUR_OF_DAY, 23)
+            cal.set(Calendar.MINUTE, 59)
+            cal.set(Calendar.SECOND, 59)
+            cal.set(Calendar.MILLISECOND, 999)
+            val endOfDay = cal.timeInMillis
+
+            val (newDone, reviewRemaining) = withContext(Dispatchers.IO) {
+                val startedToday = db.wordMasteryDao().countStartedNewWordsToday(startOfDay)
+                
+                val currentGrade = appSettings.safeLearningGrade.toIntOrNull() ?: 3
+                val includeOthers = if (appSettings.includeOtherGrades) 1 else 0
+                val isSilent = if (appSettings.silentMode == com.example.studylockapp.data.SilentMode.ON) 1 else 0
+                
+                val remaining = db.wordMasteryDao().countRemainingReviewsAvailable(
+                    now = System.currentTimeMillis(),
+                    currentGrade = currentGrade,
+                    includeOtherGrades = includeOthers,
+                    isSilentMode = isSilent
+                )
+                Pair(startedToday, remaining)
+            }
+
+            val target = appSettings.dailyNewWordTarget
+            val newRemaining = (target - newDone).coerceAtLeast(0)
+
+            quotaText.text = getString(R.string.label_daily_quota_remaining, newRemaining, reviewRemaining)
+        }
     }
 
     /**

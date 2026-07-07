@@ -55,7 +55,11 @@ data class LearningUiState(
     // Session Summary
     val sessionLevelUpCount: Int = 0,
     val sessionBasicMasterGained: Int = 0,
-    val sessionLongTermMasterGained: Int = 0
+    val sessionLongTermMasterGained: Int = 0,
+
+    // ノルマ残り
+    val newWordsRemaining: Int = 0,
+    val reviewWordsRemaining: Int = 0
 )
 
 data class AudioWarningState(

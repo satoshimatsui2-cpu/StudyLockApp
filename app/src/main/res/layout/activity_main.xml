@@ -182,12 +182,24 @@
                     android:id="@+id/text_target_grade"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
                     android:gravity="center_horizontal"
                     android:textSize="14sp"
                     android:textColor="@color/brand_orange"
                     android:textStyle="bold"
-                    tools:text="目標：3級 / 学習：5級（復習）" />
+                    tools:text="目標：3級" />
+
+                <!-- 本日の学習残り -->
+                <TextView
+                    android:id="@+id/text_daily_quota"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_horizontal"
+                    android:textSize="14sp"
+                    android:textColor="@color/brand_orange"
+                    android:textStyle="bold"
+                    tools:text="本日の学習残り　新規: 3  復習: 15" />
 
                 <!-- 級選択ボタン (ブランドオレンジ) -->
                 <LinearLayout

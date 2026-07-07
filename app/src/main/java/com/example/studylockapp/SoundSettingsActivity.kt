@@ -37,6 +37,12 @@ class SoundSettingsActivity : AppCompatActivity() {
     private lateinit var resetSeCorrect: ImageButton
     private lateinit var resetSeWrong: ImageButton
 
+    private lateinit var textTargetCount: TextView
+    private lateinit var btnTargetMinus: MaterialButton
+    private lateinit var btnTargetPlus: MaterialButton
+    private lateinit var textSimTotalQuestions: TextView
+    private lateinit var textSimTotalTime: TextView
+
     private lateinit var btnSave: MaterialButton
 
     private val DEFAULT_SPEED = 1.0f
@@ -72,6 +78,12 @@ class SoundSettingsActivity : AppCompatActivity() {
             resetSeCorrect = findViewById(R.id.reset_se_correct)
             resetSeWrong = findViewById(R.id.reset_se_wrong)
 
+            textTargetCount = findViewById(R.id.text_target_count)
+            btnTargetMinus = findViewById(R.id.btn_target_minus)
+            btnTargetPlus = findViewById(R.id.btn_target_plus)
+            textSimTotalQuestions = findViewById(R.id.text_sim_total_questions)
+            textSimTotalTime = findViewById(R.id.text_sim_total_time)
+
             btnSave = findViewById(R.id.btn_save_sound)
 
             setupInitialValues()
@@ -95,6 +107,8 @@ class SoundSettingsActivity : AppCompatActivity() {
         seekSeCorrect.progress = volToProgress(settings.seCorrectVolume)
         seekSeWrong.progress = volToProgress(settings.seWrongVolume)
 
+        textTargetCount.text = settings.dailyNewWordTarget.toString()
+
         updateAllLabels()
     }
 
@@ -105,6 +119,23 @@ class SoundSettingsActivity : AppCompatActivity() {
         seekTtsVolume.setOnSeekBarChangeListener(commonListener)
         seekSeCorrect.setOnSeekBarChangeListener(commonListener)
         seekSeWrong.setOnSeekBarChangeListener(commonListener)
+
+        btnTargetMinus.setOnClickListener {
+            val current = textTargetCount.text.toString().toIntOrNull() ?: 5
+            if (current > 1) {
+                val nextValue = current - 1
+                textTargetCount.text = nextValue.toString()
+                updateSimulationLabels()
+            }
+        }
+        btnTargetPlus.setOnClickListener {
+            val current = textTargetCount.text.toString().toIntOrNull() ?: 5
+            if (current < 100) {
+                val nextValue = current + 1
+                textTargetCount.text = nextValue.toString()
+                updateSimulationLabels()
+            }
+        }
 
         resetTtsSpeed.setOnClickListener {
             seekTtsSpeed.progress = speedToProgress(DEFAULT_SPEED)
@@ -133,6 +164,7 @@ class SoundSettingsActivity : AppCompatActivity() {
             settings.ttsVolume = seekTtsVolume.progress * 0.05f
             settings.seCorrectVolume = seekSeCorrect.progress * 0.05f
             settings.seWrongVolume = seekSeWrong.progress * 0.05f
+            settings.dailyNewWordTarget = textTargetCount.text.toString().toIntOrNull() ?: 5
 
             finish()
         }
@@ -146,6 +178,16 @@ class SoundSettingsActivity : AppCompatActivity() {
         textTtsVolume.text = getString(R.string.sound_settings_tts_volume, seekTtsVolume.progress * 5)
         textSeCorrect.text = getString(R.string.sound_settings_se_correct, seekSeCorrect.progress * 5)
         textSeWrong.text = getString(R.string.sound_settings_se_wrong, seekSeWrong.progress * 5)
+        updateSimulationLabels()
+    }
+
+    private fun updateSimulationLabels() {
+        val newWords = textTargetCount.text.toString().toIntOrNull() ?: 5
+        val totalQuestions = newWords * 15
+        val totalTimeMinutes = (totalQuestions * 15) / 60
+
+        textSimTotalQuestions.text = getString(R.string.target_sim_total_questions, totalQuestions)
+        textSimTotalTime.text = getString(R.string.target_sim_total_time, totalTimeMinutes)
     }
 
     private fun simpleSeekListener(onProgress: (Int) -> Unit) =

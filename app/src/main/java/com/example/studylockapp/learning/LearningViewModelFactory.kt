@@ -25,7 +25,7 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             // AppSettings.safeLearningGrade は "1"〜"7" を返すため、Intに変換して QuizManager に渡す
             val userLevel = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
             
-            val quizManager = QuizManager(wordDao, masteryDao, studyLogDao, userLevel = userLevel)
+            val quizManager = QuizManager(wordDao, masteryDao, studyLogDao, appSettings, userLevel = userLevel)
             val pointManager = PointManager(appContext)
             val audioChecker = LearningAudioStateChecker(appContext)
             val practicalRepo = PracticalTestRepository(appContext, historyDao)

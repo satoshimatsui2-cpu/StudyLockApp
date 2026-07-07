@@ -66,6 +66,7 @@ class AppSettings(context: Context) {
         private const val KEY_LAST_ACTIVE_UPDATE_MILLIS = "last_active_update_millis"
 
         private const val KEY_WORD_DATA_VERSION = "word_data_version"
+        private const val KEY_DAILY_NEW_WORD_TARGET = "daily_new_word_target"
 
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -273,5 +274,9 @@ class AppSettings(context: Context) {
 
     var wordDataVersion: Int
         get() = prefs.getInt(KEY_WORD_DATA_VERSION, 0)
-        set(value) = prefs.edit { putInt(KEY_WORD_DATA_VERSION, value) }
+        set(value) { prefs.edit { putInt(KEY_WORD_DATA_VERSION, value) } }
+
+    var dailyNewWordTarget: Int
+        get() = prefs.getInt(KEY_DAILY_NEW_WORD_TARGET, 5)
+        set(value) { prefs.edit { putInt(KEY_DAILY_NEW_WORD_TARGET, value) } }
 }

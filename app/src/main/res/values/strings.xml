@@ -317,4 +317,14 @@
     <string name="practical_history_status_wrong">不正解</string>
     <string name="practical_history_status_unscored">ポイント対象外</string>
 
+    <!-- Learning Target Simulator -->
+    <string name="target_sim_title">学習目標設定</string>
+    <string name="target_sim_label_new_words">1日に覚える新しい単語数</string>
+    <string name="target_sim_load_estimate">目安の学習負荷（1日あたり）</string>
+    <string name="target_sim_total_questions">・最大回答数: 約 %1$d 問</string>
+    <string name="target_sim_total_time">・学習時間: 約 %1$d 分</string>
+    <string name="target_sim_note">※LV5（基礎マスター）到達までに必要な復習（1単語につき15回）を含めた、運用安定後の推定最大値です。1問15秒で計算しています。</string>
+
+    <string name="label_daily_quota_remaining">本日の学習残り　新規: %1$d  復習: %2$d</string>
+
 </resources>
