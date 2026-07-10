@@ -316,6 +316,15 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_select_character"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="応援キャラを変更する"
+            app:icon="@drawable/ic_round_stars_24" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_sound"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

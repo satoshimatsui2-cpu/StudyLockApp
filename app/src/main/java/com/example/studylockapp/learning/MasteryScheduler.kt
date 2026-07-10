@@ -2,6 +2,7 @@ package com.example.studylockapp.learning
 
 import android.util.Log
 import com.example.studylockapp.data.db.WordMasteryEntity
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 /**
@@ -88,7 +89,8 @@ object MasteryScheduler {
 
         val canSkip = state.currentStreak >= 3 &&
                 state.challengeCount >= 5 &&
-                (now - state.lastCorrectTime) >= SKIP_LEVEL_INTERVAL_MS
+                (now - state.lastCorrectTime) >= SKIP_LEVEL_INTERVAL_MS &&
+                (state.level == 6 || state.level == 8) // LV6またはLV8の時のみ飛び級を許可
 
         val bonusLevel = if (canSkip) 1 else 0
         val nextLevel = (state.level + 1 + bonusLevel).coerceAtMost(10)
@@ -137,20 +139,42 @@ object MasteryScheduler {
         state.level = nextLevel
         val now = System.currentTimeMillis()
 
-        val (intervalMillis, nextMode) = if (isCorrect) {
+        val (baseIntervalMillis, nextMode) = if (isCorrect) {
             getSuccessTransition(nextLevel, timingSettings)
         } else {
             getFailureTransition(nextLevel, timingSettings, isUnknown)
         }
 
+        // インターバルが1日以上（86400000ms以上）の場合は、日付を跨ぐので0時基準に調整する
+        val finalReviewTime = if (baseIntervalMillis >= TimeUnit.DAYS.toMillis(1)) {
+            val days = (baseIntervalMillis / TimeUnit.DAYS.toMillis(1)).toInt()
+            adjustToStartOfDay(now, days)
+        } else {
+            now + baseIntervalMillis
+        }
+
         // 調査用ログ
         Log.d(
             "MasteryScheduler",
-            "[ApplyTransition] wordId=${state.wordId}, nextLevel=$nextLevel, isCorrect=$isCorrect, interval=${intervalMillis/1000}s, nextMode=${nextMode.name}"
+            "[ApplyTransition] wordId=${state.wordId}, nextLevel=$nextLevel, isCorrect=$isCorrect, interval=${baseIntervalMillis/1000}s, finalTime=$finalReviewTime, nextMode=${nextMode.name}"
         )
 
-        state.nextReviewTime = now + intervalMillis
+        state.nextReviewTime = finalReviewTime
         state.scheduledMode = nextMode.name
+    }
+
+    /**
+     * 指定した日数の後の 00:00:00.000 のミリ秒を取得します。
+     */
+    private fun adjustToStartOfDay(timeMillis: Long, daysOffset: Int): Long {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = timeMillis
+        cal.add(Calendar.DAY_OF_YEAR, daysOffset)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
     }
 
     /**

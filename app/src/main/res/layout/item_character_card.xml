@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_character"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="2dp"
+    app:strokeColor="@color/app_outline">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/image_character_icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_round_stars_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:contentDescription="キャラクター" />
+
+        <TextView
+            android:id="@+id/text_character_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_main"
+            app:layout_constraintStart_toEndOf="@id/image_character_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/image_lock"
+            tools:text="ジョージ" />
+
+        <TextView
+            android:id="@+id/text_character_desc"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:textSize="13sp"
+            android:textColor="@color/text_sub"
+            app:layout_constraintStart_toEndOf="@id/image_character_icon"
+            app:layout_constraintTop_toBottomOf="@id/text_character_name"
+            app:layout_constraintEnd_toStartOf="@+id/image_lock"
+            tools:text="親切で丁寧な応援スタイルです。" />
+
+        <ImageView
+            android:id="@+id/image_lock"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_lock_24dp"
+            app:tint="@color/text_sub"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"
+            android:contentDescription="ロック中" />
+
+        <TextView
+            android:id="@+id/text_unlock_condition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="@color/brand_orange"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_lock"
+            android:visibility="gone"
+            tools:text="10日達成で解放"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

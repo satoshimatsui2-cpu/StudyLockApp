@@ -68,6 +68,13 @@ class AppSettings(context: Context) {
         private const val KEY_WORD_DATA_VERSION = "word_data_version"
         private const val KEY_DAILY_NEW_WORD_TARGET = "daily_new_word_target"
 
+        // --- Notification & Character ---
+        private const val KEY_TOTAL_GOALS_MET_COUNT = "total_goals_met_count"
+        private const val KEY_DAILY_GOAL_STREAK = "daily_goal_streak"
+        private const val KEY_LAST_GOAL_MET_DATE = "last_goal_met_date"
+        private const val KEY_LAST_STUDY_DATE = "last_study_date"
+        private const val KEY_SELECTED_CHARACTER_ID = "selected_character_id"
+
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
@@ -279,4 +286,25 @@ class AppSettings(context: Context) {
     var dailyNewWordTarget: Int
         get() = prefs.getInt(KEY_DAILY_NEW_WORD_TARGET, 5)
         set(value) { prefs.edit { putInt(KEY_DAILY_NEW_WORD_TARGET, value) } }
+
+    // --- Goal Tracking ---
+    var totalGoalsMetCount: Int
+        get() = prefs.getInt(KEY_TOTAL_GOALS_MET_COUNT, 0)
+        set(v) = prefs.edit { putInt(KEY_TOTAL_GOALS_MET_COUNT, v) }
+
+    var dailyGoalStreak: Int
+        get() = prefs.getInt(KEY_DAILY_GOAL_STREAK, 0)
+        set(v) = prefs.edit { putInt(KEY_DAILY_GOAL_STREAK, v) }
+
+    var lastGoalMetDate: String?
+        get() = prefs.getString(KEY_LAST_GOAL_MET_DATE, null)
+        set(v) = prefs.edit { putString(KEY_LAST_GOAL_MET_DATE, v) }
+
+    var lastStudyDate: String?
+        get() = prefs.getString(KEY_LAST_STUDY_DATE, null)
+        set(v) = prefs.edit { putString(KEY_LAST_STUDY_DATE, v) }
+
+    var selectedCharacterId: String
+        get() = prefs.getString(KEY_SELECTED_CHARACTER_ID, "george") ?: "george"
+        set(v) = prefs.edit { putString(KEY_SELECTED_CHARACTER_ID, v) }
 }

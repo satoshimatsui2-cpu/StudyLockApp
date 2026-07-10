@@ -1,5 +1,6 @@
 package com.example.studylockapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageButton
@@ -110,6 +111,13 @@ class SoundSettingsActivity : AppCompatActivity() {
         textTargetCount.text = settings.dailyNewWordTarget.toString()
 
         updateAllLabels()
+        setupCharacterSelection()
+    }
+
+    private fun setupCharacterSelection() {
+        findViewById<MaterialButton>(R.id.btn_select_character).setOnClickListener {
+            startActivity(Intent(this, com.example.studylockapp.ui.CharacterSelectActivity::class.java))
+        }
     }
 
     private fun setupListeners() {

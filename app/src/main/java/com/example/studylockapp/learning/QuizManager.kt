@@ -24,21 +24,34 @@ class QuizManager(
     var silentMode: SilentMode = SilentMode.OFF
     var includeOtherGradeReviews: Boolean = false
     private var pendingReviewPickedInSession = 0
+    private var reviewsDoneInCurrentMixedCycle = 0 // 現在のサイクルでこなした復習数
 
     companion object {
         private const val SESSION_PENDING_LIMIT = 3
+        private const val REVIEWS_BEFORE_NEW_WORD = 5 // 新規を出す前に必要な復習数
         private const val TAG = "GradeFlow"
     }
 
     fun resetSessionStats() {
         pendingReviewPickedInSession = 0
+        reviewsDoneInCurrentMixedCycle = 0
     }
 
     suspend fun nextQuiz(): QuizData? = withContext(Dispatchers.IO) {
         val word = selectNextWord() ?: return@withContext null
-        val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
+        
+        // 選択された単語の種類を判定してサイクル用カウンタを更新
+        val mastery = masteryDao.getMastery(word.no)
+        if (mastery != null && (mastery.level > 0 || mastery.lastSeen > 0)) {
+            // 復習（一度でも見たことがある）の場合
+            reviewsDoneInCurrentMixedCycle++
+        } else {
+            // 新規の場合、サイクルをリセット
+            reviewsDoneInCurrentMixedCycle = 0
+        }
 
-        val baseMode = determineActualMode(mastery, QuizMode.valueOf(mastery.scheduledMode))
+        val finalMastery = mastery ?: WordMasteryEntity(wordId = word.no)
+        val baseMode = determineActualMode(finalMastery, QuizMode.valueOf(finalMastery.scheduledMode))
         val actualMode = resolveModeForWord(word, baseMode)
 
         val choices = choiceGenerator.generateChoices(word, actualMode)
@@ -133,41 +146,65 @@ class QuizManager(
 
     private suspend fun selectNextWord(): WordEntity? {
         val now = System.currentTimeMillis()
+        
+        // 1. まず復習対象（期限切れ）があるか確認
+        val dueReviewWord = getAnyDueReviewWord(now)
+
+        // 2. 混ぜるロジックの判定
+        // 復習が一定数（5問）終わっていない、かつ復習対象がある場合は復習を優先
+        if (reviewsDoneInCurrentMixedCycle < REVIEWS_BEFORE_NEW_WORD && dueReviewWord != null) {
+            return dueReviewWord
+        }
+
+        // 3. 復習ノルマ達成 or 復習対象なし の場合、新規を試みる
+        val newWord = getAvailableNewWord()
+        if (newWord != null) {
+            return newWord
+        }
+
+        // 4. 新規が出せない（ノルマ終了など）場合は、残っている復習を出す
+        return dueReviewWord
+    }
+
+    /**
+     * 出題期限が来ている復習単語を1つ取得する（既存の優先順位ロジックをカプセル化）
+     */
+    private suspend fun getAnyDueReviewWord(now: Long): WordEntity? {
         val allDueMasteries = masteryDao.getDueMasteries(now).shuffled()
         
+        // 自級の復習
         for (mastery in allDueMasteries) {
             val scheduledMode = runCatching { QuizMode.valueOf(mastery.scheduledMode) }.getOrDefault(QuizMode.EN_TO_JP)
             if (shouldSkipForSilentMode(scheduledMode)) continue
-
             val word = wordDao.getWordById(mastery.wordId)
-            if (word != null && word.grade == userLevel) {
-                return word
-            }
+            if (word != null && word.grade == userLevel) return word
         }
 
+        // 他級の復習
         if (includeOtherGradeReviews) {
             for (mastery in allDueMasteries) {
                 val scheduledMode = runCatching { QuizMode.valueOf(mastery.scheduledMode) }.getOrDefault(QuizMode.EN_TO_JP)
                 if (shouldSkipForSilentMode(scheduledMode)) continue
-
                 val word = wordDao.getWordById(mastery.wordId)
-                if (word != null && word.grade != userLevel) {
-                    return word
-                }
+                if (word != null && word.grade != userLevel) return word
             }
         }
         
+        // リスニング復習待ち
         if (silentMode == SilentMode.OFF && pendingReviewPickedInSession < SESSION_PENDING_LIMIT) {
             val pendingMasteries = masteryDao.getPendingListenMasteries(now)
             for (mastery in pendingMasteries.shuffled()) {
                 val word = wordDao.getWordById(mastery.wordId)
-                if (word != null && word.grade == userLevel) {
-                    return word
-                }
+                if (word != null && word.grade == userLevel) return word
             }
         }
-        
-        // 新規単語の出題制限チェック
+        return null
+    }
+
+    /**
+     * 出題可能な新規単語を1つ取得する（ノルマ制限を考慮）
+     */
+    private suspend fun getAvailableNewWord(): WordEntity? {
         val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
@@ -179,12 +216,8 @@ class QuizManager(
         val dailyTarget = appSettings.dailyNewWordTarget
         
         if (startedTodayCount < dailyTarget) {
-            val newWord = wordDao.getPriorityNewWordByGrade(userLevel)
-            if (newWord != null) return newWord
-        } else {
-            Log.d(TAG, "New word limit reached: $startedTodayCount / $dailyTarget. Skipping new words.")
+            return wordDao.getPriorityNewWordByGrade(userLevel)
         }
-        
         return null
     }
 
@@ -196,6 +229,9 @@ class QuizManager(
         isUnknown: Boolean = false
     ) = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+        appSettings.lastStudyDate = sdf.format(java.util.Date(now))
+
         val mastery = masteryDao.getMastery(word.no) ?: WordMasteryEntity(wordId = word.no)
         mastery.lastSeen = now
 

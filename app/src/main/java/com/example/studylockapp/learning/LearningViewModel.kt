@@ -264,10 +264,42 @@ class LearningViewModel(
         val target = appSettings.dailyNewWordTarget
         val newRemaining = (target - newDone).coerceAtLeast(0)
 
+        // ノルマ達成時の継続記録更新
+        if (newDone >= target && target > 0) {
+            updateGoalStreakInternal()
+        }
+
         _uiState.update { it.copy(
             newWordsRemaining = newRemaining,
             reviewWordsRemaining = reviewRemaining
         ) }
+    }
+
+    private fun updateGoalStreakInternal() {
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+        val todayStr = sdf.format(java.util.Date())
+        
+        if (appSettings.lastGoalMetDate == todayStr) return // 今日は既に達成済み
+
+        val lastMet = appSettings.lastGoalMetDate
+        if (lastMet != null) {
+            val lastDate = sdf.parse(lastMet)
+            val yesterday = java.util.Calendar.getInstance().apply { 
+                add(java.util.Calendar.DAY_OF_YEAR, -1) 
+            }.time
+            val yesterdayStr = sdf.format(yesterday)
+            
+            if (lastMet == yesterdayStr) {
+                appSettings.dailyGoalStreak += 1
+            } else {
+                appSettings.dailyGoalStreak = 1
+            }
+        } else {
+            appSettings.dailyGoalStreak = 1
+        }
+        
+        appSettings.lastGoalMetDate = todayStr
+        appSettings.totalGoalsMetCount += 1
     }
 
     fun refreshPoints() {
