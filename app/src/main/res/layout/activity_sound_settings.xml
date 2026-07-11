@@ -5,8 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:paddingTop="32dp"
-    android:clipToPadding="false">
+    android:clipToPadding="false"
+    android:fitsSystemWindows="true"
+    android:background="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,7 +27,8 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginEnd="10dp"
-                android:src="@drawable/ic_volume_up_24"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/navy_primary"
                 android:contentDescription="@string/sound_settings_title" />
 
             <TextView
@@ -38,26 +40,7 @@
                 android:textColor="?attr/colorOnSurface" />
         </LinearLayout>
 
-        <!-- 応援キャラ変更ボタン (最上部へ移動) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_select_character"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="応援キャラを変更する"
-            app:icon="@drawable/ic_round_stars_24" />
-
-        <!-- 友達と接続ボタン -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_friend_connection"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="友達と接続する"
-            app:icon="@drawable/ic_link_24" />
+        <!-- 応援キャラ変更ボタン、友達と接続ボタンを削除 -->
 
         <!-- TTS Speed -->
         <LinearLayout

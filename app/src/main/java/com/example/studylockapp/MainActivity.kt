@@ -64,7 +64,20 @@ class MainActivity : AppCompatActivity() {
         setupPointHistoryNavigation()
         setupAdminSettingsNavigation()
         setupLearningHistoryNavigation()
+        setupCharacterAndFriendNavigation()
         updatePointDisplay()
+    }
+
+    /**
+     * キャラ選択とフレンド画面への遷移セットアップ
+     */
+    private fun setupCharacterAndFriendNavigation() {
+        findViewById<View>(R.id.button_to_friends)?.setOnClickListener {
+            startActivity(Intent(this, com.example.studylockapp.ui.FriendConnectionActivity::class.java))
+        }
+        findViewById<View>(R.id.button_to_characters)?.setOnClickListener {
+            startActivity(Intent(this, com.example.studylockapp.ui.CharacterSelectActivity::class.java))
+        }
     }
 
     /**

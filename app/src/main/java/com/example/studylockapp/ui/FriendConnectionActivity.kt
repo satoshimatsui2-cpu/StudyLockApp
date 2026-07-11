@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,9 +19,7 @@ import com.example.studylockapp.data.StudyHistoryRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class FriendConnectionActivity : AppCompatActivity() {
 
@@ -95,12 +94,13 @@ class FriendConnectionActivity : AppCompatActivity() {
 
     inner class FriendAdapter(private val items: List<Pair<String, String>>) : RecyclerView.Adapter<FriendAdapter.VH>() {
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
-            val name = v.findViewById<TextView>(android.R.id.text1)
-            val id = v.findViewById<TextView>(android.R.id.text2)
+            val name: TextView = v.findViewById(R.id.text_friend_name)
+            val id: TextView = v.findViewById(R.id.text_friend_id)
+            val btnRemove: ImageButton = v.findViewById(R.id.btn_remove_friend)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-            val v = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_2, parent, false)
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.item_friend, parent, false)
             return VH(v)
         }
 
@@ -108,8 +108,30 @@ class FriendConnectionActivity : AppCompatActivity() {
             val (uid, name) = items[position]
             holder.name.text = name
             holder.id.text = "ID: $uid"
+            holder.btnRemove.setOnClickListener {
+                showRemoveFriendDialog(uid, name)
+            }
         }
 
         override fun getItemCount() = items.size
+    }
+
+    private fun showRemoveFriendDialog(friendUid: String, friendName: String) {
+        com.example.studylockapp.ui.alert.AppDialogHelper.showConfirm(
+            context = this,
+            title = "フレンド削除",
+            message = "${friendName}さんをフレンドリストから削除しますか？\n（相手のリストからも削除されます）",
+            positiveText = "削除する",
+            negativeText = "キャンセル",
+            onPositive = {
+                lifecycleScope.launch {
+                    val success = StudyHistoryRepository.removeFriend(friendUid)
+                    if (success) {
+                        Toast.makeText(this@FriendConnectionActivity, "削除しました", Toast.LENGTH_SHORT).show()
+                        loadFriends()
+                    }
+                }
+            }
+        )
     }
 }

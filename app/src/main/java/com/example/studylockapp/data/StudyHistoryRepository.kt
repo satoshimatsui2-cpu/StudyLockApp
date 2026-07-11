@@ -353,7 +353,7 @@ object StudyHistoryRepository {
         val updates = hashMapOf(
             "lastGoalMetDate" to todayStr,
             "lastGoalStats" to "新規${newWords}問、復習${reviews}問",
-            "lastGoalStreak" to streak,
+            "lastGoalStreak" to streak.toLong(),
             "goalMetBroadcastAt" to FieldValue.serverTimestamp()
         )
 
@@ -379,6 +379,33 @@ object StudyHistoryRepository {
         } catch (e: Exception) {
             Log.e("FriendConnection", "フレンド取得失敗", e)
             emptyList()
+        }
+    }
+
+    /**
+     * フレンドを削除する (相互)
+     */
+    suspend fun removeFriend(friendUid: String): Boolean {
+        val user = FirebaseAuth.getInstance().currentUser ?: return false
+        val myUid = user.uid
+
+        val db = FirebaseFirestore.getInstance()
+
+        try {
+            // 1. 自分のフレンドリストから削除
+            db.collection("users").document(myUid).collection("friends").document(friendUid)
+                .delete()
+                .await()
+
+            // 2. 相手のフレンドリストから自分を削除
+            db.collection("users").document(friendUid).collection("friends").document(myUid)
+                .delete()
+                .await()
+
+            return true
+        } catch (e: Exception) {
+            Log.e("FriendConnection", "フレンド削除失敗", e)
+            return false
         }
     }
 }
