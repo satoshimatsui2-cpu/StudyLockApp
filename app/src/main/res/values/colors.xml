@@ -14,6 +14,7 @@
     <color name="mustard_accent">#D4A72C</color>
     <color name="mustard_dark">#B88F1F</color>
     <color name="mustard_soft">#F3E3A4</color>
+    <color name="mustard_primary">#FBC02D</color> <!-- はっきりした金色 -->
 
     <!-- オレンジ系 (New) -->
     <color name="brand_orange">#ed6d35</color>

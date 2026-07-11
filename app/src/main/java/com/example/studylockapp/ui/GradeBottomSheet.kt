@@ -90,17 +90,29 @@ class GradeBottomSheet(
             statsList.forEach { stats ->
                 val itemView = layoutInflater.inflate(R.layout.item_grade_list, container, false)
                 val card = itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card_grade_item)
+                val gradeNameText = itemView.findViewById<TextView>(R.id.text_grade_name)
                 
-                itemView.findViewById<TextView>(R.id.text_grade_name).text = stats.name
                 itemView.findViewById<TextView>(R.id.text_count_total).text = "${stats.totalCount}語"
                 itemView.findViewById<TextView>(R.id.text_count_basic).text = "${stats.basicCount} (${stats.basicPct}%)"
                 itemView.findViewById<TextView>(R.id.text_count_longterm).text = "${stats.longtermCount} (${stats.longtermPct}%)"
 
+                gradeNameText.text = stats.name
+
                 // 現在選択中の級をハイライト
                 if (stats.key == currentSelectedGrade) {
-                    card.strokeColor = ContextCompat.getColor(requireContext(), R.color.brand_orange)
-                    card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
-                    card.setCardBackgroundColor(Color.parseColor("#FFF8E1")) // 薄いオレンジの背景
+                    // 選択中：太い紺色の枠線、背景は白、チェックマークは非表示
+                    card.strokeColor = ContextCompat.getColor(requireContext(), R.color.navy_primary)
+                    card.strokeWidth = (3 * resources.displayMetrics.density).toInt()
+                    card.setCardBackgroundColor(Color.WHITE)
+                    gradeNameText.setTextColor(ContextCompat.getColor(requireContext(), R.color.navy_primary))
+                    itemView.findViewById<View>(R.id.image_selected_check).visibility = View.GONE
+                } else {
+                    // 未選択：バックのグレーを少し濃く(#EEEEEE)、文字はさらに薄いグレー(#9E9E9E)
+                    card.strokeColor = Color.TRANSPARENT
+                    card.strokeWidth = 0
+                    card.setCardBackgroundColor(Color.parseColor("#EEEEEE")) 
+                    gradeNameText.setTextColor(Color.parseColor("#9E9E9E"))
+                    itemView.findViewById<View>(R.id.image_selected_check).visibility = View.GONE
                 }
 
                 itemView.setOnClickListener {

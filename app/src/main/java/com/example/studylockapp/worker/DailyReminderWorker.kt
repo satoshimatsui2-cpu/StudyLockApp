@@ -70,7 +70,7 @@ class DailyReminderWorker(
         val notificationContext = if (hour == 7) {
             // 朝のメッセージ選択
             when {
-                streak > 0 -> NotificationContext.MORNING_STREAK
+                streak >= 2 -> NotificationContext.MORNING_STREAK // 2日以上継続している場合のみお祝い
                 lastStudyStr == null -> NotificationContext.MORNING_NORMAL
                 else -> {
                     val lastDate = sdf.parse(lastStudyStr)

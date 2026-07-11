@@ -42,8 +42,9 @@
 
             <!-- トータル単語数 -->
             <ImageView
-                android:layout_width="13dp"
-                android:layout_height="13dp"
+                android:id="@+id/icon_total"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:src="@drawable/ic_book_24"
                 app:tint="@color/text_sub"
                 android:contentDescription="全単語数" />
@@ -59,11 +60,12 @@
 
             <!-- 短期マスター -->
             <ImageView
-                android:layout_width="13dp"
-                android:layout_height="13dp"
-                android:layout_marginStart="10dp"
+                android:id="@+id/icon_basic"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="12dp"
                 android:src="@drawable/ic_round_stars_24"
-                app:tint="@color/mustard_soft"
+                app:tint="@color/mustard_primary"
                 android:contentDescription="短期マスター" />
             <TextView
                 android:id="@+id/text_count_basic"
@@ -77,11 +79,12 @@
 
             <!-- 長期マスター -->
             <ImageView
-                android:layout_width="13dp"
-                android:layout_height="13dp"
-                android:layout_marginStart="10dp"
+                android:id="@+id/icon_longterm"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="12dp"
                 android:src="@drawable/ic_mastery_diamond_24"
-                app:tint="#B0BEC5"
+                app:tint="#4FC3F7"
                 android:contentDescription="長期マスター" />
             <TextView
                 android:id="@+id/text_count_longterm"
@@ -92,6 +95,18 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 tools:text="45 (15%)" />
+
+            <!-- 選択済みチェックマーク -->
+            <ImageView
+                android:id="@+id/image_selected_check"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/ic_check_circle_24"
+                app:tint="@color/brand_orange"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:contentDescription="選択中" />
 
         </LinearLayout>
     </LinearLayout>
