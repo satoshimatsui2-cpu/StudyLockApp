@@ -33,168 +33,273 @@
                 android:orientation="vertical"
                 android:clipChildren="false">
 
-                <!-- ヘッダー: 背景変更に伴いマージンを調整 -->
-                <LinearLayout
-                    android:id="@+id/header_main"
+                <!-- ヘッダーエリア (タイトル画像とスタンプの重なり) -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/header_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center_horizontal"
-                    android:layout_marginTop="104dp"
+                    android:layout_marginTop="156dp"
                     android:layout_marginBottom="8dp"
-                    android:paddingTop="0dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:background="@android:color/transparent">
+                    android:clipChildren="false">
 
                     <ImageView
                         android:id="@+id/title_top"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
                         android:src="@drawable/logo_title"
                         android:contentDescription="@string/app_name"
                         android:adjustViewBounds="true"
                         android:scaleType="fitCenter"
-                        android:scaleX="1.5"
-                        android:scaleY="1.5"
+                        android:scaleX="1.8"
+                        android:scaleY="1.8"
                         android:maxWidth="780dp"
                         android:maxHeight="360dp"
-                        android:elevation="20dp"
-                        android:clickable="true"
-                        android:focusable="true"/>
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- 合格宣言スタンプ (タイトルの左上にオーバーレイ、さらに左上へ) -->
+                    <LinearLayout
+                        android:id="@+id/layout_goal_stamp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:rotation="-15"
+                        android:background="@drawable/bg_stamp_border"
+                        android:elevation="10dp"
+                        app:layout_constraintTop_toTopOf="@id/title_top"
+                        app:layout_constraintStart_toStartOf="@id/title_top"
+                        android:layout_marginTop="-20dp"
+                        android:layout_marginStart="-120dp"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="2dp">
+
+                        <TextView
+                            android:id="@+id/text_goal_prefix"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="目指せ 2級"
+                            android:textColor="#E53935"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            tools:text="目指せ 準1級" />
+
+                        <TextView
+                            android:id="@+id/text_goal_main"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="合格！"
+                            android:textColor="#E53935"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <ImageView
                         android:id="@+id/image_character"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="80dp"
-                        android:layout_marginBottom="40dp"
+                        android:layout_marginBottom="64dp"
                         android:src="@drawable/logo_character"
                         android:contentDescription="@string/app_name"
                         android:adjustViewBounds="true"
                         android:scaleType="fitCenter"
-                        android:scaleX="1.5"
-                        android:scaleY="1.5"
+                        android:scaleX="1.8"
+                        android:scaleY="1.8"
                         android:maxWidth="660dp"
-                        android:maxHeight="420dp" />
-                </LinearLayout>
+                        android:maxHeight="420dp"
+                        app:layout_constraintTop_toBottomOf="@id/title_top"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!-- 目標・学習レベル表示 (ブランドオレンジ) -->
-                <TextView
-                    android:id="@+id/text_target_grade"
+                <!-- ミッションカード (画像との隙間を1.5倍に調整) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_mission"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_horizontal"
-                    android:textSize="14sp"
-                    android:textColor="@color/brand_orange"
-                    android:textStyle="bold"
-                    tools:text="目標：3級" />
-
-                <!-- 本日の学習残り -->
-                <TextView
-                    android:id="@+id/text_daily_quota"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
-                    android:gravity="center_horizontal"
-                    android:textSize="14sp"
-                    android:textColor="@color/brand_orange"
-                    android:textStyle="bold"
-                    tools:text="本日の学習残り　新規: 3  復習: 15" />
-
-                <!-- 級選択ボタン (ブランドオレンジ) -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
-                    android:gravity="center_horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/spinner_grade_top"
-                        style="@style/App.OrangeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginHorizontal="8dp"
-                        android:text="@string/grade_3"
-                        app:icon="@drawable/ic_expand_more"
-                        app:iconGravity="textEnd"
-                        app:iconSize="32dp" />
-                </LinearLayout>
-
-                <!-- STARTボタン (ブランドオレンジ) -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_to_learning"
-                        style="@style/App.OrangeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginHorizontal="8dp"
-                        android:text="@string/label_start_short"
-                        android:textSize="20sp"
-                        app:icon="@drawable/ic_play_arrow_24"
-                        app:iconGravity="textStart"
-                        app:iconSize="28dp" />
-                </LinearLayout>
-
-                <!-- 最下段: ポイントと履歴を2列で横並び -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="40dp"
-                    android:layout_marginBottom="24dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_horizontal"
-                    android:weightSum="1">
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="54dp"
+                    android:layout_marginBottom="32dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="4dp"
+                    app:strokeColor="@color/app_outline"
+                    app:strokeWidth="1dp"
+                    app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <!-- 1行目: 出題レベル設定 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="出題レベル"
+                                android:textSize="14sp"
+                                android:textColor="@color/text_main"
+                                android:textStyle="bold" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/spinner_grade_top"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:minWidth="140dp"
+                                android:paddingHorizontal="24dp"
+                                android:text="2級"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/navy_primary"
+                                app:strokeColor="@color/navy_primary"
+                                app:strokeWidth="2dp"
+                                app:icon="@drawable/ic_expand_more"
+                                app:iconGravity="textEnd"
+                                android:paddingVertical="4dp" />
+                        </LinearLayout>
+
+                        <!-- 区切り線 -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="12dp"
+                            android:background="@color/app_outline" />
+
+                        <!-- 2行目: 今日のお題 -->
+                        <LinearLayout
+                            android:id="@+id/layout_daily_goals"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="今日のお題"
+                                android:textSize="13sp"
+                                android:textColor="@color/text_sub"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+                                <!-- 新規 (NEWチップに変更) -->
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/bg_new_badge"
+                                    android:text="NEW"
+                                    android:textColor="@color/white"
+                                    android:textSize="9sp"
+                                    android:textStyle="bold"
+                                    android:paddingHorizontal="4dp"
+                                    android:paddingVertical="1dp" />
+                                <TextView
+                                    android:id="@+id/text_goal_new"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="6dp"
+                                    android:layout_marginEnd="12dp"
+                                    android:text="3"
+                                    android:textColor="@color/text_main"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:text="3" />
+
+                                <!-- 復習 -->
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@drawable/ic_review_24"
+                                    app:tint="@color/navy_primary"
+                                    android:contentDescription="復習" />
+                                <TextView
+                                    android:id="@+id/text_goal_review"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:textColor="@color/text_main"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:text="5" />
+                                <TextView
+                                    android:id="@+id/text_goal_review_total"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/text_sub"
+                                    android:textSize="11sp"
+                                    tools:text=" / 15" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- STARTボタン -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_to_learning"
+                            style="@style/App.OrangeButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="20dp"
+                            android:text="@string/label_start_short"
+                            android:textSize="20sp"
+                            app:icon="@drawable/ic_play_arrow_24"
+                            app:iconGravity="textStart"
+                            app:iconSize="32dp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 最下段: ポイントと履歴を2列で横並び (ミッションカードの幅に合わせる、隙間を半分に) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="24dp"
+                    android:layout_marginHorizontal="16dp"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
+
+                    <!-- ポイントボタン (ラベルのみ) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_to_point_history"
+                        style="@style/App.HistoryButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:orientation="horizontal"
-                        android:gravity="center_horizontal">
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:minHeight="64dp"
+                        android:text="ポイント"
+                        android:textSize="16sp"
+                        app:icon="@drawable/ic_monetization_on_24"
+                        app:iconGravity="textStart" />
 
-                        <!-- ポイントボタン (簡略版: Pアイコン + 数字) -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_to_point_history"
-                            style="@style/App.HistoryButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="4dp"
-                            android:text="120"
-                            android:textSize="16sp"
-                            app:icon="@drawable/ic_monetization_on_24"
-                            app:iconGravity="textStart"
-                            tools:text="120" />
-
-                        <!-- 履歴ボタン -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_to_learning_history"
-                            style="@style/App.HistoryButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="4dp"
-                            android:text="@string/label_history_short"
-                            android:textSize="16sp"
-                            app:icon="@drawable/ic_history_24"
-                            app:iconGravity="textStart" />
-                    </LinearLayout>
+                    <!-- 履歴ボタン (高さを1.2倍に) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_to_learning_history"
+                        style="@style/App.HistoryButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:minHeight="64dp"
+                        android:text="@string/label_history_short"
+                        android:textSize="16sp"
+                        app:icon="@drawable/ic_history_24"
+                        app:iconGravity="textStart" />
                 </LinearLayout>
 
                 <!-- 管理設定ボタン (デバッグ用/非表示) -->

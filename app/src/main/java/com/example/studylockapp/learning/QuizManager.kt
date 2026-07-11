@@ -28,7 +28,7 @@ class QuizManager(
 
     companion object {
         private const val SESSION_PENDING_LIMIT = 3
-        private const val REVIEWS_BEFORE_NEW_WORD = 5 // 新規を出す前に必要な復習数
+        private const val REVIEWS_BEFORE_NEW_WORD = 4 // 5問から4問に変更
         private const val TAG = "GradeFlow"
     }
 

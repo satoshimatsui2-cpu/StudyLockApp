@@ -305,4 +305,79 @@ object StudyHistoryRepository {
             Log.e("StudyLog", "マスター数の保存に失敗しました", e)
         }
     }
+
+    // --- Friend Connection Features ---
+
+    /**
+     * フレンドを追加する (相互)
+     */
+    suspend fun addFriend(friendUid: String): Boolean {
+        val user = FirebaseAuth.getInstance().currentUser ?: return false
+        val myUid = user.uid
+        if (myUid == friendUid) return false
+
+        val db = FirebaseFirestore.getInstance()
+        val myName = user.displayName ?: "ユーザー"
+
+        try {
+            // 1. 相手の存在確認
+            val friendDoc = db.collection("users").document(friendUid).get().await()
+            if (!friendDoc.exists()) return false
+            val friendName = friendDoc.getString("displayName") ?: "友達"
+
+            // 2. 自分のフレンドリストに追加
+            db.collection("users").document(myUid).collection("friends").document(friendUid)
+                .set(mapOf("displayName" to friendName, "addedAt" to FieldValue.serverTimestamp()))
+                .await()
+
+            // 3. 相手のフレンドリストに自分を追加
+            db.collection("users").document(friendUid).collection("friends").document(myUid)
+                .set(mapOf("displayName" to myName, "addedAt" to FieldValue.serverTimestamp()))
+                .await()
+
+            return true
+        } catch (e: Exception) {
+            Log.e("FriendConnection", "フレンド追加失敗", e)
+            return false
+        }
+    }
+
+    /**
+     * 目標達成をフレンドに通知するためにステータスを更新する
+     */
+    suspend fun broadcastGoalMet(newWords: Int, reviews: Int) {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+        val todayStr = todayTokyoStr()
+
+        val updates = hashMapOf(
+            "lastGoalMetDate" to todayStr,
+            "lastGoalStats" to "新規${newWords}問、復習${reviews}問",
+            "goalMetBroadcastAt" to FieldValue.serverTimestamp()
+        )
+
+        try {
+            db.collection("users").document(user.uid)
+                .set(updates, SetOptions.merge())
+                .await()
+        } catch (e: Exception) {
+            Log.e("FriendConnection", "目標達成のブロードキャスト失敗", e)
+        }
+    }
+
+    /**
+     * フレンド一覧を取得する
+     */
+    suspend fun getFriends(): List<Pair<String, String>> {
+        val user = FirebaseAuth.getInstance().currentUser ?: return emptyList()
+        val db = FirebaseFirestore.getInstance()
+        
+        return try {
+            val snapshot = db.collection("users").document(user.uid).collection("friends").get().await()
+            snapshot.documents.map { it.id to (it.getString("displayName") ?: "友達") }
+        } catch (e: Exception) {
+            Log.e("FriendConnection", "フレンド取得失敗", e)
+            emptyList()
+        }
+    }
 }

@@ -119,4 +119,7 @@ interface WordDao {
 
     @Query("DELETE FROM voice_check_results")
     suspend fun deleteAllVoiceCheckResults()
+
+    @Query("SELECT COUNT(*) FROM words WHERE grade = :grade")
+    suspend fun countTotalWordsByGrade(grade: Int): Int
 }

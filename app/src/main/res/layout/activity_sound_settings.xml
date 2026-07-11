@@ -38,6 +38,27 @@
                 android:textColor="?attr/colorOnSurface" />
         </LinearLayout>
 
+        <!-- 応援キャラ変更ボタン (最上部へ移動) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_select_character"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="応援キャラを変更する"
+            app:icon="@drawable/ic_round_stars_24" />
+
+        <!-- 友達と接続ボタン -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_friend_connection"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="友達と接続する"
+            app:icon="@drawable/ic_link_24" />
+
         <!-- TTS Speed -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -314,15 +335,6 @@
                 android:textSize="11sp" />
 
         </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_select_character"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="応援キャラを変更する"
-            app:icon="@drawable/ic_round_stars_24" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_sound"

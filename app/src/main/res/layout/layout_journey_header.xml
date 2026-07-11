@@ -28,17 +28,63 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="目標: 準2級" />
 
-        <TextView
-            android:id="@+id/text_daily_quota_header"
+        <!-- 今日の目標 (アイコン表示) -->
+        <LinearLayout
+            android:id="@+id/layout_daily_quota_header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#616161"
-            android:textSize="11sp"
-            android:textStyle="bold"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/text_target_level"
-            app:layout_constraintBottom_toBottomOf="@id/text_target_level"
-            tools:text="本日の学習残り　新規: 3  復習: 15" />
+            app:layout_constraintBottom_toBottomOf="@id/text_target_level">
+
+            <!-- 新規 (NEWチップ) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_new_badge"
+                android:text="NEW"
+                android:textColor="@color/white"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="3dp"
+                android:paddingVertical="0.5dp" />
+            <TextView
+                android:id="@+id/text_goal_new_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="10dp"
+                android:textColor="#616161"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="3" />
+
+            <!-- 復習 -->
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_review_24"
+                app:tint="@color/navy_primary"
+                android:contentDescription="復習" />
+            <TextView
+                android:id="@+id/text_goal_review_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:textColor="#616161"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="5" />
+            <TextView
+                android:id="@+id/text_goal_review_total_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#9E9E9E"
+                android:textSize="10sp"
+                tools:text=" / 15" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/layout_meta_chips"

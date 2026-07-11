@@ -41,6 +41,10 @@ class PointHistoryActivity : AppCompatActivity() {
         toolbar.setNavigationOnClickListener {
             finish() // 戻るボタンでActivity終了
         }
+
+        val pointManager = PointManager(this)
+        val totalPoints = pointManager.getTotal()
+        toolbar.title = "保有ポイント: $totalPoints"
     }
 
     private fun setupRecyclerView() {

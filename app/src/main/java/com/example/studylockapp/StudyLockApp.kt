@@ -6,6 +6,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.studylockapp.ads.AdAudioManager
 import com.example.studylockapp.data.AppDatabase
+import com.example.studylockapp.service.FriendNotificationManager
 import com.example.studylockapp.worker.DailyReminderWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ class StudyLockApp : Application() {
         AdAudioManager.apply(this)
 
         setupDailyReminder()
+        FriendNotificationManager.startListening(this)
 
         // 期限切れの一時解放を掃除（epoch seconds）
         appScope.launch {

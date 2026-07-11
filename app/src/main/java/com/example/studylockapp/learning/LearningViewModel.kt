@@ -245,33 +245,59 @@ class LearningViewModel(
         cal.set(Calendar.MILLISECOND, 0)
         val startOfDay = cal.timeInMillis
 
-        val (newDone, reviewRemaining) = withContext(Dispatchers.IO) {
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        cal.set(Calendar.SECOND, 59)
+        cal.set(Calendar.MILLISECOND, 999)
+        val endOfDay = cal.timeInMillis
+
+        val now = System.currentTimeMillis()
+
+        val (newDone, reviewRemainingNow, reviewRemainingToday) = withContext(Dispatchers.IO) {
             val startedToday = masteryDao.countStartedNewWordsToday(startOfDay)
             
             val currentGrade = appSettings.safeLearningGrade.toIntOrNull() ?: 3
             val includeOthers = if (appSettings.includeOtherGrades) 1 else 0
-            val isSilent = if (appSettings.silentMode == SilentMode.ON) 1 else 0
+            val isSilent = if (appSettings.silentMode == SilentMode.OFF) 0 else 1
 
-            val remaining = masteryDao.countRemainingReviewsAvailable(
-                now = System.currentTimeMillis(),
+            // 1. 今すぐ解ける復習数
+            val remainingNow = masteryDao.countRemainingReviewsAvailable(
+                now = now,
                 currentGrade = currentGrade,
                 includeOtherGrades = includeOthers,
                 isSilentMode = isSilent
             )
-            Pair(startedToday, remaining)
+
+            // 2. 今日中に解く必要がある全ての復習数 (未来分も含む)
+            val remainingToday = masteryDao.countRemainingReviewsAvailable(
+                now = endOfDay,
+                currentGrade = currentGrade,
+                includeOtherGrades = includeOthers,
+                isSilentMode = isSilent
+            )
+
+            Triple(startedToday, remainingNow, remainingToday)
         }
 
         val target = appSettings.dailyNewWordTarget
         val newRemaining = (target - newDone).coerceAtLeast(0)
 
-        // ノルマ達成時の継続記録更新
-        if (newDone >= target && target > 0) {
+        // ノルマ達成時の継続記録更新 (新規 0 且つ 今日の復習すべて 0 の場合)
+        if (newRemaining == 0 && reviewRemainingToday == 0) {
             updateGoalStreakInternal()
+            
+            // フレンドへの通知ブロードキャスト
+            viewModelScope.launch(Dispatchers.IO) {
+                val totalNew = appSettings.dailyNewWordTarget
+                val totalReviews = masteryDao.countCompletedReviewsToday(startOfDay, System.currentTimeMillis())
+                StudyHistoryRepository.broadcastGoalMet(totalNew, totalReviews)
+            }
         }
 
         _uiState.update { it.copy(
             newWordsRemaining = newRemaining,
-            reviewWordsRemaining = reviewRemaining
+            reviewWordsRemaining = reviewRemainingNow,
+            reviewWordsTotalToday = reviewRemainingToday
         ) }
     }
 

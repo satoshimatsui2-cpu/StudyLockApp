@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <stroke
+        android:width="3dp"
+        android:color="#E53935"
+        android:dashWidth="10dp"
+        android:dashGap="1dp" /> <!-- わずかに点線にすることでインクのかすれ感を演出 -->
+    <corners android:radius="12dp" />
+    <padding
+        android:left="16dp"
+        android:right="16dp"
+        android:top="8dp"
+        android:bottom="8dp" />
+</shape>

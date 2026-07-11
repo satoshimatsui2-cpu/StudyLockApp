@@ -121,7 +121,9 @@ class MainActivity : AppCompatActivity() {
      * 本日のノルマ残り表示を更新
      */
     private fun updateQuotaDisplay() {
-        val quotaText = findViewById<TextView>(R.id.text_daily_quota) ?: return
+        val textGoalNew = findViewById<TextView>(R.id.text_goal_new) ?: return
+        val textGoalReview = findViewById<TextView>(R.id.text_goal_review) ?: return
+        val textGoalReviewTotal = findViewById<TextView>(R.id.text_goal_review_total) ?: return
 
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@MainActivity)
@@ -141,26 +143,36 @@ class MainActivity : AppCompatActivity() {
             cal.set(Calendar.MILLISECOND, 999)
             val endOfDay = cal.timeInMillis
 
-            val (newDone, reviewRemaining) = withContext(Dispatchers.IO) {
+            val (newDone, reviewRemainingNow, reviewRemainingToday) = withContext(Dispatchers.IO) {
                 val startedToday = db.wordMasteryDao().countStartedNewWordsToday(startOfDay)
                 
                 val currentGrade = appSettings.safeLearningGrade.toIntOrNull() ?: 3
                 val includeOthers = if (appSettings.includeOtherGrades) 1 else 0
                 val isSilent = if (appSettings.silentMode == com.example.studylockapp.data.SilentMode.ON) 1 else 0
                 
-                val remaining = db.wordMasteryDao().countRemainingReviewsAvailable(
+                val remainingNow = db.wordMasteryDao().countRemainingReviewsAvailable(
                     now = System.currentTimeMillis(),
                     currentGrade = currentGrade,
                     includeOtherGrades = includeOthers,
                     isSilentMode = isSilent
                 )
-                Pair(startedToday, remaining)
+
+                val remainingToday = db.wordMasteryDao().countRemainingReviewsAvailable(
+                    now = endOfDay,
+                    currentGrade = currentGrade,
+                    includeOtherGrades = includeOthers,
+                    isSilentMode = isSilent
+                )
+
+                Triple(startedToday, remainingNow, remainingToday)
             }
 
             val target = appSettings.dailyNewWordTarget
             val newRemaining = (target - newDone).coerceAtLeast(0)
 
-            quotaText.text = getString(R.string.label_daily_quota_remaining, newRemaining, reviewRemaining)
+            textGoalNew.text = newRemaining.toString()
+            textGoalReview.text = reviewRemainingNow.toString()
+            textGoalReviewTotal.text = " / $reviewRemainingToday"
         }
     }
 
@@ -206,19 +218,19 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updateGradeDisplay() {
         val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
-        val targetGradeText = findViewById<TextView>(R.id.text_target_grade)
+        val goalPrefixText = findViewById<TextView>(R.id.text_goal_prefix)
 
-        if (gradeButton != null && targetGradeText != null) {
+        if (gradeButton != null && goalPrefixText != null) {
             // 学習中の級を表示
             val learningDisplay = GradeUtils.toDisplay(appSettings.safeLearningGrade)
             gradeButton.text = learningDisplay
 
             // ポイント計算の基準となる目標級を表示
-            targetGradeText.text = if (appSettings.isTargetLearningGradeSet) {
+            if (appSettings.isTargetLearningGradeSet) {
                 val targetDisplay = GradeUtils.toDisplay(appSettings.targetLearningGrade)
-                "目標：$targetDisplay"
+                goalPrefixText.text = "目指せ $targetDisplay"
             } else {
-                "目標：未設定"
+                goalPrefixText.text = "目標：未設定"
             }
         }
     }
@@ -269,7 +281,6 @@ class MainActivity : AppCompatActivity() {
      * 保有ポイントの表示を更新
      */
     private fun updatePointDisplay() {
-        val totalPoints = pointManager.getTotal()
-        findViewById<TextView>(R.id.button_to_point_history)?.text = totalPoints.toString()
+        // TOP画面は「ポイント」というラベルのみ表示するため、数値の更新処理は不要
     }
 }

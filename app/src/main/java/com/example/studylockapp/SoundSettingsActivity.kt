@@ -118,6 +118,9 @@ class SoundSettingsActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btn_select_character).setOnClickListener {
             startActivity(Intent(this, com.example.studylockapp.ui.CharacterSelectActivity::class.java))
         }
+        findViewById<MaterialButton>(R.id.btn_friend_connection).setOnClickListener {
+            startActivity(Intent(this, com.example.studylockapp.ui.FriendConnectionActivity::class.java))
+        }
     }
 
     private fun setupListeners() {

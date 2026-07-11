@@ -114,4 +114,36 @@ interface WordMasteryDao {
         includeOtherGrades: Int,
         isSilentMode: Int
     ): Int
+    @Query("""
+        SELECT COUNT(*) FROM word_mastery m
+        WHERE m.lastSeen BETWEEN :startOfDay AND :endOfDay
+        AND m.wordId NOT IN (
+            SELECT wordId FROM study_logs 
+            GROUP BY wordId 
+            HAVING MIN(learnedAt) >= :startOfDay
+        )
+    """)
+    suspend fun countCompletedReviewsToday(startOfDay: Long, endOfDay: Long): Int
+    @Query("""
+        SELECT COUNT(*) FROM word_mastery 
+        WHERE level >= 5 
+        AND enToJpCorrects >= 1 
+        AND jpToEnCorrects >= 1
+        AND listenCorrects >= 1
+        AND wordId IN (SELECT no FROM words WHERE grade = :grade)
+    """)
+    suspend fun countBasicMasteredByGrade(grade: Int): Int
+
+    @Query("""
+        SELECT COUNT(*) FROM word_mastery 
+        WHERE level >= 10 
+        AND enToJpCorrects >= 1 
+        AND jpToEnCorrects >= 3 
+        AND listenCorrects >= 3
+        AND wordId IN (SELECT no FROM words WHERE grade = :grade)
+    """)
+    suspend fun countLongTermMasteredByGrade(grade: Int): Int
+
+    @Query("SELECT COUNT(*) FROM words WHERE grade = :grade")
+    suspend fun countTotalWordsByGrade(grade: Int): Int
 }

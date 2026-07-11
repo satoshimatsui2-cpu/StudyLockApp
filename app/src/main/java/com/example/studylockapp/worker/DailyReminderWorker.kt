@@ -38,10 +38,25 @@ class DailyReminderWorker(
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
-        // 既に目標達成している場合は通知しない
+        // 既に目標達成している場合は通知しない (新規と復習の両方が0の場合)
         val startedCount = db.wordMasteryDao().countStartedNewWordsToday(startOfDay)
-        if (startedCount >= settings.dailyNewWordTarget) {
-            Log.d(TAG, "Goal already met today. Skipping notification.")
+        val target = settings.dailyNewWordTarget
+        
+        val currentGrade = settings.safeLearningGrade.toIntOrNull() ?: 3
+        val includeOthers = if (settings.includeOtherGrades) 1 else 0
+        val isSilent = if (settings.silentMode == com.example.studylockapp.data.SilentMode.ON) 1 else 0
+        
+        val remainingReviews = db.wordMasteryDao().countRemainingReviewsAvailable(
+            now = System.currentTimeMillis(),
+            currentGrade = currentGrade,
+            includeOtherGrades = includeOthers,
+            isSilentMode = isSilent
+        )
+
+        val newRemaining = (target - startedCount).coerceAtLeast(0)
+        
+        if (newRemaining == 0 && remainingReviews == 0) {
+            Log.d(TAG, "All goals met today. Skipping notification.")
             return Result.success()
         }
 

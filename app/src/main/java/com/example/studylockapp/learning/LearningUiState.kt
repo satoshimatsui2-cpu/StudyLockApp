@@ -59,7 +59,8 @@ data class LearningUiState(
 
     // ノルマ残り
     val newWordsRemaining: Int = 0,
-    val reviewWordsRemaining: Int = 0
+    val reviewWordsRemaining: Int = 0,
+    val reviewWordsTotalToday: Int = 0
 )
 
 data class AudioWarningState(

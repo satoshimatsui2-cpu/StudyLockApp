@@ -26,6 +26,8 @@ object JourneyHeaderBinder {
         
         // 4. 補助情報
         binding.textTargetLevel.text = model.goalText
-        binding.textDailyQuotaHeader.text = model.quotaText
+        binding.textGoalNewHeader.text = model.newCountText
+        binding.textGoalReviewHeader.text = model.reviewCountText
+        binding.textGoalReviewTotalHeader.text = model.reviewTotalCountText
     }
 }
