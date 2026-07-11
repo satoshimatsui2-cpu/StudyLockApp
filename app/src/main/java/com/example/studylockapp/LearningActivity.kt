@@ -360,7 +360,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                         val audioText = when (state.quiz?.mode) {
                             QuizMode.EN_TO_JP -> state.currentWord?.word
                             QuizMode.JP_TO_EN -> state.currentWord?.word
-                            QuizMode.FILL_BLANK -> state.currentWord?.sentence // 単語から文章に変更
+                            QuizMode.FILL_BLANK -> state.currentWord?.sentence
+                            QuizMode.SENTENCE_SORT -> state.currentWord?.sentence // 英文並び替えで文章を再生
                             QuizMode.LISTEN_FILL_BLANK -> state.currentWord?.sentence
                             else -> state.currentWord?.word
                         }
@@ -385,7 +386,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                     lifecycleScope.launch {
                         kotlinx.coroutines.delay(800) // 不正解SEは少し長めなので0.8秒待機
                         val audioText = when (state.quiz?.mode) {
-                            QuizMode.FILL_BLANK -> state.currentWord?.sentence // 単語から文章に変更
+                            QuizMode.FILL_BLANK -> state.currentWord?.sentence
+                            QuizMode.SENTENCE_SORT -> state.currentWord?.sentence // 英文並び替えで文章を再生
                             QuizMode.LISTEN_FILL_BLANK -> state.currentWord?.sentence
                             else -> state.currentWord?.word
                         }

@@ -241,8 +241,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, PointHistoryActivity::class.java))
         }
 
-        // ポイント表示カード
-        findViewById<View>(R.id.card_to_point_history)?.setOnClickListener {
+        // ポイント表示ボタン
+        findViewById<View>(R.id.button_to_point_history)?.setOnClickListener {
             openPointHistory()
         }
     }
@@ -270,6 +270,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updatePointDisplay() {
         val totalPoints = pointManager.getTotal()
-        findViewById<TextView>(R.id.text_points_top)?.text = "保有ポイント: $totalPoints"
+        findViewById<TextView>(R.id.button_to_point_history)?.text = "ポイント: $totalPoints"
     }
 }

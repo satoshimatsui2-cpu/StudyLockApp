@@ -80,98 +80,45 @@
                         android:maxHeight="420dp" />
                 </LinearLayout>
 
-                <!-- ポイントカード (アイコンなし) -->
+                <!-- ポイントボタン -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
                     android:orientation="horizontal"
                     android:weightSum="1"
-                    android:gravity="center_horizontal">
+                    android:gravity="center_horizontal"
+                    android:layout_marginBottom="12dp">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/card_to_point_history"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_to_point_history"
+                        style="@style/App.HistoryButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.8"
                         android:layout_marginHorizontal="8dp"
-                        app:cardUseCompatPadding="true"
-                        app:cardElevation="4dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:strokeColor="@color/sl_button_stroke"
-                        app:strokeWidth="3dp"
-                        app:cardBackgroundColor="@color/white">
-
-                        <androidx.constraintlayout.widget.ConstraintLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="12dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:gravity="center_horizontal"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toStartOf="@+id/arrow_icon"
-                                android:layout_marginHorizontal="8dp">
-
-                                <TextView
-                                    android:id="@+id/text_points_top"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/points_default"
-                                    android:textSize="18sp"
-                                    android:textColor="@color/navy_primary"
-                                    android:textStyle="bold"
-                                    android:gravity="center_horizontal"
-                                    tools:text="保有ポイント: 120" />
-
-                                <TextView
-                                    android:id="@+id/text_point_stats_top"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/point_stats_default"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/navy_primary"
-                                    android:paddingTop="6dp"
-                                    android:gravity="center_horizontal"
-                                    tools:text="今日: 30 / 前日比: +10" />
-                            </LinearLayout>
-
-                            <ImageView
-                                android:id="@+id/arrow_icon"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:src="@drawable/ic_arrow_right"
-                                app:tint="@color/navy_primary"
-                                android:contentDescription="@string/cd_arrow_right"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="parent" />
-
-                        </androidx.constraintlayout.widget.ConstraintLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                        android:text="@string/points_default"
+                        android:textSize="16sp"
+                        app:icon="@drawable/ic_round_stars_24"
+                        app:iconGravity="textStart"
+                        tools:text="ポイント: 120" />
                 </LinearLayout>
 
-                <!-- 履歴ボタン群 (紺色塗りつぶし) -->
+                <!-- 履歴ボタン -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:weightSum="1"
                     android:gravity="center_horizontal"
                     android:layout_marginBottom="24dp">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/button_to_learning_history"
                         style="@style/App.HistoryButton"
-                        android:layout_width="292dp"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="64dp"
+                        android:layout_weight="0.8"
+                        android:layout_marginHorizontal="8dp"
                         android:text="@string/label_history_short"
                         app:icon="@drawable/ic_history_24"
                         app:iconGravity="textStart" />
@@ -240,8 +187,7 @@
                         android:layout_marginTop="12dp"
                         android:layout_marginHorizontal="8dp"
                         android:text="@string/label_start_short"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
+                        android:textSize="20sp"
                         app:icon="@drawable/ic_play_arrow_24"
                         app:iconGravity="textStart"
                         app:iconSize="28dp" />

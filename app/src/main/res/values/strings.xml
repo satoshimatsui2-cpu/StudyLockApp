@@ -15,7 +15,7 @@
     <string name="label_history_short">履歴</string>
     <string name="action_admin_settings">設定</string>
     <string name="title_top">Eiken for Slacker</string>
-    <string name="points_default">保有ポイント: 0</string>
+    <string name="points_default">ポイント: 0</string>
     <string name="point_stats_default">今日: 0 / 前日比: +0</string>
     <string name="cd_grade_dropdown">級を選択</string>
     <string name="admin_label_interval_sec">回答後、次の問題が出題されるまで: %.1f 秒</string>
