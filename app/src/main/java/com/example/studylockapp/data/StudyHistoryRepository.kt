@@ -345,7 +345,7 @@ object StudyHistoryRepository {
     /**
      * 目標達成をフレンドに通知するためにステータスを更新する
      */
-    suspend fun broadcastGoalMet(newWords: Int, reviews: Int) {
+    suspend fun broadcastGoalMet(newWords: Int, reviews: Int, streak: Int) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
         val todayStr = todayTokyoStr()
@@ -353,6 +353,7 @@ object StudyHistoryRepository {
         val updates = hashMapOf(
             "lastGoalMetDate" to todayStr,
             "lastGoalStats" to "新規${newWords}問、復習${reviews}問",
+            "lastGoalStreak" to streak,
             "goalMetBroadcastAt" to FieldValue.serverTimestamp()
         )
 

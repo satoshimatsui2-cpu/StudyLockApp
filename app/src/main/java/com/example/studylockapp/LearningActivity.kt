@@ -428,7 +428,25 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.ShowBasicMasterCelebration -> animationManager.playMasterCelebration(isLongTerm = false)
             is LearningUiEvent.ShowLongTermMasterCelebration -> animationManager.playMasterCelebration(isLongTerm = true)
             is LearningUiEvent.ShowLevel5BonusInduction -> showLevel5BonusInductionDialog(event.word)
+            
+            is LearningUiEvent.ShowGrandCelebration -> {
+                handleGrandCelebration(event.characterName, event.message)
+            }
         }
+    }
+
+    private fun handleGrandCelebration(charName: String, message: String) {
+        animationManager.playGoalGrandCelebration()
+        
+        // 派手なダイアログを表示
+        com.example.studylockapp.ui.alert.AppDialogHelper.showConfirm(
+            context = this,
+            title = "🏆 目標達成！おめでとう！",
+            message = "$charName : 「$message」",
+            positiveText = "やった！",
+            negativeText = "",
+            onPositive = { finish() }
+        )
     }
 
     private fun showSilentModeExplanationDialog() {

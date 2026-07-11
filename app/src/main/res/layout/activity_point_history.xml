@@ -15,7 +15,9 @@
         android:background="@android:color/white"
         android:elevation="4dp"
         app:title="ポイント"
-        app:navigationIcon="@drawable/ic_arrow_back" 
+        app:titleTextColor="@color/navy_primary"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="@color/navy_primary"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView

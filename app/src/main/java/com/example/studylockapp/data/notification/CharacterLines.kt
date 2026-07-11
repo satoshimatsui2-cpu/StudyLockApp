@@ -22,7 +22,8 @@ enum class NotificationContext {
     MORNING_STREAK,    // 朝：継続中
     MORNING_MISSED_1,  // 朝：1日サボり
     MORNING_MISSED_2,  // 朝：数日サボり
-    EVENING_PENDING    // 夕方：未達成
+    EVENING_PENDING,   // 夕方：未達成
+    GOAL_COMPLETED     // ★目標達成！
 }
 
 /**
@@ -52,6 +53,10 @@ object CharacterLines {
                 "お疲れ様です。今日もちょっとだけ頑張ってみませんか？",
                 "休憩のついでに、3分だけ勉強タイムにしちゃいましょう！",
                 "今からやれば、夜はゆっくり過ごせますよ。今のうちに少し進めませんか？"
+            ),
+            NotificationContext.GOAL_COMPLETED to listOf(
+                "素晴らしいです！本日の目標をすべて達成されましたね。心から尊敬いたします！",
+                "おめでとうございます！今日のクエストは全て完了です。ゆっくり休んでくださいね。"
             )
         ),
         StudyCharacter.ATSUSHI to mapOf(
@@ -75,6 +80,10 @@ object CharacterLines {
                 "まだ目標が終わってないだと！？今すぐエンジン全開で取り掛かるぞ！！",
                 "夕方のこの時間が勝負だ！！お前の底力を見せてみろ！！",
                 "やるか、やるかだ！！迷わずアプリを開け！！"
+            ),
+            NotificationContext.GOAL_COMPLETED to listOf(
+                "やり遂げたな！！お前の努力、俺は一生忘れねえぞ！！最高に熱い一日だったな！！",
+                "目標達成だぁぁ！！お前の根性に乾杯だ！！明日もこの調子で魂燃やしていこうぜ！！"
             )
         ),
         StudyCharacter.LUNA to mapOf(
@@ -98,6 +107,10 @@ object CharacterLines {
                 "まだ目標終わってないの？アンタ、本当に手がかかるわね。ほら、今のうちに終わらせなさい！",
                 "ちょっと休憩？その前に少しは勉強したら？効率悪いわよ。",
                 "夜に慌てたくないでしょ？今のうちにやりなさいよね、もう。"
+            ),
+            NotificationContext.GOAL_COMPLETED to listOf(
+                "ふん、やるじゃない。まあ、アンタならこれくらい当然よね。...明日も、ちゃんとやりなさいよ！",
+                "目標達成おめでとう。別に、アンタが頑張ってて嬉しいわけじゃないんだからね！勘違いしないでよ！"
             )
         ),
         StudyCharacter.ARTHUR to mapOf(
@@ -121,6 +134,10 @@ object CharacterLines {
                 "お疲れ様、僕のプリンス/プリンセス。今日も少しだけ、君の情熱を分けてくれないか？",
                 "忙しいかい？ほんの数分でいい、君の知性に触れる時間をくれないかな。",
                 "今から始めれば、安らかな夜が約束されるだろう。さあ、一緒に進もうか。"
+            ),
+            NotificationContext.GOAL_COMPLETED to listOf(
+                "完璧だ...。君のひたむきな姿に、心から敬意を表するよ。今夜は良い夢が見られそうだね。",
+                "目標達成、おめでとう。君の努力という名の宝石が、また一つ輝きを増したね。美しいよ。"
             )
         )
     )

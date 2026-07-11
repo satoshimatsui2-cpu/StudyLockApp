@@ -177,4 +177,27 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
 
     fun pressDown(view: View) { view.animate().scaleX(0.95f).scaleY(0.95f).setDuration(80).start() }
     fun release(view: View) { view.animate().scaleX(1f).scaleY(1f).setDuration(80).start() }
+
+    /**
+     * 目標達成時のド派手お祝い（簡易版：ヘッダーの連続拡大縮小）
+     */
+    fun playGoalGrandCelebration() {
+        val root = binding.rootLayout
+        // ここで本来は紙吹雪ビューなどを生成したい
+        
+        val headerView = binding.layoutJourneyHeader.root
+        headerView.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(500)
+            .setInterpolator(OvershootInterpolator())
+            .withEndAction {
+                headerView.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(400)
+                    .start()
+            }
+            .start()
+    }
 }

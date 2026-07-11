@@ -54,6 +54,7 @@ object FriendNotificationManager {
 
                 val lastGoalMetDate = snapshot.getString("lastGoalMetDate")
                 val lastGoalStats = snapshot.getString("lastGoalStats") ?: ""
+                val lastGoalStreak = snapshot.getLong("lastGoalStreak")?.toInt() ?: 0
                 val broadcastAt = snapshot.getTimestamp("goalMetBroadcastAt") ?: return@addSnapshotListener
                 val friendName = snapshot.getString("displayName") ?: "友達"
 
@@ -61,7 +62,8 @@ object FriendNotificationManager {
                 val diffMillis = System.currentTimeMillis() - broadcastAt.toDate().time
                 if (diffMillis < 5 * 60 * 1000) {
                     val title = "フレンドの目標達成！"
-                    val message = "${friendName}さんが本日の目標（${lastGoalStats}）を達成しました！"
+                    val streakText = if (lastGoalStreak >= 2) "（${lastGoalStreak}日連続！）" else ""
+                    val message = "${friendName}さんが本日の目標（${lastGoalStats}）を達成しました！$streakText"
                     NotificationHelper.showNotification(context, title, message)
                 }
             }

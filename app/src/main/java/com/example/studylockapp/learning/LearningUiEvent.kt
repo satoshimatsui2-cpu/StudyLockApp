@@ -57,4 +57,10 @@ sealed class LearningUiEvent {
     data class ShowLevel5BonusInduction(
         val word: WordEntity
     ) : LearningUiEvent()
+
+    // ド派手な目標達成お祝い
+    data class ShowGrandCelebration(
+        val characterName: String,
+        val message: String
+    ) : LearningUiEvent()
 }

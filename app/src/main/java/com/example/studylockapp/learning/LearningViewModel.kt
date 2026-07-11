@@ -290,7 +290,8 @@ class LearningViewModel(
             viewModelScope.launch(Dispatchers.IO) {
                 val totalNew = appSettings.dailyNewWordTarget
                 val totalReviews = masteryDao.countCompletedReviewsToday(startOfDay, System.currentTimeMillis())
-                StudyHistoryRepository.broadcastGoalMet(totalNew, totalReviews)
+                val currentStreak = appSettings.dailyGoalStreak
+                StudyHistoryRepository.broadcastGoalMet(totalNew, totalReviews, currentStreak)
             }
         }
 
@@ -560,6 +561,20 @@ class LearningViewModel(
             try {
                 // 学習中のグレードを取得 (QuizManager に渡しているものと同じ値)
                 val grade = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
+
+                // ★ 本日のノルマが完全に0になったかチェック
+                val isGoalMet = _uiState.value.newWordsRemaining == 0 && _uiState.value.reviewWordsTotalToday == 0
+
+                if (isGoalMet) {
+                    // 目標達成お祝いイベントを送信
+                    val character = com.example.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
+                    val message = com.example.studylockapp.data.notification.CharacterLines.getLine(
+                        character, 
+                        com.example.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED
+                    )
+                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.displayName, message))
+                    return@launch
+                }
 
                 // 実践テスト問題があるか確認 (穴埋め または リスニング)
                 val hasPractical = withContext(Dispatchers.IO) {
