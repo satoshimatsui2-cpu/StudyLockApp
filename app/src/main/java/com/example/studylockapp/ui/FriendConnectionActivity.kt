@@ -1,20 +1,23 @@
 package com.example.studylockapp.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.studylockapp.CaptureActivityPortrait
 import com.example.studylockapp.R
 import com.example.studylockapp.data.StudyHistoryRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,6 +27,14 @@ class FriendConnectionActivity : AppCompatActivity() {
     private lateinit var recycler: RecyclerView
     private lateinit var editFriendId: EditText
     private lateinit var textMyId: TextView
+
+    private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
+        val payload = result.contents
+        if (payload != null) {
+            editFriendId.setText(payload)
+            addFriend()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +49,22 @@ class FriendConnectionActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.btn_back).setOnClickListener { finish() }
         findViewById<View>(R.id.btn_add_friend).setOnClickListener { addFriend() }
+
+        findViewById<View>(R.id.btn_show_my_qr).setOnClickListener {
+            val intent = Intent(this, QrCodeActivity::class.java).apply {
+                putExtra("prompt", "友達のアプリで読み取ってください")
+            }
+            startActivity(intent)
+        }
+
+        findViewById<View>(R.id.btn_scan_qr).setOnClickListener {
+            val options = ScanOptions()
+            options.setPrompt("友達のQRコードを枠内に写してください")
+            options.setBeepEnabled(false)
+            options.setOrientationLocked(true)
+            options.setCaptureActivity(CaptureActivityPortrait::class.java)
+            barcodeLauncher.launch(options)
+        }
 
         recycler.layoutManager = LinearLayoutManager(this)
         loadFriends()

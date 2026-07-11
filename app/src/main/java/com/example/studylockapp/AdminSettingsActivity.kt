@@ -776,5 +776,3 @@ class AdminSettingsActivity : AppCompatActivity() {
         return Pair(raw, null)
     }
 }
-
-class CaptureActivityPortrait : com.journeyapps.barcodescanner.CaptureActivity()

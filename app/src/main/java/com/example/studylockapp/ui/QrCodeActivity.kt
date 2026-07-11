@@ -68,7 +68,8 @@ class QrCodeActivity : AppCompatActivity() {
             }
 
         if (!statusTextView.text.toString().contains("失敗")) {
-            statusTextView.text = "UID: $uid\n\n保護者アプリで読み取ってください"
+            val customPrompt = intent.getStringExtra("prompt") ?: "保護者アプリで読み取ってください"
+            statusTextView.text = "UID: $uid\n\n$customPrompt"
             statusTextView.setTextColor(Color.BLACK)
         }
         

@@ -2,6 +2,9 @@ package com.example.studylockapp.service
 
 import android.content.Context
 import android.util.Log
+import com.example.studylockapp.data.notification.CharacterLines
+import com.example.studylockapp.data.notification.NotificationContext
+import com.example.studylockapp.data.notification.StudyCharacter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
@@ -61,9 +64,17 @@ object FriendNotificationManager {
                 // 5分以内のブロードキャストのみ通知する（重複や古い通知を防ぐ）
                 val diffMillis = System.currentTimeMillis() - broadcastAt.toDate().time
                 if (diffMillis < 5 * 60 * 1000) {
-                    val title = "フレンドの目標達成！"
-                    val streakText = if (lastGoalStreak >= 2) "（${lastGoalStreak}日連続！）" else ""
-                    val message = "${friendName}さんが本日の目標（${lastGoalStats}）を達成しました！$streakText"
+                    val settings = com.example.studylockapp.data.AppSettings(context)
+                    val character = StudyCharacter.fromId(settings.selectedCharacterId)
+                    
+                    val title = "${character.displayName}からの速報"
+                    val message = CharacterLines.getLine(
+                        character, 
+                        NotificationContext.FRIEND_GOAL_MET, 
+                        streak = lastGoalStreak, 
+                        name = friendName
+                    )
+
                     NotificationHelper.showNotification(context, title, message)
                 }
             }

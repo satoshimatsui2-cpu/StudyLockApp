@@ -74,6 +74,7 @@ class AppSettings(context: Context) {
         private const val KEY_LAST_GOAL_MET_DATE = "last_goal_met_date"
         private const val KEY_LAST_STUDY_DATE = "last_study_date"
         private const val KEY_SELECTED_CHARACTER_ID = "selected_character_id"
+        private const val KEY_UNLOCKED_CHARACTERS = "unlocked_characters"
 
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -86,11 +87,11 @@ class AppSettings(context: Context) {
         set(value) { /* No-op */ }
 
     var wrongRetrySec: Long
-        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 600L)
+        get() = prefs.getLong(KEY_WRONG_RETRY_SEC, 300L)
         set(v) = prefs.edit { putLong(KEY_WRONG_RETRY_SEC, v) }
 
     var level1RetrySec: Long
-        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 600L)
+        get() = prefs.getLong(KEY_LEVEL1_RETRY_SEC, 300L)
         set(v) = prefs.edit { putLong(KEY_LEVEL1_RETRY_SEC, v) }
 
     var dontKnowRetrySec: Long
@@ -128,7 +129,7 @@ class AppSettings(context: Context) {
     private fun basePointKey(mode: QuizMode): String = KEY_BASE_POINT_PREFIX + mode.name
 
     fun getBasePoint(mode: QuizMode): Int {
-        return prefs.getInt(basePointKey(mode), 4)
+        return prefs.getInt(basePointKey(mode), 8)
     }
 
     fun setBasePoint(mode: QuizMode, point: Int) {
@@ -216,7 +217,7 @@ class AppSettings(context: Context) {
 
     fun getUnlockCostPoints10Min(): Int = prefs.getInt(KEY_UNLOCK_COST_POINTS_10MIN, 20).coerceAtLeast(0)
 
-    fun getUnlockMinutesPer10Pt(): Int = prefs.getInt(KEY_UNLOCK_MIN_PER_10PT, 1).coerceIn(1, 10)
+    fun getUnlockMinutesPer10Pt(): Int = prefs.getInt(KEY_UNLOCK_MIN_PER_10PT, 2).coerceIn(1, 10)
     fun setUnlockMinutesPer10Pt(value: Int) { prefs.edit { putInt(KEY_UNLOCK_MIN_PER_10PT, value.coerceIn(1, 10)) } }
 
     fun hasShownAccessibilityIntro(): Boolean = prefs.getBoolean(KEY_HAS_SHOWN_ACCESSIBILITY_INTRO, false)
@@ -307,4 +308,21 @@ class AppSettings(context: Context) {
     var selectedCharacterId: String
         get() = prefs.getString(KEY_SELECTED_CHARACTER_ID, "george") ?: "george"
         set(v) = prefs.edit { putString(KEY_SELECTED_CHARACTER_ID, v) }
+
+    /**
+     * 解放済みキャラIDのセットを取得・保存
+     */
+    var unlockedCharacterIds: Set<String>
+        get() = prefs.getStringSet(KEY_UNLOCKED_CHARACTERS, setOf("george")) ?: setOf("george")
+        set(v) = prefs.edit { putStringSet(KEY_UNLOCKED_CHARACTERS, v) }
+
+    fun unlockCharacter(id: String) {
+        val current = unlockedCharacterIds.toMutableSet()
+        current.add(id)
+        unlockedCharacterIds = current
+    }
+
+    fun isCharacterUnlocked(id: String): Boolean {
+        return unlockedCharacterIds.contains(id)
+    }
 }
