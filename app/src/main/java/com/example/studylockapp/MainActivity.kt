@@ -270,6 +270,6 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updatePointDisplay() {
         val totalPoints = pointManager.getTotal()
-        findViewById<TextView>(R.id.button_to_point_history)?.text = "ポイント: $totalPoints"
+        findViewById<TextView>(R.id.button_to_point_history)?.text = totalPoints.toString()
     }
 }

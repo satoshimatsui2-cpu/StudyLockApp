@@ -80,55 +80,13 @@
                         android:maxHeight="420dp" />
                 </LinearLayout>
 
-                <!-- ポイントボタン -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
-                    android:gravity="center_horizontal"
-                    android:layout_marginBottom="12dp">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_to_point_history"
-                        style="@style/App.HistoryButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginHorizontal="8dp"
-                        android:text="@string/points_default"
-                        android:textSize="16sp"
-                        app:icon="@drawable/ic_round_stars_24"
-                        app:iconGravity="textStart"
-                        tools:text="ポイント: 120" />
-                </LinearLayout>
-
-                <!-- 履歴ボタン -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="1"
-                    android:gravity="center_horizontal"
-                    android:layout_marginBottom="24dp">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_to_learning_history"
-                        style="@style/App.HistoryButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:layout_marginHorizontal="8dp"
-                        android:text="@string/label_history_short"
-                        app:icon="@drawable/ic_history_24"
-                        app:iconGravity="textStart" />
-                </LinearLayout>
-
                 <!-- 目標・学習レベル表示 (ブランドオレンジ) -->
                 <TextView
                     android:id="@+id/text_target_grade"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="4dp"
                     android:gravity="center_horizontal"
                     android:textSize="14sp"
                     android:textColor="@color/brand_orange"
@@ -191,6 +149,52 @@
                         app:icon="@drawable/ic_play_arrow_24"
                         app:iconGravity="textStart"
                         app:iconSize="28dp" />
+                </LinearLayout>
+
+                <!-- 最下段: ポイントと履歴を2列で横並び -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="40dp"
+                    android:layout_marginBottom="24dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_horizontal"
+                    android:weightSum="1">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.8"
+                        android:orientation="horizontal"
+                        android:gravity="center_horizontal">
+
+                        <!-- ポイントボタン (簡略版: Pアイコン + 数字) -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_to_point_history"
+                            style="@style/App.HistoryButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="120"
+                            android:textSize="16sp"
+                            app:icon="@drawable/ic_monetization_on_24"
+                            app:iconGravity="textStart"
+                            tools:text="120" />
+
+                        <!-- 履歴ボタン -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_to_learning_history"
+                            style="@style/App.HistoryButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:text="@string/label_history_short"
+                            android:textSize="16sp"
+                            app:icon="@drawable/ic_history_24"
+                            app:iconGravity="textStart" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- 管理設定ボタン (デバッグ用/非表示) -->
