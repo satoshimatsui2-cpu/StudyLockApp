@@ -130,12 +130,20 @@ class LearningViewModel(
                 _uiEvent.send(LearningUiEvent.ShowSilentModeExplanation)
             }
         }
+
+        viewModelScope.launch {
+            updateQuotaInternal()
+        }
     }
 
     fun setIncludeOtherGradeReviews(enabled: Boolean) {
         appSettings.includeOtherGrades = enabled
         quizManager.includeOtherGradeReviews = enabled
         _uiState.update { it.copy(includeOtherGradeReviews = enabled) }
+
+        viewModelScope.launch {
+            updateQuotaInternal()
+        }
     }
     
     fun setChoicesInitiallyVisible(enabled: Boolean) {
