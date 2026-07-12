@@ -19,6 +19,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.studylockapp.GradeLabelFormatter
 import com.example.studylockapp.R
+import com.example.studylockapp.SoundEffectManager
+import com.example.studylockapp.data.AppSettings
+import com.example.studylockapp.data.SilentMode
 import com.example.studylockapp.data.practical.PracticalQuizMode
 import com.example.studylockapp.databinding.ActivityPracticalTestBinding
 import com.google.android.material.button.MaterialButton
@@ -38,6 +41,9 @@ class PracticalTestActivity : AppCompatActivity() {
     private val viewModel: PracticalTestViewModel by viewModels {
         PracticalTestViewModelFactory(this)
     }
+
+    private lateinit var soundEffectManager: SoundEffectManager
+    private lateinit var appSettings: AppSettings
 
     private var ttsController: PracticalListeningTtsController? = null
 
@@ -65,6 +71,9 @@ class PracticalTestActivity : AppCompatActivity() {
             insets
         }
 
+        soundEffectManager = SoundEffectManager(this)
+        appSettings = AppSettings(this)
+
         // TTSの初期化
         ttsController = PracticalListeningTtsController(this).apply {
             onSegmentStart = { id -> viewModel.onListeningSegmentChanged(id) }
@@ -84,6 +93,7 @@ class PracticalTestActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         ttsController?.shutdown()
+        soundEffectManager.release()
         super.onDestroy()
     }
 
@@ -127,10 +137,26 @@ class PracticalTestActivity : AppCompatActivity() {
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collectLatest { state ->
-                    updateUi(state)
+                launch {
+                    viewModel.uiState.collectLatest { state ->
+                        updateUi(state)
+                    }
+                }
+                launch {
+                    viewModel.uiEvent.collect { event ->
+                        handleEvent(event)
+                    }
                 }
             }
+        }
+    }
+
+    private fun handleEvent(event: PracticalUiEvent) {
+        if (appSettings.silentMode == SilentMode.ON) return
+
+        when (event) {
+            is PracticalUiEvent.ShowCorrect -> soundEffectManager.playCorrect()
+            is PracticalUiEvent.ShowWrong -> soundEffectManager.playWrong()
         }
     }
 

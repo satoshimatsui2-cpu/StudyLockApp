@@ -9,8 +9,10 @@ import com.example.studylockapp.data.SilentMode
 import com.example.studylockapp.data.practical.PracticalQuestion
 import com.example.studylockapp.data.practical.PracticalQuizMode
 import com.example.studylockapp.data.practical.PracticalTestRepository
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -63,6 +65,9 @@ class PracticalTestViewModel(
 
     private val _uiState = MutableStateFlow(PracticalUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _uiEvent = Channel<PracticalUiEvent>(Channel.BUFFERED)
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     // セッションを一意に識別するためのID
     private var sessionId = UUID.randomUUID().toString()
@@ -228,7 +233,6 @@ class PracticalTestViewModel(
             else -> "WRONG"
         }
 
-        // UI状態を回答済みに更新
         _uiState.update { it.copy(
             isAnswered = true,
             isCorrect = isCorrect,
@@ -238,6 +242,12 @@ class PracticalTestViewModel(
         ) }
 
         viewModelScope.launch {
+            if (isCorrect) {
+                _uiEvent.send(PracticalUiEvent.ShowCorrect)
+            } else {
+                _uiEvent.send(PracticalUiEvent.ShowWrong)
+            }
+
             try {
                 // 履歴保存
                 repository.saveHistory(

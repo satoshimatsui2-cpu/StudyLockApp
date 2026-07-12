@@ -584,11 +584,16 @@ class LearningViewModel(
                     return@launch
                 }
 
+                // 20問のフルセッションを完了した時のみ、実践テストへの移行を検討する
+                val isFullSessionCompleted = solvedInSession >= totalCount
+
                 // 実践テスト問題があるか確認 (穴埋め または リスニング)
-                val hasPractical = withContext(Dispatchers.IO) {
-                    practicalRepo.hasQuestions(PracticalQuizMode.FILL_BLANK, grade) ||
-                    (appSettings.silentMode == SilentMode.OFF && practicalRepo.hasQuestions(PracticalQuizMode.LISTENING, grade))
-                }
+                val hasPractical = if (isFullSessionCompleted) {
+                    withContext(Dispatchers.IO) {
+                        practicalRepo.hasQuestions(PracticalQuizMode.FILL_BLANK, grade) ||
+                                (appSettings.silentMode == SilentMode.OFF && practicalRepo.hasQuestions(PracticalQuizMode.LISTENING, grade))
+                    }
+                } else false
                 
                 if (hasPractical) {
                     _uiEvent.send(LearningUiEvent.NavigateToPracticalTest(grade))
