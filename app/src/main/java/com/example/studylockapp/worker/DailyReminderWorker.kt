@@ -24,11 +24,12 @@ class DailyReminderWorker(
 
     override suspend fun doWork(): Result {
         val settings = AppSettings(applicationContext)
-        val now = Calendar.getInstance()
-        val hour = now.get(Calendar.HOUR_OF_DAY)
         
-        // 7時台または17時台以外はスキップ（WorkManagerのゆらぎを考慮）
-        if (hour != 7 && hour != 17) return Result.success()
+        val isMorning = tags.contains("reminder_7")
+        val isEvening = tags.contains("reminder_17")
+
+        // 予約タグがない場合は何もしない（古い PeriodicWork の残骸など）
+        if (!isMorning && !isEvening) return Result.success()
 
         val db = AppDatabase.getInstance(applicationContext)
         val startOfDay = Calendar.getInstance().apply {
@@ -74,7 +75,7 @@ class DailyReminderWorker(
         val todayStr = sdf.format(Date())
         val lastStudyStr = settings.lastStudyDate
 
-        val notificationContext = if (hour == 7) {
+        val notificationContext = if (isMorning) {
             // 朝のメッセージ選択
             when {
                 streak >= 2 -> NotificationContext.MORNING_STREAK // 2日以上継続している場合のみお祝い
@@ -96,6 +97,33 @@ class DailyReminderWorker(
 
         NotificationHelper.showNotification(applicationContext, title, message)
         
+        // 次回の実行を予約
+        if (tags.contains("reminder_7")) scheduleNext(7)
+        if (tags.contains("reminder_17")) scheduleNext(17)
+
         return Result.success()
+    }
+
+    private fun scheduleNext(hour: Int) {
+        val now = Calendar.getInstance()
+        val target = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            add(Calendar.DAY_OF_YEAR, 1) // 実行済みなので明日の同時刻を予約
+        }
+
+        val delay = target.timeInMillis - now.timeInMillis
+        val request = androidx.work.OneTimeWorkRequestBuilder<DailyReminderWorker>()
+            .setInitialDelay(delay, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .addTag("reminder_$hour")
+            .build()
+
+        androidx.work.WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+            "Reminder_$hour",
+            androidx.work.ExistingWorkPolicy.REPLACE,
+            request
+        )
     }
 }

@@ -1,8 +1,8 @@
 package com.example.studylockapp
 
 import android.app.Application
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.studylockapp.ads.AdAudioManager
 import com.example.studylockapp.data.AppDatabase
@@ -37,13 +37,37 @@ class StudyLockApp : Application() {
     }
 
     private fun setupDailyReminder() {
-        val request = PeriodicWorkRequestBuilder<DailyReminderWorker>(
-            1, TimeUnit.HOURS
-        ).build()
+        // 既存の周期実行を解除
+        WorkManager.getInstance(this).cancelUniqueWork("DailyReminder")
+        
+        // 朝と夕方の通知を個別に予約
+        scheduleNextReminder(7)
+        scheduleNextReminder(17)
+    }
 
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "DailyReminder",
-            ExistingPeriodicWorkPolicy.KEEP,
+    private fun scheduleNextReminder(hour: Int) {
+        val now = java.util.Calendar.getInstance()
+        val target = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, hour)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+        
+        // 既に今日の指定時刻を過ぎている場合は明日に設定
+        if (target.before(now)) {
+            target.add(java.util.Calendar.DAY_OF_YEAR, 1)
+        }
+
+        val delay = target.timeInMillis - now.timeInMillis
+        val request = OneTimeWorkRequestBuilder<DailyReminderWorker>()
+            .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+            .addTag("reminder_$hour")
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniqueWork(
+            "Reminder_$hour",
+            ExistingWorkPolicy.KEEP, // すでに予約されている場合は維持
             request
         )
     }
