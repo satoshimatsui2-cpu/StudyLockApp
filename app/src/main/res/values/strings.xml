@@ -327,4 +327,11 @@
 
     <string name="label_daily_quota_remaining">本日の学習残り　新規: %1$d  復習: %2$d</string>
 
+    <!-- Empty States -->
+    <string name="empty_daily_goal_met">本日の目標は達成しました！</string>
+    <string name="empty_no_review_available">現在学習できる復習データはありません。\n少し時間をおいて挑戦してね。</string>
+    <string name="empty_silent_mode_finished">本日のサイレントモードの問題は\nすべて完了しました。</string>
+    <string name="action_switch_to_balance_mode">バランスモードに切り替える</string>
+    <string name="switch_mode_warning">※音が鳴りますのでご注意ください</string>
+
 </resources>

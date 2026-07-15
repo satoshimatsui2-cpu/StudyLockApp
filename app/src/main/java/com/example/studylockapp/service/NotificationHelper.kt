@@ -19,7 +19,7 @@ object NotificationHelper {
     private const val CHANNEL_NAME = "学習リマインダー"
     private const val CHANNEL_DESC = "毎日の学習目標を達成するためのリマインダー通知です。"
 
-    fun showNotification(context: Context, title: String, message: String) {
+    fun showNotification(context: Context, title: String, message: String, largeIconResId: Int = 0) {
         createNotificationChannel(context)
 
         val intent = Intent(context, MainActivity::class.java).apply {
@@ -31,13 +31,25 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_school_24) // TODO: キャラのミニアイコンがあれば切り替える
+            .setSmallIcon(R.drawable.ic_school_24)
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+
+        // キャラの画像がある場合は大きなアイコンとして表示
+        if (largeIconResId != 0) {
+            try {
+                val bitmap = android.graphics.BitmapFactory.decodeResource(context.resources, largeIconResId)
+                if (bitmap != null) {
+                    builder.setLargeIcon(bitmap)
+                }
+            } catch (e: Exception) {
+                // 画像読み込み失敗時は無視
+            }
+        }
 
         try {
             with(NotificationManagerCompat.from(context)) {

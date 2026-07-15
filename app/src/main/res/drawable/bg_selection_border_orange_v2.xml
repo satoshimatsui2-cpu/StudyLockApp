@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 外側のぼんやりした光（グロー効果）
+         ストロークは境界線の内側と外側に半分ずつ描画されるため、
+         外側にはみ出る分は CardView によってクリップされます。
+         ここでは内側への光の染み出しとして機能します。 -->
+    <item>
+        <shape>
+            <stroke android:width="4dp" android:color="#66FF8800" /> <!-- 40%透明度のオレンジ -->
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+    <!-- 本体のくっきりした線
+         端っこギリギリ（隙間なし）に配置するように修正 -->
+    <item>
+        <shape>
+            <stroke android:width="2dp" android:color="@color/brand_orange" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+    <!-- カード全体への極薄のオーバーレイ -->
+    <item>
+        <shape>
+            <solid android:color="#1AFF8800" /> <!-- 10%透明度のオレンジ -->
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+</layer-list>

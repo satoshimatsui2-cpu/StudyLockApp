@@ -175,6 +175,14 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         binding.buttonReplayQuestionAudio.setOnClickListener {
             viewModel.requestAudioPlayback()
         }
+
+        binding.layoutEmptyState.buttonEmptyClose.setOnClickListener {
+            finish()
+        }
+
+        binding.layoutEmptyState.buttonSwitchToBalance.setOnClickListener {
+            viewModel.toggleSilentMode()
+        }
     }
 
     private fun observeViewModel() {
@@ -226,6 +234,34 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
         renderQuizIfNeeded(state)
         updateChoiceCoverVisibility(state)
+
+        // 空状態の表示制御
+        if (state.emptyState != null) {
+            binding.cardQuestion.visibility = View.GONE
+            binding.layoutReviewCard.rootReviewCard.visibility = View.GONE
+            binding.layoutAssistButtons.visibility = View.GONE
+            binding.layoutEmptyState.rootEmptyCard.visibility = View.VISIBLE
+
+            val message = when (state.emptyState) {
+                is LearningEmptyState.DailyGoalMet -> getString(R.string.empty_daily_goal_met)
+                is LearningEmptyState.NoReviewAvailable -> getString(R.string.empty_no_review_available)
+                is LearningEmptyState.SilentModeFinishedButNormalAvailable -> getString(R.string.empty_silent_mode_finished)
+            }
+            binding.layoutEmptyState.textEmptyMessage.text = message
+            
+            val charResId = com.example.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(state.selectedCharacterId)
+            binding.layoutEmptyState.imageEmptyCharacter.setImageResource(charResId)
+
+            if (state.emptyState is LearningEmptyState.SilentModeFinishedButNormalAvailable) {
+                binding.layoutEmptyState.buttonEmptyClose.visibility = View.GONE
+                binding.layoutEmptyState.layoutSwitchMode.visibility = View.VISIBLE
+            } else {
+                binding.layoutEmptyState.buttonEmptyClose.visibility = View.VISIBLE
+                binding.layoutEmptyState.layoutSwitchMode.visibility = View.GONE
+            }
+        } else {
+            binding.layoutEmptyState.rootEmptyCard.visibility = View.GONE
+        }
     }
 
     private fun updateOtherGradeReviewButton(enabled: Boolean) {

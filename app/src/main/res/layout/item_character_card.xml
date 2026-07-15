@@ -5,75 +5,135 @@
     android:id="@+id/card_character"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="6dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="2dp"
-    app:strokeColor="@color/app_outline">
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="@android:color/transparent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
 
+        <!-- 基本のカード背景色（透過を防ぐため、CardViewの代わりに内部で保持） -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/white"
+            app:layout_constraintTop_toTopOf="@id/image_character_portrait"
+            app:layout_constraintBottom_toBottomOf="@id/image_character_portrait"
+            app:layout_constraintStart_toStartOf="@id/image_character_portrait"
+            app:layout_constraintEnd_toEndOf="@id/image_character_portrait" />
+
+        <!-- 全面立ち絵 -->
         <ImageView
-            android:id="@+id/image_character_icon"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:id="@+id/image_character_portrait"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_round_stars_24"
+            app:layout_constraintDimensionRatio="3:4"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:contentDescription="キャラクター" />
+            android:contentDescription="キャラクター立ち絵" />
 
+        <!-- 名前が見やすいため、強いグラデーションは廃止 -->
+        <View
+            android:id="@+id/view_gradient_overlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@android:color/transparent"
+            app:layout_constraintBottom_toBottomOf="@id/image_character_portrait"
+            app:layout_constraintEnd_toEndOf="@id/image_character_portrait"
+            app:layout_constraintStart_toStartOf="@id/image_character_portrait"
+            app:layout_constraintTop_toTopOf="@id/image_character_portrait" />
+
+        <!-- キャラ名：左下に配置、黒文字＋白のうっすらした光（Shadow）で視認性向上 -->
+        <!-- モダンなフローティング・ネームバッジ：サイズをさらにコンパクトに調整 -->
         <TextView
             android:id="@+id/text_character_name"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:textSize="18sp"
+            android:layout_marginStart="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_character_name_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:textColor="@color/black"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="@color/text_main"
-            app:layout_constraintStart_toEndOf="@id/image_character_icon"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/image_lock"
-            tools:text="ジョージ" />
+            android:elevation="1dp"
+            app:layout_constraintBottom_toBottomOf="@id/image_character_portrait"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="氷室 シオン" />
 
+        <!-- キャラ説明：非表示にするがIDだけ残してエラー回避 -->
         <TextView
             android:id="@+id/text_character_desc"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-            android:textSize="13sp"
-            android:textColor="@color/text_sub"
-            app:layout_constraintStart_toEndOf="@id/image_character_icon"
-            app:layout_constraintTop_toBottomOf="@id/text_character_name"
-            app:layout_constraintEnd_toStartOf="@+id/image_lock"
-            tools:text="親切で丁寧な応援スタイルです。" />
-
-        <ImageView
-            android:id="@+id/image_lock"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_lock_24dp"
-            app:tint="@color/text_sub"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_height="0dp"
             android:visibility="gone"
-            android:contentDescription="ロック中" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="説明文" />
 
+        <!-- 解放条件：中央に配置し、視認性を大幅に向上 -->
         <TextView
             android:id="@+id/text_unlock_condition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
-            android:textColor="@color/brand_orange"
+            android:background="@drawable/bg_badge_condition_locked"
+            android:elevation="4dp"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/image_character_portrait"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/image_lock"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/image_character_portrait"
+            tools:text="400ptで解放" />
+
+        <!-- ロックアイコン：右上に小さく -->
+        <ImageView
+            android:id="@+id/image_lock"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_lock_24dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#88FFFFFF"
             android:visibility="gone"
-            tools:text="10日達成で解放"
+            tools:visibility="visible" />
+
+        <!-- 選択中のネオン・グローエフェクト：古臭い「線」から「オーラ」へ進化 -->
+        <View
+            android:id="@+id/view_selection_border"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_selection_border_orange_v2"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+
+        <!-- 選択中を示すチェックアイコン（任意：右上に配置して分かりやすく） -->
+        <ImageView
+            android:id="@+id/image_selected_check"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_check_circle_24"
+            app:tint="@color/brand_orange"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

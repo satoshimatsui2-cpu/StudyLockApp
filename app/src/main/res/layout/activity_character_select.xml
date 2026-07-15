@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/bg_pattern_tile_repeat"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="応援キャラ選択"
+            android:text="パートナー選択"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/navy_primary"

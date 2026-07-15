@@ -53,7 +53,8 @@ class LearningViewModel(
     private val _uiState = MutableStateFlow(
         LearningUiState(
             totalSteps = totalCount,
-            totalPoints = pointManager.getTotal()
+            totalPoints = pointManager.getTotal(),
+            selectedCharacterId = appSettings.selectedCharacterId
         )
     )
     val uiState = _uiState.asStateFlow()
@@ -173,10 +174,11 @@ class LearningViewModel(
             
             val quiz = quizManager.nextQuiz()
             if (quiz == null) {
-                _uiState.update { it.copy(isLoading = false) }
                 if (solvedInSession == 0) {
-                    _uiEvent.send(LearningUiEvent.NoAvailableWords)
+                    val emptyReason = quizManager.getEmptyStateReason()
+                    _uiState.update { it.copy(isLoading = false, emptyState = emptyReason) }
                 } else {
+                    _uiState.update { it.copy(isLoading = false) }
                     finishSession()
                 }
                 return@launch

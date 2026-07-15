@@ -335,7 +335,7 @@
                             android:layout_weight="1"
                             android:layout_marginStart="4dp"
                             android:minHeight="64dp"
-                            android:text="応援キャラ"
+                            android:text="パートナー"
                             android:textSize="12sp"
                             app:icon="@drawable/ic_round_stars_24"
                             app:iconGravity="textStart" />

@@ -1,5 +1,8 @@
 package com.example.studylockapp.ui
 
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -34,22 +37,24 @@ class CharacterSelectActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.btn_back).setOnClickListener { finish() }
 
-        recycler.layoutManager = LinearLayoutManager(this)
+        recycler.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, 2)
         recycler.adapter = CharacterAdapter()
     }
 
     inner class CharacterAdapter : RecyclerView.Adapter<CharacterAdapter.VH>() {
         private val list = StudyCharacter.values()
-        private val totalGoals = appSettings.totalGoalsMetCount
-        private val selectedId = appSettings.selectedCharacterId
+        
+        // 最新の状態をバインド時に取得するため、ここではプロパティとして保持しない
 
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val card = v.findViewById<MaterialCardView>(R.id.card_character)
             val name = v.findViewById<TextView>(R.id.text_character_name)
             val desc = v.findViewById<TextView>(R.id.text_character_desc)
-            val icon = v.findViewById<ImageView>(R.id.image_character_icon)
+            val portrait = v.findViewById<ImageView>(R.id.image_character_portrait)
             val lock = v.findViewById<ImageView>(R.id.image_lock)
             val condition = v.findViewById<TextView>(R.id.text_unlock_condition)
+            val selectionBorder = v.findViewById<View>(R.id.view_selection_border)
+            val selectedCheck = v.findViewById<View>(R.id.image_selected_check)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -70,15 +75,22 @@ class CharacterSelectActivity : AppCompatActivity() {
                 StudyCharacter.ARTHUR -> "優雅な言葉で君をエスコートします。"
                 StudyCharacter.ROBOSUKE -> "論理的かつ厳しく、君の学習を管理します。"
                 StudyCharacter.LEO -> "俺様全開！逆らうことは許されません。"
+                StudyCharacter.HINA -> "控えめですが、心からあなたを支えます。"
+                StudyCharacter.ELENA -> "知的な微笑みで、あなたの深奥を導きます。"
             }
 
+            // 画像のセット
+            val resId = getCharacterDrawableId(char.id)
+            holder.portrait.setImageResource(resId)
+
             val isPurchased = appSettings.isCharacterUnlocked(char.id)
-            val canPurchase = totalGoals >= char.unlockGoalDays
-            val isSelected = char.id == selectedId
+            val canPurchase = appSettings.totalGoalsMetCount >= char.unlockGoalDays
+            val isSelected = char.id == appSettings.selectedCharacterId
 
             when {
                 isPurchased -> {
-                    // 購入済み：自由に選択可能
+                    // 購入済み：カラー表示
+                    holder.portrait.clearColorFilter()
                     holder.lock.visibility = View.GONE
                     holder.condition.visibility = View.GONE
                     holder.card.alpha = 1.0f
@@ -88,39 +100,49 @@ class CharacterSelectActivity : AppCompatActivity() {
                     }
                 }
                 canPurchase -> {
-                    // 購入可能：段階的にポイントが増える (400, 600, 800...)
-                    val currentUnlockedCount = appSettings.unlockedCharacterIds.size - 1 // 初期キャラ(ジョージ)分を引く
+                    // 購入可能：シルエット表示
+                    holder.portrait.setColorFilter(android.graphics.Color.BLACK, PorterDuff.Mode.SRC_IN)
+                    
+                    val currentUnlockedCount = appSettings.unlockedCharacterIds.size - 1
                     val nextCost = 400 + (currentUnlockedCount * 200)
                     
                     holder.lock.visibility = View.VISIBLE
                     holder.lock.setImageResource(R.drawable.ic_monetization_on_24)
                     holder.lock.imageTintList = ContextCompat.getColorStateList(this@CharacterSelectActivity, R.color.brand_orange)
                     holder.condition.visibility = View.VISIBLE
-                    holder.condition.text = "${nextCost}ポイントで解放"
+                    holder.condition.text = "${nextCost}ptで解放"
+                    holder.condition.setBackgroundResource(R.drawable.bg_badge_orange) // 解放可能時はブランド色
                     holder.card.alpha = 1.0f
                     holder.card.setOnClickListener {
                         showUnlockDialog(char, nextCost)
                     }
                 }
                 else -> {
-                    // 条件未達：ロック状態
+                    // 条件未達：シルエット表示
+                    holder.portrait.setColorFilter(android.graphics.Color.BLACK, PorterDuff.Mode.SRC_IN)
+                    
+                    val daysLeft = char.unlockGoalDays - appSettings.totalGoalsMetCount
+                    
                     holder.lock.visibility = View.VISIBLE
                     holder.lock.setImageResource(R.drawable.ic_lock_24dp)
-                    holder.lock.imageTintList = ContextCompat.getColorStateList(this@CharacterSelectActivity, R.color.text_sub)
+                    holder.lock.imageTintList = ContextCompat.getColorStateList(this@CharacterSelectActivity, R.color.white)
                     holder.condition.visibility = View.VISIBLE
-                    holder.condition.text = "${char.unlockGoalDays}日達成で解放"
-                    holder.card.alpha = 0.5f
+                    holder.condition.text = "あと${daysLeft}日で解放"
+                    holder.condition.setBackgroundResource(R.drawable.bg_badge_condition_locked) // 条件未達時は視認性の高いダーク背景
+                    holder.card.alpha = 0.8f
                     holder.card.setOnClickListener(null)
                 }
             }
 
-            if (isSelected) {
-                holder.card.strokeColor = ContextCompat.getColor(this@CharacterSelectActivity, R.color.brand_orange)
-                holder.card.strokeWidth = 6
-            } else {
-                holder.card.strokeColor = ContextCompat.getColor(this@CharacterSelectActivity, R.color.app_outline)
-                holder.card.strokeWidth = 2
-            }
+            // 選択状態のネオン枠とチェックアイコンの表示
+            holder.selectionBorder.visibility = if (isSelected) View.VISIBLE else View.GONE
+            holder.selectedCheck.visibility = if (isSelected) View.VISIBLE else View.GONE
+        }
+
+        private fun getCharacterDrawableId(charId: String): Int {
+            val resName = "char_$charId"
+            val id = resources.getIdentifier(resName, "drawable", packageName)
+            return if (id != 0) id else R.drawable.ic_round_stars_24 // 見つからない場合は星アイコン
         }
 
         private fun showUnlockDialog(char: StudyCharacter, cost: Int) {

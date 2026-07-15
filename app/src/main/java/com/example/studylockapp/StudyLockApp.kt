@@ -41,15 +41,15 @@ class StudyLockApp : Application() {
         WorkManager.getInstance(this).cancelUniqueWork("DailyReminder")
         
         // 朝と夕方の通知を個別に予約
-        scheduleNextReminder(7)
-        scheduleNextReminder(17)
+        scheduleNextReminder(6, 30)
+        scheduleNextReminder(17, 0)
     }
 
-    private fun scheduleNextReminder(hour: Int) {
+    private fun scheduleNextReminder(hour: Int, minute: Int) {
         val now = java.util.Calendar.getInstance()
         val target = java.util.Calendar.getInstance().apply {
             set(java.util.Calendar.HOUR_OF_DAY, hour)
-            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.MINUTE, minute)
             set(java.util.Calendar.SECOND, 0)
             set(java.util.Calendar.MILLISECOND, 0)
         }
@@ -62,13 +62,20 @@ class StudyLockApp : Application() {
         val delay = target.timeInMillis - now.timeInMillis
         val request = OneTimeWorkRequestBuilder<DailyReminderWorker>()
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-            .addTag("reminder_$hour")
+            .addTag("reminder_${hour}_${minute}")
             .build()
 
         WorkManager.getInstance(this).enqueueUniqueWork(
-            "Reminder_$hour",
-            ExistingWorkPolicy.KEEP, // すでに予約されている場合は維持
+            "Reminder_${hour}_${minute}",
+            ExistingWorkPolicy.REPLACE, // 毎回最新の時刻で予約し直す（頑健性のため）
             request
         )
+    }
+
+    /**
+     * BootReceiverなど外部から通知予約をトリガーするための公開メソッド
+     */
+    fun triggerDailyReminderSetup() {
+        setupDailyReminder()
     }
 }

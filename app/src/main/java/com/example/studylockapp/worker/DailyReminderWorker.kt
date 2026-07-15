@@ -25,10 +25,10 @@ class DailyReminderWorker(
     override suspend fun doWork(): Result {
         val settings = AppSettings(applicationContext)
         
-        val isMorning = tags.contains("reminder_7")
-        val isEvening = tags.contains("reminder_17")
+        val isMorning = tags.contains("reminder_6_30")
+        val isEvening = tags.contains("reminder_17_0")
 
-        // 予約タグがない場合は何もしない（古い PeriodicWork の残骸など）
+        // 予約タグがない場合は何もしない
         if (!isMorning && !isEvening) return Result.success()
 
         val db = AppDatabase.getInstance(applicationContext)
@@ -63,10 +63,12 @@ class DailyReminderWorker(
 
         val newRemaining = (target - startedCount).coerceAtLeast(0)
         
-        if (newRemaining == 0 && remainingReviewsToday == 0) {
-            Log.d(TAG, "All goals met today. Skipping notification.")
-            return Result.success()
-        }
+        // 朝の通知は未達でも達成済みでも送る。
+        // 夕方の通知は未達の場合、または達成済みお祝いとして送る。
+        // つまり、このガード条件（何もしない）は削除または緩和する。
+        // if (newRemaining == 0 && remainingReviewsToday == 0) { ... } 
+        
+        val isGoalMet = (newRemaining == 0 && remainingReviewsToday == 0)
 
         val character = StudyCharacter.fromId(settings.selectedCharacterId)
         val streak = settings.dailyGoalStreak
@@ -89,39 +91,57 @@ class DailyReminderWorker(
             }
         } else {
             // 夕方のメッセージ
-            NotificationContext.EVENING_PENDING
+            if (isGoalMet) NotificationContext.GOAL_COMPLETED
+            else NotificationContext.EVENING_PENDING
         }
 
         val message = CharacterLines.getLine(character, notificationContext, streak)
-        val title = "${character.displayName}からのメッセージ"
+        val title = ""
 
-        NotificationHelper.showNotification(applicationContext, title, message)
+        // 感情に連動したミニ画像IDを取得
+        val emotion = CharacterLines.getEmotionForContext(character, notificationContext)
+        var imageResId = applicationContext.resources.getIdentifier(
+            "mini_${character.id}_${emotion.id}", "drawable", applicationContext.packageName
+        )
+        
+        // ミニ画像がない場合は、通常のキャラ画像で代用
+        if (imageResId == 0) {
+            imageResId = applicationContext.resources.getIdentifier(
+                "char_${character.id}", "drawable", applicationContext.packageName
+            )
+        }
+
+        try {
+            NotificationHelper.showNotification(applicationContext, title, message, imageResId)
+        } catch (e: Exception) {
+            // 通知表示自体のエラーは無視して次回の予約へ進む
+        }
         
         // 次回の実行を予約
-        if (tags.contains("reminder_7")) scheduleNext(7)
-        if (tags.contains("reminder_17")) scheduleNext(17)
+        if (isMorning) scheduleNext(6, 30)
+        if (isEvening) scheduleNext(17, 0)
 
         return Result.success()
     }
 
-    private fun scheduleNext(hour: Int) {
+    private fun scheduleNext(hour: Int, minute: Int) {
         val now = Calendar.getInstance()
         val target = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, 0)
+            set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
-            add(Calendar.DAY_OF_YEAR, 1) // 実行済みなので明日の同時刻を予約
+            add(Calendar.DAY_OF_YEAR, 1)
         }
 
         val delay = target.timeInMillis - now.timeInMillis
         val request = androidx.work.OneTimeWorkRequestBuilder<DailyReminderWorker>()
             .setInitialDelay(delay, java.util.concurrent.TimeUnit.MILLISECONDS)
-            .addTag("reminder_$hour")
+            .addTag("reminder_${hour}_${minute}")
             .build()
 
         androidx.work.WorkManager.getInstance(applicationContext).enqueueUniqueWork(
-            "Reminder_$hour",
+            "Reminder_${hour}_${minute}",
             androidx.work.ExistingWorkPolicy.REPLACE,
             request
         )
