@@ -512,14 +512,20 @@ object CharacterLines {
         val contextLines = characterLines[context] ?: characterLines[NotificationContext.MORNING_NORMAL]!!
         val line = contextLines.random()
         
-        // メッセージ冒頭に名前がついているものを削除（もしあれば）
         var formatted = line
         
         try {
-            if (formatted.contains("%d")) formatted = String.format(formatted, streak)
-            else if (formatted.contains("%s")) formatted = String.format(formatted, name)
+            // %s (名前) と %d (数値) の両方または片方に対応
+            if (formatted.contains("%s") && formatted.contains("%d")) {
+                // String.formatは引数の順序に依存するため、より安全な置換を行う
+                formatted = formatted.replace("%s", name).replace("%d", streak.toString())
+            } else if (formatted.contains("%s")) {
+                formatted = String.format(formatted, name)
+            } else if (formatted.contains("%d")) {
+                formatted = String.format(formatted, streak)
+            }
         } catch (e: Exception) {
-            // format error, use original line
+            // フォーマットエラー時は原文を返す
         }
         
         // 念のためエスケープされた%を修正

@@ -17,6 +17,9 @@ object FriendNotificationManager {
     private const val TAG = "FriendNotifMgr"
     private var listenerRegistration: ListenerRegistration? = null
 
+    // フレンドUIDと、あなたが設定した表示名（ニックネーム）のマップ
+    private val friendNicknames = mutableMapOf<String, String>()
+
     /**
      * 監視を開始する
      */
@@ -27,9 +30,8 @@ object FriendNotificationManager {
         val db = FirebaseFirestore.getInstance()
         val myUid = user.uid
 
-        // 1. まず自分のフレンドリストを取得し、そのUIDリストの変化を監視する
-        // (簡略化のため、アプリ起動時に一括でリスナーを貼る設計にします)
-        db.collection("users").document(myUid).collection("friends")
+        // 1. まず自分のフレンドリスト（ニックネームを含む）の変化を監視する
+        listenerRegistration = db.collection("users").document(myUid).collection("friends")
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     Log.w(TAG, "Friend list listen failed.", e)
@@ -37,9 +39,23 @@ object FriendNotificationManager {
                 }
 
                 snapshots?.documentChanges?.forEach { dc ->
-                    if (dc.type == DocumentChange.Type.ADDED) {
-                        val friendUid = dc.document.id
-                        observeFriendStatus(context, friendUid)
+                    val friendUid = dc.document.id
+                    val nickname = dc.document.getString("displayName") ?: "友達"
+
+                    when (dc.type) {
+                        DocumentChange.Type.ADDED -> {
+                            friendNicknames[friendUid] = nickname
+                            observeFriendStatus(context, friendUid)
+                        }
+                        DocumentChange.Type.MODIFIED -> {
+                            // 名前が編集されたらメモリ上の値を更新
+                            friendNicknames[friendUid] = nickname
+                        }
+                        DocumentChange.Type.REMOVED -> {
+                            friendNicknames.remove(friendUid)
+                            friendListeners[friendUid]?.remove()
+                            friendListeners.remove(friendUid)
+                        }
                     }
                 }
             }
@@ -55,19 +71,20 @@ object FriendNotificationManager {
             .addSnapshotListener { snapshot, e ->
                 if (e != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
 
-                val lastGoalMetDate = snapshot.getString("lastGoalMetDate")
-                val lastGoalStats = snapshot.getString("lastGoalStats") ?: ""
-                val lastGoalStreak = snapshot.getLong("lastGoalStreak")?.toInt() ?: 0
                 val broadcastAt = snapshot.getTimestamp("goalMetBroadcastAt") ?: return@addSnapshotListener
-                val friendName = snapshot.getString("displayName") ?: "友達"
-
-                // 5分以内のブロードキャストのみ通知する（重複や古い通知を防ぐ）
+                
+                // 5分以内のブロードキャストのみ通知する
                 val diffMillis = System.currentTimeMillis() - broadcastAt.toDate().time
                 if (diffMillis < 5 * 60 * 1000) {
+                    val lastGoalStreak = snapshot.getLong("lastGoalStreak")?.toInt() ?: 0
+                    
+                    // 【重要】編集した名前があればそれを使う。なければ相手の設定名を使う。
+                    val friendName = friendNicknames[friendUid] ?: snapshot.getString("displayName") ?: "友達"
+
                     val settings = com.example.studylockapp.data.AppSettings(context)
                     val character = StudyCharacter.fromId(settings.selectedCharacterId)
                     
-                    val title = "${character.displayName}からの速報"
+                    val title = "" // タイトルは不要との要望により空文字に
                     val message = CharacterLines.getLine(
                         character, 
                         NotificationContext.FRIEND_GOAL_MET, 
@@ -75,7 +92,8 @@ object FriendNotificationManager {
                         name = friendName
                     )
 
-                    NotificationHelper.showNotification(context, title, message)
+                    // miniのpanicアイコンを通知に含める
+                    NotificationHelper.showNotification(context, title, message, com.example.studylockapp.R.drawable.mini_shion_panic)
                 }
             }
         

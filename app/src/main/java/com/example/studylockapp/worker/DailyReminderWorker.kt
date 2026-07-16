@@ -72,6 +72,7 @@ class DailyReminderWorker(
 
         val character = StudyCharacter.fromId(settings.selectedCharacterId)
         val streak = settings.dailyGoalStreak
+        val userName = settings.userName ?: "友達"
         
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         val todayStr = sdf.format(Date())
@@ -95,7 +96,7 @@ class DailyReminderWorker(
             else NotificationContext.EVENING_PENDING
         }
 
-        val message = CharacterLines.getLine(character, notificationContext, streak)
+        val message = CharacterLines.getLine(character, notificationContext, streak, name = userName)
         val title = ""
 
         // 感情に連動したミニ画像IDを取得

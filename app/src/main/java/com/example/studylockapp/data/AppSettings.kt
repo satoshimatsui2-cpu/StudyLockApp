@@ -75,6 +75,7 @@ class AppSettings(context: Context) {
         private const val KEY_LAST_STUDY_DATE = "last_study_date"
         private const val KEY_SELECTED_CHARACTER_ID = "selected_character_id"
         private const val KEY_UNLOCKED_CHARACTERS = "unlocked_characters"
+        private const val KEY_USER_NAME = "user_name"
 
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -325,4 +326,8 @@ class AppSettings(context: Context) {
     fun isCharacterUnlocked(id: String): Boolean {
         return unlockedCharacterIds.contains(id)
     }
+
+    var userName: String?
+        get() = prefs.getString(KEY_USER_NAME, null)
+        set(v) = prefs.edit { putString(KEY_USER_NAME, v) }
 }

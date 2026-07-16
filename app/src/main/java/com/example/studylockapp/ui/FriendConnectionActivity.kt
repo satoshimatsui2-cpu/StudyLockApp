@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studylockapp.CaptureActivityPortrait
 import com.example.studylockapp.R
+import com.example.studylockapp.data.AppSettings
 import com.example.studylockapp.data.StudyHistoryRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.journeyapps.barcodescanner.ScanContract
@@ -26,6 +27,8 @@ class FriendConnectionActivity : AppCompatActivity() {
     private lateinit var recycler: RecyclerView
     private lateinit var editFriendId: EditText
     private lateinit var textMyId: TextView
+    private lateinit var textMyName: TextView
+    private lateinit var appSettings: AppSettings
 
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
         val payload = result.contents
@@ -40,14 +43,17 @@ class FriendConnectionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_friend_connection)
 
         textMyId = findViewById(R.id.text_my_id)
+        textMyName = findViewById(R.id.text_my_name_display)
         editFriendId = findViewById(R.id.edit_friend_id)
         recycler = findViewById(R.id.recycler_friends)
+        appSettings = AppSettings(this)
 
-        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: "---"
-        textMyId.text = myUid
+        checkAuthAndInitialize()
+        updateMyNameDisplay()
 
         findViewById<View>(R.id.btn_back).setOnClickListener { finish() }
         findViewById<View>(R.id.btn_add_friend).setOnClickListener { addFriend() }
+        findViewById<View>(R.id.btn_edit_my_name).setOnClickListener { showEditMyNameDialog() }
 
         findViewById<View>(R.id.btn_show_my_qr).setOnClickListener {
             val intent = Intent(this, QrCodeActivity::class.java).apply {
@@ -66,12 +72,43 @@ class FriendConnectionActivity : AppCompatActivity() {
         }
 
         recycler.layoutManager = LinearLayoutManager(this)
-        loadFriends()
+    }
+
+    private fun checkAuthAndInitialize() {
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+        
+        if (user != null) {
+            textMyId.text = user.uid
+            loadFriends()
+            lifecycleScope.launch {
+                StudyHistoryRepository.updateLastActiveStatus()
+            }
+        } else {
+            textMyId.text = "認証中..."
+            auth.signInAnonymously().addOnSuccessListener { result ->
+                val newUid = result.user?.uid ?: "---"
+                textMyId.text = newUid
+                lifecycleScope.launch {
+                    StudyHistoryRepository.updateLastActiveStatus()
+                    loadFriends()
+                }
+            }.addOnFailureListener {
+                textMyId.text = "認証失敗"
+                Toast.makeText(this, "サーバーとの接続に失敗しました", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun addFriend() {
         val friendId = editFriendId.text.toString().trim()
         if (friendId.isBlank()) return
+        
+        val myUid = FirebaseAuth.getInstance().currentUser?.uid
+        if (friendId == myUid) {
+            Toast.makeText(this, "自分のIDは追加できません", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         lifecycleScope.launch {
             val success = StudyHistoryRepository.addFriend(friendId)
@@ -92,10 +129,47 @@ class FriendConnectionActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateMyNameDisplay() {
+        textMyName.text = appSettings.userName ?: "未設定"
+    }
+
+    private fun showEditMyNameDialog() {
+        val container = android.widget.FrameLayout(this)
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        val editText = EditText(this).apply {
+            setText(appSettings.userName ?: "")
+            hint = "あなたの名前 (15文字以内)"
+            filters = arrayOf(android.text.InputFilter.LengthFilter(15))
+            maxLines = 1
+            isSingleLine = true
+            setSelection(text.length)
+        }
+        container.addView(editText)
+        container.setPadding(padding, 8, padding, 0)
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("名前の変更")
+            .setView(container)
+            .setPositiveButton("保存") { _, _ ->
+                val newName = editText.text.toString().trim()
+                if (newName.isNotEmpty()) {
+                    appSettings.userName = newName
+                    updateMyNameDisplay()
+                    lifecycleScope.launch {
+                        StudyHistoryRepository.updateLastActiveStatus(newName)
+                    }
+                    Toast.makeText(this, "名前を更新しました", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
+    }
+
     inner class FriendAdapter(private val items: List<Pair<String, String>>) : RecyclerView.Adapter<FriendAdapter.VH>() {
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val name: TextView = v.findViewById(R.id.text_friend_name)
             val id: TextView = v.findViewById(R.id.text_friend_id)
+            val btnEdit: ImageButton = v.findViewById(R.id.btn_edit_friend_name)
             val btnRemove: ImageButton = v.findViewById(R.id.btn_remove_friend)
         }
 
@@ -108,12 +182,47 @@ class FriendConnectionActivity : AppCompatActivity() {
             val (uid, name) = items[position]
             holder.name.text = name
             holder.id.text = "ID: $uid"
+            
+            holder.btnEdit.setOnClickListener {
+                showEditNameDialog(uid, name)
+            }
             holder.btnRemove.setOnClickListener {
                 showRemoveFriendDialog(uid, name)
             }
         }
 
         override fun getItemCount() = items.size
+    }
+
+    private fun showEditNameDialog(friendUid: String, currentName: String) {
+        val editText = EditText(this)
+        editText.setText(currentName)
+        editText.setSelection(currentName.length)
+
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("表示名の変更")
+            .setMessage("フレンドの表示名を変更します。")
+            .setView(editText)
+            .setPositiveButton("変更") { _, _ ->
+                val newName = editText.text.toString().trim()
+                if (newName.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        val success = StudyHistoryRepository.updateFriendDisplayName(friendUid, newName)
+                        if (success) {
+                            Toast.makeText(this@FriendConnectionActivity, "変更しました", Toast.LENGTH_SHORT).show()
+                            loadFriends()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton("キャンセル", null)
+            .create()
+
+        dialog.show()
+        
+        // 余白の調整
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        (editText.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.setMargins(padding, 0, padding, 0)
     }
 
     private fun showRemoveFriendDialog(friendUid: String, friendName: String) {

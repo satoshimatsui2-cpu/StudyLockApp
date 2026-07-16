@@ -61,6 +61,7 @@ data class LearningUiState(
     val newWordsRemaining: Int = 0,
     val reviewWordsRemaining: Int = 0,
     val reviewWordsTotalToday: Int = 0,
+    val reviewWordsNormalTotalToday: Int = 0,
 
     // 空状態
     val emptyState: LearningEmptyState? = null,

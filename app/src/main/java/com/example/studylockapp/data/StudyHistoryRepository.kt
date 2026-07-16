@@ -26,11 +26,15 @@ object StudyHistoryRepository {
     /**
      * 最終アクティブ日時を更新し、レポート停止状態を解除する。
      */
-    suspend fun updateLastActiveStatus(onSuccess: (() -> Unit)? = null) {
+    suspend fun updateLastActiveStatus(customName: String? = null, onSuccess: (() -> Unit)? = null) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val db = FirebaseFirestore.getInstance()
 
+        // 1. 引数の名前 2. Firebase Authの表示名 3. Fallback
+        val myName = customName ?: user.displayName ?: "User-${user.uid.takeLast(4)}"
+
         val updates = hashMapOf<String, Any>(
+            "displayName" to myName,
             "lastActiveAt" to FieldValue.serverTimestamp(),
             "dailyReportPaused" to false,
             "dailyReportPauseReason" to FieldValue.delete(),
@@ -312,7 +316,10 @@ object StudyHistoryRepository {
      * フレンドを追加する (相互)
      */
     suspend fun addFriend(friendUid: String): Boolean {
-        val user = FirebaseAuth.getInstance().currentUser ?: return false
+        val user = FirebaseAuth.getInstance().currentUser ?: run {
+            Log.e("FriendConnection", "addFriend: No current user")
+            return false
+        }
         val myUid = user.uid
         if (myUid == friendUid) return false
 
@@ -322,7 +329,10 @@ object StudyHistoryRepository {
         try {
             // 1. 相手の存在確認
             val friendDoc = db.collection("users").document(friendUid).get().await()
-            if (!friendDoc.exists()) return false
+            if (!friendDoc.exists()) {
+                Log.w("FriendConnection", "addFriend: Friend UID $friendUid not found in users collection")
+                return false
+            }
             val friendName = friendDoc.getString("displayName") ?: "友達"
 
             // 2. 自分のフレンドリストに追加
@@ -331,13 +341,14 @@ object StudyHistoryRepository {
                 .await()
 
             // 3. 相手のフレンドリストに自分を追加
+            // ※Firestoreのセキュリティルールで許可されている必要があります
             db.collection("users").document(friendUid).collection("friends").document(myUid)
                 .set(mapOf("displayName" to myName, "addedAt" to FieldValue.serverTimestamp()))
                 .await()
 
             return true
         } catch (e: Exception) {
-            Log.e("FriendConnection", "フレンド追加失敗", e)
+            Log.e("FriendConnection", "フレンド追加失敗: ${e.message}", e)
             return false
         }
     }
@@ -379,6 +390,25 @@ object StudyHistoryRepository {
         } catch (e: Exception) {
             Log.e("FriendConnection", "フレンド取得失敗", e)
             emptyList()
+        }
+    }
+
+    /**
+     * フレンドの表示名を変更する (ローカル表示用)
+     */
+    suspend fun updateFriendDisplayName(friendUid: String, newName: String): Boolean {
+        val user = FirebaseAuth.getInstance().currentUser ?: return false
+        val db = FirebaseFirestore.getInstance()
+
+        try {
+            db.collection("users").document(user.uid)
+                .collection("friends").document(friendUid)
+                .update("displayName", newName)
+                .await()
+            return true
+        } catch (e: Exception) {
+            Log.e("FriendConnection", "フレンド名更新失敗", e)
+            return false
         }
     }
 

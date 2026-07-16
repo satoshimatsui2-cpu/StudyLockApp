@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -19,6 +20,8 @@ import com.example.studylockapp.ui.GradeBottomSheet
 import com.example.studylockapp.ui.LearningHistoryActivity
 import com.example.studylockapp.ui.PointHistoryActivity
 import com.example.studylockapp.ui.alert.AppDialogHelper
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     
     private var hasShownTargetGradeSetupAlert = false
     private var hasShownNotificationPrompt = false
+    private var hasShownNamePrompt = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +50,9 @@ class MainActivity : AppCompatActivity() {
         appSettings = AppSettings(this)
         pointManager = PointManager(this)
         notificationHelper = NotificationPermissionHelper(this)
+
+        // 匿名ログインの実行（Firestore連携に必須）
+        ensureAuth()
 
         // アプリロック V2 への移行処理
         migrateAppLockV2()
@@ -66,6 +73,17 @@ class MainActivity : AppCompatActivity() {
         setupLearningHistoryNavigation()
         setupCharacterAndFriendNavigation()
         updatePointDisplay()
+    }
+
+    private fun ensureAuth() {
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser == null) {
+            auth.signInAnonymously().addOnSuccessListener {
+                lifecycleScope.launch {
+                    StudyHistoryRepository.updateLastActiveStatus()
+                }
+            }
+        }
     }
 
     /**
@@ -102,15 +120,28 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         
-        // 優先度1: 目標級が未設定の場合、一度だけアラートを表示
-        if (!appSettings.isTargetLearningGradeSet && !hasShownTargetGradeSetupAlert) {
+        var nextCheck = false
+        
+        // 1. 通知誘導
+        if (!hasShownNotificationPrompt) {
+            hasShownNotificationPrompt = true
+            val prompted = notificationHelper.checkAndPromptNotification()
+            if (!prompted) nextCheck = true
+        } else {
+            nextCheck = true
+        }
+
+        // 2. 名前登録 (通知のあと)
+        if (nextCheck && appSettings.userName == null && !hasShownNamePrompt) {
+            hasShownNamePrompt = true
+            showNameRegistrationDialog()
+            nextCheck = false
+        }
+
+        // 3. 目標級
+        if (nextCheck && !appSettings.isTargetLearningGradeSet && !hasShownTargetGradeSetupAlert) {
             hasShownTargetGradeSetupAlert = true
             showTargetGradeSetupAlert()
-        } 
-        // 優先度2: 通知許可がオフの場合、一度だけ誘導を表示 (目標級アラートと重ならないように)
-        else if (!hasShownNotificationPrompt) {
-            hasShownNotificationPrompt = true
-            notificationHelper.checkAndPromptNotification()
         }
 
         // 最終アクティブ更新 (6時間以上の間隔を空ける)
@@ -118,7 +149,7 @@ class MainActivity : AppCompatActivity() {
         val sixHoursMillis = 6 * 60 * 60 * 1000L
         if (now - appSettings.lastActiveUpdateMillis > sixHoursMillis) {
             lifecycleScope.launch {
-                StudyHistoryRepository.updateLastActiveStatus {
+                StudyHistoryRepository.updateLastActiveStatus(appSettings.userName) {
                     // サーバー書き込み成功時のみ、ローカルの次回判定用時刻を更新
                     appSettings.lastActiveUpdateMillis = now
                 }
@@ -156,7 +187,7 @@ class MainActivity : AppCompatActivity() {
             cal.set(Calendar.MILLISECOND, 999)
             val endOfDay = cal.timeInMillis
 
-            val (newDone, reviewRemainingNow, reviewRemainingToday) = withContext(Dispatchers.IO) {
+            val (newDone, reviewRemainingNow, reviewTotalToday) = withContext(Dispatchers.IO) {
                 val startedToday = db.wordMasteryDao().countStartedNewWordsToday(startOfDay)
                 
                 val currentGrade = appSettings.safeLearningGrade.toIntOrNull() ?: 3
@@ -170,14 +201,15 @@ class MainActivity : AppCompatActivity() {
                     isSilentMode = isSilent
                 )
 
-                val remainingToday = db.wordMasteryDao().countRemainingReviewsAvailable(
+                // ★ 総数は常に当日期限のものすべて（isSilentMode = 0）
+                val totalToday = db.wordMasteryDao().countRemainingReviewsAvailable(
                     now = endOfDay,
                     currentGrade = currentGrade,
                     includeOtherGrades = includeOthers,
-                    isSilentMode = isSilent
+                    isSilentMode = 0
                 )
 
-                Triple(startedToday, remainingNow, remainingToday)
+                Triple(startedToday, remainingNow, totalToday)
             }
 
             val target = appSettings.dailyNewWordTarget
@@ -185,24 +217,86 @@ class MainActivity : AppCompatActivity() {
 
             textGoalNew.text = newRemaining.toString()
             textGoalReview.text = reviewRemainingNow.toString()
-            textGoalReviewTotal.text = " / $reviewRemainingToday"
+            textGoalReviewTotal.text = " / $reviewTotalToday"
         }
     }
 
     /**
-     * 目標級設定を促すアラートを表示
+     * 名前登録ダイアログを表示
      */
-    private fun showTargetGradeSetupAlert() {
-        AppDialogHelper.showConfirm(
-            context = this,
-            title = "目標設定が必要です",
-            message = "学習を始める前に、管理者設定から目標とする級を設定してください。",
-            positiveText = "設定へ",
-            negativeText = "あとで",
-            onPositive = {
-                startActivity(Intent(this, AdminSettingsActivity::class.java))
+    private fun showNameRegistrationDialog() {
+        val container = android.widget.FrameLayout(this)
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        val editText = android.widget.EditText(this).apply {
+            hint = "名前 (15文字以内)"
+            filters = arrayOf(android.text.InputFilter.LengthFilter(15))
+            maxLines = 1
+            isSingleLine = true
+        }
+        container.addView(editText)
+        container.setPadding(padding, 8, padding, 0)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("あなたの名前")
+            .setMessage("学習記録やフレンド通知に使用されます。これから目指す級と一緒に登録しましょう。")
+            .setView(container)
+            .setPositiveButton("登録") { _, _ ->
+                val name = editText.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    appSettings.userName = name
+                    lifecycleScope.launch {
+                        StudyHistoryRepository.updateLastActiveStatus(name)
+                    }
+                    Toast.makeText(this, "名前を登録しました", Toast.LENGTH_SHORT).show()
+                    
+                    // 名前登録後に目標級チェックを再度走らせるためにonResume相当の処理を継続
+                    if (!appSettings.isTargetLearningGradeSet && !hasShownTargetGradeSetupAlert) {
+                        hasShownTargetGradeSetupAlert = true
+                        showTargetGradeSetupAlert()
+                    }
+                } else {
+                    // 空なら再度表示 (再帰的だがDialogなので安全)
+                    hasShownNamePrompt = false 
+                    onResume()
+                }
             }
-        )
+            .setCancelable(false)
+            .show()
+    }
+
+    /**
+     * 目標級設定を促すダイアログを表示
+     * @param isChange 目標変更モードかどうか
+     */
+    /**
+     * 目標級設定を促すリスト選択ダイアログを表示
+     * @param isChange 目標変更モードかどうか
+     */
+    private fun showTargetGradeSetupAlert(isChange: Boolean = false) {
+        val grades = (1..7).toList()
+        val items = grades.map { GradeLabelFormatter.format(it) }.toTypedArray()
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("これから目指す級を選択してください")
+            .setItems(items) { dialog, which ->
+                val selectedRank = grades[which]
+                // 1. 目標級を保存
+                appSettings.targetLearningGrade = selectedRank.toString()
+                
+                // 2. 初回設定（または未設定）時は現在の学習級もこれに合わせる
+                if (!isChange && (appSettings.currentLearningGrade == "0" || appSettings.currentLearningGrade == "3")) {
+                    appSettings.currentLearningGrade = selectedRank.toString()
+                }
+
+                // 3. UIの更新
+                Toast.makeText(this, "${items[which]}を目標に設定しました", Toast.LENGTH_SHORT).show()
+                updateGradeDisplay()
+                updateQuotaDisplay()
+                
+                dialog.dismiss()
+            }
+            .setCancelable(isChange) // 初回設定時は強制、変更時はキャンセル可能
+            .show()
     }
 
     /**
@@ -210,18 +304,24 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupGradeSection() {
         val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
+        val goalStamp = findViewById<View>(R.id.layout_goal_stamp)
         
         if (gradeButton != null) {
-            // 級選択ボタンのクリックリスナー
+            // 級選択ボタンのクリックリスナー (現在の学習級)
             gradeButton.setOnClickListener {
-                // GradeBottomSheetを表示
                 val bottomSheet = GradeBottomSheet { selectedGrade ->
-                    // 選択された「学習級」を保存
                     appSettings.currentLearningGrade = selectedGrade
-                    // 表示を更新
                     updateGradeDisplay()
+                    updateQuotaDisplay()
                 }
                 bottomSheet.show(supportFragmentManager, "GradeBottomSheet")
+            }
+        }
+
+        if (goalStamp != null) {
+            // 合格スタンプ（目標級）のクリックリスナー
+            goalStamp.setOnClickListener {
+                showTargetGradeSetupAlert(isChange = true)
             }
         }
     }

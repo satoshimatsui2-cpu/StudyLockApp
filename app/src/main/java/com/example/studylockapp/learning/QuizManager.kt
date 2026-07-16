@@ -157,11 +157,31 @@ class QuizManager(
         cal.set(Calendar.MILLISECOND, 999)
         val endOfDay = cal.timeInMillis
 
-        // 本日の残り復習数を確認
         val currentGrade = userLevel
         val includeOthers = if (includeOtherGradeReviews) 1 else 0
-        val isSilent = if (silentMode == SilentMode.ON) 1 else 0
         
+        // 1. サイレントモードの場合、バランスモードなら残りがあるか先にチェック
+        if (silentMode == SilentMode.ON) {
+            val remainingNormal = masteryDao.countRemainingReviewsAvailable(
+                now = endOfDay,
+                currentGrade = currentGrade,
+                includeOtherGrades = includeOthers,
+                isSilentMode = 0
+            )
+            val remainingSilent = masteryDao.countRemainingReviewsAvailable(
+                now = endOfDay,
+                currentGrade = currentGrade,
+                includeOtherGrades = includeOthers,
+                isSilentMode = 1
+            )
+            // バランスモードなら解ける問題が、サイレントモードより多い場合
+            if (remainingNormal > remainingSilent) {
+                return@withContext LearningEmptyState.SilentModeFinishedButNormalAvailable
+            }
+        }
+
+        // 2. 現在のモードでの本日残りを確認
+        val isSilent = if (silentMode == SilentMode.ON) 1 else 0
         val remainingToday = masteryDao.countRemainingReviewsAvailable(
             now = endOfDay,
             currentGrade = currentGrade,
@@ -173,24 +193,7 @@ class QuizManager(
             // 現在はないが、本日分は存在している場合
             LearningEmptyState.NoReviewAvailable
         } else {
-            // 本日の復習はすべて完了（サイレントモード判定を含む）
-            
-            // サイレントモード特有の判定：
-            // もし今サイレントモードで、バランスモード（isSilentMode=0）ならまだ残りがある場合、
-            // 「サイレントモード分は終了」状態にする
-            if (silentMode == SilentMode.ON) {
-                val remainingNormal = masteryDao.countRemainingReviewsAvailable(
-                    now = endOfDay,
-                    currentGrade = currentGrade,
-                    includeOtherGrades = includeOthers,
-                    isSilentMode = 0
-                )
-                if (remainingNormal > 0) {
-                    return@withContext LearningEmptyState.SilentModeFinishedButNormalAvailable
-                }
-            }
-
-            // 本日の復習はすべて完了。あとは新規ノルマが終わっているか。
+            // 本日の復習はすべて完了
             LearningEmptyState.DailyGoalMet
         }
     }

@@ -134,6 +134,11 @@ class LearningViewModel(
 
         viewModelScope.launch {
             updateQuotaInternal()
+            
+            // モード切替時は画面をリセット（現在のクイズを破棄して再取得）
+            // 特にサイレントON時に音声問題が表示されている状態を防ぐ
+            _uiState.update { it.copy(quiz = null, isAnswering = false, isReviewing = false) }
+            loadNextQuiz()
         }
     }
 
@@ -144,6 +149,11 @@ class LearningViewModel(
 
         viewModelScope.launch {
             updateQuotaInternal()
+            // 空状態だった場合は再読み込みを試みる
+            if (_uiState.value.emptyState != null) {
+                _uiState.update { it.copy(emptyState = null) }
+                loadNextQuiz()
+            }
         }
     }
     
@@ -161,23 +171,26 @@ class LearningViewModel(
     }
 
     fun loadNextQuiz() {
-        // 10問終了判定
-        if (solvedInSession >= totalCount) {
-            finishSession()
-            return
-        }
-        
         if (solvedInSession == 0) quizManager.resetSessionStats()
         
         viewModelScope.launch {
             _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
             
+            // 10問終了判定または出題不可時の判定
             val quiz = quizManager.nextQuiz()
-            if (quiz == null) {
-                if (solvedInSession == 0) {
-                    val emptyReason = quizManager.getEmptyStateReason()
+            
+            if (quiz == null || solvedInSession >= totalCount) {
+                val emptyReason = quizManager.getEmptyStateReason()
+                
+                if (emptyReason is LearningEmptyState.SilentModeFinishedButNormalAvailable) {
+                    // サイレントモードで終了したが通常モードなら残りがある場合、
+                    // 切り替え案内を優先する（セッション終了時も含む）
+                    _uiState.update { it.copy(isLoading = false, emptyState = emptyReason) }
+                } else if (quiz == null && solvedInSession == 0) {
+                    // 最初から出題がない場合
                     _uiState.update { it.copy(isLoading = false, emptyState = emptyReason) }
                 } else {
+                    // セッション終了（10問解いた、または途中で出題がなくなった）
                     _uiState.update { it.copy(isLoading = false) }
                     finishSession()
                 }
@@ -263,7 +276,7 @@ class LearningViewModel(
 
         val now = System.currentTimeMillis()
 
-        val (newDone, reviewRemainingNow, reviewRemainingToday) = withContext(Dispatchers.IO) {
+        val results = withContext(Dispatchers.IO) {
             val startedToday = masteryDao.countStartedNewWordsToday(startOfDay)
             
             val currentGrade = appSettings.safeLearningGrade.toIntOrNull() ?: 3
@@ -286,14 +299,27 @@ class LearningViewModel(
                 isSilentMode = isSilent
             )
 
-            Triple(startedToday, remainingNow, remainingToday)
+            // ★ 音声も含めた今日の残り (目標達成判定用)
+            val remainingNormalToday = masteryDao.countRemainingReviewsAvailable(
+                now = endOfDay,
+                currentGrade = currentGrade,
+                includeOtherGrades = includeOthers,
+                isSilentMode = 0
+            )
+
+            arrayOf(startedToday, remainingNow, remainingToday, remainingNormalToday)
         }
+
+        val newDone = results[0]
+        val reviewRemainingNow = results[1]
+        val reviewRemainingNormalToday = results[3]
 
         val target = appSettings.dailyNewWordTarget
         val newRemaining = (target - newDone).coerceAtLeast(0)
 
         // ノルマ達成時の継続記録更新 (新規 0 且つ 今日の復習すべて 0 の場合)
-        if (newRemaining == 0 && reviewRemainingToday == 0) {
+        // ※ここでは音声OFF時の残りも含めて判定する（完全に終わった時だけ更新）
+        if (newRemaining == 0 && reviewRemainingNormalToday == 0) {
             updateGoalStreakInternal()
             
             // フレンドへの通知ブロードキャスト
@@ -308,7 +334,8 @@ class LearningViewModel(
         _uiState.update { it.copy(
             newWordsRemaining = newRemaining,
             reviewWordsRemaining = reviewRemainingNow,
-            reviewWordsTotalToday = reviewRemainingToday
+            reviewWordsTotalToday = reviewRemainingNormalToday, // 常に当日期限の総数（音声含む）を表示
+            reviewWordsNormalTotalToday = reviewRemainingNormalToday
         ) }
     }
 
@@ -572,15 +599,16 @@ class LearningViewModel(
                 // 学習中のグレードを取得 (QuizManager に渡しているものと同じ値)
                 val grade = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
 
-                // ★ 本日のノルマが完全に0になったかチェック
-                val isGoalMet = _uiState.value.newWordsRemaining == 0 && _uiState.value.reviewWordsTotalToday == 0
+                // ★ 本日のノルマが完全に0になったかチェック（音声ありモードを含めて判定）
+                val isGoalMet = _uiState.value.newWordsRemaining == 0 && _uiState.value.reviewWordsNormalTotalToday == 0
 
                 if (isGoalMet) {
                     // 目標達成お祝いイベントを送信
                     val character = com.example.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
                     val message = com.example.studylockapp.data.notification.CharacterLines.getLine(
                         character, 
-                        com.example.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED
+                        com.example.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED,
+                        name = appSettings.userName ?: "君"
                     )
                     _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.displayName, message))
                     return@launch

@@ -30,6 +30,15 @@
     </LinearLayout>
 
     <ImageButton
+        android:id="@+id/btn_edit_friend_name"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_edit_24"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="@color/text_sub"
+        android:contentDescription="名前変更" />
+
+    <ImageButton
         android:id="@+id/btn_remove_friend"
         android:layout_width="48dp"
         android:layout_height="48dp"
