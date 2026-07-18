@@ -174,7 +174,10 @@ class LearningViewModel(
         if (solvedInSession == 0) quizManager.resetSessionStats()
         
         viewModelScope.launch {
-            _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
+            // 読み込み開始時に状態をリセット (空状態も解除)
+            _uiState.update { state -> 
+                state.copy(isLoading = true, isAnswering = false, isReviewing = false, emptyState = null) 
+            }
             
             val quiz = quizManager.nextQuiz()
             
