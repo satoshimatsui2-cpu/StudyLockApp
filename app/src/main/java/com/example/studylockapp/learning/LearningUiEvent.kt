@@ -60,6 +60,7 @@ sealed class LearningUiEvent {
 
     // ド派手な目標達成お祝い
     data class ShowGrandCelebration(
+        val characterId: String,
         val characterName: String,
         val message: String
     ) : LearningUiEvent()

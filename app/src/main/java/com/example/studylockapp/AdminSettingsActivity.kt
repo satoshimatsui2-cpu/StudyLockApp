@@ -20,6 +20,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.studylockapp.ads.AdAudioManager
@@ -59,9 +60,9 @@ class AdminSettingsActivity : AppCompatActivity() {
         MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
     }
 
-    private val dialogTitleColor: Int = Color.WHITE
-    private val dialogTextColor: Int = Color.WHITE
-    private val dialogHintColor: Int = Color.LTGRAY
+    private val dialogTitleColor: Int by lazy { ContextCompat.getColor(this, R.color.text_main) }
+    private val dialogTextColor: Int by lazy { ContextCompat.getColor(this, R.color.text_main) }
+    private val dialogHintColor: Int by lazy { ContextCompat.getColor(this, R.color.text_sub) }
 
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
         val payload = result.contents

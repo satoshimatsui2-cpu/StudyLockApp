@@ -62,6 +62,7 @@ object FriendNotificationManager {
     }
 
     private val friendListeners = mutableMapOf<String, ListenerRegistration>()
+    private val lastNotifiedTimestamps = mutableMapOf<String, Long>()
 
     private fun observeFriendStatus(context: Context, friendUid: String) {
         if (friendListeners.containsKey(friendUid)) return
@@ -72,19 +73,22 @@ object FriendNotificationManager {
                 if (e != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
 
                 val broadcastAt = snapshot.getTimestamp("goalMetBroadcastAt") ?: return@addSnapshotListener
+                val broadcastMillis = broadcastAt.toDate().time
+                
+                // 重複通知を防止（同じタイムスタンプなら通知済み）
+                if (lastNotifiedTimestamps[friendUid] == broadcastMillis) return@addSnapshotListener
                 
                 // 5分以内のブロードキャストのみ通知する
-                val diffMillis = System.currentTimeMillis() - broadcastAt.toDate().time
-                if (diffMillis < 5 * 60 * 1000) {
+                val diffMillis = System.currentTimeMillis() - broadcastMillis
+                if (diffMillis > -60000 && diffMillis < 5 * 60 * 1000) {
                     val lastGoalStreak = snapshot.getLong("lastGoalStreak")?.toInt() ?: 0
-                    
-                    // 【重要】編集した名前があればそれを使う。なければ相手の設定名を使う。
                     val friendName = friendNicknames[friendUid] ?: snapshot.getString("displayName") ?: "友達"
 
                     val settings = com.example.studylockapp.data.AppSettings(context)
                     val character = StudyCharacter.fromId(settings.selectedCharacterId)
                     
-                    val title = "" // タイトルは不要との要望により空文字に
+                    // タイトルを完全に空にすると表示されない端末があるため、キャラ名を入れる
+                    val title = character.displayName
                     val message = CharacterLines.getLine(
                         character, 
                         NotificationContext.FRIEND_GOAL_MET, 
@@ -92,8 +96,19 @@ object FriendNotificationManager {
                         name = friendName
                     )
 
-                    // miniのpanicアイコンを通知に含める
-                    NotificationHelper.showNotification(context, title, message, com.example.studylockapp.R.drawable.mini_shion_panic)
+                    // 選択中のキャラのmini_panic画像を探す
+                    var imageResId = context.resources.getIdentifier(
+                        "mini_${character.id}_panic", "drawable", context.packageName
+                    )
+                    // 見つからない場合は通常のキャラ画像
+                    if (imageResId == 0) {
+                        imageResId = context.resources.getIdentifier(
+                            "char_${character.id}", "drawable", context.packageName
+                        )
+                    }
+
+                    lastNotifiedTimestamps[friendUid] = broadcastMillis
+                    NotificationHelper.showNotification(context, title, message, imageResId)
                 }
             }
         

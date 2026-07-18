@@ -5,7 +5,10 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +29,7 @@ import com.example.studylockapp.data.WordEntity
 import com.example.studylockapp.ui.PronunciationCheckActivity
 import com.example.studylockapp.ui.alert.AppDialogHelper
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -466,23 +470,51 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.ShowLevel5BonusInduction -> showLevel5BonusInductionDialog(event.word)
             
             is LearningUiEvent.ShowGrandCelebration -> {
-                handleGrandCelebration(event.characterName, event.message)
+                handleGrandCelebration(event.characterId, event.characterName, event.message)
             }
         }
     }
 
-    private fun handleGrandCelebration(charName: String, message: String) {
+    private fun handleGrandCelebration(charId: String, charName: String, message: String) {
         animationManager.playGoalGrandCelebration()
         
-        // 派手なダイアログを表示
-        com.example.studylockapp.ui.alert.AppDialogHelper.showConfirm(
-            context = this,
-            title = "🏆 目標達成！おめでとう！",
-            message = "$charName : 「$message」",
-            positiveText = "やった！",
-            negativeText = "",
-            onPositive = { finish() }
-        )
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_goal_celebration, null)
+        val imageChar = dialogView.findViewById<ImageView>(R.id.image_celebration_character)
+        val textMsg = dialogView.findViewById<TextView>(R.id.text_celebration_message)
+        val btnFinish = dialogView.findViewById<View>(R.id.button_celebration_finish)
+
+        // 画像リソースの決定 (characterId_inspire)
+        // ルール: george_inspire, shion_inspire 等の 3:4 腰上画像
+        var resId = resources.getIdentifier("${charId}_inspire", "drawable", packageName)
+        if (resId == 0) {
+            // 見つからない場合は joy
+            resId = resources.getIdentifier("${charId}_joy", "drawable", packageName)
+        }
+        if (resId == 0) {
+            // それでもない場合は mini 系を試す (暫定)
+            resId = resources.getIdentifier("mini_${charId}_inspire", "drawable", packageName)
+        }
+        if (resId == 0) {
+            resId = resources.getIdentifier("char_$charId", "drawable", packageName)
+        }
+
+        if (resId != 0) {
+            imageChar.setImageResource(resId)
+        }
+        
+        textMsg.text = message
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        btnFinish.setOnClickListener {
+            dialog.dismiss()
+            finish()
+        }
+
+        dialog.show()
     }
 
     private fun showSilentModeExplanationDialog() {

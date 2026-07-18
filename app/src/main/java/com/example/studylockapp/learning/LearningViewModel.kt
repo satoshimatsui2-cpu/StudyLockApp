@@ -176,22 +176,30 @@ class LearningViewModel(
         viewModelScope.launch {
             _uiState.update { state -> state.copy(isLoading = true, isAnswering = false, isReviewing = false) }
             
-            // 10問終了判定または出題不可時の判定
             val quiz = quizManager.nextQuiz()
             
+            // 出題不可または10問終了時の判定
             if (quiz == null || solvedInSession >= totalCount) {
                 val emptyReason = quizManager.getEmptyStateReason()
                 
                 if (emptyReason is LearningEmptyState.SilentModeFinishedButNormalAvailable) {
-                    // サイレントモードで終了したが通常モードなら残りがある場合、
-                    // 切り替え案内を優先する（セッション終了時も含む）
                     _uiState.update { it.copy(isLoading = false, emptyState = emptyReason) }
-                } else if (quiz == null && solvedInSession == 0) {
-                    // 最初から出題がない場合
+                    return@launch
+                }
+                
+                if (quiz == null) {
+                    // ★ これ以上問題がない場合は、TOPに戻らず空状態を表示する
                     _uiState.update { it.copy(isLoading = false, emptyState = emptyReason) }
+                    
+                    // 目標達成しているなら、その上にお祝い演出を出す
+                    if (emptyReason is LearningEmptyState.DailyGoalMet) {
+                        updateQuotaInternal()
+                        finishSession()
+                    }
                 } else {
-                    // セッション終了（10問解いた、または途中で出題がなくなった）
+                    // 10問解き終わった（まだ他に問題はある）場合は、通常の終了処理へ
                     _uiState.update { it.copy(isLoading = false) }
+                    updateQuotaInternal()
                     finishSession()
                 }
                 return@launch
@@ -610,7 +618,7 @@ class LearningViewModel(
                         com.example.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED,
                         name = appSettings.userName ?: "君"
                     )
-                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.displayName, message))
+                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, message))
                     return@launch
                 }
 
@@ -628,7 +636,14 @@ class LearningViewModel(
                 if (hasPractical) {
                     _uiEvent.send(LearningUiEvent.NavigateToPracticalTest(grade))
                 } else {
-                    _uiEvent.send(LearningUiEvent.QuizFinished)
+                    // ★ 目標未達だがこれ以上解ける問題がない場合は、TOPに戻らず空状態を表示（loadNextQuiz側と同期）
+                    val nextOne = quizManager.nextQuiz()
+                    if (nextOne == null) {
+                        val emptyReason = quizManager.getEmptyStateReason()
+                        _uiState.update { it.copy(emptyState = emptyReason) }
+                    } else {
+                        _uiEvent.send(LearningUiEvent.QuizFinished)
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error checking practical questions", e)

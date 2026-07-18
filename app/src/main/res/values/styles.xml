@@ -140,22 +140,22 @@
 
     <!-- ダイアログ共通テーマ (AlertDialog / MaterialAlertDialog 両対応) -->
     <style name="App.AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <!-- 背景色 (濃いグレー) -->
-        <item name="colorSurface">@color/dialog_background_dark</item>
-        <!-- タイトル・本文の文字色 (白) -->
-        <item name="colorOnSurface">@android:color/white</item>
-        <item name="colorOnSurfaceVariant">@android:color/white</item>
-        <!-- ボタンの文字色 (明るい水色) -->
-        <item name="colorPrimary">@color/dialog_button_light_blue</item>
+        <!-- 背景色 (白系) -->
+        <item name="colorSurface">@color/dialog_surface</item>
+        <!-- タイトル・本文の文字色 (濃い紺色) -->
+        <item name="colorOnSurface">@color/text_main</item>
+        <item name="colorOnSurfaceVariant">@color/text_sub</item>
+        <!-- ボタンの文字色 (メイン紺色) -->
+        <item name="colorPrimary">@color/navy_primary</item>
 
         <!-- Legacy AlertDialog 互換 -->
-        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorPrimary">@color/text_main</item>
         <item name="buttonBarPositiveButtonStyle">@style/App.Dialog.Button</item>
         <item name="buttonBarNegativeButtonStyle">@style/App.Dialog.Button</item>
         <item name="buttonBarNeutralButtonStyle">@style/App.Dialog.Button</item>
     </style>
 
     <style name="App.Dialog.Button" parent="Widget.Material3.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/dialog_button_light_blue</item>
+        <item name="android:textColor">@color/navy_primary</item>
     </style>
 </resources>
