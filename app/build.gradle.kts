@@ -1,17 +1,18 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
     id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.studylockapp"
+    namespace = "com.stulab.studylockapp"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.studylockapp"
+        applicationId = "com.stulab.studylockapp"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -43,6 +44,10 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+    }
+
+    kapt {
+        correctErrorTypes = true
     }
 
     composeOptions {
@@ -83,7 +88,7 @@ dependencies {
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
     // Material (最新安定版 1.13.0)
     implementation("com.google.android.material:material:1.13.0")

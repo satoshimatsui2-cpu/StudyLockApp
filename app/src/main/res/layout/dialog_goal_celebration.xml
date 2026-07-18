@@ -19,6 +19,21 @@
         tools:src="@drawable/george_1"
         android:contentDescription="目標達成おめでとう！" />
 
+    <!-- 閉じるボタン (右上 X) -->
+    <ImageButton
+        android:id="@+id/button_celebration_close"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="12dp"
+        android:src="@drawable/ic_close_24"
+        app:tint="@color/text_sub"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="閉じる" />
+
     <!-- メッセージエリア - 画像の下に配置し、フォントサイズを微調整 -->
     <TextView
         android:id="@+id/text_celebration_message"
@@ -32,20 +47,7 @@
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/image_celebration_character"
-        tools:text="おめでとう！目標達成だね！" />
-
-    <!-- 終了ボタン - 下部に適切なマージンを配置 -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_celebration_finish"
-        style="@style/Widget.Material3.Button"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginBottom="24dp"
-        android:text="閉じる"
-        android:textSize="16sp"
-        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_celebration_message" />
+        tools:text="おめでとう！目標達成だね！" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

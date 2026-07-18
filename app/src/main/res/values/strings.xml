@@ -230,6 +230,7 @@
     <string name="session_summary_basic_master">基礎マスター + %1$d</string>
     <string name="session_summary_long_term_master">長期マスター + %1$d</string>
     <string name="action_close">閉じる</string>
+    <string name="action_back">戻る</string>
 
     <!-- 追加: Mastery Journey & Review Card -->
     <string name="label_until_basic_master">基礎マスターまで</string>

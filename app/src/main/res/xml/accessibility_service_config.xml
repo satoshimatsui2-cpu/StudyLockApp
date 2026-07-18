@@ -6,5 +6,5 @@
     android:canRetrieveWindowContent="true"
     android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagReportViewIds"
     android:description="@string/accessibility_service_description"
-    android:settingsActivity="com.example.studylockapp.AdminSettingsActivity"
+    android:settingsActivity="com.stulab.studylockapp.AdminSettingsActivity"
     />
