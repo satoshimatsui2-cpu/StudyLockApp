@@ -10,6 +10,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -51,8 +52,14 @@ class FriendConnectionActivity : AppCompatActivity() {
         checkAuthAndInitialize()
         updateMyNameDisplay()
 
+        val btnAddFriend = findViewById<View>(R.id.btn_add_friend)
+        btnAddFriend.setOnClickListener { addFriend() }
+
+        editFriendId.addTextChangedListener {
+            btnAddFriend.isEnabled = it?.trim()?.isNotEmpty() == true
+        }
+
         findViewById<View>(R.id.btn_back).setOnClickListener { finish() }
-        findViewById<View>(R.id.btn_add_friend).setOnClickListener { addFriend() }
         findViewById<View>(R.id.btn_edit_my_name).setOnClickListener { showEditMyNameDialog() }
 
         findViewById<View>(R.id.btn_show_my_qr).setOnClickListener {
@@ -134,22 +141,26 @@ class FriendConnectionActivity : AppCompatActivity() {
     }
 
     private fun showEditMyNameDialog() {
-        val container = android.widget.FrameLayout(this)
         val padding = (24 * resources.displayMetrics.density).toInt()
+        val inputLayout = com.google.android.material.textfield.TextInputLayout(this).apply {
+            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+            boxBackgroundMode = com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE
+            hint = "あなたの名前 (15文字以内)"
+        }
         val editText = EditText(this).apply {
             setText(appSettings.userName ?: "")
-            hint = "あなたの名前 (15文字以内)"
             filters = arrayOf(android.text.InputFilter.LengthFilter(15))
             maxLines = 1
             isSingleLine = true
             setSelection(text.length)
+            // テキスト色を明示的に指定（テーマの影響を回避）
+            setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_main))
         }
-        container.addView(editText)
-        container.setPadding(padding, 8, padding, 0)
+        inputLayout.addView(editText)
 
         com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
             .setTitle("名前の変更")
-            .setView(container)
+            .setView(inputLayout)
             .setPositiveButton("保存") { _, _ ->
                 val newName = editText.text.toString().trim()
                 if (newName.isNotEmpty()) {

@@ -616,9 +616,11 @@ class LearningViewModel(
                 if (isGoalMet) {
                     // 目標達成お祝いイベントを送信
                     val character = com.example.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
+                    val streak = appSettings.dailyGoalStreak
                     val message = com.example.studylockapp.data.notification.CharacterLines.getLine(
                         character, 
                         com.example.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED,
+                        streak = streak,
                         name = appSettings.userName ?: "君"
                     )
                     _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, message))

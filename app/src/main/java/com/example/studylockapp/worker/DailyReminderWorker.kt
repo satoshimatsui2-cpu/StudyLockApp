@@ -81,12 +81,15 @@ class DailyReminderWorker(
         val notificationContext = if (isMorning) {
             // 朝のメッセージ選択
             when {
-                streak >= 2 -> NotificationContext.MORNING_STREAK // 2日以上継続している場合のみお祝い
                 lastStudyStr == null -> NotificationContext.MORNING_NORMAL
                 else -> {
                     val lastDate = sdf.parse(lastStudyStr)
-                    val diffDays = (startOfDay - (lastDate?.time ?: 0)) / (24 * 60 * 60 * 1000)
-                    if (diffDays <= 1) NotificationContext.MORNING_MISSED_1
+                    val diffDays = (startOfDay - (lastDate?.time ?: 0)) / (24 * 60 * 60 * 1000L)
+                    
+                    // 前日または今日既に勉強している場合は通常メッセージ（継続日数は言及しない）
+                    if (diffDays <= 1) NotificationContext.MORNING_NORMAL
+                    // 1日以上空いている場合はサボり指摘
+                    else if (diffDays <= 2) NotificationContext.MORNING_MISSED_1
                     else NotificationContext.MORNING_MISSED_2
                 }
             }

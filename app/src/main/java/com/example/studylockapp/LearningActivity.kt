@@ -511,7 +511,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
         btnFinish.setOnClickListener {
             dialog.dismiss()
-            finish()
         }
 
         dialog.show()

@@ -225,21 +225,24 @@ class MainActivity : AppCompatActivity() {
      * 名前登録ダイアログを表示
      */
     private fun showNameRegistrationDialog() {
-        val container = android.widget.FrameLayout(this)
         val padding = (24 * resources.displayMetrics.density).toInt()
-        val editText = android.widget.EditText(this).apply {
+        val inputLayout = com.google.android.material.textfield.TextInputLayout(this).apply {
+            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+            boxBackgroundMode = com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE
             hint = "名前 (15文字以内)"
+        }
+        val editText = android.widget.EditText(this).apply {
             filters = arrayOf(android.text.InputFilter.LengthFilter(15))
             maxLines = 1
             isSingleLine = true
+            setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_main))
         }
-        container.addView(editText)
-        container.setPadding(padding, 8, padding, 0)
+        inputLayout.addView(editText)
 
         MaterialAlertDialogBuilder(this)
             .setTitle("あなたの名前")
             .setMessage("学習記録やフレンド通知に使用されます。これから目指す級と一緒に登録しましょう。")
-            .setView(container)
+            .setView(inputLayout)
             .setPositiveButton("登録") { _, _ ->
                 val name = editText.text.toString().trim()
                 if (name.isNotEmpty()) {

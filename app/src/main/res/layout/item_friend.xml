@@ -1,50 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:padding="12dp">
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="12dp">
 
-        <TextView
-            android:id="@+id/text_friend_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/text_main"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+        <!-- Friend Avatar Placeholder -->
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_person_24"
+            android:padding="6dp"
+            android:background="@drawable/bg_circle_icon"
+            android:backgroundTint="@color/app_outline"
+            app:tint="@color/text_sub"
+            android:contentDescription="Friend Icon" />
 
-        <TextView
-            android:id="@+id/text_friend_id"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_sub"
-            android:textSize="12sp" />
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_friend_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="友達の名前" />
+
+            <TextView
+                android:id="@+id/text_friend_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_sub"
+                android:textSize="11sp"
+                tools:text="ID: XXX-YYY-ZZZ" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_edit_friend_name"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_edit_24"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/text_sub"
+            android:contentDescription="名前変更" />
+
+        <ImageButton
+            android:id="@+id/btn_remove_friend"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_delete_24"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/text_sub"
+            android:contentDescription="削除" />
+
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/btn_edit_friend_name"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/ic_edit_24"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="@color/text_sub"
-        android:contentDescription="名前変更" />
-
-    <ImageButton
-        android:id="@+id/btn_remove_friend"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/ic_delete_24"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="@color/text_sub"
-        android:contentDescription="削除" />
-
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>
