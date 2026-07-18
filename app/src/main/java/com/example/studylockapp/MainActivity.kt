@@ -3,6 +3,7 @@ package com.example.studylockapp
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -142,6 +143,14 @@ class MainActivity : AppCompatActivity() {
         if (nextCheck && !appSettings.isTargetLearningGradeSet && !hasShownTargetGradeSetupAlert) {
             hasShownTargetGradeSetupAlert = true
             showTargetGradeSetupAlert()
+        }
+
+        // 管理者設定で級が変更された場合に、おすすめ学習数ダイアログを強制表示する
+        val statePrefs = getSharedPreferences("app_state", MODE_PRIVATE)
+        if (statePrefs.getBoolean("force_show_quota_dialog", false)) {
+            statePrefs.edit().putBoolean("force_show_quota_dialog", false).apply()
+            val targetRank = appSettings.targetLearningGrade.toIntOrNull() ?: 3
+            showRecommendedWordCountDialog(targetRank, true)
         }
 
         // 最終アクティブ更新 (6時間以上の間隔を空ける)
@@ -297,8 +306,65 @@ class MainActivity : AppCompatActivity() {
                 updateQuotaDisplay()
                 
                 dialog.dismiss()
+
+                // ★ おすすめ学習数の提案ダイアログを表示
+                showRecommendedWordCountDialog(selectedRank, isChange)
             }
             .setCancelable(isChange) // 初回設定時は強制、変更時はキャンセル可能
+            .show()
+    }
+
+    /**
+     * 目標級に応じたおすすめ学習数を提案するダイアログを表示
+     */
+    private fun showRecommendedWordCountDialog(rank: Int, isChange: Boolean) {
+        val recommended = when (rank) {
+            1, 2 -> 5    // 5級, 4級
+            3, 4 -> 10   // 3級, 準2級
+            5 -> 15      // 2級
+            6, 7 -> 20   // 準1級, 1級
+            else -> 10
+        }
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_recommended_quota, null)
+        val textValue = dialogView.findViewById<TextView>(R.id.text_quota_value)
+        val btnMinus = dialogView.findViewById<View>(R.id.btn_quota_minus)
+        val btnPlus = dialogView.findViewById<View>(R.id.btn_quota_plus)
+        val textMsg = dialogView.findViewById<TextView>(R.id.text_recommended_message)
+
+        var currentVal = recommended
+        textValue.text = currentVal.toString()
+        
+        val gradeLabel = GradeLabelFormatter.format(rank)
+        textMsg.text = "${gradeLabel}合格に向けた、おすすめの1日の学習数です。調整も可能です。"
+
+        btnMinus.setOnClickListener {
+            if (currentVal > 1) {
+                currentVal--
+                textValue.text = currentVal.toString()
+            }
+        }
+        btnPlus.setOnClickListener {
+            if (currentVal < 100) {
+                currentVal++
+                textValue.text = currentVal.toString()
+            }
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("学習目標の設定")
+            .setView(dialogView)
+            .setPositiveButton("設定する") { _, _ ->
+                appSettings.dailyNewWordTarget = currentVal
+                Toast.makeText(this, "1日の目標を${currentVal}個に設定しました", Toast.LENGTH_SHORT).show()
+                updateQuotaDisplay()
+            }
+            .setNegativeButton("おすすめ(${recommended}個)") { _, _ ->
+                appSettings.dailyNewWordTarget = recommended
+                Toast.makeText(this, "おすすめの${recommended}個に設定しました", Toast.LENGTH_SHORT).show()
+                updateQuotaDisplay()
+            }
+            .setCancelable(isChange)
             .show()
     }
 

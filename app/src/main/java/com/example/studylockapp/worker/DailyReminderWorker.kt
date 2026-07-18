@@ -72,7 +72,7 @@ class DailyReminderWorker(
 
         val character = StudyCharacter.fromId(settings.selectedCharacterId)
         val streak = settings.dailyGoalStreak
-        val userName = settings.userName ?: "友達"
+        val userName = settings.userName ?: "きみ"
         
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         val todayStr = sdf.format(Date())

@@ -90,10 +90,11 @@ object FriendNotificationManager {
                     // タイトルを完全に空にすると表示されない端末があるため、キャラ名を入れる
                     val title = character.displayName
                     val message = CharacterLines.getLine(
-                        character, 
-                        NotificationContext.FRIEND_GOAL_MET, 
+                        character = character, 
+                        context = NotificationContext.FRIEND_GOAL_MET, 
                         streak = lastGoalStreak, 
-                        name = friendName
+                        name = settings.userName ?: "きみ",
+                        friendName = friendName
                     )
 
                     // 選択中のキャラのmini_panic画像を探す

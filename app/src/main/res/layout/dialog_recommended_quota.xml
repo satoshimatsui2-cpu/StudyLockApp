@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/text_recommended_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="おすすめの学習数を設定しますか？"
+        android:textColor="@color/text_main"
+        android:textSize="15sp"
+        android:lineSpacingExtra="4dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="24dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_quota_minus"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="0dp"
+            android:text="-"
+            android:textSize="20sp"
+            app:cornerRadius="24dp" />
+
+        <TextView
+            android:id="@+id/text_quota_value"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/navy_primary"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:text="10" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_quota_plus"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="0dp"
+            android:text="+"
+            android:textSize="20sp"
+            app:cornerRadius="24dp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="1日の新規単語数"
+        android:textColor="@color/text_sub"
+        android:textSize="12sp" />
+
+</LinearLayout>

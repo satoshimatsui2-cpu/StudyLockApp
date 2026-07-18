@@ -158,6 +158,7 @@ class AdminSettingsActivity : AppCompatActivity() {
     private fun setupAccordions() {
         val groups = listOf(
             Triple(R.id.header_study_points, R.id.content_study_points, R.id.arrow_study_points),
+            Triple(R.id.header_daily_goal, R.id.content_daily_goal, R.id.arrow_daily_goal),
             Triple(R.id.header_time_settings, R.id.content_time_settings, R.id.arrow_time_settings),
             Triple(R.id.header_app_lock_block, R.id.content_app_lock_block, R.id.arrow_app_lock_block),
             Triple(R.id.header_pairing, R.id.content_pairing, R.id.arrow_pairing),
@@ -465,6 +466,13 @@ class AdminSettingsActivity : AppCompatActivity() {
         val seekDontKnowRetry = findViewById<SeekBar>(R.id.seek_dont_know_retry)
         val textUnlockMinPer10Pt = findViewById<TextView>(R.id.text_unlock_min_per_10pt_value)
         val seekUnlockMinPer10Pt = findViewById<SeekBar>(R.id.seek_unlock_min_per_10pt)
+        
+        val textTargetCount = findViewById<TextView>(R.id.text_target_count)
+        val btnTargetMinus = findViewById<MaterialButton>(R.id.btn_target_minus)
+        val btnTargetPlus = findViewById<MaterialButton>(R.id.btn_target_plus)
+        val textSimTotalQuestions = findViewById<TextView>(R.id.text_sim_total_questions)
+        val textSimTotalTime = findViewById<TextView>(R.id.text_sim_total_time)
+
         val btnSave = findViewById<MaterialButton>(R.id.btn_save)
 
         findViewById<View>(R.id.text_interval)?.visibility = View.GONE
@@ -492,13 +500,36 @@ class AdminSettingsActivity : AppCompatActivity() {
         seekUnlockMinPer10Pt.progress = minPer10PtToProgress(settings.getUnlockMinutesPer10Pt())
         seekDontKnowRetry.progress = dontKnowSecToProgress(settings.dontKnowRetrySec)
 
+        textTargetCount.text = settings.dailyNewWordTarget.toString()
+
         fun refreshLabels() {
             textWrongRetry.text = "当日再出題（不正解）: ${progressToSec(seekWrongRetry.progress)} 秒"
             textLevel1Retry.text = "当日再出題（正解済）: ${progressToSec(seekLevel1Retry.progress)} 秒"
             textDontKnowRetry.text = "当日再出題（わからない）: ${progressToSecForDontKnow(seekDontKnowRetry.progress)} 秒"
             textUnlockMinPer10Pt.text = getString(R.string.admin_label_unlock_min_per_10pt_value, progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
+            
+            val newWords = textTargetCount.text.toString().toIntOrNull() ?: 5
+            val totalQuestions = newWords * 15
+            val totalTimeMinutes = (totalQuestions * 15) / 60
+            textSimTotalQuestions.text = getString(R.string.target_sim_total_questions, totalQuestions)
+            textSimTotalTime.text = getString(R.string.target_sim_total_time, totalTimeMinutes)
         }
         refreshLabels()
+
+        btnTargetMinus.setOnClickListener {
+            val current = textTargetCount.text.toString().toIntOrNull() ?: 5
+            if (current > 1) {
+                textTargetCount.text = (current - 1).toString()
+                refreshLabels()
+            }
+        }
+        btnTargetPlus.setOnClickListener {
+            val current = textTargetCount.text.toString().toIntOrNull() ?: 5
+            if (current < 100) {
+                textTargetCount.text = (current + 1).toString()
+                refreshLabels()
+            }
+        }
 
         val commonListener = object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) { refreshLabels() }
@@ -509,12 +540,24 @@ class AdminSettingsActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val selected = spinnerCurrentGrade.selectedItem?.toString() ?: "未設定"
-            settings.targetLearningGrade = if (selected == "未設定") "0" else GradeUtils.normalize(selected)
+            val newTargetGrade = if (selected == "未設定") "0" else GradeUtils.normalize(selected)
+            
+            // 目標級が変更された場合
+            if (settings.targetLearningGrade != newTargetGrade && newTargetGrade != "0") {
+                settings.targetLearningGrade = newTargetGrade
+                // 目標級が変わったらメイン画面でおすすめ設定ダイアログを出すようフラグをリセット
+                // (MainActivityのonResumeで検知させるために、あえてhasShownを倒す)
+                getSharedPreferences("app_state", MODE_PRIVATE).edit().putBoolean("force_show_quota_dialog", true).apply()
+            } else {
+                settings.targetLearningGrade = newTargetGrade
+            }
+
             modes.forEach { (mode, views) -> views.second?.let { settings.setBasePoint(mode, progressToPoint(it.progress)) } }
             settings.wrongRetrySec = progressToSec(seekWrongRetry.progress)
             settings.level1RetrySec = progressToSec(seekLevel1Retry.progress)
             settings.dontKnowRetrySec = progressToSecForDontKnow(seekDontKnowRetry.progress)
             settings.setUnlockMinutesPer10Pt(progressToMinPer10Pt(seekUnlockMinPer10Pt.progress))
+            settings.dailyNewWordTarget = textTargetCount.text.toString().toIntOrNull() ?: 5
             AdAudioManager.apply(settings)
             finish()
         }
