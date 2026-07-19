@@ -5,25 +5,25 @@ package com.stulab.studylockapp.data.notification
  */
 enum class StudyCharacter(val id: String, val displayName: String, val unlockGoalDays: Int) {
    GEORGE("george", "ジョージ", 0),
-//    ATSUSHI("ren", "赤城 レン", 5),
-//    HARU("niko", "日向 ニコ", 10),
-//    SHIN("shion", "氷室 シオン", 20),
-//    ROBOSUKE("tetra", "テトラ", 30),
-//    LUNA("noa", "如月 ノア", 40),
-//    LEO("leo", "獅子堂 レオ", 50),
-//    HINA("hina", "白河 ヒナ", 60),
-//    ARTHUR("allen", "西園寺 アレン", 70),
-//    ELENA("elena", "神宮寺 エレナ", 80);
+    ATSUSHI("ren", "赤城 レン", 5),
+    HARU("niko", "日向 ニコ", 10),
+    SHIN("shion", "氷室 シオン", 20),
+    ROBOSUKE("tetra", "テトラ", 30),
+    LUNA("noa", "如月 ノア", 40),
+    LEO("leo", "獅子堂 レオ", 50),
+    HINA("hina", "白河 ヒナ", 60),
+    ARTHUR("allen", "西園寺 アレン", 70),
+    ELENA("elena", "神宮寺 エレナ", 80);
 
-    ATSUSHI("ren", "赤城 レン", 0),
-    HARU("niko", "日向 ニコ", 0),
-    SHIN("shion", "氷室 シオン", 0),
-    ROBOSUKE("tetra", "テトラ", 0),
-    LUNA("noa", "如月 ノア", 0),
-    LEO("leo", "獅子堂 レオ", 0),
-    HINA("hina", "白河 ヒナ", 0),
-    ARTHUR("allen", "西園寺 アレン", 0),
-    ELENA("elena", "神宮寺 エレナ", 0);
+//    ATSUSHI("ren", "赤城 レン", 0),
+//    HARU("niko", "日向 ニコ", 0),
+//    SHIN("shion", "氷室 シオン", 0),
+//    ROBOSUKE("tetra", "テトラ", 0),
+//    LUNA("noa", "如月 ノア", 0),
+//    LEO("leo", "獅子堂 レオ", 0),
+//    HINA("hina", "白河 ヒナ", 0),
+//    ARTHUR("allen", "西園寺 アレン", 0),
+//    ELENA("elena", "神宮寺 エレナ", 0);
 
     companion object {
         fun fromId(id: String): StudyCharacter = values().find { it.id == id } ?: GEORGE

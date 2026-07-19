@@ -204,6 +204,7 @@
                 app:hintEnabled="false"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 app:boxStrokeColor="@color/navy_primary"
+                app:hintTextColor="@color/text_sub"
                 app:startIconDrawable="@drawable/ic_link_24"
                 app:startIconTint="@color/text_sub">
 
@@ -212,6 +213,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="相手のIDを入力"
+                    android:textColorHint="@color/text_sub"
+                    android:textColor="@color/text_main"
                     android:textSize="14sp"
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>

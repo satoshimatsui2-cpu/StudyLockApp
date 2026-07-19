@@ -22,6 +22,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
@@ -121,15 +123,77 @@ class FriendConnectionActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            val success = StudyHistoryRepository.addFriend(friendId)
-            if (success) {
-                Toast.makeText(this@FriendConnectionActivity, "フレンドを追加しました", Toast.LENGTH_SHORT).show()
-                editFriendId.text.clear()
-                loadFriends()
-            } else {
-                Toast.makeText(this@FriendConnectionActivity, "ユーザーが見つからないか、エラーが発生しました", Toast.LENGTH_SHORT).show()
+            // 相手の存在確認と名前取得
+            val db = FirebaseFirestore.getInstance()
+            try {
+                val doc = db.collection("users").document(friendId).get().await()
+                if (doc.exists()) {
+                    val initialName = doc.getString("displayName") ?: "友達"
+                    showEditFriendNameDialog(friendId, initialName, isNewFriend = true)
+                    editFriendId.text.clear()
+                } else {
+                    Toast.makeText(this@FriendConnectionActivity, "ユーザーが見つかりません", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@FriendConnectionActivity, "エラーが発生しました", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    /**
+     * フレンドの表示名を編集するダイアログを表示
+     * @param isNewFriend 新規登録時の場合は、保存後にフレンドリストに追加する
+     */
+    private fun showEditFriendNameDialog(friendUid: String, currentName: String, isNewFriend: Boolean = false) {
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        val inputLayout = TextInputLayout(this).apply {
+            setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
+            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            hint = "フレンドの表示名"
+            boxBackgroundColor = androidx.core.content.ContextCompat.getColor(context, R.color.dialog_surface)
+        }
+        val editText = TextInputEditText(inputLayout.context).apply {
+            setText(currentName)
+            filters = arrayOf(android.text.InputFilter.LengthFilter(15))
+            maxLines = 1
+            isSingleLine = true
+            setSelection(text?.length ?: 0)
+            setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_main))
+            setHintTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_sub))
+        }
+        inputLayout.addView(editText)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(if (isNewFriend) "フレンドの登録" else "表示名の変更")
+            .setMessage(if (isNewFriend) "このフレンドのニックネームを決めてください" else null)
+            .setView(inputLayout)
+            .setPositiveButton("保存") { _, _ ->
+                val newName = editText.text.toString().trim()
+                if (newName.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        if (isNewFriend) {
+                            // 新規登録
+                            val success = StudyHistoryRepository.addFriend(friendUid)
+                            if (success) {
+                                StudyHistoryRepository.updateFriendDisplayName(friendUid, newName)
+                                Toast.makeText(this@FriendConnectionActivity, "フレンドを登録しました", Toast.LENGTH_SHORT).show()
+                                loadFriends()
+                            } else {
+                                Toast.makeText(this@FriendConnectionActivity, "登録に失敗しました", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            // 既存の編集
+                            val success = StudyHistoryRepository.updateFriendDisplayName(friendUid, newName)
+                            if (success) {
+                                Toast.makeText(this@FriendConnectionActivity, "名前を更新しました", Toast.LENGTH_SHORT).show()
+                                loadFriends()
+                            }
+                        }
+                    }
+                }
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
     }
 
     private fun loadFriends() {
@@ -158,8 +222,9 @@ class FriendConnectionActivity : AppCompatActivity() {
             maxLines = 1
             isSingleLine = true
             setSelection(text?.length ?: 0)
-            // テキスト色を明示的に指定（テーマの影響を回避）
+            // テキスト色とヒント色を明示的に指定（テーマの影響を回避）
             setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_main))
+            setHintTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_sub))
         }
         inputLayout.addView(editText)
 
@@ -211,34 +276,7 @@ class FriendConnectionActivity : AppCompatActivity() {
     }
 
     private fun showEditNameDialog(friendUid: String, currentName: String) {
-        val editText = EditText(this)
-        editText.setText(currentName)
-        editText.setSelection(currentName.length)
-
-        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle("表示名の変更")
-            .setMessage("フレンドの表示名を変更します。")
-            .setView(editText)
-            .setPositiveButton("変更") { _, _ ->
-                val newName = editText.text.toString().trim()
-                if (newName.isNotEmpty()) {
-                    lifecycleScope.launch {
-                        val success = StudyHistoryRepository.updateFriendDisplayName(friendUid, newName)
-                        if (success) {
-                            Toast.makeText(this@FriendConnectionActivity, "変更しました", Toast.LENGTH_SHORT).show()
-                            loadFriends()
-                        }
-                    }
-                }
-            }
-            .setNegativeButton("キャンセル", null)
-            .create()
-
-        dialog.show()
-        
-        // 余白の調整
-        val padding = (24 * resources.displayMetrics.density).toInt()
-        (editText.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.setMargins(padding, 0, padding, 0)
+        showEditFriendNameDialog(friendUid, currentName, isNewFriend = false)
     }
 
     private fun showRemoveFriendDialog(friendUid: String, friendName: String) {
