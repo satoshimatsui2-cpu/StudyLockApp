@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="@color/app_background"
     tools:context=".ui.PronunciationCheckActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -26,7 +27,7 @@
                 android:id="@+id/textWord"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#212121"
+                android:textColor="@color/text_main"
                 android:textSize="44sp"
                 android:textStyle="bold"
                 tools:text="different" />
@@ -36,7 +37,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="#666666"
+                android:textColor="@color/text_sub"
                 android:textSize="22sp"
                 tools:text="異なる、違った" />
         </LinearLayout>
@@ -82,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:textAlignment="center"
-                android:textColor="#757575"
+                android:textColor="@color/text_sub"
                 android:textSize="14sp"
                 tools:text="ボタンを押して発音してください" />
         </LinearLayout>
@@ -95,6 +96,7 @@
             android:visibility="gone"
             app:cardCornerRadius="24dp"
             app:cardElevation="8dp"
+            app:cardBackgroundColor="@color/app_surface"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@id/layoutWordInfo"
             app:layout_constraintVertical_bias="0.8"
@@ -111,6 +113,7 @@
                     android:id="@+id/textResultStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/text_main"
                     android:textSize="28sp"
                     android:textStyle="bold"
                     tools:text="✅ 発音クリア！" />
@@ -120,14 +123,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:text="聞き取り結果"
-                    android:textColor="#9E9E9E"
+                    android:textColor="@color/text_sub"
                     android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/textRecognizedValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#212121"
+                    android:textColor="@color/text_main"
                     android:textSize="24sp"
                     android:textStyle="italic"
                     tools:text="different" />
@@ -139,7 +142,7 @@
                     android:layout_marginTop="20dp"
                     android:textAlignment="center"
                     android:textSize="16sp"
-                    android:textColor="#424242"
+                    android:textColor="@color/text_main"
                     android:textStyle="bold"
                     tools:text="🎉 単語OKバッジを獲得しました" />
 

@@ -1,0 +1,34 @@
+package com.stulab.studylockapp.learning
+
+import com.stulab.studylockapp.GradeLabelFormatter
+
+/**
+ * 上部ヘッダー（Journey部品）の表示用モデル
+ */
+data class JourneyHeaderUiModel(
+    val basicCountText: String,
+    val longTermCountText: String,
+    val sessionPointsText: String,
+    val goalText: String,
+    val newCountText: String,
+    val reviewCountText: String,
+    val reviewTotalCountText: String,
+    val currentLevel: Int,
+    val currentWordId: Int // アニメーション制御用のキーとして使用
+)
+
+object JourneyHeaderMapper {
+    fun map(state: LearningUiState): JourneyHeaderUiModel {
+        return JourneyHeaderUiModel(
+            basicCountText = state.basicMasterCount.toString(),
+            longTermCountText = state.longTermMasterCount.toString(),
+            sessionPointsText = "${state.totalPoints}PT", // sessionPoints から totalPoints (累計) に変更
+            goalText = "目標: ${GradeLabelFormatter.format(state.targetLevel)}",
+            newCountText = state.newWordsRemaining.toString(),
+            reviewCountText = state.reviewWordsRemaining.toString(),
+            reviewTotalCountText = " / ${state.reviewWordsTotalToday}",
+            currentLevel = state.currentLevel,
+            currentWordId = state.quiz?.word?.no ?: -1
+        )
+    }
+}

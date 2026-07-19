@@ -17,8 +17,8 @@
 
         <ImageView
             android:id="@+id/image_empty_character"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="230dp"
+            android:layout_height="230dp"
             android:contentDescription="@null"
             android:src="@drawable/mini_george_joy"
             app:layout_constraintBottom_toTopOf="@+id/text_empty_message"

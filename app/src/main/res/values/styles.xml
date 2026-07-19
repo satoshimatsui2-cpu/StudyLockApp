@@ -142,6 +142,11 @@
     <style name="App.AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <!-- 背景色 (白系) -->
         <item name="colorSurface">@color/dialog_surface</item>
+        <!-- Material 3 用の背景色明示 -->
+        <item name="colorSurfaceContainer">@color/dialog_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/dialog_surface</item>
+        <item name="colorSurfaceContainerHighest">@color/dialog_surface</item>
+
         <!-- タイトル・本文の文字色 (濃い紺色) -->
         <item name="colorOnSurface">@color/text_main</item>
         <item name="colorOnSurfaceVariant">@color/text_sub</item>
@@ -150,6 +155,8 @@
 
         <!-- Legacy AlertDialog 互換 -->
         <item name="android:textColorPrimary">@color/text_main</item>
+        <item name="android:textColorSecondary">@color/text_sub</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="buttonBarPositiveButtonStyle">@style/App.Dialog.Button</item>
         <item name="buttonBarNegativeButtonStyle">@style/App.Dialog.Button</item>
         <item name="buttonBarNeutralButtonStyle">@style/App.Dialog.Button</item>
