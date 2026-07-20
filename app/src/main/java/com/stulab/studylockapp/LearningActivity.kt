@@ -27,6 +27,7 @@ import com.stulab.studylockapp.learning.practical.PracticalTestActivity
 import com.stulab.studylockapp.data.SilentMode
 import com.stulab.studylockapp.data.WordEntity
 import com.stulab.studylockapp.ui.PronunciationCheckActivity
+import com.stulab.studylockapp.ui.CharacterSelectActivity
 import com.stulab.studylockapp.ui.alert.AppDialogHelper
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -253,7 +254,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
             binding.layoutEmptyState.textEmptyMessage.text = message
             
-            val charResId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(state.selectedCharacterId)
+            val charResId = if (state.emptyState is LearningEmptyState.NoReviewAvailable) {
+                com.stulab.studylockapp.ui.CharacterDisplayUtils.getPanicDrawable(state.selectedCharacterId)
+            } else {
+                com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(state.selectedCharacterId)
+            }
             binding.layoutEmptyState.imageEmptyCharacter.setImageResource(charResId)
 
             if (state.emptyState is LearningEmptyState.SilentModeFinishedButNormalAvailable) {
@@ -480,7 +485,22 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.ShowGrandCelebration -> {
                 handleGrandCelebration(event.characterId, event.characterName, event.message)
             }
+            is LearningUiEvent.ShowNewCharacterAvailable -> {
+                showNewCharacterDialog(event.characterName)
+            }
         }
+    }
+
+    private fun showNewCharacterDialog(characterName: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("🎉 新しいパートナー解放！")
+            .setMessage("目標達成日数が節目に到達しました！\n新しいパートナー「${characterName}」がショップに登場しました。")
+            .setPositiveButton("パートナー画面へ") { _, _ ->
+                val intent = Intent(this, CharacterSelectActivity::class.java)
+                startActivity(intent)
+            }
+            .setNegativeButton("あとで", null)
+            .show()
     }
 
     private fun handleGrandCelebration(charId: String, charName: String, message: String, emotionId: String? = null) {
@@ -491,32 +511,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         val textMsg = dialogView.findViewById<TextView>(R.id.text_celebration_message)
         val btnClose = dialogView.findViewById<View>(R.id.button_celebration_close)
 
-        // 画像リソースの決定
-        // 1. 指定された感情があればそれを最優先 (例: shion_blush)
-        var resId = 0
-        if (emotionId != null) {
-            resId = resources.getIdentifier("${charId}_${emotionId}", "drawable", packageName)
-        }
+        // 画像リソースの決定: mini_name_pleasure を優先
+        var resId = resources.getIdentifier("mini_${charId}_pleasure", "drawable", packageName)
         
-        // 2. 指定感情がない、または見つからない場合は inspire を試す
+        // フォールバック
         if (resId == 0) {
-            resId = resources.getIdentifier("${charId}_inspire", "drawable", packageName)
-        }
-        
-        // 3. 以降、joy -> mini系 -> デフォルト の順でフォールバック
-        if (resId == 0) {
-            resId = resources.getIdentifier("${charId}_joy", "drawable", packageName)
-        }
-        if (resId == 0) {
-            resId = resources.getIdentifier("mini_${charId}_inspire", "drawable", packageName)
+            resId = resources.getIdentifier("mini_${charId}_joy", "drawable", packageName)
         }
         if (resId == 0) {
             resId = resources.getIdentifier("char_$charId", "drawable", packageName)
         }
-
-        if (resId != 0) {
-            imageChar.setImageResource(resId)
+        if (resId == 0) {
+            resId = R.drawable.mini_george_pleasure
         }
+
+        imageChar.setImageResource(resId)
         
         textMsg.text = message
         

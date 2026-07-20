@@ -18,9 +18,11 @@ class QuizManager(
     private val wordDao: WordDao,
     private val masteryDao: WordMasteryDao,
     private val studyLogDao: StudyLogDao,
-    private val appSettings: AppSettings, // 追加
-    private var userLevel: Int = 3
+    private val appSettings: AppSettings
 ) {
+    private val userLevel: Int
+        get() = appSettings.safeLearningGrade.toIntOrNull() ?: 3
+
     private val choiceGenerator = ChoiceGenerator()
     var silentMode: SilentMode = SilentMode.OFF
     var includeOtherGradeReviews: Boolean = false
@@ -331,5 +333,13 @@ class QuizManager(
 
     suspend fun getMasteryLevel(wordId: Int): Int = withContext(Dispatchers.IO) {
         masteryDao.getMastery(wordId)?.level ?: 0
+    }
+
+    /**
+     * 今すぐ学習可能なクイズ（新規または復習）があるか確認する
+     */
+    suspend fun checkAvailabilityNow(): Boolean = withContext(Dispatchers.IO) {
+        val now = System.currentTimeMillis()
+        getAnyDueReviewWord(now) != null || getAvailableNewWord() != null
     }
 }

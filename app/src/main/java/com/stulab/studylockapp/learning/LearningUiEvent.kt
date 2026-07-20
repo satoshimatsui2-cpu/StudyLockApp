@@ -65,4 +65,9 @@ sealed class LearningUiEvent {
         val message: String,
         val emotionId: String? = null
     ) : LearningUiEvent()
+
+    // 新しいパートナーが解放された時のお知らせ
+    data class ShowNewCharacterAvailable(
+        val characterName: String
+    ) : LearningUiEvent()
 }

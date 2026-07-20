@@ -13,6 +13,8 @@ import com.stulab.studylockapp.data.SilentMode
 import com.stulab.studylockapp.data.db.WordMasteryDao
 import com.stulab.studylockapp.data.db.WordMasteryEntity
 import com.stulab.studylockapp.data.StudyHistoryRepository
+import com.stulab.studylockapp.data.notification.StudyCharacter
+import com.stulab.studylockapp.service.NotificationHelper
 import com.stulab.studylockapp.data.practical.PracticalQuizMode
 import com.stulab.studylockapp.data.practical.PracticalTestRepository
 import kotlinx.coroutines.*
@@ -652,8 +654,10 @@ class LearningViewModel(
                 // ★ 本日のノルマが完全に0になったかチェック（音声ありモードを含めて判定）
                 val isGoalMet = _uiState.value.newWordsRemaining == 0 && _uiState.value.reviewWordsNormalTotalToday == 0
 
-                if (isGoalMet) {
-                    // 1. 本日の継続記録お祝い (既存)
+                // お祝いは「今回のセッションで何かを解いて、目標に到達した時」のみ表示する
+                // アプリを開き直しただけの時は solvedInSession が 0 なので表示されない
+                if (isGoalMet && solvedInSession > 0) {
+                    // 1. 本日の継続記録お祝い
                     val character = com.stulab.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
                     val streak = appSettings.dailyGoalStreak
                     val message = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
@@ -676,6 +680,12 @@ class LearningViewModel(
                             name = appSettings.userName ?: "君"
                         )
                         _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, milestoneMessage, emotion.id))
+                    }
+
+                    // 3. 新しいパートナーが解放されたかチェック
+                    val newlyUnlocked = StudyCharacter.values().find { it.unlockGoalDays == totalDays && it.unlockGoalDays > 0 }
+                    if (newlyUnlocked != null) {
+                        _uiEvent.send(LearningUiEvent.ShowNewCharacterAvailable(newlyUnlocked.displayName))
                     }
                     return@launch
                 }
@@ -741,27 +751,47 @@ class LearningViewModel(
         stopCountdown()
         countdownJob = viewModelScope.launch {
             while (isActive) {
-                val nextTime = quizManager.getNextReviewTime()
-                if (nextTime == null) {
-                    _uiState.update { it.copy(countdownText = null) }
-                    break
-                }
-
-                val diff = nextTime - System.currentTimeMillis()
-                if (diff <= 0) {
-                    _uiState.update { it.copy(countdownText = null) }
+                // 1. 実態チェック: 今すぐ解ける問題があるか (ご提案のロジック)
+                if (quizManager.checkAvailabilityNow()) {
+                    if (solvedInSession >= totalCount) {
+                        solvedInSession = 0 
+                    }
+                    sendReviewReadyNotification()
                     loadNextQuiz()
                     break
                 }
 
+                // 2. 表示用: 次の復習予定時刻を取得
+                val nextTime = quizManager.getNextReviewTime()
+                if (nextTime == null) {
+                    // 今日中に復習がない（目標達成）なら終了して状態更新
+                    loadNextQuiz()
+                    break
+                }
+
+                val now = System.currentTimeMillis()
+                val diff = nextTime - now
+
+                // 表示用のテキスト更新
                 val minutes = (diff / 1000) / 60
                 val seconds = (diff / 1000) % 60
-                val text = String.format(java.util.Locale.US, "出題まで%02d分%02d秒", minutes, seconds)
+                val text = String.format(java.util.Locale.US, "出題まで%02d分%02d秒", minutes.coerceAtLeast(0), seconds.coerceAtLeast(0))
                 _uiState.update { it.copy(countdownText = text) }
 
                 delay(1000)
             }
         }
+    }
+
+    private fun sendReviewReadyNotification() {
+        val charId = appSettings.selectedCharacterId
+        val character = StudyCharacter.fromId(charId)
+        NotificationHelper.showNotification(
+            context = context,
+            title = character.displayName,
+            message = "復習できる時間になったよ",
+            largeIconResId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(charId)
+        )
     }
 
     private fun stopCountdown() {
