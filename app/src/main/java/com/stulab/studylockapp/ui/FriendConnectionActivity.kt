@@ -1,16 +1,18 @@
 package com.stulab.studylockapp.ui
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.addTextChangedListener
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +20,7 @@ import com.stulab.studylockapp.CaptureActivityPortrait
 import com.stulab.studylockapp.R
 import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.StudyHistoryRepository
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -31,16 +34,16 @@ import kotlinx.coroutines.launch
 class FriendConnectionActivity : AppCompatActivity() {
 
     private lateinit var recycler: RecyclerView
-    private lateinit var editFriendId: EditText
     private lateinit var textMyId: TextView
     private lateinit var textMyName: TextView
     private lateinit var appSettings: AppSettings
+    private var friendListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private val processedUidsInSession = mutableSetOf<String>()
 
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
         val payload = result.contents
         if (payload != null) {
-            editFriendId.setText(payload)
-            addFriend()
+            processFriendId(payload)
         }
     }
 
@@ -50,19 +53,12 @@ class FriendConnectionActivity : AppCompatActivity() {
 
         textMyId = findViewById(R.id.text_my_id)
         textMyName = findViewById(R.id.text_my_name_display)
-        editFriendId = findViewById(R.id.edit_friend_id)
         recycler = findViewById(R.id.recycler_friends)
         appSettings = AppSettings(this)
 
         checkAuthAndInitialize()
         updateMyNameDisplay()
-
-        val btnAddFriend = findViewById<View>(R.id.btn_add_friend)
-        btnAddFriend.setOnClickListener { addFriend() }
-
-        editFriendId.addTextChangedListener {
-            btnAddFriend.isEnabled = it?.trim()?.isNotEmpty() == true
-        }
+        startFriendAutoDetection()
 
         findViewById<View>(R.id.btn_back).setOnClickListener { finish() }
         findViewById<View>(R.id.btn_edit_my_name).setOnClickListener { showEditMyNameDialog() }
@@ -74,16 +70,81 @@ class FriendConnectionActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        findViewById<View>(R.id.btn_scan_qr).setOnClickListener {
-            val options = ScanOptions()
-            options.setPrompt("友達のQRコードを枠内に写してください")
-            options.setBeepEnabled(false)
-            options.setOrientationLocked(true)
-            options.setCaptureActivity(CaptureActivityPortrait::class.java)
-            barcodeLauncher.launch(options)
+        findViewById<View>(R.id.btn_add_friend_main).setOnClickListener {
+            showAddFriendOptionDialog()
         }
 
         recycler.layoutManager = LinearLayoutManager(this)
+    }
+
+    private fun showAddFriendOptionDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_friend_options, null)
+        val btnScan = dialogView.findViewById<MaterialButton>(R.id.btn_scan_qr_option)
+        val inputLayout = dialogView.findViewById<TextInputLayout>(R.id.layout_friend_id_input)
+        val editId = dialogView.findViewById<TextInputEditText>(R.id.edit_friend_id_dialog)
+
+        // 視認性のための明示的指定
+        editId.setTextColor(Color.BLACK)
+        editId.setHintTextColor(Color.GRAY)
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle("フレンドを追加")
+            .setView(dialogView)
+            .setPositiveButton("追加", null)
+            .setNegativeButton("キャンセル", null)
+            .create()
+
+        btnScan.setOnClickListener {
+            dialog.dismiss()
+            startQrScan()
+        }
+
+        dialog.setOnShowListener {
+            val btnAdd = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+            btnAdd.setOnClickListener {
+                val friendId = editId.text.toString().trim()
+                if (friendId.isEmpty()) {
+                    inputLayout.error = "IDを入力してください"
+                    return@setOnClickListener
+                }
+                if (friendId == FirebaseAuth.getInstance().currentUser?.uid) {
+                    inputLayout.error = "自分のIDは追加できません"
+                    return@setOnClickListener
+                }
+                
+                dialog.dismiss()
+                processFriendId(friendId)
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun startQrScan() {
+        val options = ScanOptions()
+        options.setPrompt("友達のQRコードを枠内に写してください")
+        options.setBeepEnabled(false)
+        options.setOrientationLocked(true)
+        options.setCaptureActivity(CaptureActivityPortrait::class.java)
+        barcodeLauncher.launch(options)
+    }
+
+    private fun processFriendId(friendId: String) {
+        processedUidsInSession.add(friendId)
+        lifecycleScope.launch {
+            val db = FirebaseFirestore.getInstance()
+            try {
+                val doc = db.collection("users").document(friendId).get().await()
+                if (doc.exists()) {
+                    val initialName = doc.getString("displayName") ?: "友達"
+                    showEditFriendNameDialog(friendId, initialName, isNewFriend = true)
+                } else {
+                    Toast.makeText(this@FriendConnectionActivity, "ユーザーが見つかりません", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@FriendConnectionActivity, "エラーが発生しました", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun checkAuthAndInitialize() {
@@ -112,45 +173,32 @@ class FriendConnectionActivity : AppCompatActivity() {
         }
     }
 
-    private fun addFriend() {
-        val friendId = editFriendId.text.toString().trim()
-        if (friendId.isBlank()) return
-        
-        val myUid = FirebaseAuth.getInstance().currentUser?.uid
-        if (friendId == myUid) {
-            Toast.makeText(this, "自分のIDは追加できません", Toast.LENGTH_SHORT).show()
-            return
-        }
+    private fun startFriendAutoDetection() {
+        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
 
-        lifecycleScope.launch {
-            // 相手の存在確認と名前取得
-            val db = FirebaseFirestore.getInstance()
-            try {
-                val doc = db.collection("users").document(friendId).get().await()
-                if (doc.exists()) {
-                    val initialName = doc.getString("displayName") ?: "友達"
-                    showEditFriendNameDialog(friendId, initialName, isNewFriend = true)
-                    editFriendId.text.clear()
-                } else {
-                    Toast.makeText(this@FriendConnectionActivity, "ユーザーが見つかりません", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(this@FriendConnectionActivity, "エラーが発生しました", Toast.LENGTH_SHORT).show()
+        friendListener?.remove()
+        friendListener = db.collection("users").document(myUid).collection("friends")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null || snapshots == null) return@addSnapshotListener
+                loadFriends()
             }
-        }
     }
 
-    /**
-     * フレンドの表示名を編集するダイアログを表示
-     * @param isNewFriend 新規登録時の場合は、保存後にフレンドリストに追加する
-     */
+    override fun onDestroy() {
+        friendListener?.remove()
+        super.onDestroy()
+    }
+
     private fun showEditFriendNameDialog(friendUid: String, currentName: String, isNewFriend: Boolean = false) {
         val padding = (24 * resources.displayMetrics.density).toInt()
         val inputLayout = TextInputLayout(this).apply {
             setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
-            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_FILLED
             hint = "フレンドの表示名"
-            boxBackgroundColor = androidx.core.content.ContextCompat.getColor(context, R.color.dialog_surface)
+            boxBackgroundColor = Color.WHITE
+            setHintTextColor(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.text_sub)))
+            boxStrokeColor = ContextCompat.getColor(context, R.color.navy_primary)
         }
         val editText = TextInputEditText(inputLayout.context).apply {
             setText(currentName)
@@ -158,36 +206,33 @@ class FriendConnectionActivity : AppCompatActivity() {
             maxLines = 1
             isSingleLine = true
             setSelection(text?.length ?: 0)
-            setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_main))
-            setHintTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_sub))
+            setTextColor(Color.BLACK)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
         }
         inputLayout.addView(editText)
 
         MaterialAlertDialogBuilder(this)
             .setTitle(if (isNewFriend) "フレンドの登録" else "表示名の変更")
-            .setMessage(if (isNewFriend) "このフレンドのニックネームを決めてください" else null)
+            .setMessage(if (isNewFriend) "相手の呼び名を決めてください" else null)
             .setView(inputLayout)
             .setPositiveButton("保存") { _, _ ->
                 val newName = editText.text.toString().trim()
                 if (newName.isNotEmpty()) {
                     lifecycleScope.launch {
                         if (isNewFriend) {
-                            // 新規登録
-                            val success = StudyHistoryRepository.addFriend(friendUid)
+                            val myName = appSettings.userName ?: "ユーザー"
+                            val success = StudyHistoryRepository.addFriend(friendUid, myName)
                             if (success) {
                                 StudyHistoryRepository.updateFriendDisplayName(friendUid, newName)
+                                if (appSettings.userName != null) {
+                                    StudyHistoryRepository.updateLastActiveStatus(appSettings.userName)
+                                }
                                 Toast.makeText(this@FriendConnectionActivity, "フレンドを登録しました", Toast.LENGTH_SHORT).show()
                                 loadFriends()
-                            } else {
-                                Toast.makeText(this@FriendConnectionActivity, "登録に失敗しました", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            // 既存の編集
-                            val success = StudyHistoryRepository.updateFriendDisplayName(friendUid, newName)
-                            if (success) {
-                                Toast.makeText(this@FriendConnectionActivity, "名前を更新しました", Toast.LENGTH_SHORT).show()
-                                loadFriends()
-                            }
+                            StudyHistoryRepository.updateFriendDisplayName(friendUid, newName)
+                            loadFriends()
                         }
                     }
                 }
@@ -213,8 +258,7 @@ class FriendConnectionActivity : AppCompatActivity() {
             setPadding(padding, (8 * resources.displayMetrics.density).toInt(), padding, 0)
             boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
             hint = "あなたの名前 (15文字以内)"
-            // ボックス内の背景を白系に固定して視認性を確保
-            boxBackgroundColor = androidx.core.content.ContextCompat.getColor(context, R.color.dialog_surface)
+            boxBackgroundColor = ContextCompat.getColor(context, R.color.dialog_surface)
         }
         val editText = TextInputEditText(inputLayout.context).apply {
             setText(appSettings.userName ?: "")
@@ -222,9 +266,8 @@ class FriendConnectionActivity : AppCompatActivity() {
             maxLines = 1
             isSingleLine = true
             setSelection(text?.length ?: 0)
-            // テキスト色とヒント色を明示的に指定（テーマの影響を回避）
-            setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_main))
-            setHintTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.text_sub))
+            setTextColor(ContextCompat.getColor(context, R.color.text_main))
+            setHintTextColor(ContextCompat.getColor(context, R.color.text_sub))
         }
         inputLayout.addView(editText)
 

@@ -314,41 +314,35 @@ object StudyHistoryRepository {
 
     /**
      * フレンドを追加する (相互)
+     * @param myName 自分の名前 (スキャンした側が相手に渡す名前)
      */
-    suspend fun addFriend(friendUid: String): Boolean {
-        val user = FirebaseAuth.getInstance().currentUser ?: run {
-            Log.e("FriendConnection", "addFriend: No current user")
-            return false
-        }
+    suspend fun addFriend(friendUid: String, myName: String): Boolean {
+        val user = FirebaseAuth.getInstance().currentUser ?: return false
         val myUid = user.uid
         if (myUid == friendUid) return false
 
         val db = FirebaseFirestore.getInstance()
-        val myName = user.displayName ?: "ユーザー"
 
         try {
-            // 1. 相手の存在確認
+            // 1. 相手の存在確認と、相手が登録している名前を取得
             val friendDoc = db.collection("users").document(friendUid).get().await()
-            if (!friendDoc.exists()) {
-                Log.w("FriendConnection", "addFriend: Friend UID $friendUid not found in users collection")
-                return false
-            }
-            val friendName = friendDoc.getString("displayName") ?: "友達"
+            if (!friendDoc.exists()) return false
+            
+            val friendNameInDb = friendDoc.getString("displayName") ?: "友達"
 
-            // 2. 自分のフレンドリストに追加
+            // 2. 自分のリストに相手を追加 (DBにある相手の名前を初期値にする)
             db.collection("users").document(myUid).collection("friends").document(friendUid)
-                .set(mapOf("displayName" to friendName, "addedAt" to FieldValue.serverTimestamp()))
+                .set(mapOf("displayName" to friendNameInDb, "addedAt" to FieldValue.serverTimestamp()))
                 .await()
 
-            // 3. 相手のフレンドリストに自分を追加
-            // ※Firestoreのセキュリティルールで許可されている必要があります
+            // 3. 相手のリストに自分を追加 (今持ってきた自分の名前を相手に渡す)
             db.collection("users").document(friendUid).collection("friends").document(myUid)
                 .set(mapOf("displayName" to myName, "addedAt" to FieldValue.serverTimestamp()))
                 .await()
 
             return true
         } catch (e: Exception) {
-            Log.e("FriendConnection", "フレンド追加失敗: ${e.message}", e)
+            Log.e("FriendConnection", "フレンド追加失敗", e)
             return false
         }
     }

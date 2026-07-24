@@ -2,6 +2,7 @@ package com.stulab.studylockapp.learning
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stulab.studylockapp.data.TsvImporter
@@ -297,6 +298,8 @@ class LearningViewModel(
         val endOfDay = cal.timeInMillis
 
         val now = System.currentTimeMillis()
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+        val todayStr = sdf.format(java.util.Date(now))
 
         val results = withContext(Dispatchers.IO) {
             val startedToday = masteryDao.countStartedNewWordsToday(startOfDay)
@@ -338,20 +341,6 @@ class LearningViewModel(
 
         val target = appSettings.dailyNewWordTarget
         val newRemaining = (target - newDone).coerceAtLeast(0)
-
-        // ノルマ達成時の継続記録更新 (新規 0 且つ 今日の復習すべて 0 の場合)
-        // ※ここでは音声OFF時の残りも含めて判定する（完全に終わった時だけ更新）
-        if (newRemaining == 0 && reviewRemainingNormalToday == 0) {
-            updateGoalStreakInternal()
-            
-            // フレンドへの通知ブロードキャスト
-            viewModelScope.launch(Dispatchers.IO) {
-                val totalNew = appSettings.dailyNewWordTarget
-                val totalReviews = masteryDao.countCompletedReviewsToday(startOfDay, System.currentTimeMillis())
-                val currentStreak = appSettings.dailyGoalStreak
-                StudyHistoryRepository.broadcastGoalMet(totalNew, totalReviews, currentStreak)
-            }
-        }
 
         _uiState.update { it.copy(
             newWordsRemaining = newRemaining,
@@ -651,43 +640,66 @@ class LearningViewModel(
                 // 学習中のグレードを取得 (QuizManager に渡しているものと同じ値)
                 val grade = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
 
-                // ★ 本日のノルマが完全に0になったかチェック（音声ありモードを含めて判定）
+                // ★ 本日のノルマ達成チェック（新規が0 かつ 「今日期限の復習すべて」が0になったか）
                 val isGoalMet = _uiState.value.newWordsRemaining == 0 && _uiState.value.reviewWordsNormalTotalToday == 0
 
-                // お祝いは「今回のセッションで何かを解いて、目標に到達した時」のみ表示する
-                // アプリを開き直しただけの時は solvedInSession が 0 なので表示されない
+                // お祝いとフレンド通知は「今回のセッションで何かを解いて、今日初めて目標に到達した時」のみ実行する
                 if (isGoalMet && solvedInSession > 0) {
-                    // 1. 本日の継続記録お祝い
-                    val character = com.stulab.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
-                    val streak = appSettings.dailyGoalStreak
-                    val message = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
-                        character, 
-                        com.stulab.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED,
-                        streak = streak,
-                        name = appSettings.userName ?: "君"
-                    )
-                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, message))
+                    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                    val todayStr = sdf.format(java.util.Date())
+                    val wasAlreadyMet = appSettings.lastGoalMetDate == todayStr
 
-                    // 2. 通算達成日数のお祝い (10日単位)
-                    val totalDays = appSettings.totalGoalsMetCount
-                    if (totalDays > 0 && totalDays % 10 == 0) {
-                        val milestoneCtx = com.stulab.studylockapp.data.notification.NotificationContext.GOAL_TOTAL_MILESTONE
-                        val emotion = com.stulab.studylockapp.data.notification.CharacterLines.getEmotionForContext(character, milestoneCtx)
-                        val milestoneMessage = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
-                            character,
-                            milestoneCtx,
-                            totalGoalDays = totalDays,
+                    if (!wasAlreadyMet) {
+                        // 1. 内部データの更新（継続日数など）
+                        updateGoalStreakInternal()
+
+                        // 2. フレンドへの通知ブロードキャスト
+                        viewModelScope.launch(Dispatchers.IO) {
+                            val cal = Calendar.getInstance()
+                            cal.set(Calendar.HOUR_OF_DAY, 0)
+                            cal.set(Calendar.MINUTE, 0)
+                            cal.set(Calendar.SECOND, 0)
+                            cal.set(Calendar.MILLISECOND, 0)
+                            val startOfDay = cal.timeInMillis
+                            
+                            val totalNew = appSettings.dailyNewWordTarget
+                            val totalReviews = masteryDao.countCompletedReviewsToday(startOfDay, System.currentTimeMillis())
+                            val currentStreak = appSettings.dailyGoalStreak
+                            StudyHistoryRepository.broadcastGoalMet(totalNew, totalReviews, currentStreak)
+                        }
+
+                        // 3. 本日の継続記録お祝いダイアログ
+                        val character = com.stulab.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
+                        val streak = appSettings.dailyGoalStreak
+                        val message = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
+                            character, 
+                            com.stulab.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED,
+                            streak = streak,
                             name = appSettings.userName ?: "君"
                         )
-                        _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, milestoneMessage, emotion.id))
-                    }
+                        _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, message))
 
-                    // 3. 新しいパートナーが解放されたかチェック
-                    val newlyUnlocked = StudyCharacter.values().find { it.unlockGoalDays == totalDays && it.unlockGoalDays > 0 }
-                    if (newlyUnlocked != null) {
-                        _uiEvent.send(LearningUiEvent.ShowNewCharacterAvailable(newlyUnlocked.displayName))
+                        // 4. 通算達成日数のお祝い (10日単位)
+                        val totalDays = appSettings.totalGoalsMetCount
+                        if (totalDays > 0 && totalDays % 10 == 0) {
+                            val milestoneCtx = com.stulab.studylockapp.data.notification.NotificationContext.GOAL_TOTAL_MILESTONE
+                            val emotion = com.stulab.studylockapp.data.notification.CharacterLines.getEmotionForContext(character, milestoneCtx)
+                            val milestoneMessage = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
+                                character,
+                                milestoneCtx,
+                                totalGoalDays = totalDays,
+                                name = appSettings.userName ?: "君"
+                            )
+                            _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, milestoneMessage, emotion.id))
+                        }
+
+                        // 5. 新しいパートナーが解放されたかチェック
+                        val newlyUnlocked = com.stulab.studylockapp.data.notification.StudyCharacter.values().find { it.unlockGoalDays == totalDays && it.unlockGoalDays > 0 }
+                        if (newlyUnlocked != null) {
+                            _uiEvent.send(LearningUiEvent.ShowNewCharacterAvailable(newlyUnlocked.displayName))
+                        }
+                        return@launch
                     }
-                    return@launch
                 }
 
                 // 20問のフルセッションを完了した時のみ、実践テストへの移行を検討する
@@ -786,12 +798,19 @@ class LearningViewModel(
     private fun sendReviewReadyNotification() {
         val charId = appSettings.selectedCharacterId
         val character = StudyCharacter.fromId(charId)
+        
+        // システム通知
         NotificationHelper.showNotification(
             context = context,
             title = character.displayName,
             message = "復習できる時間になったよ",
-            largeIconResId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(charId)
+            largeIconResId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(context, charId)
         )
+
+        // アプリを開いている最中ならトーストでも知らせる
+        viewModelScope.launch(Dispatchers.Main) {
+            Toast.makeText(context, "復習できる時間になったよ！", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun stopCountdown() {

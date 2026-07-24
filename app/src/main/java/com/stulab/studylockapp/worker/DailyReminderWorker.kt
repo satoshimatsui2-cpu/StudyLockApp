@@ -52,23 +52,17 @@ class DailyReminderWorker(
         
         val currentGrade = settings.safeLearningGrade.toIntOrNull() ?: 3
         val includeOthers = if (settings.includeOtherGrades) 1 else 0
-        val isSilent = if (settings.silentMode == com.stulab.studylockapp.data.SilentMode.ON) 1 else 0
         
-        val remainingReviewsToday = db.wordMasteryDao().countRemainingReviewsAvailable(
+        // ★ 目標達成判定は「音声あり」を含めた全復習を基準にする（キャラ解放条件やアプリ内表示と統一）
+        val remainingAllReviewsToday = db.wordMasteryDao().countRemainingReviewsAvailable(
             now = endOfDay,
             currentGrade = currentGrade,
             includeOtherGrades = includeOthers,
-            isSilentMode = isSilent
+            isSilentMode = 0
         )
 
         val newRemaining = (target - startedCount).coerceAtLeast(0)
-        
-        // 朝の通知は未達でも達成済みでも送る。
-        // 夕方の通知は未達の場合、または達成済みお祝いとして送る。
-        // つまり、このガード条件（何もしない）は削除または緩和する。
-        // if (newRemaining == 0 && remainingReviewsToday == 0) { ... } 
-        
-        val isGoalMet = (newRemaining == 0 && remainingReviewsToday == 0)
+        val isGoalMet = (newRemaining == 0 && remainingAllReviewsToday == 0)
 
         val character = StudyCharacter.fromId(settings.selectedCharacterId)
         val streak = settings.dailyGoalStreak
@@ -100,7 +94,13 @@ class DailyReminderWorker(
         }
 
         val message = CharacterLines.getLine(character, notificationContext, streak, name = userName)
-        val title = ""
+        
+        // タイトルに現在の残り状況を表示（未達成の場合のみ）
+        val title = if (!isGoalMet && isEvening) {
+            "本日の残り: 新規${newRemaining}, 復習${remainingAllReviewsToday}"
+        } else {
+            character.displayName
+        }
 
         // 感情に連動したミニ画像IDを取得
         val emotion = CharacterLines.getEmotionForContext(character, notificationContext)

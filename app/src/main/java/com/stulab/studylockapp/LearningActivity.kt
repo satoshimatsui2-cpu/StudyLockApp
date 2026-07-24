@@ -255,9 +255,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             binding.layoutEmptyState.textEmptyMessage.text = message
             
             val charResId = if (state.emptyState is LearningEmptyState.NoReviewAvailable) {
-                com.stulab.studylockapp.ui.CharacterDisplayUtils.getPanicDrawable(state.selectedCharacterId)
+                com.stulab.studylockapp.ui.CharacterDisplayUtils.getPanicDrawable(this, state.selectedCharacterId)
             } else {
-                com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(state.selectedCharacterId)
+                com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(this, state.selectedCharacterId)
             }
             binding.layoutEmptyState.imageEmptyCharacter.setImageResource(charResId)
 
@@ -512,18 +512,7 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         val btnClose = dialogView.findViewById<View>(R.id.button_celebration_close)
 
         // 画像リソースの決定: mini_name_pleasure を優先
-        var resId = resources.getIdentifier("mini_${charId}_pleasure", "drawable", packageName)
-        
-        // フォールバック
-        if (resId == 0) {
-            resId = resources.getIdentifier("mini_${charId}_joy", "drawable", packageName)
-        }
-        if (resId == 0) {
-            resId = resources.getIdentifier("char_$charId", "drawable", packageName)
-        }
-        if (resId == 0) {
-            resId = R.drawable.mini_george_pleasure
-        }
+        val resId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getPleasureDrawable(this, charId)
 
         imageChar.setImageResource(resId)
         
