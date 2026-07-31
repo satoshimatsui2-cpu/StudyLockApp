@@ -280,6 +280,8 @@
     <string name="cd_replay_question_audio">問題音声を再生</string>
     <string name="cd_learning_settings">学習設定</string>
     <string name="cd_sound_settings">サウンド設定</string>
+    <string name="cd_favorite_add">My単語帳に追加</string>
+    <string name="cd_favorite_remove">My単語帳から削除</string>
     <string name="label_sound_settings">サウンド</string>
     <string name="label_other_grade_off">他級OFF</string>
     <string name="label_other_grade_on">他級ON</string>

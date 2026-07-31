@@ -36,6 +36,8 @@ data class ReviewCardUiModel(
     val sentence: String,
     val sentenceJp: String,
     val playButtonsEnabled: Boolean,
+    val isFavorite: Boolean,
+    val isFavoriteUpdating: Boolean,
     // New fields for synonyms and antonyms
     val synonymHintTitle: String?,
     val synonymHintBody: String?,
@@ -93,6 +95,8 @@ object ReviewCardMapper {
             sentence = state.currentWord?.sentence ?: "",
             sentenceJp = state.currentWord?.japaneseSentence ?: "",
             playButtonsEnabled = (state.silentMode == SilentMode.OFF),
+            isFavorite = state.isFavorite,
+            isFavoriteUpdating = state.isFavoriteUpdating,
             synonymHintTitle = state.reviewSynonymHintTitle,
             synonymHintBody = state.reviewSynonymHintBody,
             antonyms = state.reviewAntonyms

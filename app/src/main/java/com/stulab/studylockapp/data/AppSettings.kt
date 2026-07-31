@@ -77,6 +77,8 @@ class AppSettings(context: Context) {
         private const val KEY_UNLOCKED_CHARACTERS = "unlocked_characters"
         private const val KEY_USER_NAME = "user_name"
 
+        private const val KEY_PERSONAL_GRADE_TARGET_PREFIX = "personal_grade_target_"
+
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
@@ -330,4 +332,15 @@ class AppSettings(context: Context) {
     var userName: String?
         get() = prefs.getString(KEY_USER_NAME, null)
         set(v) = prefs.edit { putString(KEY_USER_NAME, v) }
+
+    /**
+     * マイ単語帳(90-99)が達成された際に出題する「実践テスト」の級(1-7)を取得する
+     */
+    fun getPersonalGradeTarget(personalGrade: Int): Int {
+        return prefs.getInt(KEY_PERSONAL_GRADE_TARGET_PREFIX + personalGrade, 3)
+    }
+
+    fun setPersonalGradeTarget(personalGrade: Int, targetGrade: Int) {
+        prefs.edit { putInt(KEY_PERSONAL_GRADE_TARGET_PREFIX + personalGrade, targetGrade) }
+    }
 }

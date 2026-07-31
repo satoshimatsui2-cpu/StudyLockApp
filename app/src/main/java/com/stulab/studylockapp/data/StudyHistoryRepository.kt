@@ -53,6 +53,29 @@ object StudyHistoryRepository {
     }
 
     /**
+     * 現在選択されているパートナーキャラクターIDをFirestoreに同期する
+     */
+    suspend fun syncSelectedCharacterId(characterId: String) {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val db = FirebaseFirestore.getInstance()
+
+        try {
+            db.collection("users").document(user.uid)
+                .update("selectedCharacterId", characterId)
+                .await()
+        } catch (e: Exception) {
+            // ドキュメントが存在しない場合は作成を試みる
+            try {
+                db.collection("users").document(user.uid)
+                    .set(mapOf("selectedCharacterId" to characterId), SetOptions.merge())
+                    .await()
+            } catch (e2: Exception) {
+                Log.e("StudyHistoryRepo", "Failed to sync characterId", e2)
+            }
+        }
+    }
+
+    /**
      * 学習結果を保存する。
      * @param currentTotalPoints 保存時点でのユーザーの総保有ポイント（スナップショット）
      */

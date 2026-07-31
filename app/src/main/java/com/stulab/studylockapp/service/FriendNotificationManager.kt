@@ -108,17 +108,11 @@ object FriendNotificationManager {
                         friendName = friendName
                     )
 
-                    // 選択中のキャラのmini_joy または mini_panic 画像を探す
+                    // 選択中のキャラの icon_... 画像を取得 (CharacterDisplayUtils の共通ロジックを使用)
                     val emotion = CharacterLines.getEmotionForContext(character, contextForNotif)
-                    var imageResId = context.resources.getIdentifier(
-                        "mini_${character.id}_${emotion.id}", "drawable", context.packageName
+                    val imageResId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getNotificationIconDrawable(
+                        context, character.id, emotion.id
                     )
-                    // 見つからない場合は通常のキャラ画像
-                    if (imageResId == 0) {
-                        imageResId = context.resources.getIdentifier(
-                            "char_${character.id}", "drawable", context.packageName
-                        )
-                    }
 
                     lastNotifiedTimestamps[friendUid] = broadcastMillis
                     NotificationHelper.showNotification(context, title, message, imageResId)

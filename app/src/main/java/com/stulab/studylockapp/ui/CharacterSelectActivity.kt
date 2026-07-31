@@ -12,14 +12,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stulab.studylockapp.R
 import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.PointManager
+import com.stulab.studylockapp.data.StudyHistoryRepository
 import com.stulab.studylockapp.data.notification.StudyCharacter
 import com.stulab.studylockapp.ui.alert.AppDialogHelper
 import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.launch
 
 class CharacterSelectActivity : AppCompatActivity() {
 
@@ -95,8 +98,14 @@ class CharacterSelectActivity : AppCompatActivity() {
                     holder.condition.visibility = View.GONE
                     holder.card.alpha = 1.0f
                     holder.card.setOnClickListener {
-                        appSettings.selectedCharacterId = char.id
+                        val newId = char.id
+                        appSettings.selectedCharacterId = newId
                         notifyDataSetChanged()
+                        
+                        // Firestoreへの同期を追加
+                        lifecycleScope.launch {
+                            StudyHistoryRepository.syncSelectedCharacterId(newId)
+                        }
                     }
                 }
                 canPurchase -> {

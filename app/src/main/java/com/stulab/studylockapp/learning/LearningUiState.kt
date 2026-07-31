@@ -46,6 +46,8 @@ data class LearningUiState(
     val reviewCorrectAnswerText: String = "",
     val showListeningCompare: Boolean = false,
     val wrongWord: WordEntity? = null,
+    val isFavorite: Boolean = false,
+    val isFavoriteUpdating: Boolean = false,
 
     // Synonyms / Antonyms for Review
     val reviewSynonymHintTitle: String? = null,
@@ -66,7 +68,8 @@ data class LearningUiState(
     // 空状態
     val emptyState: LearningEmptyState? = null,
     val countdownText: String? = null,
-    val selectedCharacterId: String = "george"
+    val selectedCharacterId: String = "george",
+    val userName: String = "きみ"
 )
 
 data class AudioWarningState(

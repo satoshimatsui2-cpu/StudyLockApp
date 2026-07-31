@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
+import { getFriendGoalMetNotification } from "./character_lines";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -270,5 +271,128 @@ export const sendDailyReport = functions
         } catch (e) { console.error(`Failed for uid: ${uid}`, e); }
       }
     }
+    return null;
+  });
+
+// ■ 4. フレンド目標達成通知
+export const onFriendGoalMet = functions
+  .region("asia-northeast1")
+  .firestore.document("users/{uid}")
+  .onUpdate(async (change, context) => {
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
+    const actorUid = context.params.uid;
+
+    const beforeVal = beforeData.goalMetBroadcastAt;
+    const afterVal = afterData.goalMetBroadcastAt;
+
+    // goalMetBroadcastAtが更新され、かつ有効な値であるかチェック
+    if (!afterVal || (beforeVal && beforeVal.isEqual(afterVal))) {
+      return null;
+    }
+
+    const todayTokyo = formatTokyoDateYYYYMMDD(new Date());
+
+    // 1. 通知先のフレンド一覧を取得（actorUidの友達＝受信者たち）
+    const friendsSnapshot = await db.collection("users").doc(actorUid).collection("friends").get();
+    if (friendsSnapshot.empty) return null;
+
+    const receiverUids = friendsSnapshot.docs.map(doc => doc.id).filter(id => id !== actorUid);
+    if (receiverUids.length === 0) return null;
+
+    // 2. 受信者ごとにパーソナライズされたメッセージを生成し、トークンを収集
+    const allMessagesInfo: { message: admin.messaging.Message, tokenPath: string }[] = [];
+
+    await Promise.all(receiverUids.map(async (receiverUid) => {
+      try {
+        // a. 受信者側で登録された達成者の名前を取得
+        const friendDocInReceiver = await db.collection("users").doc(receiverUid).collection("friends").doc(actorUid).get();
+        let actorNameForReceiver = friendDocInReceiver.data()?.displayName;
+        if (!actorNameForReceiver) {
+          // なければ達成者本人の名前
+          actorNameForReceiver = afterData.displayName || afterData.userName || "フレンド";
+        }
+
+        // b. 受信者情報の取得（パートナーID、自身の名前、達成状況）
+        const receiverDoc = await db.collection("users").doc(receiverUid).get();
+        const receiverData = receiverDoc.data() || {};
+        const charId = receiverData.selectedCharacterId || "george";
+        const receiverName = receiverData.displayName || "きみ";
+        const lastGoalDate = receiverData.lastGoalMetDate || "";
+        const isDone = lastGoalDate === todayTokyo;
+
+        // c. タイトルの生成（敬称処理）
+        let title = actorNameForReceiver;
+        if (!/(さん|くん|君|ちゃん|様|さま)$/.test(title)) {
+          title += "さん";
+        }
+        title += "が目標達成！";
+
+        // d. 本文と感情の生成（パートナー別セリフ）
+        const { text: body, emotion } = getFriendGoalMetNotification(charId, isDone, actorNameForReceiver, receiverName);
+
+        // e. 受信者のトークンを取得してメッセージリストへ
+        const tokensSnap = await db.collection("users").doc(receiverUid).collection("fcmTokens").get();
+        tokensSnap.forEach(tDoc => {
+          const token = tDoc.data().fcmToken;
+          if (typeof token === "string" && token.length > 0) {
+            allMessagesInfo.push({
+              message: {
+                token: token,
+                data: {
+                  type: "friend_goal_met",
+                  title: title,
+                  body: body,
+                  receiverCharacterId: charId,
+                  emotion: emotion,
+                  actorUid: actorUid,
+                  actorName: actorNameForReceiver,
+                  goalMetBroadcastAt: String(afterVal.toMillis ? afterVal.toMillis() : afterVal)
+                },
+                android: {
+                  priority: "high" as const
+                }
+              },
+              tokenPath: `users/${receiverUid}/fcmTokens/${tDoc.id}`
+            });
+          }
+        });
+      } catch (err) {
+        console.error(`Error preparing message for receiver ${receiverUid}:`, err);
+      }
+    }));
+
+    if (allMessagesInfo.length === 0) return null;
+
+    // 3. 500件ずつ分割して送信
+    let successCount = 0;
+    let failureCount = 0;
+
+    for (let i = 0; i < allMessagesInfo.length; i += 500) {
+      const chunk = allMessagesInfo.slice(i, i + 500);
+      const messages = chunk.map(info => info.message);
+
+      const response = await admin.messaging().sendEach(messages);
+      successCount += response.successCount;
+      failureCount += response.failureCount;
+
+      // 無効トークンの削除処理
+      const deletePromises: Promise<any>[] = [];
+      response.responses.forEach((res, idx) => {
+        if (!res.success && res.error) {
+          const errorCode = res.error.code;
+          if (errorCode === "messaging/registration-token-not-registered" ||
+              errorCode === "messaging/invalid-registration-token") {
+            const tokenPath = chunk[idx].tokenPath;
+            deletePromises.push(db.doc(tokenPath).delete().catch(e =>
+              console.error(`Failed to delete invalid token: ${tokenPath}`, e)
+            ));
+          }
+        }
+      });
+      await Promise.all(deletePromises);
+    }
+
+    console.log(`FriendGoalMet: Personal messages sent to ${allMessagesInfo.length} tokens. Success: ${successCount}, Failure: ${failureCount}`);
     return null;
   });

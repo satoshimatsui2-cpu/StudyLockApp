@@ -6,7 +6,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.stulab.studylockapp.ads.AdAudioManager
 import com.stulab.studylockapp.data.AppDatabase
-import com.stulab.studylockapp.service.FriendNotificationManager
 import com.stulab.studylockapp.worker.DailyReminderWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +24,6 @@ class StudyLockApp : Application() {
         AdAudioManager.apply(this)
 
         setupDailyReminder()
-        FriendNotificationManager.startListening(this)
 
         // 期限切れの一時解放を掃除（epoch seconds）
         appScope.launch {
@@ -67,7 +65,7 @@ class StudyLockApp : Application() {
 
         WorkManager.getInstance(this).enqueueUniqueWork(
             "Reminder_${hour}_${minute}",
-            ExistingWorkPolicy.REPLACE, // 毎回最新の時刻で予約し直す（頑健性のため）
+            ExistingWorkPolicy.KEEP, // 既存の予約がある場合は維持する（当日の遅延実行を上書きキャンセルさせないため）
             request
         )
     }

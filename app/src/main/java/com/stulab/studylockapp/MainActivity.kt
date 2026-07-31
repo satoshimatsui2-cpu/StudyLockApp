@@ -25,6 +25,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
+import com.stulab.studylockapp.data.FcmTokenRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,9 +84,42 @@ class MainActivity : AppCompatActivity() {
         val auth = FirebaseAuth.getInstance()
         if (auth.currentUser == null) {
             auth.signInAnonymously().addOnSuccessListener {
+                syncFcmToken()
+                syncCurrentCharacterId()
                 lifecycleScope.launch {
                     StudyHistoryRepository.updateLastActiveStatus()
                 }
+            }
+        } else {
+            syncFcmToken()
+            syncCurrentCharacterId()
+        }
+    }
+
+    /**
+     * 現在選択されているパートナーキャラクターIDをFirestoreに同期する
+     */
+    private fun syncCurrentCharacterId() {
+        val charId = appSettings.selectedCharacterId
+        lifecycleScope.launch {
+            StudyHistoryRepository.syncSelectedCharacterId(charId)
+        }
+    }
+
+    /**
+     * FCMトークンを現在のユーザーUIDと紐づけて同期する
+     */
+    private fun syncFcmToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                if (token != null) {
+                    lifecycleScope.launch {
+                        FcmTokenRepository.updateToken(token)
+                    }
+                }
+            } else {
+                Log.w("MainActivity", "FCM token fetch failed")
             }
         }
     }

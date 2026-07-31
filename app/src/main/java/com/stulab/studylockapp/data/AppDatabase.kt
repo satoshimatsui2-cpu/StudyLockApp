@@ -7,7 +7,19 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.stulab.studylockapp.data.db.*
+import com.stulab.studylockapp.data.db.AppUnlockDao
+import com.stulab.studylockapp.data.db.LockedAppDao
+import com.stulab.studylockapp.data.db.PracticalHistoryDao
+import com.stulab.studylockapp.data.db.StudyLogDao
+import com.stulab.studylockapp.data.db.UnlockHistoryDao
+import com.stulab.studylockapp.data.db.WordDao
+import com.stulab.studylockapp.data.db.WordMasteryDao
+import com.stulab.studylockapp.data.db.FavoriteWordDao
+import com.stulab.studylockapp.data.db.FavoriteWordEntity
+import com.stulab.studylockapp.data.db.WordMasteryEntity
+import com.stulab.studylockapp.data.db.PracticalHistoryEntity
+import com.stulab.studylockapp.data.db.LockedAppEntity
+import com.stulab.studylockapp.data.db.AppUnlockEntity
 
 @Database(
     entities = [
@@ -19,9 +31,10 @@ import com.stulab.studylockapp.data.db.*
         WordStudyLogEntity::class,
         WordMasteryEntity::class,
         VoiceCheckResultEntity::class,
-        PracticalHistoryEntity::class
+        PracticalHistoryEntity::class,
+        FavoriteWordEntity::class
     ],
-    version = 25,
+    version = 26,
     exportSchema = false
 )
 @TypeConverters(WordConverters::class)
@@ -35,6 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun wordMasteryDao(): WordMasteryDao
     abstract fun voiceCheckDao(): VoiceCheckDao
     abstract fun practicalHistoryDao(): PracticalHistoryDao
+    abstract fun favoriteWordDao(): FavoriteWordDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -104,6 +118,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_25_26 = object : Migration(25, 26) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `favorite_words` (
+                        `wordId` INTEGER NOT NULL, 
+                        `createdAt` INTEGER NOT NULL, 
+                        PRIMARY KEY(`wordId`)
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -111,7 +137,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app-db"
                 )
-                    .addMigrations(MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25)
+                    .addMigrations(
+                        MIGRATION_21_22, 
+                        MIGRATION_22_23, 
+                        MIGRATION_23_24, 
+                        MIGRATION_24_25,
+                        MIGRATION_25_26
+                    )
                     .build()
                     .also { INSTANCE = it }
             }

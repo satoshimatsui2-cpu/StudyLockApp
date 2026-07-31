@@ -13,6 +13,8 @@ import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.SilentMode
 import com.stulab.studylockapp.data.db.WordMasteryDao
 import com.stulab.studylockapp.data.db.WordMasteryEntity
+import com.stulab.studylockapp.data.db.FavoriteWordDao
+import com.stulab.studylockapp.data.db.FavoriteWordEntity
 import com.stulab.studylockapp.data.StudyHistoryRepository
 import com.stulab.studylockapp.data.notification.StudyCharacter
 import com.stulab.studylockapp.service.NotificationHelper
@@ -37,7 +39,8 @@ class LearningViewModel(
     private val requiredWarningText: String,
     private val optionalWarningText: String,
     private val appSettings: AppSettings,
-    private val practicalRepo: PracticalTestRepository
+    private val practicalRepo: PracticalTestRepository,
+    private val favoriteWordDao: FavoriteWordDao
 ) : ViewModel() {
 
     private val totalCount = 20
@@ -52,7 +55,8 @@ class LearningViewModel(
         LearningUiState(
             totalSteps = totalCount,
             totalPoints = pointManager.getTotal(),
-            selectedCharacterId = appSettings.selectedCharacterId
+            selectedCharacterId = appSettings.selectedCharacterId,
+            userName = appSettings.userName ?: "きみ"
         )
     )
     val uiState = _uiState.asStateFlow()
@@ -175,6 +179,7 @@ class LearningViewModel(
     }
 
     private var countdownJob: Job? = null
+    private var lastScheduledReviewTime: Long? = null
 
     fun loadNextQuiz() {
         if (solvedInSession == 0) quizManager.resetSessionStats()
@@ -206,11 +211,20 @@ class LearningViewModel(
                     
                     if (emptyReason is LearningEmptyState.NoReviewAvailable) {
                         startCountdown()
+                        // 次の復習時刻で通知を予約
+                        quizManager.getNextReviewTime()?.let { nextTime ->
+                            if (lastScheduledReviewTime != nextTime) {
+                                com.stulab.studylockapp.worker.ReviewReadyWorker.schedule(context, nextTime)
+                                lastScheduledReviewTime = nextTime
+                            }
+                        }
                     }
 
                     // 目標達成しているなら、その上にお祝い演出を出す
                     if (emptyReason is LearningEmptyState.DailyGoalMet) {
                         finishSession()
+                        com.stulab.studylockapp.worker.ReviewReadyWorker.cancel(context)
+                        lastScheduledReviewTime = null
                     }
                 } else {
                     // 10問解き終わった（まだ他に問題はある）場合は、通常の終了処理へ
@@ -266,9 +280,26 @@ class LearningViewModel(
                     targetLevel = targetLevel,
                     isLevelJustIncreased = false,
                     currentWord = quiz.word,
-                    wordGrade = quiz.word.grade
+                    wordGrade = quiz.word.grade,
+                    isFavorite = false // 一旦リセット
                 ) 
             }
+
+            // お気に入り状態の非同期取得
+            val wordId = quiz.word.no
+            viewModelScope.launch {
+                val isFav = favoriteWordDao.isFavorite(wordId)
+                // 取得完了時にまだ同じ単語を表示している場合のみ反映
+                _uiState.update { state ->
+                    if (state.currentWord?.no == wordId) {
+                        state.copy(isFavorite = isFav)
+                    } else state
+                }
+            }
+            
+            // 学習を開始したので、復習準備通知の予約があればキャンセル
+            com.stulab.studylockapp.worker.ReviewReadyWorker.cancel(context)
+            lastScheduledReviewTime = null
             
             if (!isSilent) {
                 if (shouldAutoPlayQuestionAudio(quiz.mode)) {
@@ -479,14 +510,14 @@ class LearningViewModel(
                 if (totalBasic > 0 && totalBasic % 50 == 0) {
                     val character = com.stulab.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
                     val ctx = com.stulab.studylockapp.data.notification.NotificationContext.BASIC_MASTER_TOTAL_MILESTONE
-                    val emotion = com.stulab.studylockapp.data.notification.CharacterLines.getEmotionForContext(character, ctx)
-                    val message = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
+                    val result = com.stulab.studylockapp.data.notification.CharacterLines.getLineWithEmotion(
                         character, 
                         ctx,
                         totalMasteredWords = totalBasic,
                         name = appSettings.userName ?: "君"
                     )
-                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, message, emotion.id))
+                    Log.d(TAG, "ShowGrandCelebration: context=$ctx, emotion=${result.emotion.id}, text=${result.text}")
+                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, result.text, result.emotion.id))
                 }
             }
             if (oldTier != MasteryTier.LONG_TERM_MASTER && newTier == MasteryTier.LONG_TERM_MASTER) {
@@ -498,14 +529,14 @@ class LearningViewModel(
                 if (totalLong > 0 && totalLong % 50 == 0) {
                     val character = com.stulab.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
                     val ctx = com.stulab.studylockapp.data.notification.NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE
-                    val emotion = com.stulab.studylockapp.data.notification.CharacterLines.getEmotionForContext(character, ctx)
-                    val message = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
+                    val result = com.stulab.studylockapp.data.notification.CharacterLines.getLineWithEmotion(
                         character, 
                         ctx,
                         totalMasteredWords = totalLong,
                         name = appSettings.userName ?: "君"
                     )
-                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, message, emotion.id))
+                    Log.d(TAG, "ShowGrandCelebration: context=$ctx, emotion=${result.emotion.id}, text=${result.text}")
+                    _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, result.text, result.emotion.id))
                 }
             }
 
@@ -624,6 +655,32 @@ class LearningViewModel(
         _uiState.update { state -> state.copy(isReviewing = true, isAnswering = false) }
     }
 
+    fun toggleFavorite(wordId: Int) {
+        val currentState = _uiState.value
+        if (currentState.isFavoriteUpdating) return
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isFavoriteUpdating = true) }
+            
+            val currentlyFavorite = currentState.isFavorite
+            if (currentlyFavorite) {
+                favoriteWordDao.delete(wordId)
+            } else {
+                favoriteWordDao.insert(FavoriteWordEntity(wordId, System.currentTimeMillis()))
+            }
+            
+            // 最新の状態を確認して反映（連打対策も含めDBの結果を正とする）
+            val newFav = favoriteWordDao.isFavorite(wordId)
+            _uiState.update { state ->
+                if (state.currentWord?.no == wordId) {
+                    state.copy(isFavorite = newFav, isFavoriteUpdating = false)
+                } else {
+                    state.copy(isFavoriteUpdating = false)
+                }
+            }
+        }
+    }
+
     private fun finishSession() {
         _uiState.update { state -> 
             state.copy(
@@ -671,26 +728,27 @@ class LearningViewModel(
                         // 3. 本日の継続記録お祝いダイアログ
                         val character = com.stulab.studylockapp.data.notification.StudyCharacter.fromId(appSettings.selectedCharacterId)
                         val streak = appSettings.dailyGoalStreak
-                        val message = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
+                        val goalResult = com.stulab.studylockapp.data.notification.CharacterLines.getLineWithEmotion(
                             character, 
                             com.stulab.studylockapp.data.notification.NotificationContext.GOAL_COMPLETED,
                             streak = streak,
                             name = appSettings.userName ?: "君"
                         )
-                        _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, message))
+                        Log.d(TAG, "ShowGrandCelebration: context=GOAL_COMPLETED, emotion=${goalResult.emotion.id}, text=${goalResult.text}")
+                        _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, goalResult.text, goalResult.emotion.id))
 
                         // 4. 通算達成日数のお祝い (10日単位)
                         val totalDays = appSettings.totalGoalsMetCount
                         if (totalDays > 0 && totalDays % 10 == 0) {
                             val milestoneCtx = com.stulab.studylockapp.data.notification.NotificationContext.GOAL_TOTAL_MILESTONE
-                            val emotion = com.stulab.studylockapp.data.notification.CharacterLines.getEmotionForContext(character, milestoneCtx)
-                            val milestoneMessage = com.stulab.studylockapp.data.notification.CharacterLines.getLine(
+                            val milestoneResult = com.stulab.studylockapp.data.notification.CharacterLines.getLineWithEmotion(
                                 character,
                                 milestoneCtx,
                                 totalGoalDays = totalDays,
                                 name = appSettings.userName ?: "君"
                             )
-                            _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, milestoneMessage, emotion.id))
+                            Log.d(TAG, "ShowGrandCelebration: context=$milestoneCtx, emotion=${milestoneResult.emotion.id}, text=${milestoneResult.text}")
+                            _uiEvent.send(LearningUiEvent.ShowGrandCelebration(character.id, character.displayName, milestoneResult.text, milestoneResult.emotion.id))
                         }
 
                         // 5. 新しいパートナーが解放されたかチェック
@@ -768,7 +826,10 @@ class LearningViewModel(
                     if (solvedInSession >= totalCount) {
                         solvedInSession = 0 
                     }
-                    sendReviewReadyNotification()
+                    // アプリを開いている最中ならトースト等で知らせる (Worker通知とは別)
+                    viewModelScope.launch(Dispatchers.Main) {
+                        Toast.makeText(context, "復習できる時間になったよ！", Toast.LENGTH_SHORT).show()
+                    }
                     loadNextQuiz()
                     break
                 }
@@ -792,24 +853,6 @@ class LearningViewModel(
 
                 delay(1000)
             }
-        }
-    }
-
-    private fun sendReviewReadyNotification() {
-        val charId = appSettings.selectedCharacterId
-        val character = StudyCharacter.fromId(charId)
-        
-        // システム通知
-        NotificationHelper.showNotification(
-            context = context,
-            title = character.displayName,
-            message = "復習できる時間になったよ",
-            largeIconResId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(context, charId)
-        )
-
-        // アプリを開いている最中ならトーストでも知らせる
-        viewModelScope.launch(Dispatchers.Main) {
-            Toast.makeText(context, "復習できる時間になったよ！", Toast.LENGTH_SHORT).show()
         }
     }
 

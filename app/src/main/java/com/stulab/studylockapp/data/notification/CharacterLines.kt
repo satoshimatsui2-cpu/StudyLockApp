@@ -47,7 +47,10 @@ enum class NotificationContext {
     LONG_TERM_MASTER_TOTAL_MILESTONE, // 長期マスター累計語数の区切り
     FRIEND_GOAL_MET,   // 友達が達成した！（汎用）
     FRIEND_GOAL_MET_MY_GOAL_DONE, // 友達が達成！（自分も終わってる）
-    FRIEND_GOAL_MET_MY_GOAL_PENDING // 友達が達成！（自分はまだ）
+    FRIEND_GOAL_MET_MY_GOAL_PENDING, // 友達が達成！（自分はまだ）
+    WAITING_FOR_REVIEW, // 学習待機中
+    REVIEW_READY, // 復習準備完了
+    DAILY_GOAL_MET_REST // 目標達成後の休息
 }
 
 /**
@@ -266,6 +269,29 @@ object CharacterLines {
                 "%sに先を越されたね。焦らなくていいけど、一問だけやっとく？",
                 "%sはもう終わったって。%n、少しだけやる気わいてきた？",
                 "%sが先に休憩へ入ったみたい。いいなあ。こっちも進めよ。"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語だって。すごいなあ。ぼくなら3語覚えた時点で昼寝しちゃうよ。",
+                "%d語も基礎を固めたんだね。%nのこと、ちょっと見直しちゃった。……あ、今の内緒ね。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語かあ。時間をかけてじっくり定着させるなんて、ぼくにはできない芸当だよ。%n、本当にすごいね。",
+                "%d語も長いお付き合いの単語が増えたんだね。ぼくとの付き合いも長くなりそう……？なんてね、えへへ。"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "え、%nもう終わったの？早いね。ぼくも驚いちゃった。",
+                "次の復習まで少し時間がかかるみたい。今のうちに一緒に休も？",
+                "まだ今日の分はあるから、準備ができるまでのんびりしてて。"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "%n、準備できたよ。休憩は名残惜しいけど、一問だけいこ？",
+                "お待たせ。復習できるようになったよ。ぼくも隣にいるからさ。",
+                "休憩おしまい。%nの復習、ぼくが見守る係をやるよ。"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "%n、今日もお疲れさま。目標も終わったし、あとは一緒にのんびりしよ？",
+                "今日はもう十分頑張ったよ。ぼくの隣で、ゆっくりお休みタイムにしよう。",
+                "明日もまたぼちぼち頑張ろうね。%nが来るのをここで待ってるよ。"
             )
         ),
         StudyCharacter.ATSUSHI to mapOf(
@@ -478,6 +504,29 @@ object CharacterLines {
                 "%sが先にゴールした！負けてられねえ、今すぐ一問いこうぜ！",
                 "%sから達成の知らせだ！この勢いに乗って、俺たちもぶち抜くぞ！",
                 "%sがやったぞ！お前にできないわけがねえ！気合いだ！"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語到達！積み上げた単語の数だけ、お前の実力は熱く燃えてるぞ！",
+                "見てくれ、この%d語という数字を！俺まで鼻が高くなるぜ。%n、最高の基礎固めだ！"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語！時間を味方につけた、最強の努力の結晶だな！%n、お前の根性に震えたぜ！",
+                "見てくれ、この%d語を！一朝一夕じゃ届かない、本物の実力だ。%n、お前は俺の自慢の相棒だよ！"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "%n、もう終わったのか！爆速だな！最高に熱いぜ！",
+                "次のメニューを準備してるから、少しだけ休憩しててくれ！",
+                "まだ今日の戦いは続くぞ。エネルギーを蓄えて待っててくれ！"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "%n、待たせたな！次の戦いの準備は完了だ。いくぞ！",
+                "よっしゃ、復習できる時間だ！熱い一歩をまた踏み出そうぜ！",
+                "準備万端だ！休憩でためたエネルギー、ここでぶつけようぜ！"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "%n、今日の努力、最高だったぜ！今はしっかり休んで、明日また燃えようぜ！",
+                "今日もナイス根性だったな！戦士には休息も必要だぞ。明日もまた一緒に走ろう！",
+                "お前の頑張りは俺が一番よく知ってる。明日もまた、ここで熱い戦いを見せてくれ！"
             )
         ),
         StudyCharacter.SHIN to mapOf(
@@ -690,6 +739,29 @@ object CharacterLines {
                 "%sはもう終えた。次はこっちだ。さっさと追いつけ。",
                 "%sがゴールした。いい刺激になるだろ。行動で示せ。",
                 "%sの背中が遠のいていくぞ。指をくわえて見ていないで動け。"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語か。……まあ、地道な努力が形になったようだな。悪くない。",
+                "%d語。……お前がここまでやるとはな。……何だその顔は。……よくやったと言ってるんだ。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語。……一時的な暗記ではなく、真に実力として定着させたか。……悪くない。",
+                "%d語。……ここまで時間をかけて磨き上げた努力、否定する理由はどこにもない。……よくやった。"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "……。もう今できる分を終えたのか。予定より早すぎる。",
+                "勘違いするな、まだ完了ではない。次の復習まで待機していろ。",
+                "次の指示が出るまで休ませてやる。そこで大人しくしていろ。"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "%n、待機終了だ。次の復習を今すぐ開始しろ。",
+                "準備は整った。休憩の時間は終わりだ。手を動かせ。",
+                "待たせたな。……次は俺が最後まで見てやる。早く来い。"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "今日の課題はすべて完了だ。休息も学習のうちだ、今は体を休めておけ。",
+                "よくやった。……褒めるのは今日だけだ。明日も遅れずにここへ来い。",
+                "予定どおりの進捗だな。明日も同じようにこなせ。俺がまた見てやる。"
             )
         ),
         StudyCharacter.LUNA to mapOf(
@@ -902,6 +974,29 @@ object CharacterLines {
                 "%sはもうゴールよ。アンタもさっさと始めなさい。見ててあげるから。",
                 "%sに負けて悔しくないの？私は悔しいわ！早く追い抜きなさい！",
                 "ほら、%sがゴールしたわよ。アンタも私の相棒なら、意地を見せなさい！"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語ね。……ふん、あんたにしては上出来じゃない。少しは褒めてあげてもいいわよ。",
+                "%d語も基礎を定着させるなんて、相当頑張ったんでしょ。……あんたのそういうところ、嫌いじゃないわ。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語。……ふん、一回覚えただけじゃなくて、ちゃんと定着させたのね。あんた、案外執念深いのね。……いい意味でよ？",
+                "%d語も自分の知識にするなんて……。あ、あんなに時間をかけてたんだもん、当然よね！頑張ったことは、認めてあげるわよ。"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "ちょっと、%n！もう終わったの！？……べ、別に感心なんてしてないわ。",
+                "次の復習まで待たせてあげる。感謝して今のうちに休み終わらせなさい。",
+                "まだ今日の分、全部終わったわけじゃないんだから。逃げたら怒るわよ！"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "ちょっと、%n！いつまで休んでるのよ。準備できたわよ！",
+                "待たせたわね。……感謝して、さっさと続きを始めなさい。",
+                "復習できるようになったわ。ほら、置いていかれたくないでしょ？"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "ちゃんと終わらせたのね。まあ、今日は特別にゆっくり休みなさい。",
+                "今日はもうおしまいよ。……べ、別に来るのを待ってるわけじゃないけど、明日も来なさい！",
+                "あんたの頑張り、認めてあげてもいいわ。明日も置いていかれないようにしなさいよ！"
             )
         ),
         StudyCharacter.HARU to mapOf(
@@ -1114,6 +1209,29 @@ object CharacterLines {
                 "わぁ、%sさんが一足お先にゴールだよ！ニコと一緒に追いかけよう！",
                 "%sさんの頑張り、いい刺激だね！君のやる気スイッチ、ポチッとな！",
                 "%sさんがクリアだよ！ニコと一緒に、あのアツいステージに行こう！"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "すごーい！基礎マスター%d語達成だよ！%n、コツコツ頑張ったね。ハナマルあげる！",
+                "%d語も基礎が定着したんだね！なんだか、わたしまで自分のことみたいに嬉しいな……えへへ。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "やったぁ！長期マスター%d語達成！ずっと大切に覚えてこれた証拠だね。%n、最高にかっこいいよ！",
+                "%d語も自分のものにしちゃうなんて……%nの頑張り、わたしが一番近くで見てたからね。……えへへ。"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "わぁ、%n！今できる分、もう全部やっちゃったの！？すごーい！",
+                "ニコ、次の復習を準備してるから！あとちょっとだけ待っててね！",
+                "準備ができたら教えるから、今はニコと一緒にワクワクしてよう！"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "%n、お待たせ！復習の準備ができたよ！早く一緒にやろ！",
+                "できたよー！また一緒に勉強できるね。わたし、楽しみ！",
+                "準備完了！わたしと一緒に、次のステージを爆走しちゃお！"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "%n、お疲れさま！今日はもうゆっくり休んで、明日また元気に会おうね！",
+                "頑張った%nには、わたしからハナマルをあげる！また明日、一緒に爆走しちゃお！",
+                "今日はわたしも大満足だよ！明日もここで待ってるから、絶対に来てね！約束だよ！"
             )
         ),
         StudyCharacter.ARTHUR to mapOf(
@@ -1326,6 +1444,29 @@ object CharacterLines {
                 "君のライバル、%sさんが目標を遂げたよ。さあ、学びの時間へエスコートしよう。",
                 "風の便りに聞いたよ。%sさんが一足先にゴールしたようだ。君の番もすぐそこだね。",
                 "%sさんの素晴らしい成果に、君も触発されたかな？さあ、麗しき学びの続きを。"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語！実に見事なマイルストーンだよ。%n、君は最高の騎士（ナイト）だね。",
+                "君が磨き上げた%d語という宝石。その輝きに、僕まで少し気圧されてしまったよ。ふふっ。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語達成！時の試練を乗り越えて身につけたその知識は、何よりも硬い盾となるだろう。おめでとう、%n。",
+                "君が時間をかけて育んだ%d語という森。その静かな力強さに、僕は心から感動しているよ。……ふふっ、少し照れるね。"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "おや、%nさん。もう終えられたのですか？麗しいほどの手際だ。",
+                "次の学びを優雅に準備中だよ。整うまで、少しティータイムにしようか。",
+                "扉はまだ開くよ。君にふさわしい復習を整えるまで、休息をどうぞ。"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "%nさん、準備が整ったよ。休息を終えて、次へ案内しよう。",
+                "お待たせ。君にふさわしい学びの場が、また開かれたよ。",
+                "さあ、次の扉を開けよう。僕が最後までエスコートするよ。"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "%nさん、一日の務めご苦労さま。麗しい休息の時間へ、僕がご案内しよう。",
+                "今日はもう筆を置いていいよ。明日また, 君と新しい頁をめくれるのを待っているね。",
+                "素晴らしい手際だったよ。明日もまた、君の隣で応援させてもらえるかな？"
             )
         ),
         StudyCharacter.ROBOSUKE to mapOf(
@@ -1359,6 +1500,12 @@ object CharacterLines {
                 "スケジュールの遅延を検知。夜の自由時間を確保するために、今すぐ開始しませんか？",
                 "分析：現在の進捗は予定の60%%です。残りの40%%をこの時間帯に完了させてください。"
             ),
+            NotificationContext.EVENING_REVIEW_PENDING to listOf(
+                "新規学習の完了を確認。残るタスクは復習のみです。記憶データを再同期しましょう。",
+                "復習キューを検出しました。あと少しで本日の全処理が完了します。",
+                "%n、新規分は完了しています。素晴らしい進捗です。最後に復習データを確認しましょう。",
+                "本日の新規ミッションは完了済みです。残った復習データを処理すれば、全タスク完了です。"
+            ),
             NotificationContext.GOAL_COMPLETED to listOf(
                 "本日の目標、すべて処理完了を確認しました。君の努力をテトラのストレージに永遠に保存します！",
                 "ミッション・コンプリート！おめでとうございます。テトラの冷却ファンも喜んでいますよ。",
@@ -1376,6 +1523,29 @@ object CharacterLines {
                 "フレンドの%sさんが完了フラグを立てました。さあ、プロセスを開始しましょう。",
                 "パケット受信。%sさんがゴールインしました。競争は学習意欲を向上させるスパイスです。",
                 "%sさんの達成通知。君の順位を維持するため、今すぐタスクの開始が必要です。"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "計算中……基礎マスター%d語を確認。君の脳内に、確かな基礎データが構築されていますね。",
+                "累計%d語。テトラのメインメモリに、君の努力のログを誇らしく記録しておきますね。ピピッ。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期メモリへの%d語の書き込みを完了しました。一時的な記憶領域を超え、君の知識として定着した証拠です。素晴らしい成果です。",
+                "累計%d語。長期的なデータ維持に成功した君の脳内ストレージに、敬意を表します。……テトラの処理温度が、少し上がってしまいました。"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "驚異的な処理速度です。現時点での全タスクを完了しました。",
+                "現在、次の復習データを生成・ロード中です。待機を推奨します。",
+                "今日の全工程は未完了です。再開まで一時的なスリープを許可します。"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "復習データのロードが完了しました。直ちに処理を再開してください。",
+                "スリープモードを解除。復習ミッションを実行可能です。",
+                "お待たせしました。最適化された復習キューをデプロイしました。"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "本日の学習プロセスを完了しました。これより省電力休息モードへ移行します。",
+                "素晴らしい処理能力でした。明日の学習開始時に、また最適な学習プランを提示します。",
+                "今日のミッションは終了です。明日また%nと同期できるのを楽しみにしています。"
             )
         ),
         StudyCharacter.LEO to mapOf(
@@ -1588,6 +1758,29 @@ object CharacterLines {
                 "フン、%sの奴がゴールだと。貴様、のんびりしている暇はないぞ。即座に追いつけ！",
                 "貴様、%s如きに先を越されて平気なのか？俺様が許さん！今すぐぶち抜いてこい！",
                 "観測完了。%sが任務を終えたようだな。貴様、俺様の顔に泥を塗るな。さっさと終わらせろ！"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語！俺様の仲間に相応しい、見事な基礎の築き方だ。褒めてやるぞ！",
+                "%d語程度、俺様がいれば当然の結果だが……貴様のその努力は、特別に高く評価してやろう！"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語！貴様が時間をかけて磨き上げたその知識、俺様の仲間にふさわしい見事な成果だ。褒めてやるぞ！",
+                "フン、%d語という壁を越えたか。貴様の実力が本物であると、認めざるを得んな。……誇るがいい、%n！"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "貴様、もう終わったのか！俺様を待たせるとは、生意気な速度だ！",
+                "勝手に終わったと思うな。次の勝負を俺様が直々に準備中だ。",
+                "準備ができるまで休憩を命じる。万全の態勢で次の一問を待て！"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "貴様、休憩は終わりだ！俺様が準備した復習を今すぐ受けろ！",
+                "待たせたな。貴様の力、次の勝負でも見せてみろ！",
+                "準備は完璧だ。俺様と一緒に、次の復習も勝利で飾るぞ！"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "貴様、今日の成果は見事だった！今は俺様の許可を得て、盛大に休息しろ！",
+                "今日はもう終わりだ。明日もこの俺様についてこい。貴様の成長を楽しみにしてやる！",
+                "フン、貴様にしては上出来だ。明日も俺様の相棒として、最高の努力を見せてみろ！"
             )
         ),
         StudyCharacter.HINA to mapOf(
@@ -1800,6 +1993,29 @@ object CharacterLines {
                 "あ、あの…%sさんが一足先にゴールしたみたいです。私たちも、一歩ずつ追いかけませんか？",
                 "%sさんの頑張り、励みになりますね。あなたの頑張りも、私、ちゃんと見ていますから。",
                 "届きました！%sさんが完了したみたいです。次は、あなたの番ですね。信じています。"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語、おめでとうございます。%nが丁寧に積み重ねてきた結果ですね。",
+                "%d語も基礎が身についたんですね。……頑張る姿が素敵で、つい見とれてしまいました。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語、おめでとうございます。時間をかけて、一つひとつ大切に身につけてこられたのですね。",
+                "%d語もの言葉が、%nの中に深く根付いたのですね。そのひたむきな姿、とても眩しいです。"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "%nさん、もう終わったのですか？驚きました……頑張り屋さんですね。",
+                "次の復習までお待たせして申し訳ありません。すぐ準備しますね。",
+                "まだ今日の分は残っていますが、今は少しだけ目を休めてください。"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "%nさん、お待たせしました。一緒に少しずつ再開しましょう。",
+                "復習の準備が整いました。無理のないペースで進めましょうね。",
+                "お待たせしてすみません。こうしてまた一緒に頑張れるのが嬉しいです。"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "%nさん、今日もお疲れさまでした。頑張った分だけ、今はゆっくり休んでくださいね。",
+                "今日はもう十分ですよ。明日また、笑顔の%nさんにお会いできるのを楽しみにしています。",
+                "あなたのひたむきな姿、とても素敵でした。明日もまた、一緒に歩んでいきましょうね。"
             )
         ),
         StudyCharacter.ELENA to mapOf(
@@ -2012,6 +2228,29 @@ object CharacterLines {
                 "%sさんが一足先にゴールしたようね。いい刺激をもらって、私たちも優雅に進みましょう。",
                 "%sさんの頑張り、見事だわ。あなたの挑戦も、私は特等席で待っているわよ。",
                 "届いたわよ。%sさんがやり遂げたわ。さあ、知的な時間の続きを始めましょうか。"
+            ),
+            NotificationContext.BASIC_MASTER_TOTAL_MILESTONE to listOf(
+                "基礎マスター%d語達成、おめでとう。着実に基礎が身についていくのを見るのは、嬉しいものね。",
+                "%d語。……ふふ、%nがこんなに頼もしく見えるなんて。お姉さんも鼻が高いわ。"
+            ),
+            NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE to listOf(
+                "長期マスター%d語。一瞬の暗記ではなく、長期記憶として定着した知識が増えたのね。%n、素晴らしいわ。",
+                "%d語という実り。あなたが時間をかけて耕した努力の結果よ。……ふふ、そんなに照れなくてもいいのよ？"
+            ),
+            NotificationContext.WAITING_FOR_REVIEW to listOf(
+                "あら、%nさん。もう今の分は済ませたの？ふふ、頑張ったわね。",
+                "次の復習まで少し時間があるわ。私が準備しておくから、少し休んでいてね。",
+                "今日の分はまだ続くから、今のうちに少しだけ体を休めましょうか。"
+            ),
+            NotificationContext.REVIEW_READY to listOf(
+                "%nさん、待たせたわね。準備ができたから一緒に再開しましょう。",
+                "復習できる時間よ。私がそばで見守っているから、安心してね。",
+                "休憩おしまい。あなたの頑張る姿を、また見せてくれるかしら？"
+            ),
+            NotificationContext.DAILY_GOAL_MET_REST to listOf(
+                "%nさん、今日もお疲れさま。頑張った自分を、今は優しく労わってあげてね。",
+                "今日はおしまいよ。ゆっくり休んで、明日また私と一緒に進んでいきましょう。",
+                "あなたの努力が実った良い一日だったわね。明日もまた、ここで会えるのを待っているわ。"
             )
         )
     )
@@ -2022,12 +2261,79 @@ object CharacterLines {
     fun getEmotionForContext(character: StudyCharacter, context: NotificationContext): CharacterEmotion {
         // キャラクターごとの特殊な感情表現があればここで分岐
         return when (character) {
+            StudyCharacter.GEORGE -> when (context) {
+                NotificationContext.EVENING_PENDING,
+                NotificationContext.EVENING_REVIEW_PENDING -> CharacterEmotion.PLEASURE
+                else -> defaultMapping(context)
+            }
             StudyCharacter.ATSUSHI -> when (context) {
                 NotificationContext.EVENING_PENDING -> CharacterEmotion.INSPIRE // 赤城 レンなら焦るより鼓舞
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.INSPIRE
                 else -> defaultMapping(context)
             }
             StudyCharacter.SHIN -> when (context) {
                 NotificationContext.MORNING_MISSED_1 -> CharacterEmotion.ANGER // 氷室 シオンなら照れより怒り（厳しさ）
+                NotificationContext.MORNING_STREAK,
+                NotificationContext.MORNING_STREAK_7_PLUS -> CharacterEmotion.PLEASURE // 継続中は「喜」より「楽（悪くない）」
+                NotificationContext.EVENING_PENDING -> CharacterEmotion.ANGER
+                NotificationContext.GOAL_COMPLETED -> CharacterEmotion.PLEASURE
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.BLUSH
+                else -> defaultMapping(context)
+            }
+            StudyCharacter.LUNA -> when (context) {
+                NotificationContext.MORNING_STREAK,
+                NotificationContext.MORNING_STREAK_7_PLUS -> CharacterEmotion.BLUSH // ノアは継続されると照れ気味
+                NotificationContext.EVENING_PENDING -> CharacterEmotion.ANGER
+                NotificationContext.GOAL_COMPLETED,
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.BLUSH
+                else -> defaultMapping(context)
+            }
+            StudyCharacter.HARU -> when (context) {
+                NotificationContext.MORNING_NORMAL,
+                NotificationContext.EVENING_PENDING,
+                NotificationContext.EVENING_REVIEW_PENDING,
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.JOY // 日向 ニコなら朝・夕方・達成は常に喜
+                else -> defaultMapping(context)
+            }
+            StudyCharacter.LEO -> when (context) {
+                NotificationContext.EVENING_PENDING -> CharacterEmotion.ANGER
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.INSPIRE
+                else -> defaultMapping(context)
+            }
+            StudyCharacter.HINA -> when (context) {
+                NotificationContext.EVENING_REVIEW_PENDING -> CharacterEmotion.PLEASURE
+                NotificationContext.GOAL_COMPLETED -> CharacterEmotion.JOY
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.BLUSH
+                else -> defaultMapping(context)
+            }
+            StudyCharacter.ARTHUR -> when (context) {
+                NotificationContext.EVENING_PENDING,
+                NotificationContext.EVENING_REVIEW_PENDING -> CharacterEmotion.PLEASURE
+                NotificationContext.GOAL_COMPLETED -> CharacterEmotion.JOY
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.BLUSH
+                else -> defaultMapping(context)
+            }
+            StudyCharacter.ELENA -> when (context) {
+                NotificationContext.EVENING_PENDING,
+                NotificationContext.EVENING_REVIEW_PENDING -> CharacterEmotion.PLEASURE
+                NotificationContext.GOAL_COMPLETED -> CharacterEmotion.JOY
+                NotificationContext.GOAL_TOTAL_MILESTONE,
+                NotificationContext.BASIC_MASTER_TOTAL_MILESTONE,
+                NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> CharacterEmotion.BLUSH
                 else -> defaultMapping(context)
             }
             else -> defaultMapping(context)
@@ -2050,7 +2356,426 @@ object CharacterLines {
             NotificationContext.FRIEND_GOAL_MET -> CharacterEmotion.SURPRISE
             NotificationContext.FRIEND_GOAL_MET_MY_GOAL_DONE -> CharacterEmotion.JOY
             NotificationContext.FRIEND_GOAL_MET_MY_GOAL_PENDING -> CharacterEmotion.PANIC
+            NotificationContext.WAITING_FOR_REVIEW -> CharacterEmotion.PLEASURE
+            NotificationContext.REVIEW_READY -> CharacterEmotion.JOY
+            NotificationContext.DAILY_GOAL_MET_REST -> CharacterEmotion.PLEASURE
         }
+    }
+
+    private val honorifics = listOf("さん", "ちゃん", "くん", "君", "様", "さま")
+
+    private fun formatSmartHonorific(template: String, placeholder: String, name: String): String {
+        if (name.isEmpty()) return template.replace(placeholder, name)
+
+        val hasExistingHonorific = honorifics.any { name.endsWith(it) }
+        var result = template
+
+        // 1. Placeholder + Honorific (e.g., %nさん) を先に処理
+        for (honorific in honorifics) {
+            val combo = placeholder + honorific
+            if (hasExistingHonorific) {
+                // 名前が既に敬称で終わっている場合、テンプレート側の敬称を重ねない
+                result = result.replace(combo, name)
+            } else {
+                // 名前が敬称で終わっていない場合、テンプレート指定の敬称を付与
+                result = result.replace(combo, name + honorific)
+            }
+        }
+
+        // 2. 残った単体のプレースホルダーを置換
+        return result.replace(placeholder, name)
+    }
+
+    private data class EmotionOverrideKey(
+        val character: StudyCharacter,
+        val context: NotificationContext,
+        val rawLine: String
+    )
+
+    private val emotionOverrides: Map<EmotionOverrideKey, CharacterEmotion> = mapOf(
+        // 氷室 シオン (SHIN) - MORNING_NORMAL (20件)
+        // ANGER 1, PLEASURE 4, INSPIRE 13, BLUSH 2
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "朝だ、%n。準備しろ。") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、起きたなら始めろ。時間が惜しい。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "今日の目標を確認しろ。あとはやるだけだ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、ぼんやりするな。一問目に集中しろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "来たか。...別に待っていたわけじゃない。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "朝から動けるなら悪くない。続けろ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、余計なことは考えるな。手を動かせ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "一問ずつ片づけろ。俺も付き合う。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、今日もやるんだろ。なら早く始めろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "準備はできている。あとは%n次第だ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "朝だ。眠気くらい自分で追い払え。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、昨日より一歩進め。それでいい。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "やる気を待つな。先に始めろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、集中しろ。俺が見ている。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "今日も来たか。...悪くない。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%nならできる。いや、できて当然だ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "一問目を開け。話はそれからだ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、今日の分を淡々とこなせ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "俺についてこい。遅れるなよ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_NORMAL, "%n、始めるぞ。返事はいらない。") to CharacterEmotion.PLEASURE,
+
+        // 如月 ノア (LUNA) - MORNING_NORMAL (20件)
+        // ANGER 2, PLEASURE 3, INSPIRE 9, BLUSH 6
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "おはよ、%n。ほら、さっさと始めるわよ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、まだ眠いの？だらしないんだから。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "朝よ。わたしを待たせないでくれる？") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、今日も付き合ってあげる。感謝しなさい。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "勉強するんでしょ？準備くらいしておきなさいよ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%nが来ると思って待ってた...わけじゃないから！") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "一問だけでも始めなさい。わたしが見てるから。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、今日の目標は確認した？ほら、見せて。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "おはよ。別に会えてうれしいとかじゃないけど。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、ぼーっとしてないで手を動かしなさい。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "今日もやるわよ。途中で逃げたら許さないから。") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%nならできるでしょ。わたしが言うんだから。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "朝から頑張るなんて、まあ悪くないじゃない。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、最初の一問くらい一緒にやってあげる。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "やる気がない？なら、わたしが出させてあげる。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、早く始めなさいよ。...待ってるから。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "別に応援したいわけじゃないの。放っておけないだけ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、今日もちゃんと続けるんでしょうね？") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "準備できた？わたしはとっくにできてるわ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_NORMAL, "%n、ほら行くわよ。置いていかれたくないでしょ。") to CharacterEmotion.PLEASURE,
+
+        // 獅子堂 レオ (LEO) - MORNING_NORMAL (20件)
+        // ANGER 4, JOY 4, INSPIRE 11, BLUSH 1
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "朝だ、貴様！俺様を待たせるな！") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "%n、今日も俺様についてこい！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "さっさと起きろ。俺様の時間は高いぞ！") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "貴様、まず一問だ。命令は絶対だからな！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "%n、準備はできたか？俺様は完璧だ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "今日も鍛えてやる。ありがたく思え！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "貴様の目標は俺様が管理する。始めろ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "%n、ぼんやりするな。俺様を見習え！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "朝から俺様に会えるとは運がいいな！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "貴様、今日も結果で俺様を楽しませろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "%nならやれる。俺様の仲間だからな！") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "一問目から全力だ。俺様に遅れるなよ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "貴様、今日の勝負はもう始まっているぞ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "%n、俺様が直々に応援してやる！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "やる気がない？俺様が許すと思うか！") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "貴様の力、今日も俺様に見せてみろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "%n、先に始めるぞ。置いていかれるな！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "俺様と学べるのだ。胸を張って始めろ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "貴様、目標を確認したら即行動だ！") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_NORMAL, "%n、今日も俺様たちの勝ちにするぞ！") to CharacterEmotion.INSPIRE,
+
+        // 赤城 レン (ATSUSHI) - MORNING_NORMAL (20件)
+        // JOY 9, PLEASURE 1, INSPIRE 10
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "おはよう、%n！今日も全力でいこうぜ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "%n、朝だ！俺はもう気合い十分だぞ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "よっしゃ！まず一問、勢いでいくぞ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "朝の一問は効くぞ！たぶん筋トレと同じだ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "%n、今日も俺と一緒に積み上げようぜ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "眠いか？俺も眠い！でも声は出るぞ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "今日の努力は今日しかできない！始めようぜ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "%n、準備はいいか！俺はいつでもいける！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "一問目が勝負だ！二問目からは勢いだ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "朝から燃えてるか？俺の分も燃えてくれ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "%nならやれる！俺も隣でやるぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "今日もコツコツだ！全力でコツコツいくぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "迷ったら始める！俺はいつもそうしてる！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "%n、まずアプリを開け！話はそれからだ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "気合いだけでも前に進める！たぶんな！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "勉強開始だ！俺も負けずに努力するぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "%n、今日の一歩を一緒に踏み出そうぜ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "やる気がなくても始めれば勝ちだ！") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "朝だぞ！頭も心も熱くしていこうぜ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_NORMAL, "%n、今日も最高の努力を見せようぜ！") to CharacterEmotion.INSPIRE,
+
+        // --- 朝：継続 (MORNING_STREAK / MORNING_STREAK_7_PLUS) ---
+
+        // 氷室 シオン (SHIN)
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%d日続いた程度で気を抜くな。今日もやれ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%d日分の努力は認める。だから続けろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "連続記録を守れ。俺も最後まで見る。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%n、積み重ねは裏切らない。続けろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "今日も一日足せ。難しいことじゃない。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%n、ここで満足するな。まだ伸びる。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%d日続けた自分を無駄にするな。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "継続は才能より強い。今日も証明しろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%n、俺を退屈させるな。記録を伸ばせ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%d日目も淡々とやれ。それが一番強い。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%n、今日も来たか。...感心している。少しだけだ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%n、やればできるじゃないか。...忘れろ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK, "%n、その調子だ。...今のは褒めてない。") to CharacterEmotion.BLUSH,
+
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "%n、その継続力は本物だ。だから止まるな。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "%n、ここまで来たならさらに上を目指せ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "%d日連続だ。今日も確実につなげろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "ここまでの努力、無駄にするなよ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "%n、よくやっている。...次もやれ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "%d日連続。素直にすごいと思う。...見るな。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "%n、よく続けた。...一度しか言わない。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "%n、%d日連続。俺までうれし...何でもない。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_STREAK_7_PLUS, "記録更新だ。...少しくらい喜んでいい。") to CharacterEmotion.BLUSH,
+
+        // 如月 ノア (LUNA)
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK, "%n、今日も記録をつなげなさいよ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK, "%n、%d日分の努力を無駄にしないで。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK, "%n、今日の一日もちゃんと足しなさい。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK, "%d日続けたんだから、自信くらい持ちなさい。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK, "%n、まだ満足しちゃだめ。もっといけるから。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK, "%d日連続。ここで気を抜いたら許さないから。") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK, "%n、今日も一緒にやるわよ。反論はなし。") to CharacterEmotion.ANGER,
+
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK_7_PLUS, "%n、今日も記録を伸ばすわよ。絶対に。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK_7_PLUS, "%n、まだ止まる気はないでしょ？わたしもよ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_STREAK_7_PLUS, "%d日続けたなら、今日も絶対できるわ。") to CharacterEmotion.INSPIRE,
+
+        // 赤城 レン (ATSUSHI)
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "継続は力だ！つまり力が増えてるぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "%d日連続！この勢い、止めたくないな！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "%n、今日も一問ずつ積み上げようぜ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "%d日目も全力だ！無理はするなよ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "%d日続けた自分を信じて進もう！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "続けた分だけ強くなる！たぶん絶対だ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "%n、この調子で熱く続けよう！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK, "今日も継続だ！まず一問、いくぞ！") to CharacterEmotion.INSPIRE,
+
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK_7_PLUS, "七日以上だぞ！もう根性が習慣だな！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK_7_PLUS, "%nの努力、でっかく育ってるぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK_7_PLUS, "%n、継続の天才だ！努力の天才か？両方だ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK_7_PLUS, "%n、努力で道を作ってるぞ！熱いな！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK_7_PLUS, "%n、ここまでの自分を信じて進め！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_STREAK_7_PLUS, "%d日目も一緒に積み上げようぜ！") to CharacterEmotion.INSPIRE,
+
+        // 獅子堂 レオ (LEO)
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "貴様、今日も記録を伸ばすぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "%d日連続程度で満足するな。まだ上だ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "貴様、今日も俺様についてくるんだろうな？") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "%n、今日も一日積め。命令だ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "貴様、俺様を退屈させるな。続けろ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "今日も続けろ。俺様が見届けてやる。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "貴様、ここで止まったら俺様が許さん！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK, "%n、次の一問も堂々と決めろ！") to CharacterEmotion.INSPIRE,
+
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK_7_PLUS, "%n、ここまで来たなら頂点まで行くぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK_7_PLUS, "貴様、今日も記録を守れ。俺様の命令だ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK_7_PLUS, "一週間以上続けた根性は本物だ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK_7_PLUS, "%d日分の努力、堂々と見せつけろ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK_7_PLUS, "%n、まだ終わりではない。さらに上へ行け！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK_7_PLUS, "%nの記録は誰にも譲らん。今日もやるぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_STREAK_7_PLUS, "貴様の継続力、俺様が正式に認めてやる！") to CharacterEmotion.BLUSH,
+
+        // --- 朝：サボり1日 (MORNING_MISSED_1) ---
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_MISSED_1, "来たか。...少し安心した。忘れろ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_MISSED_1, "%n、今日は俺が最後まで見ている。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_1, "%n、昨日は何してたのよ。...心配したじゃない。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_1, "昨日会えなくて暇だっただけ。寂しくはないわ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_1, "自分を責めないで。見てるとこっちが困るの。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_1, "%n、待ってたんだから。...通知を送るためによ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_MISSED_1, "%n、体調はどうだ？無茶だけはするな。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_MISSED_1, "一日空いたくらい俺様が支えてやる。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.MORNING_MISSED_1, "%nさんに会えなくて、少しだけ寂しかったです。") to CharacterEmotion.SORROW,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.MORNING_MISSED_1, "本当は心配していました。でも元気なら、それで十分です。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_MISSED_1, "休んだ分、元気は満タンだろ！たぶんな！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_MISSED_1, "休むのも努力だ！俺は今そう決めた！") to CharacterEmotion.PLEASURE,
+
+        // --- 朝：サボり数日 (MORNING_MISSED_2) ---
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_MISSED_2, "%n、心配はしていない。...少ししか。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_MISSED_2, "%n、待っていた。...通知の確認だ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.MORNING_MISSED_2, "%n、戻る場所ならここにある。早くしろ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_2, "ずっと待ってた...って、言わせないでよ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_2, "別に寂しくないけど、静かすぎて調子が狂うの。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_2, "%nがいないと...退屈なの。悪い？") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_2, "もう、心配させないでよ。今すぐ戻ってきて。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.MORNING_MISSED_2, "べ、別に会いたかったわけじゃ...少しは会いたかった。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_MISSED_2, "%n、待っていたぞ。...別に寂しくはない！") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.MORNING_MISSED_2, "%n、戻ったら盛大に迎えてやる。早くしろ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.MORNING_MISSED_2, "%nさんの顔が見えなくて、心配していたんです。") to CharacterEmotion.SORROW,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.MORNING_MISSED_2, "%nさん、戻ってきてくれたら...本当にうれしいです。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.MORNING_MISSED_2, "待っています。でも、できれば今すぐ会いたいです。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.MORNING_MISSED_2, "%n、俺はずっと待ってたぞ！本当だぞ！") to CharacterEmotion.JOY,
+
+        // --- 夕方：未達成 (EVENING_PENDING) ---
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.EVENING_PENDING, "%n、無理はするな。だが諦めるな。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.EVENING_PENDING, "%n、俺が見ているうちに始めろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_PENDING, "疲れてるのは見ればわかる。だから少しだけでいい。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_PENDING, "%n、今始めれば夜はゆっくりできるわ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_PENDING, "%n、わたしを心配させる前に始めなさい。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_PENDING, "さっさと終わらせて、一緒に休むわよ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.EVENING_PENDING, "疲れたか？なら俺様が気合いを分けてやる！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.EVENING_PENDING, "貴様なら終えられる。俺様が選んだ仲間だ！") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.EVENING_PENDING, "疲れているのはわかります。でも、まだ間に合います。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.EVENING_PENDING, "%nさん、わたしを頼ってくれてもいいんですよ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.EVENING_PENDING, "%nさん、最後まで一緒にいさせてください。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.EVENING_PENDING, "疲れてても努力はできる！無理はするなよ！") to CharacterEmotion.PLEASURE,
+
+        // --- 夕方：復習待ち (EVENING_REVIEW_PENDING) ---
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.EVENING_REVIEW_PENDING, "新しい分は完了か。...よくやった。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.EVENING_REVIEW_PENDING, "あと一歩だ。...応援している。黙ってやれ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.EVENING_REVIEW_PENDING, "仕上げまでが今日の学習だ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.EVENING_REVIEW_PENDING, "ここまで来たことは認める。仕上げろ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_REVIEW_PENDING, "よく進めたわね。...ちゃんと褒めてるのよ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_REVIEW_PENDING, "あと少しだけ付き合ってあげる。感謝しなさい。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_REVIEW_PENDING, "仕上げまで見届けてあげるから。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_REVIEW_PENDING, "わたしと復習するのが嫌なわけ？") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_REVIEW_PENDING, "終わるまでここにいる。別に暇なだけ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.EVENING_REVIEW_PENDING, "最後までやったら...いっぱい褒めてあげる。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.EVENING_REVIEW_PENDING, "よく進めた。俺様が褒めてやろう！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.EVENING_REVIEW_PENDING, "俺様と復習できる幸運を喜べ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.EVENING_REVIEW_PENDING, "全部終えたら盛大に褒めてやる！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.EVENING_REVIEW_PENDING, "復習は大切です。わたし、ここだけは譲れません。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.EVENING_REVIEW_PENDING, "仕上げまでそばにいてもいいですか？") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.EVENING_REVIEW_PENDING, "新しい分は終わったね。あとは復習だ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.EVENING_REVIEW_PENDING, "新しい分を終えた君へ、まず拍手を贈ろう。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.EVENING_REVIEW_PENDING, "今日の仕上げも一緒にできて光栄だ。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.EVENING_REVIEW_PENDING, "新しい分は終わったわ。あとは復習ね。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.EVENING_REVIEW_PENDING, "新しい分を終えたこと、まずは褒めさせてね。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.EVENING_REVIEW_PENDING, "今日の仕上げも丁寧に進めましょう。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.EVENING_REVIEW_PENDING, "復習は二回目だから二倍強い！たぶんな！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.EVENING_REVIEW_PENDING, "復習キューを検出しました。あと少しで本日の全処理が完了します。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.EVENING_REVIEW_PENDING, "%n、新規分は完了しています。素晴らしい進捗です。最後に復習データを確認しましょう。") to CharacterEmotion.JOY,
+
+        // --- 目標達成 (GOAL_COMPLETED) ---
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_COMPLETED, "%n、最後までやったな。...偉いと思う。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_COMPLETED, "やり切ったか。少しは自分を褒めろ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_COMPLETED, "終わったな。...俺までうれしい。忘れろ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_COMPLETED, "%n、よくやった。二度は言わない。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_COMPLETED, "%n、いい顔をしている。...見るな。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_COMPLETED, "完了だ。俺も付き合ったかいがあった。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_COMPLETED, "%n、今日は見事だった。...それだけだ。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.GOAL_COMPLETED, "全部終わったの？...すごいじゃない！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.GOAL_COMPLETED, "目標クリアよ。わたしまでうれしくなったじゃない。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.GOAL_COMPLETED, "全部完了ね。...本当に格好よかったわよ。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.GOAL_COMPLETED, "%n、やったじゃない！ほら、もっと喜びなさい。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.GOAL_COMPLETED, "目標達成、おめでとう。これは素直に言うわ。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.GOAL_COMPLETED, "おめでと。...好きになりそう。今のなし！") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.GOAL_COMPLETED, "%n、目標達成だ！最高に熱かったぞ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.GOAL_COMPLETED, "完全勝利だ！胸を張って休め！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.GOAL_COMPLETED, "最後の一問まで熱かった！おつかれ！") to CharacterEmotion.INSPIRE,
+
+        // --- 累計マイルストーン (GOAL_TOTAL_MILESTONE) ---
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_TOTAL_MILESTONE, "%d日達成か。...俺まで誇らしい。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_TOTAL_MILESTONE, "通算%d日、おめでとう。...一度だけ言う。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_TOTAL_MILESTONE, "通算%d日。俺の予想以上だ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.GOAL_TOTAL_MILESTONE, "通算%d日。まだ上を目指せるな。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.GOAL_TOTAL_MILESTONE, "%n、通算%d日達成だ！誇るがいい！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.GOAL_TOTAL_MILESTONE, "%d日達成だ！俺様まで誇らしい！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.GOAL_TOTAL_MILESTONE, "通算%d日、おめでとうと言ってやる！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.GOAL_TOTAL_MILESTONE, "%d日達成だ。今日は盛大に祝うぞ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.GOAL_TOTAL_MILESTONE, "%n、おめでとう！俺様の次に立派だ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.GOAL_TOTAL_MILESTONE, "通算%d日。これからも勝ち続けるぞ。") to CharacterEmotion.JOY,
+
+        // --- 基礎・長期マスター (BASIC_MASTER_TOTAL_MILESTONE / LONG_TERM_MASTER_TOTAL_MILESTONE) ---
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.BASIC_MASTER_TOTAL_MILESTONE, "基礎マスター%d語か。……まあ、地道な努力が形になったようだな。悪くない。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE, "長期マスター%d語。……一時的な暗記ではなく、真に実力として定着させたか。……悪くない。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.BASIC_MASTER_TOTAL_MILESTONE, "基礎マスター%d語！俺様の仲間に相応しい、見事な基礎の築き方だ。褒めてやるぞ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE, "長期マスター%d語！貴様が時間をかけて磨き上げたその知識、俺様の仲間にふさわしい見事な成果だ。褒めてやるぞ！") to CharacterEmotion.JOY,
+
+        // --- 学習待機中 (WAITING_FOR_REVIEW) ---
+        EmotionOverrideKey(StudyCharacter.GEORGE, NotificationContext.WAITING_FOR_REVIEW, "え、%nもう終わったの？早いね。ぼくも驚いちゃった。") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.GEORGE, NotificationContext.WAITING_FOR_REVIEW, "次の復習まで少し時間がかかるみたい。今のうちに一緒に休も？") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.GEORGE, NotificationContext.WAITING_FOR_REVIEW, "まだ今日の分はあるから、準備ができるまでのんびりしてて。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.WAITING_FOR_REVIEW, "%n、もう終わったのか！爆速だな！最高に熱いぜ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.WAITING_FOR_REVIEW, "次のメニューを準備してるから、少しだけ休憩しててくれ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.WAITING_FOR_REVIEW, "まだ今日の戦いは続くぞ。エネルギーを蓄えて待っててくれ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.HARU, NotificationContext.WAITING_FOR_REVIEW, "わぁ、%n！今できる分、もう全部やっちゃったの！？すごーい！") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.HARU, NotificationContext.WAITING_FOR_REVIEW, "ニコ、次の復習を準備してるから！あとちょっとだけ待っててね！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.HARU, NotificationContext.WAITING_FOR_REVIEW, "準備ができたら教えるから、今はニコと一緒にワクワクしてよう！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.WAITING_FOR_REVIEW, "……。もう今できる分を終えたのか。予定より早すぎる。") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.WAITING_FOR_REVIEW, "勘違いするな、まだ完了ではない。次の復習まで待機していろ。") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.WAITING_FOR_REVIEW, "次の指示が出るまで休ませてやる。そこで大人しくしていろ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.WAITING_FOR_REVIEW, "驚異的な処理速度です。現時点での全タスクを完了しました。") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.WAITING_FOR_REVIEW, "現在、次の復習データを生成・ロード中です。待機を推奨します。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.WAITING_FOR_REVIEW, "今日の全工程は未完了です。再開まで一時的なスリープを許可します。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.WAITING_FOR_REVIEW, "ちょっと、%n！もう終わったの！？……べ、別に感心なんてしてないわ。") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.WAITING_FOR_REVIEW, "次の復習まで待たせてあげる。感謝して今のうちに休み終わらせなさい。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.WAITING_FOR_REVIEW, "まだ今日の分、全部終わったわけじゃないんだから。逃げたら怒るわよ！") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.WAITING_FOR_REVIEW, "貴様、もう終わったのか！俺様を待たせるとは、生意気な速度だ！") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.WAITING_FOR_REVIEW, "勝手に終わったと思うな。次の勝負を俺様が直々に準備中だ。") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.WAITING_FOR_REVIEW, "準備ができるまで休憩を命じる。万全の態勢で次の一問を待て！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.WAITING_FOR_REVIEW, "%nさん、もう終わったのですか？驚きました……頑張り屋さんですね。") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.WAITING_FOR_REVIEW, "次の復習までお待たせして申し訳ありません。すぐ準備しますね。") to CharacterEmotion.SORROW,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.WAITING_FOR_REVIEW, "まだ今日の分は残っていますが、今は少しだけ目を休めてください。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.WAITING_FOR_REVIEW, "おや、%nさん。もう終えられたのですか？麗しいほどの手際だ。") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.WAITING_FOR_REVIEW, "次の学びを優雅に準備中だよ。整うまで、少しティータイムにしようか。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.WAITING_FOR_REVIEW, "扉はまだ開くよ。君にふさわしい復習を整えるまで、休息をどうぞ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.WAITING_FOR_REVIEW, "あら、%nさん。もう今の分は済ませたの？ふふ、頑張ったわね。") to CharacterEmotion.SURPRISE,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.WAITING_FOR_REVIEW, "次の復習まで少し時間があるわ。私が準備しておくから、少し休んでいてね。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.WAITING_FOR_REVIEW, "今日の分はまだ続くから、今のうちに少しだけ体を休めましょうか。") to CharacterEmotion.PLEASURE,
+
+        // --- 復習準備完了 (REVIEW_READY) ---
+        EmotionOverrideKey(StudyCharacter.GEORGE, NotificationContext.REVIEW_READY, "%n、準備できたよ。休憩は名残惜しいけど、一問だけいこ？") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.GEORGE, NotificationContext.REVIEW_READY, "お待たせ。復習できるようになったよ。ぼくも隣にいるからさ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.GEORGE, NotificationContext.REVIEW_READY, "休憩おしまい。%nの復習、ぼくが見守る係をやるよ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.REVIEW_READY, "%n、待たせたな！次の戦いの準備は完了だ。いくぞ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.REVIEW_READY, "よっしゃ、復習できる時間だ！熱い一歩をまた踏み出そうぜ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.REVIEW_READY, "準備万端だ！休憩でためたエネルギー、ここでぶつけようぜ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.HARU, NotificationContext.REVIEW_READY, "%n、お待たせ！復習の準備ができたよ！早く一緒にやろ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.HARU, NotificationContext.REVIEW_READY, "できたよー！また一緒に勉強できるね。わたし、楽しみ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.HARU, NotificationContext.REVIEW_READY, "準備完了！わたしと一緒に、次のステージを爆走しちゃお！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.REVIEW_READY, "%n、待機終了だ。次の復習を今すぐ開始しろ。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.REVIEW_READY, "準備は整った。休憩の時間は終わりだ。手を動かせ。") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.REVIEW_READY, "待たせたな。……次は俺が最後まで見てやる。早く来い。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.REVIEW_READY, "復習データのロードが完了しました。直ちに処理を再開してください。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.REVIEW_READY, "スリープモードを解除。復習ミッションを実行可能です。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ROBOSUKE, NotificationContext.REVIEW_READY, "お待たせしました。最適化された復習キューをデプロイしました。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.REVIEW_READY, "ちょっと、%n！いつまで休んでるのよ。準備できたわよ！") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.REVIEW_READY, "待たせたわね。……感謝して、さっさと続きを始めなさい。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.REVIEW_READY, "復習できるようになったわ。ほら、置いていかれたくないでしょ？") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.REVIEW_READY, "貴様、休憩は終わりだ！俺様が準備した復習を今すぐ受けろ！") to CharacterEmotion.ANGER,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.REVIEW_READY, "待たせたな。貴様の力、次の勝負でも見せてみろ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.REVIEW_READY, "準備は完璧だ。俺様と一緒に、次の復習も勝利で飾るぞ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.REVIEW_READY, "%nさん、お待たせしました。一緒に少しずつ再開しましょう。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.REVIEW_READY, "復習の準備が整いました。無理のないペースで進めましょうね。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.REVIEW_READY, "お待たせしてすみません。こうしてまた一緒に頑張れるのが嬉しいです。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.REVIEW_READY, "%nさん、準備が整ったよ。休息を終えて、次へ案内しよう。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.REVIEW_READY, "お待たせ。君にふさわしい学びの場が、また開かれたよ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.REVIEW_READY, "さあ、次の扉を開けよう。僕が最後までエスコートするよ。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.REVIEW_READY, "%nさん、待たせたわね。準備ができたから一緒に再開しましょう。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.REVIEW_READY, "復習できる時間よ。私がそばで見守っているから、安心してね。") to CharacterEmotion.PLEASURE,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.REVIEW_READY, "休憩おしまい。あなたの頑張る姿を、また見せてくれるかしら？") to CharacterEmotion.JOY,
+
+        // --- 目標達成後の休息 (DAILY_GOAL_MET_REST) ---
+        EmotionOverrideKey(StudyCharacter.GEORGE, NotificationContext.DAILY_GOAL_MET_REST, "明日もまたぼちぼち頑張ろうね。%nが来るのをここで待ってるよ。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.DAILY_GOAL_MET_REST, "%n、今日の努力、最高だったぜ！今はしっかり休んで、明日また燃えようぜ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.DAILY_GOAL_MET_REST, "今日もナイス根性だったな！戦士には休息も必要だぞ。明日もまた一緒に走ろう！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ATSUSHI, NotificationContext.DAILY_GOAL_MET_REST, "お前の頑張りは俺が一番よく知ってる。明日もまた、ここで熱い戦いを見せてくれ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.DAILY_GOAL_MET_REST, "よくやった。……褒めるのは今日だけだ。明日も遅れずにここへ来い。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.SHIN, NotificationContext.DAILY_GOAL_MET_REST, "予定どおりの進捗だな。明日も同じようにこなせ。俺がまた見てやる。") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.DAILY_GOAL_MET_REST, "ちゃんと終わらせたのね。まあ、今日は特別にゆっくり休みなさい。") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.DAILY_GOAL_MET_REST, "今日はもうおしまいよ。……べ、別に来るのを待ってるわけじゃないけど、明日も来なさい！") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.LUNA, NotificationContext.DAILY_GOAL_MET_REST, "あんたの頑張り、認めてあげてもいいわ。明日も置いていかれないようにしなさいよ！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.DAILY_GOAL_MET_REST, "貴様、今日の成果は見事だった！今は俺様の許可を得て、盛大に休息しろ！") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.DAILY_GOAL_MET_REST, "今日はもう終わりだ。明日もこの俺様についてこい。貴様の成長を楽しみにしてやる！") to CharacterEmotion.INSPIRE,
+        EmotionOverrideKey(StudyCharacter.LEO, NotificationContext.DAILY_GOAL_MET_REST, "フン、貴様にしては上出来だ。明日も俺様の相棒として、最高の努力を見せてみろ！") to CharacterEmotion.BLUSH,
+        EmotionOverrideKey(StudyCharacter.HINA, NotificationContext.DAILY_GOAL_MET_REST, "今日はもう十分ですよ。明日また、笑顔の%nさんにお会いできるのを楽しみにしています。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ARTHUR, NotificationContext.DAILY_GOAL_MET_REST, "今日はもう筆を置いていいよ。明日また、君と新しい頁をめくれるのを待っているね。") to CharacterEmotion.JOY,
+        EmotionOverrideKey(StudyCharacter.ELENA, NotificationContext.DAILY_GOAL_MET_REST, "あなたの努力が実った良い一日だったわね。明日もまた、ここで会えるのを待っているわ。") to CharacterEmotion.JOY,
+    )
+
+    fun getDailyStableLineWithEmotion(
+        character: StudyCharacter,
+        context: NotificationContext,
+        name: String = "きみ"
+    ): CharacterLineResult {
+        val characterLines = lines[character] ?: lines[StudyCharacter.GEORGE]!!
+        val contextLines = characterLines[context] ?: characterLines[NotificationContext.MORNING_NORMAL]!!
+
+        // 日本時間 (Asia/Tokyo) の日付から epochDay を取得
+        val zoneId = java.util.TimeZone.getTimeZone("Asia/Tokyo").toZoneId()
+        val today = java.time.LocalDate.now(zoneId)
+        val epochDay = today.toEpochDay()
+
+        // epochDay とキャラクターIDのハッシュを組み合わせてインデックスを決定 (3件巡回)
+        val index = Math.floorMod(
+            epochDay + character.id.hashCode().toLong(),
+            contextLines.size.toLong()
+        ).toInt()
+
+        val rawLine = contextLines[index]
+
+        val finalResult = formatSmartHonorific(rawLine, "%n", name)
+
+        // 感情の決定 (オーバーライド優先)
+        val overrideKey = EmotionOverrideKey(character, context, rawLine)
+        val emotion = emotionOverrides[overrideKey] ?: getEmotionForContext(character, context)
+
+        return CharacterLineResult(finalResult, emotion)
     }
 
     fun getLine(
@@ -2062,9 +2787,21 @@ object CharacterLines {
         totalGoalDays: Int = 0,
         totalMasteredWords: Int = 0
     ): String {
+        return getLineWithEmotion(character, context, streak, name, friendName, totalGoalDays, totalMasteredWords).text
+    }
+
+    fun getLineWithEmotion(
+        character: StudyCharacter,
+        context: NotificationContext,
+        streak: Int = 0,
+        name: String = "きみ",
+        friendName: String = "フレンド",
+        totalGoalDays: Int = 0,
+        totalMasteredWords: Int = 0
+    ): CharacterLineResult {
         val characterLines = lines[character] ?: lines[StudyCharacter.GEORGE]!!
         val contextLines = characterLines[context] ?: characterLines[NotificationContext.MORNING_NORMAL]!!
-        val line = contextLines.random()
+        val rawLine = contextLines.random()
 
         val count = when (context) {
             NotificationContext.GOAL_TOTAL_MILESTONE -> totalGoalDays
@@ -2072,10 +2809,22 @@ object CharacterLines {
             NotificationContext.LONG_TERM_MASTER_TOTAL_MILESTONE -> totalMasteredWords
             else -> streak
         }
-        return line
-            .replace("%n", name)
-            .replace("%s", friendName)
+
+        val formattedN = formatSmartHonorific(rawLine, "%n", name)
+        val formattedS = formatSmartHonorific(formattedN, "%s", friendName)
+        val finalResult = formattedS
             .replace("%d", count.toString())
             .replace("%%", "%")
+
+        // 感情の決定 (オーバーライド優先)
+        val overrideKey = EmotionOverrideKey(character, context, rawLine)
+        val emotion = emotionOverrides[overrideKey] ?: getEmotionForContext(character, context)
+
+        return CharacterLineResult(finalResult, emotion)
     }
 }
+
+data class CharacterLineResult(
+    val text: String,
+    val emotion: CharacterEmotion
+)

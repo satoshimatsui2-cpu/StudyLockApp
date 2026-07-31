@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -163,6 +164,7 @@ class AdminSettingsActivity : AppCompatActivity() {
             Triple(R.id.header_daily_goal, R.id.content_daily_goal, R.id.arrow_daily_goal),
             Triple(R.id.header_time_settings, R.id.content_time_settings, R.id.arrow_time_settings),
             Triple(R.id.header_app_lock_block, R.id.content_app_lock_block, R.id.arrow_app_lock_block),
+            Triple(R.id.header_personal_wordbook, R.id.content_personal_wordbook, R.id.arrow_personal_wordbook),
             Triple(R.id.header_pairing, R.id.content_pairing, R.id.arrow_pairing),
             Triple(R.id.header_security, R.id.content_security, R.id.arrow_security)
         )
@@ -562,6 +564,61 @@ class AdminSettingsActivity : AppCompatActivity() {
             settings.dailyNewWordTarget = textTargetCount.text.toString().toIntOrNull() ?: 5
             AdAudioManager.apply(settings)
             finish()
+        }
+
+        setupPersonalWordbookSection()
+    }
+
+    /**
+     * マイ単語帳セクションのセットアップ
+     */
+    private fun setupPersonalWordbookSection() {
+        val spinnerPersonalSelect = findViewById<Spinner>(R.id.spinner_personal_wordbook_select) ?: return
+        val spinnerTargetGrade = findViewById<Spinner>(R.id.spinner_personal_wordbook_target_grade) ?: return
+        val btnManage = findViewById<View>(R.id.button_manage_personal_words) ?: return
+
+        // 1. 編集する単語帳を選択 (Grade 90-99)
+        val personalGrades = (90..99).toList()
+        val personalItems = personalGrades.map { GradeUtils.toDisplay(it.toString()) }
+        val personalAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, personalItems)
+        personalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerPersonalSelect.adapter = personalAdapter
+
+        // 2. 紐付け級を選択 (1-7)
+        val targetGrades = (1..7).toList()
+        val targetItems = targetGrades.map { GradeUtils.toDisplay(it.toString()) }
+        val targetAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, targetItems)
+        targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerTargetGrade.adapter = targetAdapter
+
+        // 現在の選択に基づきターゲット級を更新
+        fun updateTargetGradeSpinner(personalGrade: Int) {
+            val currentTarget = settings.getPersonalGradeTarget(personalGrade)
+            val index = targetGrades.indexOf(currentTarget)
+            if (index >= 0) {
+                spinnerTargetGrade.setSelection(index)
+            }
+        }
+
+        spinnerPersonalSelect.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateTargetGradeSpinner(personalGrades[position])
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        spinnerTargetGrade.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedPersonalGrade = personalGrades[spinnerPersonalSelect.selectedItemPosition]
+                val selectedTargetGrade = targetGrades[position]
+                settings.setPersonalGradeTarget(selectedPersonalGrade, selectedTargetGrade)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        btnManage.setOnClickListener {
+            val selectedPersonalGrade = personalGrades[spinnerPersonalSelect.selectedItemPosition]
+            showToast("マイ単語帳 ${selectedPersonalGrade - 89} の管理機能を準備中...")
         }
     }
 

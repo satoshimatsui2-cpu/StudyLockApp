@@ -2,6 +2,7 @@ package com.stulab.studylockapp.learning
 
 import android.view.View
 import android.widget.TextView
+import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
 import com.stulab.studylockapp.R
 import com.stulab.studylockapp.databinding.LayoutReviewCardBinding
@@ -14,7 +15,8 @@ object ReviewCardBinder {
         binding: LayoutReviewCardBinding, 
         model: ReviewCardUiModel,
         onPlayUserAnswer: (String) -> Unit,
-        onPlayCorrectAnswer: (String) -> Unit
+        onPlayCorrectAnswer: (String) -> Unit,
+        onFavoriteClick: () -> Unit
     ) {
         val context = binding.root.context
         
@@ -69,6 +71,21 @@ object ReviewCardBinder {
             binding.buttonPlayQuestionInline.setOnClickListener {
                 onPlayCorrectAnswer(model.questionText) // 問題文(英語)を再生
             }
+        }
+
+        // 2.5 お気に入りボタン
+        binding.buttonFavorite.apply {
+            val (iconRes, tintColor, contentDesc) = if (model.isFavorite) {
+                Triple(R.drawable.ic_round_stars_24, ContextCompat.getColor(context, R.color.mustard_accent), context.getString(R.string.cd_favorite_remove))
+            } else {
+                Triple(R.drawable.ic_round_star_border_24, ContextCompat.getColor(context, R.color.text_sub), context.getString(R.string.cd_favorite_add))
+            }
+            setImageResource(iconRes)
+            imageTintList = ColorStateList.valueOf(tintColor)
+            contentDescription = contentDesc
+            isEnabled = !model.isFavoriteUpdating
+            alpha = if (model.isFavoriteUpdating) 0.5f else 1.0f
+            setOnClickListener { onFavoriteClick() }
         }
 
         // 3. 惜しい不正解 (Synonym Hint)

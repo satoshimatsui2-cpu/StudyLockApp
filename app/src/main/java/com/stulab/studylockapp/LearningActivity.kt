@@ -48,6 +48,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     private var currentBaseQuestionSizeSp: Float = 16f
     private var currentQuestionScale: Float = 1.0f
 
+    // 待機画面用キャッシュ
+    private var cachedWaitingMessage: String? = null
+    private var cachedWaitingEmotionId: String? = null
+    private var cachedWaitingCharId: String? = null
+
     // 選択肢表示状態管理 (Persistence は ViewModel/State 側で実施)
     private var choicesRevealedForCurrentQuiz: Boolean = true
 
@@ -223,7 +228,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
                 binding.layoutReviewCard, 
                 ReviewCardMapper.map(state),
                 onPlayUserAnswer = { text -> viewModel.requestAudioPlayback(text) },
-                onPlayCorrectAnswer = { text -> viewModel.requestAudioPlayback(text) }
+                onPlayCorrectAnswer = { text -> viewModel.requestAudioPlayback(text) },
+                onFavoriteClick = {
+                    state.currentWord?.no?.let { wordId ->
+                        viewModel.toggleFavorite(wordId)
+                    }
+                }
             )
         } else {
             binding.layoutReviewCard.rootReviewCard.visibility = View.GONE
@@ -240,6 +250,13 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         renderQuizIfNeeded(state)
         updateChoiceCoverVisibility(state)
 
+        // 待機画面キャッシュのクリア制御
+        if (state.emptyState !is LearningEmptyState.NoReviewAvailable) {
+            cachedWaitingMessage = null
+            cachedWaitingEmotionId = null
+            cachedWaitingCharId = null
+        }
+
         // 空状態の表示制御
         if (state.emptyState != null) {
             binding.cardQuestion.visibility = View.GONE
@@ -247,18 +264,36 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             binding.layoutAssistButtons.visibility = View.GONE
             binding.layoutEmptyState.rootEmptyCard.visibility = View.VISIBLE
 
-            val message = when (state.emptyState) {
-                is LearningEmptyState.DailyGoalMet -> getString(R.string.empty_daily_goal_met)
-                is LearningEmptyState.NoReviewAvailable -> getString(R.string.empty_no_review_available)
-                is LearningEmptyState.SilentModeFinishedButNormalAvailable -> getString(R.string.empty_silent_mode_finished)
+            val (message, charResId) = when (state.emptyState) {
+                is LearningEmptyState.DailyGoalMet -> {
+                    val result = com.stulab.studylockapp.data.notification.CharacterLines.getDailyStableLineWithEmotion(
+                        com.stulab.studylockapp.data.notification.StudyCharacter.fromId(state.selectedCharacterId),
+                        com.stulab.studylockapp.data.notification.NotificationContext.DAILY_GOAL_MET_REST,
+                        name = state.userName
+                    )
+                    result.text to com.stulab.studylockapp.ui.CharacterDisplayUtils.getMiniIconDrawable(this, state.selectedCharacterId, result.emotion.id)
+                }
+                is LearningEmptyState.NoReviewAvailable -> {
+                    // キャッシュが有効か確認
+                    if (cachedWaitingMessage == null || cachedWaitingCharId != state.selectedCharacterId) {
+                        val result = com.stulab.studylockapp.data.notification.CharacterLines.getLineWithEmotion(
+                            com.stulab.studylockapp.data.notification.StudyCharacter.fromId(state.selectedCharacterId),
+                            com.stulab.studylockapp.data.notification.NotificationContext.WAITING_FOR_REVIEW,
+                            name = state.userName
+                        )
+                        cachedWaitingMessage = result.text
+                        cachedWaitingEmotionId = result.emotion.id
+                        cachedWaitingCharId = state.selectedCharacterId
+                    }
+                    
+                    cachedWaitingMessage!! to com.stulab.studylockapp.ui.CharacterDisplayUtils.getMiniIconDrawable(this, state.selectedCharacterId, cachedWaitingEmotionId!!)
+                }
+                is LearningEmptyState.SilentModeFinishedButNormalAvailable -> {
+                    getString(R.string.empty_silent_mode_finished) to com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(this, state.selectedCharacterId)
+                }
             }
-            binding.layoutEmptyState.textEmptyMessage.text = message
             
-            val charResId = if (state.emptyState is LearningEmptyState.NoReviewAvailable) {
-                com.stulab.studylockapp.ui.CharacterDisplayUtils.getPanicDrawable(this, state.selectedCharacterId)
-            } else {
-                com.stulab.studylockapp.ui.CharacterDisplayUtils.getJoyDrawable(this, state.selectedCharacterId)
-            }
+            binding.layoutEmptyState.textEmptyMessage.text = message
             binding.layoutEmptyState.imageEmptyCharacter.setImageResource(charResId)
 
             if (state.emptyState is LearningEmptyState.SilentModeFinishedButNormalAvailable) {
@@ -511,8 +546,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         val textMsg = dialogView.findViewById<TextView>(R.id.text_celebration_message)
         val btnClose = dialogView.findViewById<View>(R.id.button_celebration_close)
 
-        // 画像リソースの決定: mini_name_pleasure を優先
-        val resId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getPleasureDrawable(this, charId)
+        // 画像リソースの決定: emotionId があればそれを使用、なければ既定の pleasure
+        val resId = if (emotionId != null) {
+            com.stulab.studylockapp.ui.CharacterDisplayUtils.getNotificationIconDrawable(this, charId, emotionId)
+        } else {
+            com.stulab.studylockapp.ui.CharacterDisplayUtils.getPleasureDrawable(this, charId)
+        }
 
         imageChar.setImageResource(resId)
         

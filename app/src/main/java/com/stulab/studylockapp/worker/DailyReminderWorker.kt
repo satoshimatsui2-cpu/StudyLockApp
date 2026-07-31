@@ -93,27 +93,20 @@ class DailyReminderWorker(
             else NotificationContext.EVENING_PENDING
         }
 
-        val message = CharacterLines.getLine(character, notificationContext, streak, name = userName)
-        
+        // セリフと感情をセットで取得
+        val lineResult = CharacterLines.getLineWithEmotion(character, notificationContext, streak, name = userName)
+        val message = lineResult.text
+        val emotion = lineResult.emotion
+
         // タイトルに現在の残り状況を表示（未達成の場合のみ）
         val title = if (!isGoalMet && isEvening) {
             "本日の残り: 新規${newRemaining}, 復習${remainingAllReviewsToday}"
         } else {
             character.displayName
         }
-
-        // 感情に連動したミニ画像IDを取得
-        val emotion = CharacterLines.getEmotionForContext(character, notificationContext)
-        var imageResId = applicationContext.resources.getIdentifier(
-            "mini_${character.id}_${emotion.id}", "drawable", applicationContext.packageName
+        val imageResId = com.stulab.studylockapp.ui.CharacterDisplayUtils.getNotificationIconDrawable(
+            applicationContext, character.id, emotion.id
         )
-        
-        // ミニ画像がない場合は、通常のキャラ画像で代用
-        if (imageResId == 0) {
-            imageResId = applicationContext.resources.getIdentifier(
-                "char_${character.id}", "drawable", applicationContext.packageName
-            )
-        }
 
         try {
             NotificationHelper.showNotification(applicationContext, title, message, imageResId)

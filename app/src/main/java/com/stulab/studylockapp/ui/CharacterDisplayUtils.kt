@@ -21,6 +21,41 @@ object CharacterDisplayUtils {
     }
 
     /**
+     * 通知用のアイコン画像を取得する (icon_キャラクター名_感情)
+     */
+    fun getNotificationIconDrawable(context: Context, charId: String, emotionId: String): Int {
+        val packageName = context.packageName
+        val resources = context.resources
+
+        // 1. icon_name_emotion (例: icon_shion_joy)
+        var resId = resources.getIdentifier("icon_${charId}_$emotionId", "drawable", packageName)
+
+        // 2. なければ mini_... (フォールバック)
+        if (resId == 0) {
+            resId = resources.getIdentifier("mini_${charId}_$emotionId", "drawable", packageName)
+        }
+
+        // 3. なければ 基本立ち絵
+        if (resId == 0) {
+            resId = resources.getIdentifier("char_$charId", "drawable", packageName)
+        }
+
+        // 4. 最終フォールバック
+        if (resId == 0) {
+            resId = resources.getIdentifier("icon_george_$emotionId", "drawable", packageName)
+        }
+
+        return if (resId != 0) resId else R.drawable.mini_george_joy
+    }
+
+    /**
+     * アプリ内画面用のミニ画像を取得する (mini_キャラクター名_感情)
+     */
+    fun getMiniIconDrawable(context: Context, charId: String, emotionId: String): Int {
+        return getEmotionDrawable(context, charId, emotionId)
+    }
+
+    /**
      * 指定された感情の画像を取得する。
      * 1. mini_${charId}_${emotion} を探す
      * 2. なければ char_${charId} を探す

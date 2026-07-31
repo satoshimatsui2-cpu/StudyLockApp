@@ -11,7 +11,14 @@ object GradeUtils {
      * マッピング外は "不明" を返し、誤表示を防止する。
      */
     fun toDisplay(grade: String?): String {
-        return when (grade?.trim()) {
+        val value = grade?.trim() ?: ""
+        val rank = value.toIntOrNull()
+        
+        if (rank != null && rank in 90..99) {
+            return "マイ単語帳 ${rank - 89}"
+        }
+
+        return when (value) {
             "1" -> "5級"
             "2" -> "4級"
             "3" -> "3級"
