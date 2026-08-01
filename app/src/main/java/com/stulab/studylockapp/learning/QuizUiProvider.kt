@@ -7,9 +7,10 @@ import androidx.annotation.StringRes
  * Rendererはこのインターフェース経由でのみUIを操作します。
  */
 interface QuizUiProvider {
-    fun showBasicQuiz(title: String, body: String, choices: List<String>)
+    fun showBasicQuiz(title: CharSequence, body: String, choices: List<String>)
     fun playAudio(text: String)
-    fun getString(@StringRes resId: Int): String
+    fun getProviderString(@StringRes resId: Int): String
+    fun getProviderColor(@androidx.annotation.ColorRes resId: Int): Int
     
     /**
      * 問題本文の文字サイズ倍率を設定します。

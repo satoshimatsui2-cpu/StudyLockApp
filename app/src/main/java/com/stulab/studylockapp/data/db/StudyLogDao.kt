@@ -28,4 +28,11 @@ interface StudyLogDao {
     // (オプション) モード別で集計したい場合
     @Query("SELECT COUNT(DISTINCT wordId) FROM study_logs WHERE mode = :mode AND learnedAt BETWEEN :startTime AND :endTime")
     suspend fun getLearnedWordCountInTermByMode(mode: String, startTime: Long, endTime: Long): Int
+
+    /**
+     * 指定された単語IDの範囲の学習ログを削除。
+     * マイ単語帳の入れ替え時に使用。
+     */
+    @Query("DELETE FROM study_logs WHERE wordId >= :startId AND wordId <= :endId")
+    suspend fun deleteByWordIdRange(startId: Int, endId: Int)
 }

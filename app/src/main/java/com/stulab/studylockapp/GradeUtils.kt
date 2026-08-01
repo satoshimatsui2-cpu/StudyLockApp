@@ -1,5 +1,7 @@
 package com.stulab.studylockapp
 
+import com.stulab.studylockapp.data.AppSettings
+
 /**
  * 級（Grade）に関する表示変換を統一するユーティリティ
  */
@@ -10,12 +12,12 @@ object GradeUtils {
      * 1:5級, 2:4級, 3:3級, 4:準2級, 5:2級, 6:準1級, 7:1級
      * マッピング外は "不明" を返し、誤表示を防止する。
      */
-    fun toDisplay(grade: String?): String {
+    fun toDisplay(grade: String?, settings: AppSettings? = null): String {
         val value = grade?.trim() ?: ""
         val rank = value.toIntOrNull()
         
         if (rank != null && rank in 90..99) {
-            return "マイ単語帳 ${rank - 89}"
+            return settings?.getMyWordBookDisplayName(rank) ?: "マイ単語帳 ${rank - 89}"
         }
 
         return when (value) {
@@ -44,9 +46,9 @@ object GradeUtils {
     fun normalize(grade: String?): String {
         val value = grade?.trim() ?: ""
         
-        // すでに内部ランク値(1-7)である場合
+        // すでに内部ランク値(1-7 または 90-99)である場合
         val rank = value.toIntOrNull()
-        if (rank != null && rank in 1..7) {
+        if (rank != null && (rank in 1..7 || rank in 90..99)) {
             return rank.toString()
         }
 

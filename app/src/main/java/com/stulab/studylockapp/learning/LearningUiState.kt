@@ -36,6 +36,7 @@ data class LearningUiState(
     val targetLevel: Int = 0, // 初期値を 0 (未設定) に変更
     val isLevelJustIncreased: Boolean = false,
     val wordGrade: Int = 5,
+    val wordGradeName: String = "",
 
     // Review Info
     val isLastAnswerCorrect: Boolean = false,

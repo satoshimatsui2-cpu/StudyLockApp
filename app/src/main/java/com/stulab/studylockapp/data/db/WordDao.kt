@@ -1,12 +1,9 @@
 package com.stulab.studylockapp.data.db
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Upsert
+import androidx.room.*
 import com.stulab.studylockapp.data.WordEntity
 import com.stulab.studylockapp.data.WordHistoryQueryResult
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WordDao {
@@ -111,6 +108,20 @@ interface WordDao {
     @Query("DELETE FROM words")
     suspend fun deleteAll()
 
+    /**
+     * 組み込みの単語（Grade 1〜89）のみを削除します。
+     * Grade 90〜99の「マイ単語帳」データは維持されます。
+     * 英検級（1〜7）以外に将来的な拡張（例: 11級等）が含まれても対応できるように 1〜89 を範囲とします。
+     */
+    @Query("DELETE FROM words WHERE grade BETWEEN 1 AND 89")
+    suspend fun deleteBuiltInWords()
+
+    /**
+     * 指定されたGradeの単語をすべて削除します。
+     */
+    @Query("DELETE FROM words WHERE grade = :grade")
+    suspend fun deleteWordsByGrade(grade: Int)
+
     @Query("DELETE FROM word_mastery")
     suspend fun deleteAllMastery()
 
@@ -122,4 +133,15 @@ interface WordDao {
 
     @Query("SELECT COUNT(*) FROM words WHERE grade = :grade")
     suspend fun countTotalWordsByGrade(grade: Int): Int
+
+    /**
+     * マイ単語帳（Grade 90〜99）の各Gradeごとの単語数を取得します。
+     */
+    @Query("SELECT grade, COUNT(*) as total FROM words WHERE grade >= 90 GROUP BY grade")
+    fun getMyWordBookCountsFlow(): Flow<List<GradeCount>>
 }
+
+data class GradeCount(
+    val grade: Int,
+    val total: Int
+)

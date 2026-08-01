@@ -337,4 +337,28 @@
     <string name="action_switch_to_balance_mode">バランスモードに切り替える</string>
     <string name="switch_mode_warning">※音が鳴りますのでご注意ください</string>
 
+    <!-- My Word Book -->
+    <string name="my_word_book_title">My単語帳</string>
+    <string name="cd_my_word_book">My単語帳の管理</string>
+    <string name="my_word_book_description">決められた形式のTSVファイルを読み込んで、自分だけの単語帳を作れます。</string>
+    <string name="my_word_book_import">インポート</string>
+    <string name="my_word_book_replace">入れ替え</string>
+    <string name="my_word_book_delete">削除</string>
+    <string name="my_word_book_status_registered">%1$d語</string>
+    <string name="my_word_book_status_unregistered">0語・未登録</string>
+    <string name="my_word_book_delete_confirm_title">My単語帳を削除しますか？</string>
+    <string name="my_word_book_delete_confirm_message">この単語帳の単語、学習進捗、履歴、お気に入りが削除されます。</string>
+    <string name="my_word_book_replace_confirm_title">My単語帳を入れ替えますか？</string>
+    <string name="my_word_book_replace_confirm_message">この単語帳の学習進捗、履歴、お気に入りはリセットされます。</string>
+    <string name="my_word_book_format_guide_title">インポートデータ形式</string>
+    <string name="my_word_book_format_guide_button">形式を確認</string>
+    <string name="my_word_book_format_guide_content">決められた形式のTSVファイルを読み込んで、自分だけの単語帳を作れます。\n\n【基本仕様】\n・推奨形式：フル15列TSV\n・必須項目：word（英単語）、meaning（意味）\n・1行目はヘッダー行\n・4〜9,999単語\n・UTF-8 TSV形式\n\n【noとgradeの扱い】\n・noとgradeの列は入力可能ですが、インポート時に選択したスロット用の安全な値へ自動で再採番・設定されます。既存データと衝突することはありません。\n\n【選択肢の自動生成】\n・choicesEnJa/JaEn/Listeningが未入力の場合、同じ単語帳内の別の単語から自動生成します。AIによる生成ではないため、明らかに不正解と分かる簡単な選択肢になる場合があります。学習品質を高めるには、正解1件と誤答4件の計5件を入力することを推奨します。\n\n【簡易5列形式（後方互換）】\n・word、meaning、partOfSpeech、example、exampleMeaningの5列でも読み込み可能です。\n\n【フル15列ヘッダー順】\nno、grade、word、meaning、definition、example、exampleMeaning、partOfSpeech、difficulty、frequency、choicesEnJa、choicesJaEn、choicesListening、synonyms、antonyms</string>
+    <string name="my_word_book_copy_header">ヘッダーをコピー</string>
+    <string name="my_word_book_copy_prompt">整形プロンプトをコピー</string>
+    <string name="my_word_book_prompt_content">以下の単語リストを、StudyLockAppのMy単語帳で読み込めるUTF-8 TSV形式に整形してください。\n\n【出力条件】\n・出力はヘッダー行とデータ行だけにする\n・説明文やMarkdownのコードブロックは付けない\n・区切り文字はタブ\n・列数は必ず15列\n・列順は次のとおり\nno\tgrade\tword\tmeaning\tdefinition\texample\texampleMeaning\tpartOfSpeech\tdifficulty\tfrequency\tchoicesEnJa\tchoicesJaEn\tchoicesListening\tsynonyms\tantonyms\n\n【作成規則】\n・noは1からの連番にする\n・gradeは90を設定する\n・noとgradeはインポート時にアプリ側で選択したMy単語帳用の値へ置き換えられる\n・wordとmeaningは必ず入力する\n・definitionは自然で簡潔な英語定義にする\n・exampleは対象単語を使った自然な英文にする\n・exampleMeaningはexampleの自然な日本語訳にする\n・partOfSpeechはnoun、verb、adjective、adverb、phraseなどの英語表記にする\n・difficultyとfrequencyは1〜5で設定する\n\n・choicesEnJaはJSON文字列配列とし、正解の日本語1件と、同じ品詞・意味領域の紛らわしい誤答4件を入れる\n・choicesJaEnはJSON文字列配列とし、正解の英単語1件と、同じ品詞・意味領域の紛らわしい誤答4件を入れる\n・choicesListeningはJSON文字列配列とし、正解の英単語1件と、発音または綴りが似た誤答4件を入れる\n・各選択肢は必ず合計5件にする\n・各選択肢内で重複させない\n・正解を複数回入れない\n・複数の正解が成立する曖昧な誤答を作らない\n\n・synonymsは[{\"word\":\"単語\",\"note\":\"日本語の補足\"}]形式にする\n・antonymsも同じ形式にする\n・適切な類義語・反義語がない場合は[]にする\n・JSONは有効な最小形式で記述する\n・セル内にタブや改行を入れない\n・内容の正確性を確認してから出力する\n\n【変換する単語リスト】\n\nここに元の単語リストを貼り付ける</string>
+    <string name="my_word_book_error_read">ファイルを読み込めませんでした。UTF-8のTSVファイルを確認してください。</string>
+    <string name="my_word_book_error_database">My単語帳を保存できませんでした。もう一度お試しください。</string>
+    <string name="my_word_book_import_success">%1$d件の単語をインポートしました。</string>
+    <string name="my_word_book_delete_success">My単語帳を削除しました。</string>
+
 </resources>

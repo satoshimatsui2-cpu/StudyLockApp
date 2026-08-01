@@ -601,8 +601,16 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         )
     }
 
+    override fun getProviderString(resId: Int): String {
+        return getString(resId)
+    }
+
+    override fun getProviderColor(resId: Int): Int {
+        return ContextCompat.getColor(this, resId)
+    }
+
     @SuppressLint("ClickableViewAccessibility")
-    override fun showBasicQuiz(title: String, body: String, choices: List<String>) {
+    override fun showBasicQuiz(title: CharSequence, body: String, choices: List<String>) {
         binding.textQuestionTitle.text = title
 
         // 言語判定（日本語が含まれるか）
@@ -612,8 +620,8 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
 
         binding.textQuestionBody.text = body
         
-        viewModel.uiState.value.quiz?.word?.let { word ->
-            binding.textQuestionGradeBadge.text = GradeLabelFormatter.format(word.grade)
+        viewModel.uiState.value.let { state ->
+            binding.textQuestionGradeBadge.text = state.wordGradeName
             binding.cardQuestionGradeBadge.visibility = View.VISIBLE
         }
 

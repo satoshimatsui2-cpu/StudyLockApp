@@ -53,4 +53,11 @@ interface VoiceCheckDao {
             updateResult(updatedEntity)
         }
     }
+
+    /**
+     * 指定された単語IDの範囲の発音チェック結果を削除。
+     * マイ単語帳の入れ替え時に使用。
+     */
+    @Query("DELETE FROM voice_check_results WHERE wordId >= :startId AND wordId <= :endId")
+    suspend fun deleteByWordIdRange(startId: Long, endId: Long)
 }

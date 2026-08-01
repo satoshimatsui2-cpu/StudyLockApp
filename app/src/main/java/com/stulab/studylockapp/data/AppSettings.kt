@@ -76,8 +76,7 @@ class AppSettings(context: Context) {
         private const val KEY_SELECTED_CHARACTER_ID = "selected_character_id"
         private const val KEY_UNLOCKED_CHARACTERS = "unlocked_characters"
         private const val KEY_USER_NAME = "user_name"
-
-        private const val KEY_PERSONAL_GRADE_TARGET_PREFIX = "personal_grade_target_"
+        private const val KEY_MY_WORD_BOOK_NAME_PREFIX = "my_word_book_name_"
 
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -111,7 +110,7 @@ class AppSettings(context: Context) {
         get() {
             val value = currentLearningGrade
             val rank = value.toIntOrNull()
-            return if (rank != null && rank in 1..7) value else "3"
+            return if (rank != null && (rank in 1..7 || rank in 90..99)) value else "3"
         }
 
     var targetLearningGrade: String
@@ -333,14 +332,26 @@ class AppSettings(context: Context) {
         get() = prefs.getString(KEY_USER_NAME, null)
         set(v) = prefs.edit { putString(KEY_USER_NAME, v) }
 
-    /**
-     * マイ単語帳(90-99)が達成された際に出題する「実践テスト」の級(1-7)を取得する
-     */
-    fun getPersonalGradeTarget(personalGrade: Int): Int {
-        return prefs.getInt(KEY_PERSONAL_GRADE_TARGET_PREFIX + personalGrade, 3)
+    fun getMyWordBookName(grade: Int): String? {
+        if (grade !in 90..99) return null
+        return prefs.getString(KEY_MY_WORD_BOOK_NAME_PREFIX + grade, null)
     }
 
-    fun setPersonalGradeTarget(personalGrade: Int, targetGrade: Int) {
-        prefs.edit { putInt(KEY_PERSONAL_GRADE_TARGET_PREFIX + personalGrade, targetGrade) }
+    fun setMyWordBookName(grade: Int, name: String) {
+        if (grade !in 90..99) return
+        val cleaned = name.trim().replace("\n", "").replace("\t", "")
+        if (cleaned.isNotEmpty()) {
+            prefs.edit { putString(KEY_MY_WORD_BOOK_NAME_PREFIX + grade, cleaned.take(30)) }
+        }
+    }
+
+    fun clearMyWordBookName(grade: Int) {
+        if (grade !in 90..99) return
+        prefs.edit { remove(KEY_MY_WORD_BOOK_NAME_PREFIX + grade) }
+    }
+
+    fun getMyWordBookDisplayName(grade: Int): String {
+        if (grade !in 90..99) return "不明"
+        return getMyWordBookName(grade) ?: "マイ単語帳 ${grade - 89}"
     }
 }

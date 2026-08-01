@@ -7,40 +7,22 @@ package com.stulab.studylockapp.data
 object TsvParser {
     fun parseLine(line: String): List<String> {
         val result = mutableListOf<String>()
-        var currentField = StringBuilder()
-        var inQuotes = false
-        var i = 0
-
-        // 行全体が引用符で囲まれている場合（エクスポート形式による）への対策
-        val trimmedLine = if (line.startsWith("\"") && line.endsWith("\"")) {
-            line.substring(1, line.length - 1)
-        } else {
-            line
-        }
-
-        while (i < trimmedLine.length) {
-            val c = trimmedLine[i]
-            when {
-                c == '"' -> {
-                    if (inQuotes && i + 1 < trimmedLine.length && trimmedLine[i + 1] == '"') {
-                        // 二重引用符のエスケープ
-                        currentField.append('"')
-                        i++
-                    } else {
-                        inQuotes = !inQuotes
-                    }
-                }
-                c == '\t' && !inQuotes -> {
-                    result.add(currentField.toString().trim())
-                    currentField = StringBuilder()
-                }
-                else -> {
-                    currentField.append(c)
-                }
+        val fields = line.split('\t')
+        
+        for (rawField in fields) {
+            var field = rawField.trim()
+            
+            // Excel-style quoting: If it starts and ends with double quotes
+            if (field.startsWith("\"") && field.endsWith("\"") && field.length >= 2) {
+                // Strip outer quotes
+                field = field.substring(1, field.length - 1)
+                // Replace escaped double quotes "" with a single "
+                field = field.replace("\"\"", "\"")
             }
-            i++
+            
+            result.add(field)
         }
-        result.add(currentField.toString().trim())
+
         return result
     }
 }

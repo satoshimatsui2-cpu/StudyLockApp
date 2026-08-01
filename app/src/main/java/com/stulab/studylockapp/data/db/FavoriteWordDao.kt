@@ -2,6 +2,7 @@ package com.stulab.studylockapp.data.db
 
 import androidx.room.*
 import com.stulab.studylockapp.data.WordEntity
+import com.stulab.studylockapp.data.db.FavoriteWordEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -31,8 +32,8 @@ interface FavoriteWordDao {
      * INNER JOINにより、wordsテーブルに存在する単語のみを対象とする。
      */
     @Query("""
-        SELECT w.* FROM words w
-        INNER JOIN favorite_words f ON w.no = f.wordId
+        SELECT w.* FROM words AS w
+        INNER JOIN favorite_words AS f ON w.no = f.wordId
         ORDER BY f.createdAt DESC
     """)
     fun getFavoriteWordsFlow(): Flow<List<WordEntity>>
@@ -42,8 +43,15 @@ interface FavoriteWordDao {
      * wordsテーブルに存在する（表示可能な）単語のみをカウントする。
      */
     @Query("""
-        SELECT COUNT(*) FROM favorite_words f
-        INNER JOIN words w ON w.no = f.wordId
+        SELECT COUNT(*) FROM favorite_words AS f
+        INNER JOIN words AS w ON w.no = f.wordId
     """)
     fun getFavoriteCountFlow(): Flow<Int>
+
+    /**
+     * 指定された単語IDの範囲のお気に入りを削除。
+     * マイ単語帳の入れ替え時に使用。
+     */
+    @Query("DELETE FROM favorite_words WHERE wordId >= :startId AND wordId <= :endId")
+    suspend fun deleteByWordIdRange(startId: Int, endId: Int)
 }

@@ -7,19 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.stulab.studylockapp.data.db.AppUnlockDao
-import com.stulab.studylockapp.data.db.LockedAppDao
-import com.stulab.studylockapp.data.db.PracticalHistoryDao
-import com.stulab.studylockapp.data.db.StudyLogDao
-import com.stulab.studylockapp.data.db.UnlockHistoryDao
-import com.stulab.studylockapp.data.db.WordDao
-import com.stulab.studylockapp.data.db.WordMasteryDao
-import com.stulab.studylockapp.data.db.FavoriteWordDao
-import com.stulab.studylockapp.data.db.FavoriteWordEntity
-import com.stulab.studylockapp.data.db.WordMasteryEntity
-import com.stulab.studylockapp.data.db.PracticalHistoryEntity
-import com.stulab.studylockapp.data.db.LockedAppEntity
-import com.stulab.studylockapp.data.db.AppUnlockEntity
+import com.stulab.studylockapp.data.db.*
 
 @Database(
     entities = [

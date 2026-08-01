@@ -18,6 +18,7 @@ import com.stulab.studylockapp.data.AppSettings
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
@@ -62,26 +63,50 @@ class GradeBottomSheet(
         val db = AppDatabase.getInstance(requireContext())
         
         // 1:5級, 2:4級, 3:3級, 4:準2級, 5:2級, 6:準1級, 7:1級
-        val gradeKeys = listOf("1", "2", "3", "4", "5", "6", "7")
+        val builtinGradeKeys = listOf("1", "2", "3", "4", "5", "6", "7")
 
         lifecycleScope.launch {
             val statsList = withContext(Dispatchers.IO) {
-                gradeKeys.map { key ->
+                val list = mutableListOf<GradeStats>()
+                
+                // 1. 組み込み級
+                builtinGradeKeys.forEach { key ->
                     val gradeInt = key.toInt()
                     val total = db.wordDao().countTotalWordsByGrade(gradeInt)
                     val basic = db.wordMasteryDao().countBasicMasteredByGrade(gradeInt)
                     val longterm = db.wordMasteryDao().countLongTermMasteredByGrade(gradeInt)
                     
-                    GradeStats(
+                    list.add(GradeStats(
                         key = key,
-                        name = GradeUtils.toDisplay(key),
+                        name = GradeUtils.toDisplay(key, settings),
                         totalCount = total,
                         basicCount = basic,
                         basicPct = if (total > 0) (basic * 100 / total) else 0,
                         longtermCount = longterm,
                         longtermPct = if (total > 0) (longterm * 100 / total) else 0
-                    )
+                    ))
                 }
+
+                // 2. マイ単語帳 (登録済みのみ)
+                val personalCounts = db.wordDao().getMyWordBookCountsFlow().first()
+                personalCounts.sortedBy { it.grade }.forEach { item ->
+                    if (item.total > 0) {
+                        val key = item.grade.toString()
+                        val basic = db.wordMasteryDao().countBasicMasteredByGrade(item.grade)
+                        val longterm = db.wordMasteryDao().countLongTermMasteredByGrade(item.grade)
+
+                        list.add(GradeStats(
+                            key = key,
+                            name = GradeUtils.toDisplay(key, settings),
+                            totalCount = item.total,
+                            basicCount = basic,
+                            basicPct = if (item.total > 0) (basic * 100 / item.total) else 0,
+                            longtermCount = longterm,
+                            longtermPct = if (item.total > 0) (longterm * 100 / item.total) else 0
+                        ))
+                    }
+                }
+                list
             }
 
             container.removeAllViews()

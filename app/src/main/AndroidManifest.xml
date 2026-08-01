@@ -146,6 +146,11 @@
             android:exported="false"
             android:label="プライバシーポリシー" />
 
+        <activity
+            android:name=".ui.wordbook.MyWordBookActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StudyLockApp" />
+
         <service
             android:name=".service.MyFirebaseMessagingService"
             android:exported="false">

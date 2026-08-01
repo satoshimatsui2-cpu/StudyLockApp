@@ -77,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         setupAdminSettingsNavigation()
         setupLearningHistoryNavigation()
         setupCharacterAndFriendNavigation()
+        setupMyWordBookNavigation()
         updatePointDisplay()
     }
 
@@ -443,12 +444,12 @@ class MainActivity : AppCompatActivity() {
 
         if (gradeButton != null && goalPrefixText != null) {
             // 学習中の級を表示
-            val learningDisplay = GradeUtils.toDisplay(appSettings.safeLearningGrade)
+            val learningDisplay = GradeUtils.toDisplay(appSettings.safeLearningGrade, appSettings)
             gradeButton.text = learningDisplay
 
             // ポイント計算の基準となる目標級を表示
             if (appSettings.isTargetLearningGradeSet) {
-                val targetDisplay = GradeUtils.toDisplay(appSettings.targetLearningGrade)
+                val targetDisplay = GradeUtils.toDisplay(appSettings.targetLearningGrade, appSettings)
                 goalPrefixText.text = "目指せ $targetDisplay"
             } else {
                 goalPrefixText.text = "目標：未設定"
@@ -496,6 +497,23 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.button_admin_settings_top)?.setOnClickListener {
             startActivity(Intent(this, AdminSettingsActivity::class.java))
         }
+    }
+
+    /**
+     * マイ単語帳画面への遷移セットアップ
+     */
+    private fun setupMyWordBookNavigation() {
+        findViewById<View>(R.id.button_to_my_word_book)?.setOnClickListener {
+            openMyWordBook()
+        }
+    }
+
+    /**
+     * マイ単語帳画面を開く。
+     * 将来的に有料判定などをここに追加できる構成。
+     */
+    private fun openMyWordBook() {
+        startActivity(Intent(this, com.stulab.studylockapp.ui.wordbook.MyWordBookActivity::class.java))
     }
 
     /**

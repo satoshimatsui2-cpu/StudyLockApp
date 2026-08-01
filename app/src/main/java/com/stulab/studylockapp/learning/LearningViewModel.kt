@@ -17,6 +17,7 @@ import com.stulab.studylockapp.data.db.FavoriteWordDao
 import com.stulab.studylockapp.data.db.FavoriteWordEntity
 import com.stulab.studylockapp.data.StudyHistoryRepository
 import com.stulab.studylockapp.data.notification.StudyCharacter
+import com.stulab.studylockapp.GradeLabelFormatter
 import com.stulab.studylockapp.service.NotificationHelper
 import com.stulab.studylockapp.data.practical.PracticalQuizMode
 import com.stulab.studylockapp.data.practical.PracticalTestRepository
@@ -281,6 +282,7 @@ class LearningViewModel(
                     isLevelJustIncreased = false,
                     currentWord = quiz.word,
                     wordGrade = quiz.word.grade,
+                    wordGradeName = GradeLabelFormatter.format(quiz.word.grade, appSettings),
                     isFavorite = false // 一旦リセット
                 ) 
             }
@@ -694,8 +696,8 @@ class LearningViewModel(
         
         viewModelScope.launch {
             try {
-                // 学習中のグレードを取得 (QuizManager に渡しているものと同じ値)
-                val grade = appSettings.safeLearningGrade.toIntOrNull()?.takeIf { it in 1..7 } ?: 3
+                // 学習中のグレードを取得
+                val currentGrade = appSettings.safeLearningGrade.toIntOrNull() ?: 3
 
                 // ★ 本日のノルマ達成チェック（新規が0 かつ 「今日期限の復習すべて」が0になったか）
                 val isGoalMet = _uiState.value.newWordsRemaining == 0 && _uiState.value.reviewWordsNormalTotalToday == 0
@@ -761,18 +763,19 @@ class LearningViewModel(
                 }
 
                 // 20問のフルセッションを完了した時のみ、実践テストへの移行を検討する
+                // 組み込み級(1-7)の場合のみ実践テストへ遷移する
                 val isFullSessionCompleted = solvedInSession >= totalCount
+                val isBuiltInGrade = currentGrade in 1..7
 
-                // 実践テスト問題があるか確認 (穴埋め または リスニング)
-                val hasPractical = if (isFullSessionCompleted) {
+                val hasPractical = if (isFullSessionCompleted && isBuiltInGrade) {
                     withContext(Dispatchers.IO) {
-                        practicalRepo.hasQuestions(PracticalQuizMode.FILL_BLANK, grade) ||
-                                (appSettings.silentMode == SilentMode.OFF && practicalRepo.hasQuestions(PracticalQuizMode.LISTENING, grade))
+                        practicalRepo.hasQuestions(PracticalQuizMode.FILL_BLANK, currentGrade) ||
+                                (appSettings.silentMode == SilentMode.OFF && practicalRepo.hasQuestions(PracticalQuizMode.LISTENING, currentGrade))
                     }
                 } else false
                 
                 if (hasPractical) {
-                    _uiEvent.send(LearningUiEvent.NavigateToPracticalTest(grade))
+                    _uiEvent.send(LearningUiEvent.NavigateToPracticalTest(currentGrade))
                 } else {
                     // ★ 目標未達だがこれ以上解ける問題がない場合は、TOPに戻らず空状態を表示（loadNextQuiz側と同期）
                     val nextOne = quizManager.nextQuiz()

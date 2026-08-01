@@ -30,11 +30,11 @@ class TsvImporter(
         if (count == 0 || savedVersion < CURRENT_WORD_DATA_VERSION) {
             Log.d(TAG, "Starting word data import. Reason: count=$count, savedVersion=$savedVersion, targetVersion=$CURRENT_WORD_DATA_VERSION")
             
-            // 重要：ID体系が変わった場合（採番し直し等）は既存の古い単語を一旦削除してクリーンにする
-            // （CASCADEにより学習進捗もリセットされますが、ID不整合によるゴミデータを防ぐため）
+            // 重要：組み込みデータの更新時は、古い組み込み単語のみを削除してクリーンにする
+            // （Grade 90〜99 のユーザーインポートデータは維持される）
             if (savedVersion > 0 && savedVersion < CURRENT_WORD_DATA_VERSION) {
-                Log.d(TAG, "Clearing old word data for fresh start (version mismatch)")
-                wordDao.deleteAll()
+                Log.d(TAG, "Clearing old built-in word data for fresh start (version mismatch)")
+                wordDao.deleteBuiltInWords()
             }
 
             val success = importAllGrades()

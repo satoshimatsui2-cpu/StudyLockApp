@@ -3,6 +3,7 @@ package com.stulab.studylockapp.ui
 import android.content.Context
 import com.stulab.studylockapp.GradeUtils
 import com.stulab.studylockapp.R
+import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.WordHistoryItem
 import com.stulab.studylockapp.data.WordHistoryQueryResult
 import com.stulab.studylockapp.learning.QuizMode
@@ -14,13 +15,14 @@ import java.util.*
  */
 class WordHistoryMapper(private val context: Context) {
 
+    private val settings = AppSettings(context)
     private val dateTimeFormat = SimpleDateFormat("MM/dd HH:mm", Locale.getDefault())
 
     fun map(result: WordHistoryQueryResult): WordHistoryItem {
         val now = System.currentTimeMillis()
 
         // 級ラベル
-        val gradeLabel = GradeUtils.toDisplay(result.grade.toString())
+        val gradeLabel = GradeUtils.toDisplay(result.grade.toString(), settings)
 
         // 習得度ティア
         val tierLabel = when {

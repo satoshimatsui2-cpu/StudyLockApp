@@ -340,6 +340,26 @@
                             app:icon="@drawable/ic_round_stars_24"
                             app:iconGravity="textStart" />
                     </LinearLayout>
+
+                    <!-- 3段目: マイ単語帳 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_to_my_word_book"
+                            style="@style/App.HistoryButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="64dp"
+                            android:text="マイ単語帳"
+                            android:textSize="12sp"
+                            app:icon="@drawable/ic_book_24"
+                            app:iconGravity="textStart"
+                            android:contentDescription="@string/cd_my_word_book" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- 管理設定ボタン (デバッグ用/非表示) -->
