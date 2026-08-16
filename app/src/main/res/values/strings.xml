@@ -237,7 +237,7 @@
     <string name="label_until_long_term_master">長期マスターまで</string>
     <string name="label_level_n">LV %1$d</string>
     <string name="label_next_step_hint">あと %1$d 段階で昇格</string>
-    <string name="action_play_example">例文を再生</string>
+    <string name="action_play_example">英語例文を再生</string>
     <string name="action_go_next">次へ進む</string>
 
     <!-- 答え合わせ表示用 -->
@@ -265,6 +265,8 @@
     <string name="review_label_your_answer">❌ あなた</string>
     <string name="review_label_correct_answer">✅ 正解</string>
     <string name="review_label_compare">聞き比べ</string>
+    <string name="review_label_note_prefix">補足：%1$s</string>
+    <string name="label_meaning_bracket">（%1$s）</string>
 
     <!-- 追加: ヘッダー用 -->
     <string name="label_word_level_format">単語LV：%1$s</string>
@@ -360,5 +362,6 @@
     <string name="my_word_book_error_database">My単語帳を保存できませんでした。もう一度お試しください。</string>
     <string name="my_word_book_import_success">%1$d件の単語をインポートしました。</string>
     <string name="my_word_book_delete_success">My単語帳を削除しました。</string>
+    <string name="action_play_word">%1$sを再生</string>
 
 </resources>

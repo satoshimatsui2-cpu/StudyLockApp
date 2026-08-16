@@ -43,8 +43,14 @@ data class LearningUiState(
     val isUnknownAnswer: Boolean = false,
     val reviewModeLabel: String = "",
     val reviewQuestionText: String = "",
+    val reviewQuestionTtsText: String = "",
+    val reviewQuestionNote: String? = null,
     val reviewUserAnswerText: String = "",
+    val reviewUserAnswerTtsText: String = "",
+    val reviewUserAnswerNote: String? = null,
     val reviewCorrectAnswerText: String = "",
+    val reviewCorrectAnswerTtsText: String = "",
+    val reviewCorrectAnswerNote: String? = null,
     val showListeningCompare: Boolean = false,
     val wrongWord: WordEntity? = null,
     val isFavorite: Boolean = false,
@@ -54,6 +60,9 @@ data class LearningUiState(
     val reviewSynonymHintTitle: String? = null,
     val reviewSynonymHintBody: String? = null,
     val reviewAntonyms: List<RelatedWord> = emptyList(),
+    val playableReviewChoices: List<PlayableReviewChoiceUiModel> = emptyList(),
+    val enToJpReviewChoices: List<EnToJpReviewChoiceUiModel> = emptyList(),
+    val reviewDisplayState: ReviewDisplayState = ReviewDisplayState.NONE,
 
     // Session Summary
     val sessionLevelUpCount: Int = 0,
@@ -77,3 +86,10 @@ data class AudioWarningState(
     val message: String,
     val isCritical: Boolean
 )
+
+enum class ReviewDisplayState {
+    NONE,
+    WAITING_FOR_ANIMATION,
+    READY_FOR_MODAL,
+    SHOWING_MODAL
+}

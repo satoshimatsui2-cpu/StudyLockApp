@@ -57,7 +57,13 @@ class QuizManager(
         val baseMode = determineActualMode(finalMastery, QuizMode.valueOf(finalMastery.scheduledMode))
         val actualMode = resolveModeForWord(word, baseMode)
 
-        val choices = choiceGenerator.generateChoices(word, actualMode)
+        val targetRelatedWord = when (actualMode) {
+            QuizMode.SYNONYM_PICK -> word.synonyms.filter { it.word.trim().isNotBlank() }.shuffled().firstOrNull()
+            QuizMode.ANTONYM_PICK -> word.antonyms.filter { it.word.trim().isNotBlank() }.shuffled().firstOrNull()
+            else -> null
+        }
+
+        val choices = choiceGenerator.generateChoices(word, actualMode, targetRelatedWord?.word)
 
          QuizData(
             id = UUID.randomUUID().toString(),
@@ -68,8 +74,7 @@ class QuizManager(
                 QuizMode.EN_TO_JP, QuizMode.LISTEN_EN -> word.word.trim()
                 QuizMode.FILL_BLANK -> createFillBlankQuestion(word)
                 QuizMode.LISTEN_FILL_BLANK -> createListenFillBlankQuestion(word)
-                QuizMode.SYNONYM_PICK -> word.synonyms.filter { it.word.trim().isNotBlank() }.shuffled().firstOrNull()?.word?.trim() ?: ""
-                QuizMode.ANTONYM_PICK -> word.antonyms.filter { it.word.trim().isNotBlank() }.shuffled().firstOrNull()?.word?.trim() ?: ""
+                QuizMode.SYNONYM_PICK, QuizMode.ANTONYM_PICK -> word.word.trim()
                 QuizMode.SENTENCE_SORT -> word.japaneseSentence.trim().ifBlank { word.japanese.trim() }
                 else -> word.word.trim()
             },
@@ -77,8 +82,10 @@ class QuizManager(
             answer = when (actualMode) {
                 QuizMode.EN_TO_JP -> word.japanese.trim()
                 QuizMode.SENTENCE_SORT -> word.sentence.trim()
+                QuizMode.SYNONYM_PICK, QuizMode.ANTONYM_PICK -> targetRelatedWord?.word?.trim() ?: ""
                 else -> word.word.trim()
             },
+            promptRelatedNote = targetRelatedWord?.note,
             sortTokens = if (actualMode == QuizMode.SENTENCE_SORT) {
                 word.sentence.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.shuffled()
             } else null

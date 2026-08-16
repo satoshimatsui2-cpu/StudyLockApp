@@ -6,6 +6,8 @@ import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
 import com.stulab.studylockapp.R
 import com.stulab.studylockapp.databinding.LayoutReviewCardBinding
+import com.stulab.studylockapp.databinding.ItemHearingReviewChoiceBinding
+import android.view.LayoutInflater
 
 /**
  * レビューカードの表示（バインド）を担当するクラス。
@@ -16,6 +18,7 @@ object ReviewCardBinder {
         model: ReviewCardUiModel,
         onPlayUserAnswer: (String) -> Unit,
         onPlayCorrectAnswer: (String) -> Unit,
+        onPlaySentence: (String) -> Unit,
         onFavoriteClick: () -> Unit
     ) {
         val context = binding.root.context
@@ -24,6 +27,7 @@ object ReviewCardBinder {
         binding.chipReviewMode.text = model.modeChipText
         binding.chipReviewMode.setChipIconResource(model.modeChipIconRes)
         binding.textReviewQuestionText.text = model.questionText
+        bindNote(binding.textReviewQuestionNote, model.questionNote)
 
         // 2. 排他表示制御
         // 旧来の「聞き比べエリア」は結果エリアに統合されたため、常に非表示
@@ -31,11 +35,36 @@ object ReviewCardBinder {
         binding.containerResults.visibility = View.VISIBLE
         binding.layoutReviewPhoneticRow.visibility = View.GONE
 
-        // 正誤ブロックの表示制御
         val showWrong = model.showWrongResult && !model.isUnknownAnswer
-        binding.layoutResultWrong.visibility = if (showWrong) View.VISIBLE else View.GONE
-        binding.textReviewAnswerWrong.text = model.wrongAnswerText
-        binding.textReviewAnswerCorrect.text = model.correctAnswerText
+
+        // 7. リスト形式のレビュー表示 (再生可能リスト または 英語→日本語)
+        if (model.playableReviewChoices.isNotEmpty() || model.enToJpReviewChoices.isNotEmpty()) {
+            binding.layoutResultWrong.visibility = View.GONE
+            binding.layoutResultCorrect.visibility = View.GONE
+            binding.layoutHearingChoicesContainer.visibility = View.VISIBLE
+            binding.layoutHearingChoicesContainer.removeAllViews()
+            
+            // 再生可能リスト (LISTEN_EN, LISTEN_FILL_BLANK, FILL_BLANK 等)
+            model.playableReviewChoices.forEach { choice ->
+                renderListItem(binding, context, choice.englishText, choice.japaneseMeaning, choice.ttsText, choice.isCorrect, choice.isSelected, true, onPlayCorrectAnswer)
+            }
+            // 英語→日本語問題
+            model.enToJpReviewChoices.forEach { choice ->
+                renderListItem(binding, context, choice.japaneseText, choice.englishText, choice.ttsText, choice.isCorrect, choice.isSelected, choice.isPlayable, onPlayCorrectAnswer)
+            }
+        } else {
+            binding.layoutHearingChoicesContainer.removeAllViews()
+            binding.layoutHearingChoicesContainer.visibility = View.GONE
+            
+            // 正誤ブロックの表示制御を通常に戻す
+            binding.layoutResultWrong.visibility = if (showWrong) View.VISIBLE else View.GONE
+            binding.textReviewAnswerWrong.text = model.wrongAnswerText
+            bindNote(binding.textReviewAnswerWrongNote, model.wrongAnswerNote)
+
+            binding.layoutResultCorrect.visibility = View.VISIBLE
+            binding.textReviewAnswerCorrect.text = model.correctAnswerText
+            bindNote(binding.textReviewAnswerCorrectNote, model.correctAnswerNote)
+        }
 
         // --- 結果エリアの音声再生制御 (QuizModeに基づく判定) ---
 
@@ -44,7 +73,7 @@ object ReviewCardBinder {
             binding.iconPlayCorrect.visibility = View.VISIBLE
             binding.layoutResultCorrect.isClickable = true
             binding.layoutResultCorrect.setOnClickListener {
-                onPlayCorrectAnswer(model.correctAnswerText)
+                onPlayCorrectAnswer(model.correctAnswerTtsText)
             }
         } else {
             binding.iconPlayCorrect.visibility = View.GONE
@@ -57,20 +86,12 @@ object ReviewCardBinder {
             binding.iconPlayWrong.visibility = View.VISIBLE
             binding.layoutResultWrong.isClickable = true
             binding.layoutResultWrong.setOnClickListener {
-                onPlayUserAnswer(model.wrongAnswerText)
+                onPlayUserAnswer(model.wrongAnswerTtsText)
             }
         } else {
             binding.iconPlayWrong.visibility = View.GONE
             binding.layoutResultWrong.setOnClickListener(null)
             binding.layoutResultWrong.isClickable = false
-        }
-
-        // 結果エリア外の単語音声コントロール (EN_TO_JP等、結果エリアで再生できない場合に表示)
-        binding.buttonPlayQuestionInline.visibility = if (model.showAudioControls) View.VISIBLE else View.GONE
-        if (model.showAudioControls) {
-            binding.buttonPlayQuestionInline.setOnClickListener {
-                onPlayCorrectAnswer(model.questionText) // 問題文(英語)を再生
-            }
         }
 
         // 2.5 お気に入りボタン
@@ -119,13 +140,113 @@ object ReviewCardBinder {
         binding.textReviewSentenceJp.text = model.sentenceJp
 
         // 6. 再生ボタン制御 (例文再生など)
-        val alpha = if (model.playButtonsEnabled) 1.0f else 0.3f
-        listOf(
-            binding.buttonPlayQuestionInline,
-            binding.buttonPlayReviewSentence
-        ).forEach {
-            it.isEnabled = model.playButtonsEnabled
-            it.alpha = alpha
+        val canPlaySentence = model.playButtonsEnabled && model.sentence.isNotBlank()
+        binding.buttonPlayReviewSentence.apply {
+            visibility = if (model.sentence.isNotBlank()) View.VISIBLE else View.GONE
+            isEnabled = canPlaySentence
+            isClickable = canPlaySentence
+            isFocusable = canPlaySentence
+            alpha = if (canPlaySentence) 1.0f else 0.3f
+            if (canPlaySentence) {
+                setOnClickListener { onPlaySentence(model.sentence) }
+                contentDescription = context.getString(R.string.action_play_example)
+            } else {
+                setOnClickListener(null)
+                contentDescription = null
+            }
+        }
+
+        // インライン再生ボタン (EN_TO_JP等)
+        val canPlayInline = model.showAudioControls && model.playButtonsEnabled && model.questionTtsText.isNotBlank()
+        binding.buttonPlayQuestionInline.apply {
+            visibility = if (model.showAudioControls) View.VISIBLE else View.GONE
+            isEnabled = canPlayInline
+            isClickable = canPlayInline
+            isFocusable = canPlayInline
+            alpha = if (canPlayInline) 1.0f else 0.3f
+            if (canPlayInline) {
+                setOnClickListener { onPlayCorrectAnswer(model.questionTtsText) }
+            } else {
+                setOnClickListener(null)
+            }
+        }
+    }
+
+    private fun renderListItem(
+        binding: LayoutReviewCardBinding,
+        context: android.content.Context,
+        primaryText: String,
+        secondaryText: String?,
+        ttsText: String?,
+        isCorrect: Boolean,
+        isSelected: Boolean,
+        isPlayable: Boolean,
+        onPlayAudio: (String) -> Unit
+    ) {
+        val itemView = LayoutInflater.from(context).inflate(R.layout.item_hearing_review_choice, binding.layoutHearingChoicesContainer, false)
+        val itemBinding = ItemHearingReviewChoiceBinding.bind(itemView)
+        
+        itemBinding.textChoiceEnglish.text = primaryText
+        
+        val sec = secondaryText?.trim()
+        if (sec.isNullOrEmpty()) {
+            itemBinding.textChoiceJapanese.visibility = View.GONE
+        } else {
+            itemBinding.textChoiceJapanese.visibility = View.VISIBLE
+            itemBinding.textChoiceJapanese.text = context.getString(R.string.label_meaning_bracket, sec)
+        }
+        
+        // デザイン調整
+        when {
+            isCorrect -> {
+                itemBinding.rootChoiceItem.setBackgroundResource(R.drawable.shape_result_card_correct)
+                itemBinding.imageChoiceStatus.visibility = View.VISIBLE
+                itemBinding.imageChoiceStatus.setImageResource(R.drawable.ic_check_circle_24)
+                itemBinding.imageChoiceStatus.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.choice_correct))
+            }
+            isSelected -> {
+                itemBinding.rootChoiceItem.setBackgroundResource(R.drawable.shape_result_card_wrong)
+                itemBinding.imageChoiceStatus.visibility = View.VISIBLE
+                itemBinding.imageChoiceStatus.setImageResource(R.drawable.ic_close_24)
+                itemBinding.imageChoiceStatus.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.choice_wrong))
+            }
+            else -> {
+                itemBinding.rootChoiceItem.setBackgroundResource(R.drawable.shape_hearing_choice_neutral)
+                itemBinding.imageChoiceStatus.visibility = View.GONE
+            }
+        }
+        
+        // 再生ボタン制御
+        val sanitizedTts = ttsText?.let { com.stulab.studylockapp.sanitizeForTts(it) }.orEmpty()
+        val canPlay = isPlayable && sanitizedTts.isNotEmpty()
+
+        itemBinding.buttonPlayChoice.visibility = if (canPlay) View.VISIBLE else View.GONE
+        itemBinding.root.isClickable = canPlay
+        itemBinding.root.isFocusable = canPlay
+
+        if (canPlay) {
+            val playAction = View.OnClickListener {
+                onPlayAudio(sanitizedTts)
+            }
+            itemBinding.root.setOnClickListener(playAction)
+            itemBinding.buttonPlayChoice.setOnClickListener(playAction)
+            itemBinding.root.contentDescription = context.getString(R.string.action_play_word, sanitizedTts)
+        } else {
+            itemBinding.root.setOnClickListener(null)
+            itemBinding.buttonPlayChoice.setOnClickListener(null)
+            itemBinding.root.contentDescription = null
+        }
+        
+        binding.layoutHearingChoicesContainer.addView(itemView)
+    }
+
+    private fun bindNote(textView: TextView, note: String?) {
+        val trimmed = note?.trim()
+        if (trimmed.isNullOrEmpty()) {
+            textView.visibility = View.GONE
+        } else {
+            textView.visibility = View.VISIBLE
+            textView.text = textView.context.getString(R.string.review_label_note_prefix, trimmed)
         }
     }
 

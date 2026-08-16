@@ -9,16 +9,14 @@ import com.stulab.studylockapp.data.WordEntity
 class ChoiceGenerator {
     private val TAG = "ChoiceGenerator"
 
-    fun generateChoices(word: WordEntity, mode: QuizMode): List<String> {
+    fun generateChoices(word: WordEntity, mode: QuizMode, forcedAnswer: String? = null): List<String> {
         val (correct, candidates, excluded) = when (mode) {
             QuizMode.EN_TO_JP -> {
                 Triple(word.japanese.trim(), word.choicesEnJa, emptySet<String>())
             }
             QuizMode.JP_TO_EN,
             QuizMode.FILL_BLANK,
-            QuizMode.LISTEN_FILL_BLANK,
-            QuizMode.SYNONYM_PICK,
-            QuizMode.ANTONYM_PICK -> {
+            QuizMode.LISTEN_FILL_BLANK -> {
                 // 正解は常に元の英単語
                 val w = word.word.trim()
                 // 除外リスト: 全ての類義語 + 全ての対義語 (問題文に使用した語や他の候補を誤答に混ぜないため)
@@ -27,6 +25,18 @@ class ChoiceGenerator {
                     .filter { it.isNotEmpty() }
                     .toSet()
                 Triple(w, word.choicesJaEn, allRelated)
+            }
+            QuizMode.SYNONYM_PICK,
+            QuizMode.ANTONYM_PICK -> {
+                val ans = forcedAnswer ?: word.word.trim()
+                // 問題語（元の英単語）も選択肢から除外する
+                val allRelated = (word.synonyms + word.antonyms)
+                    .map { it.word.trim().lowercase() }
+                    .filter { it.isNotEmpty() }
+                    .toMutableSet()
+                allRelated.add(word.word.trim().lowercase())
+                
+                Triple(ans, word.choicesJaEn, allRelated)
             }
             QuizMode.LISTEN_EN -> {
                 Triple(word.word.trim(), word.choicesListening, emptySet<String>())

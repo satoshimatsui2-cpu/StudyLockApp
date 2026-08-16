@@ -23,6 +23,9 @@ interface WordDao {
     @Query("SELECT * FROM words WHERE word = :spelling LIMIT 1")
     suspend fun getWordBySpelling(spelling: String): WordEntity?
 
+    @Query("SELECT * FROM words WHERE word IN (:spellings)")
+    suspend fun getWordsBySpellings(spellings: List<String>): List<WordEntity>
+
     @Query("SELECT * FROM words ORDER BY RANDOM() LIMIT 1")
     suspend fun getAnyRandomWord(): WordEntity?
 

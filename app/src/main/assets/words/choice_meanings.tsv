@@ -1,0 +1,927 @@
+﻿lookup_key	english	normalized_english	japanese	quiz_mode	source_word_id	note
+be exhausted from_COMMON_0	be exhausted from	be exhausted from	～で疲れ果てている			
+be afraid of_COMMON_0	be afraid of	be afraid of	～を恐れている			
+be interested in_COMMON_0	be interested in	be interested in	～に興味がある			
+be good at_COMMON_0	be good at	be good at	～が得意だ			
+look forward to_COMMON_0	look forward to	look forward to	～を楽しみに待つ			
+at once_COMMON_0	at once	at once	すぐに			
+for example_COMMON_0	for example	for example	例えば			
+by myself_COMMON_0	by myself	by myself	自分で			
+above_COMMON_0	above	above	～の上に			
+below_COMMON_0	below	below	～の下に			
+ignore_COMMON_0	ignore	ignore	～を無視する			
+reject_COMMON_0	reject	reject	～を拒絶する			
+calm_COMMON_0	calm	calm	穏やかな			
+quiz_COMMON_0	quiz	quiz	小テスト			
+a after b_COMMON_0	A after B	a after b	AのあとでB			
+a before b_COMMON_0	A before B	a before b	Aの前にB			
+a big room._COMMON_0	A big room.	a big room.	大きな部屋ですね			
+a bottle of ~_COMMON_0	a bottle of ~	a bottle of ~	ボトル1本の～			
+a box of ~_COMMON_0	a box of ~	a box of ~	一箱の～			
+a can of ~_COMMON_0	a can of ~	a can of ~	一缶の～			
+a fast train._COMMON_0	A fast train.	a fast train.	速い電車ですね			
+a little ~_COMMON_0	a little ~	a little ~	少しの			
+a little expensive._COMMON_0	A little expensive.	a little expensive.	少し高い			
+a long vacation._COMMON_0	A long vacation.	a long vacation.	長い休みですね			
+a piece of ~_COMMON_0	a piece of ~	a piece of ~	一切れの～			
+a plate of ~_COMMON_0	a plate of ~	a plate of ~	一皿の～			
+about ~_COMMON_0	about ~	about ~	～ごろ			
+above ~_COMMON_0	above ~	above ~	～の上に			
+add a to b_COMMON_0	add A to B	add a to b	AとBを足す			
+adults_COMMON_0	adults	adults	大人たち			
+african_COMMON_0	African	african	アフリカの			
+after_COMMON_0	after	after	～のあとに			
+after lunch_COMMON_0	after lunch	after lunch	昼食後に			
+after that_COMMON_0	after that	after that	そのあとで			
+agree_COMMON_0	agree	agree	同意する			
+all ~_COMMON_0	all ~	all ~	すべての～			
+all night_COMMON_0	all night	all night	一晩中			
+all of ~_COMMON_0	all of ~	all of ~	全部			
+all week_COMMON_0	all week	all week	一週間中			
+ally_COMMON_0	ally	ally	味方			
+almost_COMMON_0	almost	almost	まったく			
+although ~_COMMON_0	although ~	although ~	～だけれども			
+am_COMMON_0	am	am	〜している			
+anger_COMMON_0	anger	anger	怒り			
+ankle_COMMON_0	ankle	ankle	足首			
+answer ~_COMMON_0	answer ~	answer ~	～に答える			
+answer the phone_COMMON_0	answer the phone	answer the phone	電話に出る			
+ant_COMMON_0	ant	ant	あり			
+apologize_COMMON_0	apologize	apologize	謝る			
+apple juice_COMMON_0	apple juice	apple juice	りんごジュース			
+are we ~?_COMMON_0	Are we ~?	are we ~?	〜していますか			
+are you fine?_COMMON_0	Are you fine?	are you fine?	元気ですか			
+are you going to the station?_COMMON_0	Are you going to the station?	are you going to the station?	駅に行きますか			
+are you happy?_COMMON_0	Are you happy?	are you happy?	元気ですか			
+are you okay?_COMMON_0	Are you okay?	are you okay?	大丈夫ですか			
+are you ready?_COMMON_0	Are you ready?	are you ready?	準備はいいですか			
+are you sleepy?_COMMON_0	Are you sleepy?	are you sleepy?	眠いですか			
+arm_COMMON_0	arm	arm	腕			
+around the town_COMMON_0	around the town	around the town	町中で			
+as ... as_COMMON_0	as ... as	as ... as	～と同じくらい			
+asian_COMMON_0	Asian	asian	アジアの			
+ask ~_COMMON_0	ask ~	ask ~	～を質問する			
+ask a_COMMON_0	ask A	ask a	Aをたずねる			
+ask a about b_COMMON_0	ask A about B	ask a about b	AにBを尋ねる			
+ask a question_COMMON_0	ask a question	ask a question	質問する			
+ask a to do_COMMON_0	ask A to do	ask a to do	Aに～するよう頼む			
+ask the way_COMMON_0	ask the way	ask the way	道をたずねる			
+at a store_COMMON_0	at a store	at a store	店で			
+at lunch_COMMON_0	at lunch	at lunch	昼休みに			
+at night_COMMON_0	at night	at night	夜に			
+at noon_COMMON_0	at noon	at noon	正午に			
+at the beginning of ~_COMMON_0	at the beginning of ~	at the beginning of ~	〜の初めに			
+at the library_COMMON_0	at the library	at the library	図書館で			
+at the park_COMMON_0	at the park	at the park	公園で			
+at the store_COMMON_0	at the store	at the store	店で			
+attack a with b_COMMON_0	attack A with B	attack a with b	AをBで攻撃する			
+b after a_COMMON_0	B after A	b after a	AのあとでB			
+b before a_COMMON_0	B before A	b before a	Aの前にB			
+b during a_COMMON_0	B during A	b during a	Aの間にB			
+b for a_COMMON_0	B for A	b for a	AのためにB			
+babies_COMMON_0	babies	babies	赤ちゃんたち			
+balloon_COMMON_0	balloon	balloon	風船			
+basketball game_COMMON_0	basketball game	basketball game	バスケットボールの試合			
+be absent from_COMMON_0	be absent from	be absent from	〜を休む			
+be boring_COMMON_0	be boring	be boring	おもしろくない			
+be busy_COMMON_0	be busy	be busy	たいへんな			
+be careful_COMMON_0	be careful	be careful	気をつけて			
+be careful with ~_COMMON_0	be careful with ~	be careful with ~	～に気をつける			
+be careful._COMMON_0	Be careful.	be careful.	気をつけて			
+be close to ~_COMMON_0	be close to ~	be close to ~	～に近い			
+be connected to ~_COMMON_0	be connected to ~	be connected to ~	〜につながっている			
+be doing_COMMON_0	be doing	be doing	今～している			
+be easy_COMMON_0	be easy	be easy	やさしい			
+be far from ~_COMMON_0	be far from ~	be far from ~	〜から離れている			
+be going to do_COMMON_0	be going to do	be going to do	～するつもりだ			
+be hard_COMMON_0	be hard	be hard	むずかしい			
+be hungry_COMMON_0	be hungry	be hungry	おなかがすいている			
+be in a good mood_COMMON_0	be in a good mood	be in a good mood	機嫌がよい			
+be in a hurry_COMMON_0	be in a hurry	be in a hurry	急いでいる			
+be in front of ~_COMMON_0	be in front of ~	be in front of ~	～の前にある			
+be on time for_COMMON_0	be on time for	be on time for	〜に間に合う			
+be on time for ~_COMMON_0	be on time for ~	be on time for ~	～に間に合う			
+be ready_COMMON_0	be ready	be ready	準備ができている			
+be satisfied with ~_COMMON_0	be satisfied with ~	be satisfied with ~	～に満足している			
+be similar to ~_COMMON_0	be similar to ~	be similar to ~	～に似ている			
+be sure that ~_COMMON_0	be sure that ~	be sure that ~	～ということを確信している			
+be surrounded by ~_COMMON_0	be surrounded by ~	be surrounded by ~	〜で囲まれている			
+be the same as ~_COMMON_0	be the same as ~	be the same as ~	～と同じである			
+be tired_COMMON_0	be tired	be tired	疲れている			
+be worried that ~_COMMON_0	be worried that ~	be worried that ~	～ということを心配している			
+beard_COMMON_0	beard	beard	ひげ			
+because ~_COMMON_0	because ~	because ~	～なので			
+bee_COMMON_0	bee	bee	はち			
+before_COMMON_0	before	before	〜の前に			
+before breakfast_COMMON_0	before breakfast	before breakfast	朝食前に			
+before school_COMMON_0	before school	before school	登校前に			
+begin ~_COMMON_0	begin ~	begin ~	～を始める			
+behind ~_COMMON_0	behind ~	behind ~	〜の後ろに			
+behind the station_COMMON_0	behind the station	behind the station	駅の後ろに			
+behind you_COMMON_0	behind you	behind you	あなたの後ろに			
+beijing_COMMON_0	Beijing	beijing	北京			
+believe ~_COMMON_0	believe ~	believe ~	～を信じる			
+believe a_COMMON_0	believe A	believe a	Aを信じる			
+below ~_COMMON_0	below ~	below ~	～の下に			
+between ~_COMMON_0	between ~	between ~	〜の間に			
+birdhouse_COMMON_0	birdhouse	birdhouse	鳥小屋			
+body_COMMON_0	body	body	体			
+bookshelf_COMMON_0	bookshelf	bookshelf	本だな			
+boots_COMMON_0	boots	boots	長靴			
+borrow ~_COMMON_0	borrow ~	borrow ~	～を借りる			
+borrow a_COMMON_0	borrow A	borrow a	Aを借りる			
+borrow b from a_COMMON_0	borrow B from A	borrow b from a	AからBを借りる			
+borrow from ~_COMMON_0	borrow from ~	borrow from ~	～から借りる			
+boss_COMMON_0	boss	boss	上司			
+bow_COMMON_0	bow	bow	おじぎする			
+bracelet_COMMON_0	bracelet	bracelet	ブレスレット			
+break ~_COMMON_0	break ~	break ~	～を壊す			
+bring back ~_COMMON_0	bring back ~	bring back ~	～を持ち帰る			
+brothers_COMMON_0	brothers	brothers	兄弟			
+business card_COMMON_0	business card	business card	名刺			
+buy ~_COMMON_0	buy ~	buy ~	買う			
+by bike_COMMON_0	by bike	by bike	自転車で			
+cabin_COMMON_0	cabin	cabin	小屋			
+call ~_COMMON_0	call ~	call ~	～を呼ぶ			
+call ~ up_COMMON_0	call ~ up	call ~ up	〜を呼び出す			
+can do_COMMON_0	can do	can do	～できる			
+can i have the bill?_COMMON_0	Can I have the bill?	can i have the bill?	お会計をお願いします			
+can i walk to the station?_COMMON_0	Can I walk to the station?	can i walk to the station?	駅まで歩けますか			
+can we ~?_COMMON_0	Can we ~?	can we ~?	〜できますか			
+can you ~?_COMMON_0	Can you ~?	can you ~?	～できますか			
+can you call me?_COMMON_0	Can you call me?	can you call me?	待ってくれますか			
+can you come here?_COMMON_0	Can you come here?	can you come here?	見てもいいですか			
+can you come now?_COMMON_0	Can you come now?	can you come now?	今来られますか。			
+can you eat?_COMMON_0	Can you eat?	can you eat?	食べられますか			
+can you go now?_COMMON_0	Can you go now?	can you go now?	今行けますか。			
+can you hear now?_COMMON_0	Can you hear now?	can you hear now?	今聞こえますか。			
+can you see now?_COMMON_0	Can you see now?	can you see now?	今見えますか。			
+can you see?_COMMON_0	Can you see?	can you see?	見えますか			
+can you show me?_COMMON_0	Can you show me?	can you show me?	来てくれますか			
+can you speak?_COMMON_0	Can you speak?	can you speak?	話せますか			
+can you wait for me?_COMMON_0	Can you wait for me?	can you wait for me?	座ってもいいですか			
+candle_COMMON_0	candle	candle	ろうそく			
+carry ~_COMMON_0	carry ~	carry ~	～を運ぶ			
+carry a_COMMON_0	carry A	carry a	Aを運ぶ			
+change ~_COMMON_0	change ~	change ~	～を変える			
+change a into b_COMMON_0	change A into B	change a into b	AをBに変える			
+check ~_COMMON_0	check ~	check ~	～を調べる			
+cheerful_COMMON_0	cheerful	cheerful	元気な			
+chest_COMMON_0	chest	chest	胸			
+choose ~_COMMON_0	choose ~	choose ~	～を選ぶ			
+choose a_COMMON_0	choose A	choose a	Aを選ぶ			
+choose a and b_COMMON_0	choose A and B	choose a and b	AとBを選ぶ			
+clean ~ up_COMMON_0	clean ~ up	clean ~ up	〜を片づける			
+clean up ~_COMMON_0	clean up ~	clean up ~	～を片づける			
+clock shop_COMMON_0	clock shop	clock shop	時計店			
+close ~_COMMON_0	close ~	close ~	～を閉める			
+closed_COMMON_0	closed	closed	閉じている			
+clothing_COMMON_0	clothing	clothing	衣類			
+collect ~_COMMON_0	collect ~	collect ~	～を集める			
+collect a_COMMON_0	collect A	collect a	Aを集める			
+collect b from a_COMMON_0	collect B from A	collect b from a	AからBを集める			
+color of ~_COMMON_0	color of ~	color of ~	～の色			
+comb my hair_COMMON_0	comb my hair	comb my hair	髪をとかす			
+come and see_COMMON_0	come and see	come and see	会いに行く			
+come in._COMMON_0	Come in.	come in.	入ってください			
+company_COMMON_0	company	company	会社			
+compare ~_COMMON_0	compare ~	compare ~	～を比べる			
+compare with ~_COMMON_0	compare with ~	compare with ~	～と比べる			
+continue ~_COMMON_0	continue ~	continue ~	～を続ける			
+cook dinner_COMMON_0	cook dinner	cook dinner	料理をする			
+cooking_COMMON_0	cooking	cooking	料理			
+count ~_COMMON_0	count ~	count ~	～を数える			
+count a_COMMON_0	count A	count a	Aを数える			
+crab_COMMON_0	crab	crab	カニ			
+crocodile_COMMON_0	crocodile	crocodile	わに			
+crosswalk_COMMON_0	crosswalk	crosswalk	横断歩道			
+cut ~_COMMON_0	cut ~	cut ~	～を切る			
+dancing_COMMON_0	dancing	dancing	ダンス			
+decide to do_COMMON_0	decide to do	decide to do	～することを決める			
+deer_COMMON_0	deer	deer	シカ			
+dishes_COMMON_0	dishes	dishes	食器			
+divide a by b_COMMON_0	divide A by B	divide a by b	AをBで割る			
+do my homework_COMMON_0	do my homework	do my homework	宿題をする			
+do not want ~_COMMON_0	do not want ~	do not want ~	～したくない			
+do we want to ~?_COMMON_0	Do we want to ~?	do we want to ~?	〜したいですか			
+do you know?_COMMON_0	Do you know?	do you know?	知っていますか			
+do you like school?_COMMON_0	Do you like school?	do you like school?	学校は好きですか			
+does_COMMON_0	does	does	〜する			
+doubt ~_COMMON_0	doubt ~	doubt ~	～を疑う			
+downtown_COMMON_0	downtown	downtown	町の中心へ			
+dr._COMMON_0	Dr.	dr.	～先生			
+dragonfly_COMMON_0	dragonfly	dragonfly	とんぼ			
+draw a picture_COMMON_0	draw a picture	draw a picture	絵をかく			
+drawing_COMMON_0	drawing	drawing	絵			
+drink menu_COMMON_0	drink menu	drink menu	飲み物メニュー			
+drive to ~_COMMON_0	drive to ~	drive to ~	～まで車で行く			
+during_COMMON_0	during	during	～の間に			
+each ~_COMMON_0	each ~	each ~	それぞれの			
+eagle_COMMON_0	eagle	eagle	わし			
+ears_COMMON_0	ears	ears	耳			
+eat breakfast_COMMON_0	eat breakfast	eat breakfast	朝ごはんを食べる			
+eight o'clock_COMMON_0	eight o'clock	eight o'clock	8時			
+either ~_COMMON_0	either ~	either ~	どちらかの			
+either a or b_COMMON_0	either A or B	either a or b	AかBのどちらか			
+elbow_COMMON_0	elbow	elbow	ひじ			
+emi_COMMON_0	Emi	emi	エミ			
+england_COMMON_0	England	england	イギリス			
+english class_COMMON_0	English class	english class	英語の授業			
+english lesson_COMMON_0	English lesson	english lesson	英語の授業			
+enjoy ~_COMMON_0	enjoy ~	enjoy ~	～を楽しむ			
+enter_COMMON_0	enter	enter	入る			
+enter ~_COMMON_0	enter ~	enter ~	～に入る			
+erase ~_COMMON_0	erase ~	erase ~	消す			
+escape from ~_COMMON_0	escape from ~	escape from ~	～から逃げる			
+euro_COMMON_0	euro	euro	ユーロ			
+every month_COMMON_0	every month	every month	毎月			
+every morning_COMMON_0	every morning	every morning	毎朝			
+every night_COMMON_0	every night	every night	毎晩			
+every week_COMMON_0	every week	every week	毎週			
+excuse me._COMMON_0	Excuse me.	excuse me.	すみません			
+explain ~_COMMON_0	explain ~	explain ~	～を説明する			
+explain a to b_COMMON_0	explain A to B	explain a to b	AをBに説明する			
+explain b to a_COMMON_0	explain B to A	explain b to a	Aに説明する			
+eyes_COMMON_0	eyes	eyes	目			
+false_COMMON_0	false	false	うその			
+fancy_COMMON_0	fancy	fancy	派手な			
+far from_COMMON_0	far from	far from	～から遠くに			
+faster_COMMON_0	faster	faster	より速く			
+fastest_COMMON_0	fastest	fastest	最も速い			
+feel fine_COMMON_0	feel fine	feel fine	元気です			
+feel like ~_COMMON_0	feel like ~	feel like ~	～のように感じる			
+feel sick_COMMON_0	feel sick	feel sick	気分が悪い			
+feel worse_COMMON_0	feel worse	feel worse	気分が悪くなる			
+few ~_COMMON_0	few ~	few ~	ほとんどない			
+fifteen minutes_COMMON_0	fifteen minutes	fifteen minutes	15分間			
+fight with ~_COMMON_0	fight with ~	fight with ~	～とけんかする			
+find ~_COMMON_0	find ~	find ~	～を見つける			
+finish ~_COMMON_0	finish ~	finish ~	～を終える			
+fix ~_COMMON_0	fix ~	fix ~	直す			
+fix a_COMMON_0	fix A	fix a	Aを直す			
+flag_COMMON_0	flag	flag	旗			
+flashy_COMMON_0	flashy	flashy	派手な			
+florist_COMMON_0	florist	florist	花屋			
+fly to ~_COMMON_0	fly to ~	fly to ~	～まで飛んで行く			
+fog_COMMON_0	fog	fog	霧			
+for ~_COMMON_0	for ~	for ~	～のために			
+for now_COMMON_0	for now	for now	今のところ			
+forget ~_COMMON_0	forget ~	forget ~	～を忘れる			
+forget that ~_COMMON_0	forget that ~	forget that ~	～ということを忘れている			
+forget to do_COMMON_0	forget to do	forget to do	〜するのを忘れる			
+forgive_COMMON_0	forgive	forgive	許す			
+forgive a_COMMON_0	forgive A	forgive a	Aを許す			
+forty_COMMON_0	forty	forty	40			
+four o'clock_COMMON_0	four o'clock	four o'clock	4時			
+france_COMMON_0	France	france	フランス			
+freezing_COMMON_0	freezing	freezing	寒い			
+friends_COMMON_0	friends	friends	友だち			
+frog_COMMON_0	frog	frog	かえる			
+from ~_COMMON_0	from ~	from ~	〜から			
+futon_COMMON_0	futon	futon	シーツ			
+gallery_COMMON_0	gallery	gallery	美術館			
+gather ~_COMMON_0	gather ~	gather ~	集まる			
+get dressed_COMMON_0	get dressed	get dressed	服を着る			
+get out of_COMMON_0	get out of	get out of	～から出る			
+get sleepy_COMMON_0	get sleepy	get sleepy	眠くなる			
+get tired_COMMON_0	get tired	get tired	疲れる			
+get up early_COMMON_0	get up early	get up early	早く起きる			
+give ~ up_COMMON_0	give ~ up	give ~ up	〜をあきらめる			
+give a b_COMMON_0	give A B	give a b	AにBを渡す			
+give up ~_COMMON_0	give up ~	give up ~	～をあきらめる			
+gloves_COMMON_0	gloves	gloves	手袋			
+go for a walk_COMMON_0	go for a walk	go for a walk	散歩に行く			
+go past ~_COMMON_0	go past ~	go past ~	～のそばを通る			
+go running_COMMON_0	go running	go running	走りに行く			
+go swimming_COMMON_0	go swimming	go swimming	泳ぎに行く			
+go to_COMMON_0	go to	go to	〜へ行く			
+go walking_COMMON_0	go walking	go walking	散歩に行く			
+goat_COMMON_0	goat	goat	やぎ			
+good evening._COMMON_0	Good evening.	good evening.	こんばんは。			
+good luck!_COMMON_0	Good luck!	good luck!	がんばってください			
+good luck._COMMON_0	Good luck.	good luck.	がんばってね			
+good morning._COMMON_0	Good morning.	good morning.	おはようございます			
+good night._COMMON_0	Good night.	good night.	おやすみ			
+goodbye._COMMON_0	Goodbye.	goodbye.	さようなら			
+grandma_COMMON_0	grandma	grandma	おばあさん			
+green tea_COMMON_0	green tea	green tea	緑茶			
+greet ~_COMMON_0	greet ~	greet ~	～にあいさつする			
+grow into ~_COMMON_0	grow into ~	grow into ~	～に成長する			
+guide_COMMON_0	guide	guide	案内人			
+gum_COMMON_0	gum	gum	歯ぐき			
+half of ~_COMMON_0	half of ~	half of ~	半分			
+hang up_COMMON_0	hang up	hang up	電話を切る			
+have a fever_COMMON_0	have a fever	have a fever	頭が痛い			
+have a good rest._COMMON_0	Have a good rest.	have a good rest.	ゆっくり休んでね			
+have a headache_COMMON_0	have a headache	have a headache	熱がある			
+have a nice day._COMMON_0	Have a nice day.	have a nice day.	よい一日を			
+have breakfast_COMMON_0	have breakfast	have breakfast	朝食を食べる			
+have lunch_COMMON_0	have lunch	have lunch	昼食を食べる			
+have no time_COMMON_0	have no time	have no time	時間がない			
+have to_COMMON_0	have to	have to	〜しなければならない			
+he does too._COMMON_0	He does too.	he does too.	彼も			
+heat_COMMON_0	heat	heat	熱			
+he'll_COMMON_0	he'll	he'll	彼は〜でしょう			
+hello._COMMON_0	Hello.	hello.	こんにちは			
+help ~_COMMON_0	help ~	help ~	～を手伝う			
+help a_COMMON_0	help A	help a	Aを助ける			
+help a do_COMMON_0	help A do	help a do	Aが～するのを手伝う			
+help a with b_COMMON_0	help A with B	help a with b	AがBを手伝う			
+help me._COMMON_0	Help me.	help me.	手伝って。			
+her_COMMON_0	her	her	彼女の			
+here's_COMMON_0	here's	here's	〜がほしい			
+hers_COMMON_0	hers	hers	彼女のもの			
+herself_COMMON_0	herself	herself	彼女自身			
+he's_COMMON_0	he's	he's	彼は〜です			
+hide ~_COMMON_0	hide ~	hide ~	～を隠す			
+higher_COMMON_0	higher	higher	より高く			
+highest_COMMON_0	highest	highest	最も高い			
+him_COMMON_0	him	him	彼を			
+his_COMMON_0	his	his	彼の			
+hit_COMMON_0	hit	hit	たたく			
+hope that ~_COMMON_0	hope that ~	hope that ~	～ということを望んでいる			
+horn_COMMON_0	horn	horn	角			
+hot water_COMMON_0	hot water	hot water	湯			
+how big is ~?_COMMON_0	How big is ~?	how big is ~?	～はどのくらい大きいですか			
+how deep is ~?_COMMON_0	How deep is ~?	how deep is ~?	～はどのくらい深いですか			
+how heavy is ~?_COMMON_0	How heavy is ~?	how heavy is ~?	～はどのくらい重いですか			
+how high is ~?_COMMON_0	How high is ~?	how high is ~?	～はどのくらい高いですか			
+how many_COMMON_0	how many	how many	いくつ			
+how many minutes to the station?_COMMON_0	How many minutes to the station?	how many minutes to the station?	駅まで何分ですか			
+how many people?_COMMON_0	How many people?	how many people?	何名様ですか			
+how much_COMMON_0	how much	how much	いくら			
+how much is it?_COMMON_0	How much is it?	how much is it?	いくらですか？			
+how much is that one?_COMMON_0	How much is that one?	how much is that one?	あれはいくらですか			
+how much is this?_COMMON_0	How much is this?	how much is this?	これはいくらですか			
+how much will you pay?_COMMON_0	How much will you pay?	how much will you pay?	いくら払いますか？			
+how old are you?_COMMON_0	How old are you?	how old are you?	何歳ですか			
+how shall we go home?_COMMON_0	How shall we go home?	how shall we go home?	どうやって帰りましょうか			
+hundred thousand_COMMON_0	hundred thousand	hundred thousand	10万			
+hurry ~_COMMON_0	hurry ~	hurry ~	～を急がせる			
+hurry up._COMMON_0	Hurry up.	hurry up.	急いでください			
+hurry._COMMON_0	Hurry.	hurry.	急いでください			
+i am free now._COMMON_0	I am free now.	i am free now.	今はひまです			
+i am going to ~._COMMON_0	I am going to ~.	i am going to ~.	〜するつもりです			
+i am hungry._COMMON_0	I am hungry.	i am hungry.	おなかがすいています			
+i am sorry._COMMON_0	I am sorry.	i am sorry.	すみません。			
+i came to see you._COMMON_0	I came to see you.	i came to see you.	あなたに会いに来ました			
+i can ~._COMMON_0	I can ~.	i can ~.	〜できます			
+i don't know._COMMON_0	I don't know.	i don't know.	わかりません			
+i feel very well._COMMON_0	I feel very well.	i feel very well.	とても元気です			
+i go to ~._COMMON_0	I go to ~.	i go to ~.	〜へ行く			
+i have a new bag._COMMON_0	I have a new bag.	i have a new bag.	もう一度見せて			
+i have to ~._COMMON_0	I have to ~.	i have to ~.	〜しなければならない			
+i know ~._COMMON_0	I know ~.	i know ~.	〜を知っている			
+i like ~._COMMON_0	I like ~.	i like ~.	～が好きです			
+i love it._COMMON_0	I love it.	i love it.	それが大好きです			
+i must ~._COMMON_0	I must ~.	i must ~.	～しなければならない			
+i must not ~._COMMON_0	I must not ~.	i must not ~.	〜してはいけない			
+i want ~._COMMON_0	I want ~.	i want ~.	〜がほしい			
+i want to ~._COMMON_0	I want to ~.	i want to ~.	〜したいです			
+i want to go to the station._COMMON_0	I want to go to the station.	i want to go to the station.	駅に行きたいです			
+i was ~._COMMON_0	I was ~.	i was ~.	～していました			
+i will ~._COMMON_0	I will ~.	i will ~.	〜するつもりです			
+i will call later._COMMON_0	I will call later.	i will call later.	あとで電話します			
+i will go soon._COMMON_0	I will go soon.	i will go soon.	すぐに行きます			
+i'll_COMMON_0	I'll	i'll	私は〜するつもりです			
+i'll call back later._COMMON_0	I'll call back later.	i'll call back later.	少々失礼します			
+i'll help you._COMMON_0	I'll help you.	i'll help you.	手伝います			
+i'll visit you._COMMON_0	I'll visit you.	i'll visit you.	会いに行きます			
+i'll wait for you._COMMON_0	I'll wait for you.	i'll wait for you.	待ちます			
+i'll write to you._COMMON_0	I'll write to you.	i'll write to you.	手紙を書きます			
+i'm_COMMON_0	I'm	i'm	私は〜です			
+i'm angry._COMMON_0	I'm angry.	i'm angry.	私は怒っています			
+i'm busy._COMMON_0	I'm busy.	i'm busy.	急いでいます			
+i'm coming here._COMMON_0	I'm coming here.	i'm coming here.	ここに来るところです			
+i'm fine._COMMON_0	I'm fine.	i'm fine.	私は元気です			
+i'm glad to see you again._COMMON_0	I'm glad to see you again.	i'm glad to see you again.	また会えてうれしいです			
+i'm going out._COMMON_0	I'm going out.	i'm going out.	外出するところです			
+i'm going to bed._COMMON_0	I'm going to bed.	i'm going to bed.	寝るところです			
+i'm going to school._COMMON_0	I'm going to school.	i'm going to school.	学校へ行くところです			
+i'm happy to help you._COMMON_0	I'm happy to help you.	i'm happy to help you.	お手伝いできてうれしいです			
+i'm happy to talk with you._COMMON_0	I'm happy to talk with you.	i'm happy to talk with you.	お話しできてうれしいです			
+i'm happy._COMMON_0	I'm happy.	i'm happy.	私はうれしいです			
+i'm hungry._COMMON_0	I'm hungry.	i'm hungry.	おなかがすいています			
+i'm sleepy._COMMON_0	I'm sleepy.	i'm sleepy.	私は眠いです			
+i'm tired._COMMON_0	I'm tired.	i'm tired.	疲れています			
+i'm worried._COMMON_0	I'm worried.	i'm worried.	心配しています			
+in ~_COMMON_0	in ~	in ~	〜の中に			
+in front of_COMMON_0	in front of	in front of	〜の前に			
+in front of the school_COMMON_0	in front of the school	in front of the school	学校の前に			
+in japan_COMMON_0	in Japan	in japan	国内で			
+in the afternoon_COMMON_0	in the afternoon	in the afternoon	午後に			
+in the evening_COMMON_0	in the evening	in the evening	夕方に			
+in the house_COMMON_0	in the house	in the house	家の中で			
+in the middle of ~_COMMON_0	in the middle of ~	in the middle of ~	〜の途中で			
+in the store_COMMON_0	in the store	in the store	店で			
+index finger_COMMON_0	index finger	index finger	人さし指			
+injection_COMMON_0	injection	injection	注射			
+inside_COMMON_0	inside	inside	中で			
+inside ~_COMMON_0	inside ~	inside ~	〜の中に			
+introduce ~_COMMON_0	introduce ~	introduce ~	～を紹介する			
+invite_COMMON_0	invite	invite	招待する			
+invite ~_COMMON_0	invite ~	invite ~	～を招待する			
+invite a_COMMON_0	invite A	invite a	Aを招待する			
+is it cold outside?_COMMON_0	Is it cold outside?	is it cold outside?	外は寒いですか。			
+is it dark outside?_COMMON_0	Is it dark outside?	is it dark outside?	外は暗いですか。			
+is it quiet outside?_COMMON_0	Is it quiet outside?	is it quiet outside?	外は静かですか。			
+is it sunny outside?_COMMON_0	Is it sunny outside?	is it sunny outside?	外は晴れですか。			
+is that true?_COMMON_0	Is that true?	is that true?	本当ですか			
+is the station near here?_COMMON_0	Is the station near here?	is the station near here?	駅は近いですか			
+is this seat free?_COMMON_0	Is this seat free?	is this seat free?	席は空いていますか			
+is this station new?_COMMON_0	Is this station new?	is this station new?	この駅は新しいですか			
+it is hot today._COMMON_0	It is hot today.	it is hot today.	今日は暑いです			
+it is interesting._COMMON_0	It is interesting.	it is interesting.	それはおもしろいです			
+it looks difficult._COMMON_0	It looks difficult.	it looks difficult.	難しそうです			
+it looks expensive._COMMON_0	It looks expensive.	it looks expensive.	高そうです			
+it looks interesting._COMMON_0	It looks interesting.	it looks interesting.	おもしろそうです			
+it looks new._COMMON_0	It looks new.	it looks new.	新しそうです			
+it was rainy yesterday._COMMON_0	It was rainy yesterday.	it was rainy yesterday.	昨日は雨でした			
+it will be sunny tomorrow._COMMON_0	It will be sunny tomorrow.	it will be sunny tomorrow.	明日は晴れです			
+italian_COMMON_0	Italian	italian	イタリア語			
+it's ok._COMMON_0	It's OK.	it's ok.	大丈夫です			
+jaw_COMMON_0	jaw	jaw	あご			
+join ~_COMMON_0	join ~	join ~	～に参加する			
+keep doing_COMMON_0	keep doing	keep doing	〜し続ける			
+ken_COMMON_0	Ken	ken	ケン			
+keyboard_COMMON_0	keyboard	keyboard	鍵盤			
+kilo_COMMON_0	kilo	kilo	キロ			
+kindergarten_COMMON_0	kindergarten	kindergarten	幼稚園			
+kitten_COMMON_0	kitten	kitten	子猫			
+knight_COMMON_0	knight	knight	騎士			
+knock_COMMON_0	knock	knock	たたく			
+know ~_COMMON_0	know ~	know ~	～を知っている			
+know about ~_COMMON_0	know about ~	know about ~	〜を知っている			
+kobe_COMMON_0	Kobe	kobe	神戸			
+korea_COMMON_0	Korea	korea	韓国			
+last month_COMMON_0	last month	last month	先月			
+leave ~_COMMON_0	leave ~	leave ~	～を出発する			
+leave there_COMMON_0	leave there	leave there	そこを出る			
+lemon_COMMON_0	lemon	lemon	レモン			
+lend a b_COMMON_0	lend A B	lend a b	AにBを貸す			
+let's play after school._COMMON_0	Let's play after school.	let's play after school.	今日はとても暑い			
+lid_COMMON_0	lid	lid	ふた			
+lift ~_COMMON_0	lift ~	lift ~	～を持ち上げる			
+like ~_COMMON_0	like ~	like ~	～が好きである			
+lily_COMMON_0	lily	lily	ユリ			
+line ~ up_COMMON_0	line ~ up	line ~ up	並べる			
+lip_COMMON_0	lip	lip	唇			
+listen to music_COMMON_0	listen to music	listen to music	音楽を聞く			
+liter_COMMON_0	liter	liter	リットル			
+little finger_COMMON_0	little finger	little finger	小指			
+live in_COMMON_0	live in	live in	〜に住んでいる			
+live there_COMMON_0	live there	live there	そこに住む			
+lively_COMMON_0	lively	lively	にぎやかな			
+lizard_COMMON_0	lizard	lizard	とかげ			
+long ago_COMMON_0	long ago	long ago	昔			
+longer_COMMON_0	longer	longer	より長い			
+longest_COMMON_0	longest	longest	最も長い			
+look._COMMON_0	Look.	look.	見て			
+lukewarm_COMMON_0	lukewarm	lukewarm	ぬるい			
+lunar_COMMON_0	lunar	lunar	月の			
+made_COMMON_0	made	made	作った			
+magic_COMMON_0	magic	magic	魔法			
+make ~_COMMON_0	make ~	make ~	～を作る			
+make a call_COMMON_0	make a call	make a call	電話をかける			
+make a promise_COMMON_0	make a promise	make a promise	約束をする			
+make breakfast_COMMON_0	make breakfast	make breakfast	朝ごはんを作る			
+may i have some water?_COMMON_0	May I have some water?	may i have some water?	お水をください			
+may i have your name?_COMMON_0	May I have your name?	may i have your name?	お名前を伺ってもよいですか			
+maybe._COMMON_0	Maybe.	maybe.	たぶんそうです			
+meet ~_COMMON_0	meet ~	meet ~	～に会う			
+memorize ~_COMMON_0	memorize ~	memorize ~	覚える			
+middle finger_COMMON_0	middle finger	middle finger	中指			
+mike_COMMON_0	Mike	mike	マイク			
+mile_COMMON_0	mile	mile	マイル			
+millimeter_COMMON_0	millimeter	millimeter	ミリメートル			
+miss ~_COMMON_0	miss ~	miss ~	～を欠席する			
+mix a with b_COMMON_0	mix A with B	mix a with b	AとBを混ぜる			
+mom_COMMON_0	mom	mom	お母さん			
+more ... than ~_COMMON_0	more ... than ~	more ... than ~	…よりもっと～			
+motorcycle_COMMON_0	motorcycle	motorcycle	バイク			
+move ~_COMMON_0	move ~	move ~	～を動かす			
+mr._COMMON_0	Mr.	mr.	～氏、～さん（男性）			
+music lesson_COMMON_0	music lesson	music lesson	音楽の授業			
+must i ~?_COMMON_0	Must I ~?	must i ~?	〜しなければなりません			
+must not_COMMON_0	must not	must not	〜してはいけない			
+must not do_COMMON_0	must not do	must not do	～してはいけない			
+must we ~?_COMMON_0	Must we ~?	must we ~?	〜しなければなりませんか			
+myself_COMMON_0	myself	myself	私自身			
+nagoya_COMMON_0	Nagoya	nagoya	名古屋			
+name of ~_COMMON_0	name of ~	name of ~	～の名前			
+nancy_COMMON_0	Nancy	nancy	ナンシー			
+nara_COMMON_0	Nara	nara	奈良			
+near ~_COMMON_0	near ~	near ~	〜の近くに			
+near you_COMMON_0	near you	near you	近くに			
+need ~_COMMON_0	need ~	need ~	～を必要としている			
+need help_COMMON_0	need help	need help	手伝いが必要だ			
+nephew_COMMON_0	nephew	nephew	おい			
+net_COMMON_0	net	net	ネット			
+new year's day_COMMON_0	New Year's Day	new year's day	お正月			
+newest_COMMON_0	newest	newest	最も新しい			
+next year_COMMON_0	next year	next year	来年			
+nice to meet you._COMMON_0	Nice to meet you.	nice to meet you.	はじめまして			
+nice weather!_COMMON_0	Nice weather!	nice weather!	よい天気ですね			
+niece_COMMON_0	niece	niece	めい			
+no ~_COMMON_0	no ~	no ~	まったくない～			
+no one_COMMON_0	no one	no one	だれも〜ない			
+no way._COMMON_0	No way.	no way.	だめです			
+nobody_COMMON_0	nobody	nobody	だれも～ない			
+none_COMMON_0	none	none	何もない			
+noon_COMMON_0	noon	noon	正午			
+not as ~ as ..._COMMON_0	not as ~ as ...	not as ~ as ...	…ほど～でない			
+not at all_COMMON_0	not at all	not at all	まったく～ない			
+octopus_COMMON_0	octopus	octopus	タコ			
+of course._COMMON_0	Of course.	of course.	もちろんです			
+on ~_COMMON_0	on ~	on ~	～の上に			
+on friday_COMMON_0	on Friday	on friday	金曜日に			
+on monday_COMMON_0	on Monday	on monday	月曜日に			
+on saturday_COMMON_0	on Saturday	on saturday	土曜日に			
+on the last day_COMMON_0	on the last day	on the last day	最終日に			
+on the road_COMMON_0	on the road	on the road	道の上で			
+on tuesday_COMMON_0	on Tuesday	on tuesday	火曜日に			
+on wednesday_COMMON_0	on Wednesday	on wednesday	水曜日に			
+on weekdays_COMMON_0	on weekdays	on weekdays	平日に			
+once a day_COMMON_0	once a day	once a day	1日に1回			
+once more._COMMON_0	Once more.	once more.	もう一度			
+one item_COMMON_0	one item	one item	一個			
+one of ~_COMMON_0	one of ~	one of ~	ひとつ			
+onto_COMMON_0	onto	onto	〜の上に			
+open_COMMON_0	open	open	開ける			
+open ~_COMMON_0	open ~	open ~	～を開ける			
+open a_COMMON_0	open A	open a	Aを開ける			
+orange juice_COMMON_0	orange juice	orange juice	オレンジジュース			
+order_COMMON_0	order	order	注文			
+order a to do_COMMON_0	order A to do	order a to do	Aに～するよう命じる			
+outside ~_COMMON_0	outside ~	outside ~	～の外に			
+over ~_COMMON_0	over ~	over ~	～の上に			
+p.e. lesson_COMMON_0	P.E. lesson	p.e. lesson	体育の授業			
+p.m._COMMON_0	p.m.	p.m.	午後			
+painter_COMMON_0	painter	painter	画家			
+pan_COMMON_0	pan	pan	なべ			
+paris_COMMON_0	Paris	paris	パリ			
+pass ~_COMMON_0	pass ~	pass ~	～を通り過ぎる			
+pass through ~_COMMON_0	pass through ~	pass through ~	～を通る			
+past_COMMON_0	past	past	過去			
+pear_COMMON_0	pear	pear	なし			
+pencil case_COMMON_0	pencil case	pencil case	筆箱			
+peninsula_COMMON_0	peninsula	peninsula	半島			
+phone number_COMMON_0	phone number	phone number	電話番号			
+pick a up at b_COMMON_0	pick A up at B	pick a up at b	AをBまで迎えに行く			
+pick up_COMMON_0	pick up	pick up	拾う			
+pigeon_COMMON_0	pigeon	pigeon	はと			
+plan ~_COMMON_0	plan ~	plan ~	～を計画する			
+play in the park_COMMON_0	play in the park	play in the park	公園で遊ぶ			
+play outside_COMMON_0	play outside	play outside	外で遊んでいる			
+play soccer_COMMON_0	play soccer	play soccer	サッカーをする			
+play tennis_COMMON_0	play tennis	play tennis	テニスをする			
+play with ~_COMMON_0	play with ~	play with ~	～を見る			
+please call back later._COMMON_0	Please call back later.	please call back later.	後でかけ直してください			
+please come here._COMMON_0	Please come here.	please come here.	ここに来てください			
+please help me._COMMON_0	Please help me.	please help me.	手伝ってください			
+please hold on._COMMON_0	Please hold on.	please hold on.	少々お待ちください			
+please open the window._COMMON_0	Please open the window.	please open the window.	今すぐ始めなさい			
+please read the book._COMMON_0	Please read the book.	please read the book.	本を読んでください			
+please say it again._COMMON_0	Please say it again.	please say it again.	もう一度言ってください			
+please say that again._COMMON_0	Please say that again.	please say that again.	もう一度言ってください			
+please sit here._COMMON_0	Please sit here.	please sit here.	ここにすわってください			
+please speak slowly._COMMON_0	Please speak slowly.	please speak slowly.	ゆっくり話してください			
+please wait a minute._COMMON_0	Please wait a minute.	please wait a minute.	少し待ってください			
+please write your name._COMMON_0	Please write your name.	please write your name.	名前を書いてください			
+pony_COMMON_0	pony	pony	子馬			
+pound_COMMON_0	pound	pound	ポンド			
+practice ~_COMMON_0	practice ~	practice ~	～を練習する			
+practice doing_COMMON_0	practice doing	practice doing	～する練習をする			
+practice with a_COMMON_0	practice with A	practice with a	Aと練習する			
+praise a_COMMON_0	praise A	praise a	Aをほめる			
+prepare ~_COMMON_0	prepare ~	prepare ~	～を準備する			
+price list_COMMON_0	price list	price list	値段表			
+promise_COMMON_0	promise	promise	約束			
+promise ~_COMMON_0	promise ~	promise ~	～を約束する			
+protect_COMMON_0	protect	protect	守る			
+protect ~_COMMON_0	protect ~	protect ~	～を守る			
+pudding_COMMON_0	pudding	pudding	プリン			
+pull ~_COMMON_0	pull ~	pull ~	～を引く			
+push ~_COMMON_0	push ~	push ~	～を押す			
+put down ~_COMMON_0	put down ~	put down ~	置く			
+put on_COMMON_0	put on	put on	～の上に置く			
+put on my clothes_COMMON_0	put on my clothes	put on my clothes	服を着る			
+quilt_COMMON_0	quilt	quilt	ふとん			
+quite new._COMMON_0	Quite new.	quite new.	かなり新しい			
+rainy season_COMMON_0	rainy season	rainy season	梅雨			
+reach_COMMON_0	reach	reach	届く			
+read ~_COMMON_0	read ~	read ~	～を読む			
+read a book_COMMON_0	read a book	read a book	本を読む			
+read aloud_COMMON_0	read aloud	read aloud	読み上げる			
+reader_COMMON_0	reader	reader	読者			
+reading_COMMON_0	reading	reading	読書			
+really?_COMMON_0	Really?	really?	本当ですか			
+rectangle_COMMON_0	rectangle	rectangle	長方形			
+referee_COMMON_0	referee	referee	審判			
+refuse a_COMMON_0	refuse A	refuse a	Aを断る			
+relatives_COMMON_0	relatives	relatives	親戚			
+relaxed_COMMON_0	relaxed	relaxed	安心した			
+remember ~_COMMON_0	remember ~	remember ~	～を覚えている			
+repair ~_COMMON_0	repair ~	repair ~	～を修理する			
+repair a_COMMON_0	repair A	repair a	Aを修理する			
+return to ~_COMMON_0	return to ~	return to ~	～に戻る			
+ring finger_COMMON_0	ring finger	ring finger	薬指			
+room number_COMMON_0	room number	room number	部屋番号			
+run fast_COMMON_0	run fast	run fast	早く走る			
+run to ~_COMMON_0	run to ~	run to ~	～へ走る			
+running_COMMON_0	running	running	ランニング			
+runny nose_COMMON_0	runny nose	runny nose	鼻水			
+sadness_COMMON_0	sadness	sadness	悲しみ			
+salmon_COMMON_0	salmon	salmon	サケ			
+salty_COMMON_0	salty	salty	しょっぱい			
+saw_COMMON_0	saw	saw	見た			
+say it again._COMMON_0	Say it again.	say it again.	もう一度言ってください			
+schoolbag_COMMON_0	schoolbag	schoolbag	かばん			
+science lesson_COMMON_0	science lesson	science lesson	理科の授業			
+see ~_COMMON_0	see ~	see ~	〜を見る			
+see there_COMMON_0	see there	see there	そこを見る			
+see you again._COMMON_0	See you again.	see you again.	また会いましょう			
+see you next week._COMMON_0	See you next week.	see you next week.	また来週			
+see you!_COMMON_0	See you!	see you!	お元気で			
+send ~_COMMON_0	send ~	send ~	～を送る			
+send a b_COMMON_0	send A B	send a b	AにBを送る			
+send a letter_COMMON_0	send a letter	send a letter	手紙を送る			
+send a message_COMMON_0	send a message	send a message	メッセージを送る			
+send a to b_COMMON_0	send A to B	send a to b	AをBに送る			
+seoul_COMMON_0	Seoul	seoul	ソウル			
+separate a from b_COMMON_0	separate A from B	separate a from b	AをBから離す			
+seven o'clock_COMMON_0	seven o'clock	seven o'clock	7時			
+seventy_COMMON_0	seventy	seventy	70			
+shall i ~?_COMMON_0	Shall I ~?	shall i ~?	〜しましょうか			
+shall i answer the phone?_COMMON_0	Shall I answer the phone?	shall i answer the phone?	電話に出ましょうか			
+shall i close the door?_COMMON_0	Shall I close the door?	shall i close the door?	ドアを閉めましょうか			
+shall i help you?_COMMON_0	Shall I help you?	shall i help you?	手伝いましょうか			
+shall i sit here?_COMMON_0	Shall I sit here?	shall i sit here?	座りましょうか			
+shallowly_COMMON_0	shallowly	shallowly	浅く			
+shape of ~_COMMON_0	shape of ~	shape of ~	～の形			
+share_COMMON_0	share	share	共有する			
+share ~_COMMON_0	share ~	share ~	～を共有する			
+shared_COMMON_0	shared	shared	共有の			
+she does too._COMMON_0	She does too.	she does too.	彼女も			
+sheet_COMMON_0	sheet	sheet	シーツ			
+shoe_COMMON_0	shoe	shoe	くつ			
+shoe store_COMMON_0	shoe store	shoe store	靴屋			
+shop at a store_COMMON_0	shop at a store	shop at a store	店で買い物をする			
+shorts_COMMON_0	shorts	shorts	短パン			
+shot_COMMON_0	shot	shot	注射			
+should do_COMMON_0	should do	should do	～するべきだ			
+shout at ~_COMMON_0	shout at ~	shout at ~	～に叫ぶ			
+show ~_COMMON_0	show ~	show ~	見せる			
+show a to b_COMMON_0	show A to B	show a to b	AをBに見せる			
+shrimp_COMMON_0	shrimp	shrimp	エビ			
+sidewalk_COMMON_0	sidewalk	sidewalk	歩道			
+sing a song_COMMON_0	sing a song	sing a song	歌を歌う			
+single person_COMMON_0	single person	single person	一人			
+sir_COMMON_0	sir	sir	～君			
+sit and wait_COMMON_0	sit and wait	sit and wait	座って待つ			
+sit before ~_COMMON_0	sit before ~	sit before ~	～の前に座る			
+sit down._COMMON_0	Sit down.	sit down.	座ってください			
+sit quietly_COMMON_0	sit quietly	sit quietly	静かに座る			
+sit there_COMMON_0	sit there	sit there	そこに座る			
+six o'clock_COMMON_0	six o'clock	six o'clock	6時			
+sixty_COMMON_0	sixty	sixty	60			
+smaller_COMMON_0	smaller	smaller	より小さい			
+smallest_COMMON_0	smallest	smallest	最も小さい			
+smell like ~_COMMON_0	smell like ~	smell like ~	～のようなにおいがする			
+smile at ~_COMMON_0	smile at ~	smile at ~	～に笑う			
+snowing_COMMON_0	snowing	snowing	雪が降っている			
+soccer game_COMMON_0	soccer game	soccer game	サッカーの試合			
+sock_COMMON_0	sock	sock	くつした			
+some ~_COMMON_0	some ~	some ~	いくつかの～			
+somewhere_COMMON_0	somewhere	somewhere	どこか			
+sound of ~_COMMON_0	sound of ~	sound of ~	～の音			
+spaceship_COMMON_0	spaceship	spaceship	宇宙船			
+speak ~_COMMON_0	speak ~	speak ~	〜を話す			
+speed_COMMON_0	speed	speed	速さ			
+spoke_COMMON_0	spoke	spoke	話した			
+sponge_COMMON_0	sponge	sponge	スポンジ			
+stand up._COMMON_0	Stand up.	stand up.	立ってください			
+starlight_COMMON_0	starlight	starlight	星明かり			
+start ~_COMMON_0	start ~	start ~	～を始める			
+start to_COMMON_0	start to	start to	〜し始める			
+station worker_COMMON_0	station worker	station worker	駅員			
+stationery_COMMON_0	stationery	stationery	文房具			
+stay in ~_COMMON_0	stay in ~	stay in ~	～に滞在する			
+steering wheel_COMMON_0	steering wheel	steering wheel	ハンドル			
+stop a from doing_COMMON_0	stop A from doing	stop a from doing	Aが～するのを止める			
+stop at ~_COMMON_0	stop at ~	stop at ~	～で止まる			
+stronger_COMMON_0	stronger	stronger	より強く			
+strongest_COMMON_0	strongest	strongest	最も強い			
+students_COMMON_0	students	students	学生たち			
+study ~_COMMON_0	study ~	study ~	～を勉強する			
+study abroad_COMMON_0	study abroad	study abroad	留学			
+study english_COMMON_0	study English	study english	英語を勉強する			
+studying_COMMON_0	studying	studying	勉強			
+subtract_COMMON_0	subtract	subtract	引く			
+summer vacation_COMMON_0	summer vacation	summer vacation	夏休み			
+sunflower_COMMON_0	sunflower	sunflower	ひまわり			
+support a_COMMON_0	support A	support a	Aを支える			
+surely_COMMON_0	surely	surely	たしかに			
+surround a with b_COMMON_0	surround A with B	surround a with b	AをBで囲む			
+swan_COMMON_0	swan	swan	はくちょう			
+swim to ~_COMMON_0	swim to ~	swim to ~	～まで泳いで行く			
+swimming practice_COMMON_0	swimming practice	swimming practice	水泳の練習			
+sydney_COMMON_0	Sydney	sydney	シドニー			
+take ~_COMMON_0	take ~	take ~	～を連れて行く			
+take a bus_COMMON_0	take a bus	take a bus	バスに乗る			
+take a train_COMMON_0	take a train	take a train	電車に乗る			
+take b out of a_COMMON_0	take B out of A	take b out of a	AからBを取り出す			
+take care_COMMON_0	take care	take care	気をつけて			
+take care._COMMON_0	Take care.	take care.	気をつけて			
+take medicine_COMMON_0	take medicine	take medicine	くすりをのむ			
+take off_COMMON_0	take off	take off	脱ぐ			
+tallest_COMMON_0	tallest	tallest	最も背が高い			
+taste like ~_COMMON_0	taste like ~	taste like ~	～のような味がする			
+teach ~_COMMON_0	teach ~	teach ~	～を教える			
+teachers_COMMON_0	teachers	teachers	先生たち			
+technical school_COMMON_0	technical school	technical school	専門学校			
+tell a b_COMMON_0	tell A B	tell a b	AにBを教える			
+ten minutes_COMMON_0	ten minutes	ten minutes	10分間			
+ten thousand_COMMON_0	ten thousand	ten thousand	1万			
+tennis match_COMMON_0	tennis match	tennis match	テニスの試合			
+text_COMMON_0	text	text	メッセージを送る			
+thank you for your call_COMMON_0	thank you for your call	thank you for your call	お電話をありがとう			
+thank you for your email_COMMON_0	thank you for your email	thank you for your email	メールをありがとう			
+thank you for your help._COMMON_0	Thank you for your help.	thank you for your help.	手伝ってくれてありがとう			
+thank you for your picture_COMMON_0	thank you for your picture	thank you for your picture	お写真をありがとう			
+thank you for your present_COMMON_0	thank you for your present	thank you for your present	プレゼントをありがとう			
+thank you._COMMON_0	Thank you.	thank you.	ありがとう			
+that is_COMMON_0	that is	that is	あれは〜です			
+that is too bad._COMMON_0	That is too bad.	that is too bad.	残念ですね			
+that looks difficult._COMMON_0	That looks difficult.	that looks difficult.	それは難しそうです			
+that looks expensive._COMMON_0	That looks expensive.	that looks expensive.	それは高そうです			
+that looks strange._COMMON_0	That looks strange.	that looks strange.	それは変そうです			
+that sounds late._COMMON_0	That sounds late.	that sounds late.	それは遅そうです			
+that's easy._COMMON_0	That's easy.	that's easy.	それは簡単です			
+that's great._COMMON_0	That's great.	that's great.	それはすばらしいです			
+that's true._COMMON_0	That's true.	that's true.	それは本当です			
+the next day_COMMON_0	the next day	the next day	次の日に			
+the other_COMMON_0	the other	the other	もう一方の			
+their_COMMON_0	their	their	彼らの			
+theirs_COMMON_0	theirs	theirs	彼らのもの			
+them_COMMON_0	them	them	彼らを			
+these are expensive._COMMON_0	These are expensive.	these are expensive.	これらは高いです			
+these are new._COMMON_0	These are new.	these are new.	これらは新しいです			
+these are popular._COMMON_0	These are popular.	these are popular.	これらは人気です			
+these are the same._COMMON_0	These are the same.	these are the same.	これらは同じです			
+thirteenth_COMMON_0	thirteenth	thirteenth	13番目の			
+thirty minutes_COMMON_0	thirty minutes	thirty minutes	30分間			
+this afternoon_COMMON_0	this afternoon	this afternoon	今日の午後			
+this book is very easy._COMMON_0	This book is very easy.	this book is very easy.	私はそれを知りません			
+this is_COMMON_0	this is	this is	これは〜です			
+this month_COMMON_0	this month	this month	今月			
+this week_COMMON_0	this week	this week	今週			
+this year_COMMON_0	this year	this year	今年			
+those_COMMON_0	those	those	あれら			
+thought_COMMON_0	thought	thought	考え			
+through the school_COMMON_0	through the school	through the school	学校中で			
+ticket gate_COMMON_0	ticket gate	ticket gate	改札			
+tire_COMMON_0	tire	tire	タイヤ			
+to your left_COMMON_0	to your left	to your left	あなたの左に			
+to your right_COMMON_0	to your right	to your right	あなたの右に			
+toe_COMMON_0	toe	toe	指			
+tokyo_COMMON_0	Tokyo	tokyo	東京			
+tomorrow morning_COMMON_0	tomorrow morning	tomorrow morning	明日の朝			
+tomorrow night_COMMON_0	tomorrow night	tomorrow night	明日の夜			
+ton_COMMON_0	ton	ton	トン			
+tools_COMMON_0	tools	tools	道具			
+toronto_COMMON_0	Toronto	toronto	トロント			
+total_COMMON_0	total	total	合計			
+tray_COMMON_0	tray	tray	お盆			
+trio_COMMON_0	trio	trio	三人組			
+troubled_COMMON_0	troubled	troubled	困った			
+truck_COMMON_0	truck	truck	トラック			
+trunk_COMMON_0	trunk	trunk	幹			
+trust a_COMMON_0	trust A	trust a	Aを信じる			
+turn ~ off_COMMON_0	turn ~ off	turn ~ off	～を消す			
+turn ~ on_COMMON_0	turn ~ on	turn ~ on	～をつける			
+turn ~ up_COMMON_0	turn ~ up	turn ~ up	～の音量を上げる			
+turn down ~_COMMON_0	turn down ~	turn down ~	～を断る			
+turtle_COMMON_0	turtle	turtle	かめ			
+twenty minutes_COMMON_0	twenty minutes	twenty minutes	20分間			
+twice_COMMON_0	twice	twice	二度			
+twice a month_COMMON_0	twice a month	twice a month	1か月に2回			
+twice a week_COMMON_0	twice a week	twice a week	1週間に2回			
+twice a year_COMMON_0	twice a year	twice a year	1年に2回			
+under ~_COMMON_0	under ~	under ~	〜の下に			
+until now_COMMON_0	until now	until now	今まで			
+use ~_COMMON_0	use ~	use ~	使う			
+very fast._COMMON_0	Very fast.	very fast.	とても速い			
+very good._COMMON_0	Very good.	very good.	とてもよい			
+viewer_COMMON_0	viewer	viewer	観客			
+violet_COMMON_0	violet	violet	すみれ			
+visit ~_COMMON_0	visit ~	visit ~	～を訪ねる			
+visit a at b_COMMON_0	visit A at B	visit a at b	AをBで訪ねる			
+volleyball game_COMMON_0	volleyball game	volleyball game	バレーボールの試合			
+wait at ~_COMMON_0	wait at ~	wait at ~	〜で待つ			
+wait for_COMMON_0	wait for	wait for	待つ			
+wait for a_COMMON_0	wait for A	wait for a	Aを待つ			
+wait._COMMON_0	Wait.	wait.	待ってください			
+walk slowly_COMMON_0	walk slowly	walk slowly	ゆっくり歩く			
+walk to school_COMMON_0	walk to school	walk to school	学校へ歩いて行く			
+walking_COMMON_0	walking	walking	散歩			
+wall clock_COMMON_0	wall clock	wall clock	壁掛け時計			
+want to_COMMON_0	want to	want to	〜したい			
+wants_COMMON_0	wants	wants	〜したい			
+wash ~_COMMON_0	wash ~	wash ~	洗う			
+wash a_COMMON_0	wash A	wash a	Aを洗う			
+wash dishes_COMMON_0	wash dishes	wash dishes	皿を洗う			
+wash my face_COMMON_0	wash my face	wash my face	顔を洗う			
+watch tv_COMMON_0	watch TV	watch tv	テレビを見る			
+wave to ~_COMMON_0	wave to ~	wave to ~	～に手を振る			
+we_COMMON_0	we	we	私たち			
+we can ~._COMMON_0	We can ~.	we can ~.	～できる			
+we did_COMMON_0	we did	we did	私たちは〜しました			
+we do too._COMMON_0	We do too.	we do too.	私たちも			
+we must ~._COMMON_0	We must ~.	we must ~.	～しなければならない			
+we want to ~._COMMON_0	We want to ~.	we want to ~.	～したい			
+we will ~._COMMON_0	We will ~.	we will ~.	～する予定だ			
+wear ~_COMMON_0	wear ~	wear ~	着る			
+weekly_COMMON_0	weekly	weekly	毎週			
+went_COMMON_0	went	went	行った			
+we're_COMMON_0	we're	we're	私たちは〜です			
+what are you eating?_COMMON_0	What are you eating?	what are you eating?	何を食べますか			
+what color do you like?_COMMON_0	What color do you like?	what color do you like?	何色が好きですか？			
+what day is it today?_COMMON_0	What day is it today?	what day is it today?	今日は何曜日ですか			
+what do you want?_COMMON_0	What do you want?	what do you want?	何がほしいですか？			
+what is the date today?_COMMON_0	What is the date today?	what is the date today?	今日は何日ですか			
+what is this?_COMMON_0	What is this?	what is this?	これは何ですか			
+what is your name?_COMMON_0	What is your name?	what is your name?	お名前は何ですか？			
+what shall we eat?_COMMON_0	What shall we eat?	what shall we eat?	何を食べましょうか			
+what time do you get up?_COMMON_0	What time do you get up?	what time do you get up?	何時に起きますか？			
+what time do you go to school?_COMMON_0	What time do you go to school?	what time do you go to school?	何時に学校へ行きますか			
+what time is it now?_COMMON_0	What time is it now?	what time is it now?	今何時ですか			
+what time is it?_COMMON_0	What time is it?	what time is it?	何時ですか？			
+what time will you go?_COMMON_0	What time will you go?	what time will you go?	何時に行きますか？			
+what's your name?_COMMON_0	What's your name?	what's your name?	お名前は何ですか？			
+when are you coming?_COMMON_0	When are you coming?	when are you coming?	いつ来ますか			
+when shall we leave?_COMMON_0	When shall we leave?	when shall we leave?	いつ出発しましょうか			
+when will you go?_COMMON_0	When will you go?	when will you go?	いつ行きますか			
+when's_COMMON_0	when's	when's	いつですか			
+where are you going?_COMMON_0	Where are you going?	where are you going?	どこへ行くの？			
+where are you?_COMMON_0	Where are you?	where are you?	どこですか？			
+where do you live?_COMMON_0	Where do you live?	where do you live?	どこに住んでいますか？			
+where is ~?_COMMON_0	Where is ~?	where is ~?	～はどこですか			
+where is it?_COMMON_0	Where is it?	where is it?	どこにありますか			
+where is the station?_COMMON_0	Where is the station?	where is the station?	駅はどこですか			
+where is your school?_COMMON_0	Where is your school?	where is your school?	学校はどこですか			
+which do you like?_COMMON_0	Which do you like?	which do you like?	どちらが好きですか			
+which is_COMMON_0	which is	which is	どちらですか			
+which one is yours?_COMMON_0	Which one is yours?	which one is yours?	どれがあなたのですか？			
+while ~_COMMON_0	while ~	while ~	～する間			
+whisker_COMMON_0	whisker	whisker	ひげ			
+who are you talking to?_COMMON_0	Who are you talking to?	who are you talking to?	誰と話していますか			
+who do you go to school with?_COMMON_0	Who do you go to school with?	who do you go to school with?	だれと学校へ行きますか			
+who is this?_COMMON_0	Who is this?	who is this?	また後で電話します			
+who shall we go with?_COMMON_0	Who shall we go with?	who shall we go with?	だれと行きましょうか			
+who will come?_COMMON_0	Who will come?	who will come?	だれが来ますか			
+who's_COMMON_0	who's	who's	だれですか			
+whose is ~?_COMMON_0	Whose is ~?	whose is ~?	～はだれのものですか			
+whose is this?_COMMON_0	Whose is this?	whose is this?	だれのものですか			
+why's_COMMON_0	why's	why's	なぜですか			
+will do_COMMON_0	will do	will do	これから～する			
+will you close the door?_COMMON_0	Will you close the door?	will you close the door?	ドアを閉めてくれますか			
+will you come here?_COMMON_0	Will you come here?	will you come here?	ここに来てくれますか			
+will you come with me?_COMMON_0	Will you come with me?	will you come with me?	来てくれますか			
+will you show me?_COMMON_0	Will you show me?	will you show me?	見せてくれますか			
+will you tell me?_COMMON_0	Will you tell me?	will you tell me?	教えてくれますか			
+will you wait a minute?_COMMON_0	Will you wait a minute?	will you wait a minute?	少し待ってくれますか			
+will you wait for me?_COMMON_0	Will you wait for me?	will you wait for me?	待ってくれますか			
+witch_COMMON_0	witch	witch	魔女			
+with ~_COMMON_0	with ~	with ~	～といっしょに			
+wolf_COMMON_0	wolf	wolf	オオカミ			
+worst_COMMON_0	worst	worst	最も悪い			
+write ~_COMMON_0	write ~	write ~	～を書く			
+write a letter_COMMON_0	write a letter	write a letter	手紙を書く			
+write a name_COMMON_0	write a name	write a name	名前を書く			
+write about ~_COMMON_0	write about ~	write about ~	〜を書く			
+yesterday morning_COMMON_0	yesterday morning	yesterday morning	昨日の朝			
+you can_COMMON_0	you can	you can	あなたは〜できます			
+you too._COMMON_0	You too.	you too.	あなたも			
+youngest_COMMON_0	youngest	youngest	最も若い			
+yours_COMMON_0	yours	yours	あなたたちのもの			
+yourself_COMMON_0	yourself	yourself	あなた自身			
+sumo_COMMON_0	sumo	sumo	相撲
+came_COMMON_0	came	came	来た
+women_COMMON_0	women	women	女性たち
+men_COMMON_0	men	men	男性たち
+i'm sleepy_COMMON_0	I'm sleepy	i'm sleepy	眠いです
+i'm hungry_COMMON_0	I'm hungry	i'm hungry	おなかがすいています
+i'm ready_COMMON_0	I'm ready	i'm ready	準備ができています
+i'm happy_COMMON_0	I'm happy	i'm happy	幸せです
+be ready for_COMMON_0	be ready for	be ready for	～の準備ができている
+be kind to_COMMON_0	be kind to	be kind to	～に親切にする
+be from_COMMON_0	be from	be from	～の出身だ
+wish_COMMON_0	wish	wish	願う
+awesome_COMMON_0	awesome	awesome	素晴らしい
+holder_COMMON_0	holder	holder	ホルダー、保持者
+mat_COMMON_0	mat	mat	マット
+donkey_COMMON_0	donkey	donkey	ロバ
+are you hungry?_COMMON_0	Are you hungry?	are you hungry?	おなかがすいていますか
+where is your notebook?_COMMON_0	Where is your notebook?	where is your notebook?	あなたのノートはどこですか
+what is your favorite day?_COMMON_0	What is your favorite day?	what is your favorite day?	あなたの好きな日はいつですか

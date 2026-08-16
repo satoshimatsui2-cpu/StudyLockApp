@@ -20,9 +20,10 @@ import com.stulab.studylockapp.data.db.*
         WordMasteryEntity::class,
         VoiceCheckResultEntity::class,
         PracticalHistoryEntity::class,
-        FavoriteWordEntity::class
+        FavoriteWordEntity::class,
+        ChoiceMeaningEntity::class
     ],
-    version = 26,
+    version = 27,
     exportSchema = false
 )
 @TypeConverters(WordConverters::class)
@@ -37,6 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun voiceCheckDao(): VoiceCheckDao
     abstract fun practicalHistoryDao(): PracticalHistoryDao
     abstract fun favoriteWordDao(): FavoriteWordDao
+    abstract fun choiceMeaningDao(): ChoiceMeaningDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -65,7 +67,7 @@ abstract class AppDatabase : RoomDatabase() {
                     CREATE TABLE IF NOT EXISTS `practical_history` (
                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
                         `questionNo` TEXT NOT NULL, 
-                        `questionType` TEXT NOT NULL, 
+                        `questionType` TEXT NOT NULL,
                         `grade` INTEGER NOT NULL, 
                         `unit` TEXT NOT NULL, 
                         `questionText` TEXT NOT NULL, 
@@ -84,12 +86,10 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_23_24 = object : Migration(23, 24) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // 1. カラムの追加
                 db.execSQL("ALTER TABLE practical_history ADD COLUMN isScored INTEGER NOT NULL DEFAULT 1")
                 db.execSQL("ALTER TABLE practical_history ADD COLUMN usedReplay INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE practical_history ADD COLUMN resultStatus TEXT NOT NULL DEFAULT 'UNSCORED'")
 
-                // 2. 既存データの移行: isCorrect に基づいて CORRECT / WRONG を割り振る
                 db.execSQL("""
                     UPDATE practical_history
                     SET resultStatus = CASE
@@ -118,6 +118,23 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_26_27 = object : Migration(26, 27) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `choice_meanings` (
+                        `lookupKey` TEXT NOT NULL, 
+                        `normalizedText` TEXT NOT NULL, 
+                        `displayText` TEXT NOT NULL,
+                        `japanese` TEXT NOT NULL, 
+                        `quizMode` TEXT, 
+                        `sourceWordId` INTEGER, 
+                        `note` TEXT, 
+                        PRIMARY KEY(`lookupKey`)
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -130,7 +147,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_22_23, 
                         MIGRATION_23_24, 
                         MIGRATION_24_25,
-                        MIGRATION_25_26
+                        MIGRATION_25_26,
+                        MIGRATION_26_27
                     )
                     .build()
                     .also { INSTANCE = it }

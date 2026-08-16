@@ -8,6 +8,7 @@ import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import com.stulab.studylockapp.sanitizeForTts
 import java.util.Locale
 
 /**
@@ -254,7 +255,15 @@ class PracticalListeningTtsController(
         ttsInstance.setLanguage(profile.locale)
 
         // 略語を正規化して再生
-        val textForSpeech = normalizeForTts(segment.speakText)
+        var textForSpeech = normalizeForTts(segment.speakText)
+        textForSpeech = sanitizeForTts(textForSpeech)
+
+        if (textForSpeech.isEmpty()) {
+            // テキストが空（チルダのみ等）の場合は再生せず即座に次のセグメントへ
+            mainHandler.post { playNext() }
+            return
+        }
+
         val utteranceId = "seg_${segment.id}_text_${System.currentTimeMillis()}"
         val params = Bundle().apply {
             putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)

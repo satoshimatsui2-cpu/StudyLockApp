@@ -180,7 +180,7 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
             val displayText = rawContent.replace("\\n", "\n").trim()
 
             // TTS用は徹底的にクリーニング
-            val ttsText = rawContent
+            var ttsText = rawContent
                 .replace("\\n", " ")
                 .replace("\n", " ")
                 .replace("\\", " ")
@@ -190,7 +190,8 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
                 .replace("p.m.", "PM", ignoreCase = true)
                 .replace("a.m.", "AM", ignoreCase = true)
                 .replace("P.E.", "PE", ignoreCase = true)
-                .trim()
+            
+            ttsText = sanitizeForTts(ttsText)
 
             if (ttsText.isEmpty() && label != "Wait:") continue
 
@@ -215,7 +216,7 @@ class ConversationTtsManager(context: Context) : TextToSpeech.OnInitListener {
         if (result.isEmpty() && script.isNotEmpty()) {
             // 救済処置
             val disp = script.replace("\\n", "\n")
-            val tts = script.replace("\\n", " ").replace("\n", " ")
+            val tts = sanitizeForTts(script.replace("\\n", " ").replace("\n", " "))
             result.add(TtsSpeechLine(disp, tts, 1.0f, 0L))
         }
 

@@ -4,6 +4,9 @@ import android.content.res.ColorStateList
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import androidx.core.content.ContextCompat
 import com.stulab.studylockapp.R
 import com.stulab.studylockapp.databinding.ActivityLearningBinding
@@ -16,27 +19,67 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
 
     companion object {
         const val DURATION_CORRECT = 1000L
-        const val DURATION_WRONG = 1400L
+        const val DURATION_WRONG = 1200L
     }
 
-    fun playCorrectSequence(button: View?, point: Int, tierChanged: Boolean, tierLabel: String, onEnd: () -> Unit) {
+    fun playCorrectSequence(button: View?, point: Int, tierChanged: Boolean, tierLabel: String, targetProgress: Int, onEnd: () -> Unit) {
+        var rewardFinished = false
+        var progressFinished = false
+
+        val checkAllFinished = {
+            if (rewardFinished && progressFinished) {
+                onEnd()
+            }
+        }
+
         if (button != null) {
             showCorrect(button)
             button.postDelayed({
-                showReward(point)
+                showReward(point) {
+                    rewardFinished = true
+                    checkAllFinished()
+                }
                 if (tierChanged) playTierUpAnimation(tierLabel)
             }, 120)
         } else {
-            showReward(point)
+            showReward(point) {
+                rewardFinished = true
+                checkAllFinished()
+            }
         }
-        binding.rootLayout.postDelayed({ onEnd() }, DURATION_CORRECT)
+
+        animateProgress(targetProgress) {
+            progressFinished = true
+            checkAllFinished()
+        }
     }
 
     fun playWrongSequence(selected: View?, correct: View?, onEnd: () -> Unit) {
         if (selected != null && correct != null) {
             showWrong(selected, correct)
+            shake(selected) {
+                onEnd()
+            }
+        } else {
+            onEnd()
         }
-        binding.rootLayout.postDelayed({ onEnd() }, DURATION_WRONG)
+    }
+
+    private fun animateProgress(targetProgress: Int, onEnd: () -> Unit) {
+        val current = binding.progressHorizontal.progress
+        if (current == targetProgress) {
+            onEnd()
+            return
+        }
+        ObjectAnimator.ofInt(binding.progressHorizontal, "progress", current, targetProgress).apply {
+            duration = 500
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    onEnd()
+                }
+            })
+            start()
+        }
     }
 
     /**
@@ -92,7 +135,7 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
             .start()
     }
 
-    private fun showReward(point: Int) {
+    private fun showReward(point: Int, onEnd: (() -> Unit)? = null) {
         binding.textRewardPopup.apply {
             // 表示文言を +10pt に統一
             text = "+${point}pt"
@@ -110,7 +153,10 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
                         .translationY(-50f) // 最終到達を -60f -> -50f に調整
                         .setDuration(300)
                         .setStartDelay(400)
-                        .withEndAction { visibility = View.GONE } // 終了後に隠す
+                        .withEndAction { 
+                            visibility = View.GONE
+                            onEnd?.invoke()
+                        } // 終了後に隠す
                         .start()
                 }
                 .start()
@@ -163,14 +209,15 @@ class AnimationManager(private val binding: ActivityLearningBinding) {
         correct.animate().scaleX(1.08f).scaleY(1.08f).setDuration(200).withEndAction {
             correct.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
         }.start()
-        shake(selected)
     }
 
-    private fun shake(view: View) {
+    private fun shake(view: View, onEnd: () -> Unit) {
         view.translationX = 0f
         view.animate().translationX(-12f).setDuration(50).withEndAction {
             view.animate().translationX(12f).setDuration(50).withEndAction {
-                view.animate().translationX(0f).setDuration(50).start()
+                view.animate().translationX(0f).setDuration(50).withEndAction {
+                    onEnd()
+                }.start()
             }.start()
         }.start()
     }

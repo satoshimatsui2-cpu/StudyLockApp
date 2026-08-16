@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.stulab.studylockapp.R
+import com.stulab.studylockapp.sanitizeForTts
 import com.stulab.studylockapp.data.AppDatabase
 import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.PointHistoryEntity
@@ -577,7 +578,10 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
 
     private fun speakTarget(forceSentence: Boolean = false) {
         val text = getListenText(forceSentence)
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "master")
+        val sanitized = sanitizeForTts(text)
+        if (sanitized.isNotEmpty()) {
+            tts?.speak(sanitized, TextToSpeech.QUEUE_FLUSH, null, "master")
+        }
     }
 
     private fun getListenText(forceSentence: Boolean = false): String {
@@ -605,49 +609,63 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
 
     /**
      * 数字および時刻表現の表記ゆれを正規化する。
-     * 例: "7:00", "7.00", "7 o'clock" -> "seven"
+     * 例: "7:00", "7.00", "7 o'clock" -> "seven", "5th" -> "fifth", "14" -> "fourteen"
      */
     private fun normalizeNumberAndTime(text: String): String {
         var s = text.lowercase()
 
         val numWords = mapOf(
-            "0" to "zero",
-            "1" to "one",
-            "2" to "two",
-            "3" to "three",
-            "4" to "four",
-            "5" to "five",
-            "6" to "six",
-            "7" to "seven",
-            "8" to "eight",
-            "9" to "nine",
-            "10" to "ten",
-            "11" to "eleven",
-            "12" to "twelve"
+            "0" to "zero", "1" to "one", "2" to "two", "3" to "three", "4" to "four",
+            "5" to "five", "6" to "six", "7" to "seven", "8" to "eight", "9" to "nine",
+            "10" to "ten", "11" to "eleven", "12" to "twelve", "13" to "thirteen",
+            "14" to "fourteen", "15" to "fifteen", "16" to "sixteen", "17" to "seventeen",
+            "18" to "eighteen", "19" to "nineteen", "20" to "twenty",
+            "30" to "thirty", "40" to "forty", "50" to "fifty", "60" to "sixty",
+            "70" to "seventy", "80" to "eighty", "90" to "ninety",
+            "100" to "one hundred", "200" to "two hundred", "300" to "three hundred",
+            "400" to "four hundred", "500" to "five hundred", "600" to "six hundred",
+            "700" to "seven hundred", "800" to "eight hundred", "900" to "nine hundred",
+            "1000" to "one thousand"
         )
 
-        // 7:00 / 7.00 → seven
-        s = s.replace(Regex("\\b(1[0-2]|[0-9])[:.](00)\\b")) { match ->
+        val ordinalWords = mapOf(
+            "1st" to "first", "2nd" to "second", "3rd" to "third", "4th" to "fourth",
+            "5th" to "fifth", "6th" to "sixth", "7th" to "seventh", "8th" to "eighth",
+            "9th" to "ninth", "10th" to "tenth", "11th" to "eleven", "12th" to "twelfth",
+            "13th" to "thirteenth", "14th" to "fourteenth", "15th" to "fifteenth",
+            "16th" to "sixteenth", "17th" to "seventeenth", "18th" to "eighteenth",
+            "19th" to "nineteenth", "20th" to "twentieth"
+        )
+
+        // 1. 序数の正規化 (5th -> fifth など) - 数字削除前に行う
+        ordinalWords.forEach { (key, value) ->
+            s = s.replace(Regex("\\b$key\\b"), value)
+        }
+
+        // 2. 時刻/価格 (00) (例: 7:00 / 14:00 → seven / fourteen)
+        s = s.replace(Regex("\\b(2[0-3]|[01]?[0-9])[:.](00)\\b")) { match ->
             numWords[match.groupValues[1]] ?: match.value
         }
 
-        // 7:30 / 7.30 → seven thirty
-        s = s.replace(Regex("\\b(1[0-2]|[0-9])[:.](30)\\b")) { match ->
+        // 3. 時刻/価格 (30) (例: 7:30 → seven thirty)
+        s = s.replace(Regex("\\b(2[0-3]|[01]?[0-9])[:.](30)\\b")) { match ->
             val hour = numWords[match.groupValues[1]] ?: match.groupValues[1]
             "$hour thirty"
         }
 
-        // 7 o'clock → seven
-        s = s.replace(Regex("\\b(1[0-2]|[0-9])\\s*o'?clock\\b")) { match ->
+        // 4. o'clock 表記 (例: 7 o'clock → seven)
+        s = s.replace(Regex("\\b(2[0-3]|[01]?[0-9])\\s*o'?clock\\b")) { match ->
             numWords[match.groupValues[1]] ?: match.value
         }
 
-        // seven o'clock → seven
-        s = s.replace(Regex("\\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\\s*o'?clock\\b"), "$1")
+        // 5. 単語の o'clock (例: seven o'clock → seven)
+        s = s.replace(Regex("\\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\\s*o'?clock\\b"), "$1")
 
-        // standalone 7 → seven
-        s = s.replace(Regex("\\b(1[0-2]|[0-9])\\b")) { match ->
-            numWords[match.groupValues[1]] ?: match.value
+        // 6. 単独の基数 (例: 14 → fourteen, 200 → two hundred)
+        // 既に時間等で変換されなかった残りの数字を変換
+        val digitRegex = Regex("\\b(\\d+)\\b")
+        s = s.replace(digitRegex) { match ->
+            numWords[match.value] ?: match.value
         }
 
         return s

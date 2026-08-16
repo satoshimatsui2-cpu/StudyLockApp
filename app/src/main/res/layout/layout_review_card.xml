@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_review_card"
+    android:id="@+id/root_review_card_content"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="4dp"
-    app:strokeWidth="0dp">
+    android:layout_height="match_parent">
 
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:id="@+id/scroll_review_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/button_next_question"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -45,15 +46,32 @@
                 android:orientation="horizontal"
                 app:layout_constraintTop_toBottomOf="@id/chip_review_mode">
 
-                <TextView
-                    android:id="@+id/text_review_question_text"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="@color/text_main"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    tools:text="persistent" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/text_review_question_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_main"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:text="persistent" />
+
+                    <TextView
+                        android:id="@+id/text_review_question_note"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/text_sub"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        tools:text="補足：より日常的な表現"
+                        tools:visibility="visible" />
+                </LinearLayout>
 
                 <ImageButton
                     android:id="@+id/button_play_question_inline"
@@ -93,11 +111,13 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:padding="12dp">
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -105,6 +125,7 @@
                             android:textColor="@color/choice_wrong"
                             android:textSize="11sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/text_review_answer_wrong"
                             android:layout_width="wrap_content"
@@ -113,16 +134,28 @@
                             android:textColor="@color/text_main"
                             android:textSize="15sp"
                             tools:text="永続的な" />
+
+                        <TextView
+                            android:id="@+id/text_review_answer_wrong_note"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/text_sub"
+                            android:textSize="12sp"
+                            android:visibility="gone"
+                            tools:text="補足：より日常的な表現"
+                            tools:visibility="visible" />
                     </LinearLayout>
+
                     <ImageView
                         android:id="@+id/icon_play_wrong"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_volume_up_24"
-                        app:tint="@color/choice_wrong"
                         android:visibility="gone"
-                        tools:visibility="visible"
-                        android:contentDescription="@null" />
+                        app:tint="@color/choice_wrong"
+                        tools:visibility="visible" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -133,11 +166,13 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:padding="12dp">
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -145,6 +180,7 @@
                             android:textColor="@color/choice_correct"
                             android:textSize="11sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/text_review_answer_correct"
                             android:layout_width="wrap_content"
@@ -154,17 +190,39 @@
                             android:textSize="18sp"
                             android:textStyle="bold"
                             tools:text="持続する" />
+
+                        <TextView
+                            android:id="@+id/text_review_answer_correct_note"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/text_sub"
+                            android:textSize="12sp"
+                            android:visibility="gone"
+                            tools:text="補足：より日常的な表現"
+                            tools:visibility="visible" />
                     </LinearLayout>
+
                     <ImageView
                         android:id="@+id/icon_play_correct"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_volume_up_24"
-                        app:tint="@color/choice_correct"
                         android:visibility="gone"
-                        tools:visibility="visible"
-                        android:contentDescription="@null" />
+                        app:tint="@color/choice_correct"
+                        tools:visibility="visible" />
                 </LinearLayout>
+
+                <!-- リスト形式レビュー用コンテナ -->
+                <LinearLayout
+                    android:id="@+id/layout_hearing_choices_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
                 <!-- 惜しい不正解の説明 -->
                 <LinearLayout
@@ -177,6 +235,7 @@
                     android:padding="12dp"
                     android:visibility="gone"
                     tools:visibility="visible">
+
                     <TextView
                         android:id="@+id/text_synonym_hint_title"
                         android:layout_width="wrap_content"
@@ -185,6 +244,7 @@
                         android:textSize="11sp"
                         android:textStyle="bold"
                         tools:text="惜しい不正解" />
+
                     <TextView
                         android:id="@+id/text_synonym_hint_body"
                         android:layout_width="wrap_content"
@@ -212,12 +272,14 @@
                     android:layout_marginBottom="8dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
                     <ImageView
                         android:layout_width="16dp"
                         android:layout_height="16dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_compare_arrows_24"
-                        app:tint="@color/text_sub"
-                        android:contentDescription="@null" />
+                        app:tint="@color/text_sub" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -232,8 +294,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
-                    <include layout="@layout/item_compare_word" android:id="@+id/include_wrong" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" />
-                    <include layout="@layout/item_compare_word" android:id="@+id/include_correct" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="4dp" />
+
+                    <include
+                        android:id="@+id/include_wrong"
+                        layout="@layout/item_compare_word"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1" />
+
+                    <include
+                        android:id="@+id/include_correct"
+                        layout="@layout/item_compare_word"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -253,12 +329,14 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:visibility="gone">
+
                     <ImageView
                         android:layout_width="18dp"
                         android:layout_height="18dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_volume_up_24"
-                        app:tint="@color/text_sub"
-                        android:contentDescription="@null" />
+                        app:tint="@color/text_sub" />
+
                     <TextView
                         android:id="@+id/text_review_phonetic"
                         android:layout_width="0dp"
@@ -276,13 +354,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:orientation="horizontal">
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginTop="4dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_chat_bubble_outline_24"
-                        app:tint="@color/text_sub"
-                        android:contentDescription="@null" />
+                        app:tint="@color/text_sub" />
+
                     <TextView
                         android:id="@+id/text_review_sentence"
                         android:layout_width="0dp"
@@ -301,19 +381,22 @@
                     android:layout_marginTop="12dp"
                     android:gravity="top"
                     android:orientation="horizontal">
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginTop="4dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_translate_24"
-                        app:tint="@color/text_sub"
-                        android:contentDescription="@null" />
+                        app:tint="@color/text_sub" />
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
                         <TextView
                             android:id="@+id/text_review_sentence_jp"
                             android:layout_width="match_parent"
@@ -321,13 +404,14 @@
                             android:textColor="@color/text_sub"
                             android:textSize="13sp"
                             tools:text="彼女は英語を学ぶために粘り強く努力した。" />
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_play_review_sentence"
                             style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
                             android:layout_gravity="end"
+                            android:layout_marginTop="6dp"
                             android:minHeight="0dp"
                             android:padding="0dp"
                             android:text="再生"
@@ -346,6 +430,7 @@
                     android:orientation="vertical"
                     android:visibility="gone"
                     tools:visibility="visible">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -353,6 +438,7 @@
                         android:textColor="@color/text_sub"
                         android:textSize="11sp"
                         android:textStyle="bold" />
+
                     <LinearLayout
                         android:id="@+id/container_antonyms"
                         android:layout_width="match_parent"
@@ -361,20 +447,20 @@
                         android:orientation="vertical" />
                 </LinearLayout>
             </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_next_question"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"
-                android:text="@string/action_go_next"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/layout_word_info" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
-</com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_next_question"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:text="@string/action_go_next"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

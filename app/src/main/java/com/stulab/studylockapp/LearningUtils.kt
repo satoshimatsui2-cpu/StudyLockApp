@@ -22,6 +22,16 @@ fun normalizeGrade(gradeUi: String): String {
 }
 
 /**
+ * TTS読み上げ用にテキストをクリーニングする。
+ * チルダ記号を除去し、空白を正規化する。
+ */
+fun sanitizeForTts(text: String): String {
+    return text.replace(Regex("[~∼～〜]"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+}
+
+/**
  * 現在のUNIX時間（秒）を取得する便利関数
  */
 fun nowEpochSec(): Long {

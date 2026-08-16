@@ -12,6 +12,8 @@ data class ReviewCardUiModel(
     val modeChipText: String,
     @DrawableRes val modeChipIconRes: Int,
     val questionText: String,
+    val questionTtsText: String,
+    val questionNote: String?,
     val showListeningCompare: Boolean,
     val showWrongResult: Boolean,
     val isUnknownAnswer: Boolean,
@@ -32,7 +34,11 @@ data class ReviewCardUiModel(
      */
     val showAudioControls: Boolean,
     val wrongAnswerText: String,
+    val wrongAnswerTtsText: String,
+    val wrongAnswerNote: String?,
     val correctAnswerText: String,
+    val correctAnswerTtsText: String,
+    val correctAnswerNote: String?,
     val sentence: String,
     val sentenceJp: String,
     val playButtonsEnabled: Boolean,
@@ -41,7 +47,26 @@ data class ReviewCardUiModel(
     // New fields for synonyms and antonyms
     val synonymHintTitle: String?,
     val synonymHintBody: String?,
-    val antonyms: List<RelatedWord>
+    val antonyms: List<RelatedWord>,
+    val playableReviewChoices: List<PlayableReviewChoiceUiModel> = emptyList(),
+    val enToJpReviewChoices: List<EnToJpReviewChoiceUiModel> = emptyList()
+)
+
+data class PlayableReviewChoiceUiModel(
+    val englishText: String,
+    val japaneseMeaning: String?,
+    val ttsText: String,
+    val isCorrect: Boolean,
+    val isSelected: Boolean
+)
+
+data class EnToJpReviewChoiceUiModel(
+    val japaneseText: String,
+    val englishText: String?,
+    val ttsText: String?,
+    val isCorrect: Boolean,
+    val isSelected: Boolean,
+    val isPlayable: Boolean
 )
 
 object ReviewCardMapper {
@@ -84,6 +109,8 @@ object ReviewCardMapper {
             modeChipText = state.reviewModeLabel,
             modeChipIconRes = modeIcon,
             questionText = state.reviewQuestionText,
+            questionTtsText = state.reviewQuestionTtsText,
+            questionNote = state.reviewQuestionNote,
             showListeningCompare = false, // 永久廃止（結果エリアに統合）
             showWrongResult = !state.isLastAnswerCorrect,
             isUnknownAnswer = state.isUnknownAnswer,
@@ -91,7 +118,11 @@ object ReviewCardMapper {
             canPlayWrongAnswer = canPlayResultAudio && showWrong,
             showAudioControls = showAudioControls,
             wrongAnswerText = state.reviewUserAnswerText,
+            wrongAnswerTtsText = state.reviewUserAnswerTtsText,
+            wrongAnswerNote = state.reviewUserAnswerNote,
             correctAnswerText = state.reviewCorrectAnswerText,
+            correctAnswerTtsText = state.reviewCorrectAnswerTtsText,
+            correctAnswerNote = state.reviewCorrectAnswerNote,
             sentence = state.currentWord?.sentence ?: "",
             sentenceJp = state.currentWord?.japaneseSentence ?: "",
             playButtonsEnabled = (state.silentMode == SilentMode.OFF),
@@ -99,7 +130,9 @@ object ReviewCardMapper {
             isFavoriteUpdating = state.isFavoriteUpdating,
             synonymHintTitle = state.reviewSynonymHintTitle,
             synonymHintBody = state.reviewSynonymHintBody,
-            antonyms = state.reviewAntonyms
+            antonyms = state.reviewAntonyms,
+            playableReviewChoices = state.playableReviewChoices,
+            enToJpReviewChoices = state.enToJpReviewChoices
         )
     }
 }

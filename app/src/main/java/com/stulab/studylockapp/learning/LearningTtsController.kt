@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import com.stulab.studylockapp.data.AppSettings
+import com.stulab.studylockapp.sanitizeForTts
 import java.util.Locale
 
 /**
@@ -44,6 +45,9 @@ class LearningTtsController(context: Context) : TextToSpeech.OnInitListener {
      * 指定したテキストを再生。AppSettings の設定値を反映します。
      */
     fun speak(text: String) {
+        val sanitized = sanitizeForTts(text)
+        if (sanitized.isEmpty()) return
+
         if (isReady) {
             val speed = appSettings.getTtsSpeed()
             val pitch = appSettings.getTtsPitch()
@@ -57,10 +61,10 @@ class LearningTtsController(context: Context) : TextToSpeech.OnInitListener {
                     putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
                 }
                 
-                speak(text, TextToSpeech.QUEUE_FLUSH, params, "StudyLockTts_${System.currentTimeMillis()}")
+                speak(sanitized, TextToSpeech.QUEUE_FLUSH, params, "StudyLockTts_${System.currentTimeMillis()}")
             }
         } else {
-            pendingText = text
+            pendingText = sanitized
         }
     }
 

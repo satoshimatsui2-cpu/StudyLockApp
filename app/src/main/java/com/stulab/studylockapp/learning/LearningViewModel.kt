@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stulab.studylockapp.data.TsvImporter
 import com.stulab.studylockapp.data.PointManager
+import com.stulab.studylockapp.data.db.ChoiceMeaningDao
 import com.stulab.studylockapp.data.db.WordDao
 import com.stulab.studylockapp.data.WordEntity
 import com.stulab.studylockapp.data.AppSettings
@@ -21,6 +22,7 @@ import com.stulab.studylockapp.GradeLabelFormatter
 import com.stulab.studylockapp.service.NotificationHelper
 import com.stulab.studylockapp.data.practical.PracticalQuizMode
 import com.stulab.studylockapp.data.practical.PracticalTestRepository
+import com.stulab.studylockapp.sanitizeForTts
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -41,7 +43,8 @@ class LearningViewModel(
     private val optionalWarningText: String,
     private val appSettings: AppSettings,
     private val practicalRepo: PracticalTestRepository,
-    private val favoriteWordDao: FavoriteWordDao
+    private val favoriteWordDao: FavoriteWordDao,
+    private val choiceMeaningDao: ChoiceMeaningDao
 ) : ViewModel() {
 
     private val totalCount = 20
@@ -122,7 +125,7 @@ class LearningViewModel(
                     appSettings.hasResetMasteryForFix = true
                 }
                 
-                TsvImporter(context, wordDao, appSettings).seedIfNeeded()
+                TsvImporter(context, wordDao, choiceMeaningDao, appSettings).seedIfNeeded()
                 wordDao.countAllWords()
             }
             loadNextQuiz()
@@ -188,7 +191,24 @@ class LearningViewModel(
         viewModelScope.launch {
             // 読み込み開始時に状態をリセット (空状態も解除)
             _uiState.update { state -> 
-                state.copy(isLoading = true, isAnswering = false, isReviewing = false, emptyState = null, countdownText = null) 
+                state.copy(
+                    isLoading = true, 
+                    isAnswering = false, 
+                    isReviewing = false, 
+                    emptyState = null, 
+                    countdownText = null,
+                    reviewQuestionText = "",
+                    reviewQuestionTtsText = "",
+                    reviewQuestionNote = null,
+                    reviewUserAnswerText = "",
+                    reviewUserAnswerTtsText = "",
+                    reviewUserAnswerNote = null,
+                    reviewCorrectAnswerText = "",
+                    reviewCorrectAnswerTtsText = "",
+                    reviewCorrectAnswerNote = null,
+                    playableReviewChoices = emptyList(),
+                    enToJpReviewChoices = emptyList()
+                )
             }
             stopCountdown()
             
@@ -423,6 +443,8 @@ class LearningViewModel(
             QuizMode.EN_TO_JP -> word.word
             QuizMode.LISTEN_EN -> word.word
             QuizMode.LISTEN_FILL_BLANK -> word.sentence
+            QuizMode.SYNONYM_PICK -> word.word
+            QuizMode.ANTONYM_PICK -> word.word
             else -> null
         }
     }
@@ -438,7 +460,33 @@ class LearningViewModel(
 
     fun onNextAfterReview() {
         if (_uiState.value.isFinished) return
+        _uiState.update { it.copy(
+            reviewDisplayState = ReviewDisplayState.NONE,
+            isReviewing = false 
+        ) }
         loadNextQuiz()
+    }
+
+    /**
+     * アニメーション（進捗バーや正誤演出）の完了を通知します。
+     */
+    fun notifyAnimationFinished() {
+        _uiState.update { state ->
+            if (state.reviewDisplayState == ReviewDisplayState.WAITING_FOR_ANIMATION) {
+                state.copy(reviewDisplayState = ReviewDisplayState.READY_FOR_MODAL)
+            } else state
+        }
+    }
+
+    /**
+     * モーダルが表示されたことを通知します。
+     */
+    fun onReviewModalShown() {
+        _uiState.update { state ->
+            if (state.reviewDisplayState == ReviewDisplayState.READY_FOR_MODAL) {
+                state.copy(reviewDisplayState = ReviewDisplayState.SHOWING_MODAL)
+            } else state
+        }
     }
 
     fun requestAudioPlayback(text: String? = null) {
@@ -450,7 +498,10 @@ class LearningViewModel(
         }
         
         viewModelScope.launch {
-            _uiEvent.send(LearningUiEvent.PlayAudio(playText))
+            val sanitized = sanitizeForTts(playText)
+            if (sanitized.isNotEmpty()) {
+                _uiEvent.send(LearningUiEvent.PlayAudio(sanitized))
+            }
         }
     }
 
@@ -460,10 +511,13 @@ class LearningViewModel(
 
     fun submitAnswer(selectedAnswer: String) {
         val currentQuiz = _uiState.value.quiz ?: return
-        if (_uiState.value.isAnswering || _uiState.value.isReviewing) return
+        if (_uiState.value.isAnswering || _uiState.value.isReviewing || _uiState.value.reviewDisplayState != ReviewDisplayState.NONE) return
         
-        // 1. 状態を「解答中」にする
-        _uiState.update { state -> state.copy(isAnswering = true) }
+        // 1. 状態を「解答中」かつ「アニメーション待ち」にする
+        _uiState.update { state -> state.copy(
+            isAnswering = true,
+            reviewDisplayState = ReviewDisplayState.WAITING_FOR_ANIMATION
+        ) }
         
         viewModelScope.launch {
             val wordId = currentQuiz.word.no
@@ -558,12 +612,114 @@ class LearningViewModel(
                 QuizMode.LISTEN_FILL_BLANK -> "聞こえた英文の空欄"
                 else -> currentQuiz.question
             }
-            val correctDisplay = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
+
+            var questionDisplay = questionText
+            var questionTts = currentQuiz.question
+            var questionNote: String? = null
+            var selectedDisplay = selectedAnswer
+            var selectedTts = selectedAnswer
+            var selectedNote: String? = null
+            
+            var correctDisplay = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
                 currentQuiz.word.japanese.takeIf { it.isNotBlank() } ?: currentQuiz.answer
             } else if (currentQuiz.mode == QuizMode.SENTENCE_SORT) {
                 currentQuiz.word.sentence
             } else {
                 currentQuiz.word.word
+            }
+            var correctTts = if (currentQuiz.mode == QuizMode.EN_TO_JP) {
+                currentQuiz.word.word
+            } else if (currentQuiz.mode == QuizMode.SENTENCE_SORT) {
+                currentQuiz.word.sentence
+            } else {
+                currentQuiz.word.word
+            }
+            var correctNote: String? = null
+
+            val allRelatedWords = currentQuiz.word.synonyms + currentQuiz.word.antonyms
+            val correctRelatedWords = when (currentQuiz.mode) {
+                QuizMode.SYNONYM_PICK -> currentQuiz.word.synonyms
+                QuizMode.ANTONYM_PICK -> currentQuiz.word.antonyms
+                else -> emptyList()
+            }
+
+            if (currentQuiz.mode == QuizMode.SYNONYM_PICK || currentQuiz.mode == QuizMode.ANTONYM_PICK) {
+                val qWord = withContext(Dispatchers.IO) { wordDao.getWordBySpelling(currentQuiz.question) }
+                questionDisplay = ReviewDisplayFormatter.formatWithJapaneseMeaning(currentQuiz.question, qWord?.japanese)
+                questionTts = currentQuiz.question
+                questionNote = ReviewDisplayFormatter.findRelatedNote(currentQuiz.question, allRelatedWords)
+            }
+
+            // --- 意味解決の共通処理 (補完DB対応) ---
+            val isFullChoiceMode = currentQuiz.mode == QuizMode.LISTEN_EN ||
+                                 currentQuiz.mode == QuizMode.LISTEN_FILL_BLANK ||
+                                 currentQuiz.mode == QuizMode.FILL_BLANK ||
+                                 currentQuiz.mode == QuizMode.JP_TO_EN ||
+                                 currentQuiz.mode == QuizMode.SYNONYM_PICK ||
+                                 currentQuiz.mode == QuizMode.ANTONYM_PICK
+
+            val choicesForMeaningLookup = if (isFullChoiceMode) {
+                currentQuiz.choices
+            } else if (currentQuiz.mode == QuizMode.EN_TO_JP) {
+                emptyList() // 日本語選択肢には適用しない
+            } else {
+                listOfNotNull(currentQuiz.answer, selectedAnswer.takeIf { it != UNKNOWN_ANSWER_LABEL })
+            }
+
+            val resolvedMeaningMap = if (choicesForMeaningLookup.isNotEmpty()) {
+                val normalizedList = choicesForMeaningLookup.map { ReviewMeaningResolver.normalizeChoiceText(it) }
+                val wordEntities = withContext(Dispatchers.IO) { wordDao.getWordsBySpellings(choicesForMeaningLookup) }
+                val wordMap = wordEntities.associateBy { it.word.lowercase().trim() }
+                val supplementaries = withContext(Dispatchers.IO) { choiceMeaningDao.getByNormalizedTexts(normalizedList) }
+
+                choicesForMeaningLookup.associateWith { choice ->
+                    val isCorrectChoice = choice.equals(currentQuiz.answer, ignoreCase = true)
+                    val normalized = ReviewMeaningResolver.normalizeChoiceText(choice)
+                    
+                    val supMeaning = ReviewMeaningResolver.resolveFromChoiceMeanings(
+                        normalizedText = normalized,
+                        quizMode = currentQuiz.mode.name,
+                        sourceWordId = currentQuiz.word.no.toLong(),
+                        candidates = supplementaries.filter { it.normalizedText == normalized }
+                    )
+                    
+                    ReviewMeaningResolver.resolveFinalMeaning(
+                        isCorrect = isCorrectChoice,
+                        sourceWordJapanese = if (isCorrectChoice) currentQuiz.word.japanese else null,
+                        wordEntityMeaning = wordMap[choice.lowercase().trim()]?.japanese,
+                        supplementaryMeaning = supMeaning
+                    )
+                }
+            } else {
+                emptyMap()
+            }
+
+            if (currentQuiz.mode == QuizMode.EN_TO_JP) {
+                correctDisplay = currentQuiz.answer // EN_TO_JP の正解は日本語
+                correctTts = currentQuiz.word.word // 英単語をTTSにする
+                correctNote = ReviewDisplayFormatter.findRelatedNote(currentQuiz.answer, correctRelatedWords)
+
+                if (selectedAnswer != UNKNOWN_ANSWER_LABEL) {
+                    selectedDisplay = selectedAnswer
+                    selectedTts = "" // 日本語なのでTTSなし
+                    selectedNote = ReviewDisplayFormatter.findRelatedNote(selectedAnswer, allRelatedWords)
+                }
+            } else {
+                correctDisplay = ReviewDisplayFormatter.formatWithJapaneseMeaning(currentQuiz.answer, resolvedMeaningMap[currentQuiz.answer])
+                correctTts = currentQuiz.answer
+                correctNote = ReviewDisplayFormatter.findRelatedNote(currentQuiz.answer, correctRelatedWords)
+
+                if (selectedAnswer != UNKNOWN_ANSWER_LABEL) {
+                    if (selectedAnswer.trim().lowercase() == currentQuiz.answer.trim().lowercase()) {
+                        selectedDisplay = correctDisplay
+                        selectedTts = correctTts
+                        selectedNote = correctNote
+                    } else {
+                        selectedDisplay = ReviewDisplayFormatter.formatWithJapaneseMeaning(selectedAnswer, resolvedMeaningMap[selectedAnswer])
+                        selectedTts = selectedAnswer
+                        selectedNote = ReviewDisplayFormatter.findRelatedNote(selectedAnswer, allRelatedWords)
+                    }
+                }
             }
 
             var wrongWordEntity: WordEntity? = null
@@ -583,6 +739,26 @@ class LearningViewModel(
                 }
             }
 
+            var playableChoices: List<PlayableReviewChoiceUiModel> = emptyList()
+            if (isFullChoiceMode) {
+                playableChoices = ReviewDisplayFormatter.createPlayableReviewChoices(
+                    choices = currentQuiz.choices,
+                    resolvedMeanings = resolvedMeaningMap,
+                    correctAnswer = currentQuiz.answer,
+                    selectedAnswer = selectedAnswer
+                )
+            }
+
+            var enToJpChoices: List<EnToJpReviewChoiceUiModel> = emptyList()
+            if (currentQuiz.mode == QuizMode.EN_TO_JP) {
+                enToJpChoices = ReviewDisplayFormatter.createEnToJpReviewChoices(
+                    choices = currentQuiz.choices,
+                    correctAnswer = currentQuiz.answer,
+                    selectedAnswer = selectedAnswer,
+                    englishWord = currentQuiz.question // EN_TO_JP では question が英単語
+                )
+            }
+
             // 加算後の総保有ポイントを取得
             val latestTotal = pointManager.getTotal()
 
@@ -598,14 +774,22 @@ class LearningViewModel(
                     isLastAnswerCorrect = isCorrect,
                     isUnknownAnswer = isUnknown,
                     reviewModeLabel = modeLabel,
-                    reviewQuestionText = questionText,
-                    reviewUserAnswerText = selectedAnswer,
+                    reviewQuestionText = questionDisplay,
+                    reviewQuestionTtsText = questionTts,
+                    reviewQuestionNote = questionNote,
+                    reviewUserAnswerText = selectedDisplay,
+                    reviewUserAnswerTtsText = selectedTts,
+                    reviewUserAnswerNote = selectedNote,
                     reviewCorrectAnswerText = correctDisplay,
+                    reviewCorrectAnswerTtsText = correctTts,
+                    reviewCorrectAnswerNote = correctNote,
                     showListeningCompare = (currentQuiz.mode == QuizMode.LISTEN_EN && !isCorrect && !isUnknown),
                     wrongWord = wrongWordEntity,
                     reviewSynonymHintTitle = synonymTitle,
                     reviewSynonymHintBody = synonymBody,
-                    reviewAntonyms = currentQuiz.word.antonyms
+                    reviewAntonyms = currentQuiz.word.antonyms,
+                    playableReviewChoices = playableChoices,
+                    enToJpReviewChoices = enToJpChoices
                 ) 
             }
 

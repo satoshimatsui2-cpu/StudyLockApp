@@ -22,6 +22,7 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             val studyLogDao = db.studyLogDao()
             val historyDao = db.practicalHistoryDao()
             val favoriteWordDao = db.favoriteWordDao()
+            val choiceMeaningDao = db.choiceMeaningDao()
             
             val appSettings = AppSettings(appContext)
             val quizManager = QuizManager(wordDao, masteryDao, studyLogDao, appSettings)
@@ -43,7 +44,8 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
                 optionalWarningText,
                 appSettings,
                 practicalRepo,
-                favoriteWordDao
+                favoriteWordDao,
+                choiceMeaningDao
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
