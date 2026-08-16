@@ -1,0 +1,927 @@
+﻿english	japanese	quiz_mode	source_word_id	source_word	scope	evidence	confidence	lookup_key
+be exhausted from	～で疲れ果てている				COMMON	Hand-picked (Existing)	HIGH	be exhausted from_COMMON_0
+be afraid of	～を恐れている				COMMON	Hand-picked (Existing)	HIGH	be afraid of_COMMON_0
+be interested in	～に興味がある				COMMON	Hand-picked (Existing)	HIGH	be interested in_COMMON_0
+be good at	～が得意だ				COMMON	Distractor Frequency	HIGH	be good at_COMMON_0
+look forward to	～を楽しみに待つ				COMMON	Hand-picked (Existing)	HIGH	look forward to_COMMON_0
+at once	すぐに				COMMON	Distractor Frequency	HIGH	at once_COMMON_0
+for example	例えば				COMMON	Distractor Frequency	HIGH	for example_COMMON_0
+by myself	自分で				COMMON	Distractor Frequency	HIGH	by myself_COMMON_0
+above	～の上に				COMMON	Distractor Frequency	HIGH	above_COMMON_0
+below	～の下に				COMMON	Distractor Frequency	HIGH	below_COMMON_0
+ignore	～を無視する				COMMON	Distractor Frequency	HIGH	ignore_COMMON_0
+reject	～を拒絶する				COMMON	Distractor Frequency	HIGH	reject_COMMON_0
+calm	穏やかな				COMMON	Distractor Frequency	HIGH	calm_COMMON_0
+quiz	小テスト				COMMON	Distractor Frequency	HIGH	quiz_COMMON_0
+A after B	AのあとでB				COMMON	Distractor Frequency	HIGH	a after b_COMMON_0
+A before B	Aの前にB				COMMON	Distractor Frequency	HIGH	a before b_COMMON_0
+A big room.	大きな部屋ですね				COMMON	Distractor Frequency	HIGH	a big room._COMMON_0
+a bottle of ~	ボトル1本の～				COMMON	Distractor Frequency	HIGH	a bottle of ~_COMMON_0
+a box of ~	一箱の～				COMMON	Distractor Frequency	HIGH	a box of ~_COMMON_0
+a can of ~	一缶の～				COMMON	Distractor Frequency	HIGH	a can of ~_COMMON_0
+A fast train.	速い電車ですね				COMMON	Distractor Frequency	HIGH	a fast train._COMMON_0
+a little ~	少しの				COMMON	Distractor Frequency	HIGH	a little ~_COMMON_0
+A little expensive.	少し高い				COMMON	Distractor Frequency	HIGH	a little expensive._COMMON_0
+A long vacation.	長い休みですね				COMMON	Distractor Frequency	HIGH	a long vacation._COMMON_0
+a piece of ~	一切れの～				COMMON	Distractor Frequency	HIGH	a piece of ~_COMMON_0
+a plate of ~	一皿の～				COMMON	Distractor Frequency	HIGH	a plate of ~_COMMON_0
+about ~	～ごろ				COMMON	Distractor Frequency	HIGH	about ~_COMMON_0
+above ~	～の上に				COMMON	Distractor Frequency	HIGH	above ~_COMMON_0
+add A to B	AとBを足す				COMMON	Distractor Frequency	HIGH	add a to b_COMMON_0
+adults	大人たち				COMMON	Distractor Frequency	HIGH	adults_COMMON_0
+African	アフリカの				COMMON	Distractor Frequency	HIGH	african_COMMON_0
+after	～のあとに				COMMON	Distractor Frequency	HIGH	after_COMMON_0
+after lunch	昼食後に				COMMON	Distractor Frequency	HIGH	after lunch_COMMON_0
+after that	そのあとで				COMMON	Distractor Frequency	HIGH	after that_COMMON_0
+agree	同意する				COMMON	Distractor Frequency	HIGH	agree_COMMON_0
+all ~	すべての～				COMMON	Distractor Frequency	HIGH	all ~_COMMON_0
+all night	一晩中				COMMON	Distractor Frequency	HIGH	all night_COMMON_0
+all of ~	全部				COMMON	Distractor Frequency	HIGH	all of ~_COMMON_0
+all week	一週間中				COMMON	Distractor Frequency	HIGH	all week_COMMON_0
+ally	味方				COMMON	Distractor Frequency	HIGH	ally_COMMON_0
+almost	まったく				COMMON	Distractor Frequency	HIGH	almost_COMMON_0
+although ~	～だけれども				COMMON	Distractor Frequency	HIGH	although ~_COMMON_0
+am	〜している				COMMON	Distractor Frequency	HIGH	am_COMMON_0
+anger	怒り				COMMON	Distractor Frequency	HIGH	anger_COMMON_0
+ankle	足首				COMMON	Distractor Frequency	HIGH	ankle_COMMON_0
+answer ~	～に答える				COMMON	Distractor Frequency	HIGH	answer ~_COMMON_0
+answer the phone	電話に出る				COMMON	Distractor Frequency	HIGH	answer the phone_COMMON_0
+ant	あり				COMMON	Distractor Frequency	HIGH	ant_COMMON_0
+apologize	謝る				COMMON	Distractor Frequency	HIGH	apologize_COMMON_0
+apple juice	りんごジュース				COMMON	Distractor Frequency	HIGH	apple juice_COMMON_0
+Are we ~?	〜していますか				COMMON	Distractor Frequency	HIGH	are we ~?_COMMON_0
+Are you fine?	元気ですか				COMMON	Distractor Frequency	HIGH	are you fine?_COMMON_0
+Are you going to the station?	駅に行きますか				COMMON	Distractor Frequency	HIGH	are you going to the station?_COMMON_0
+Are you happy?	元気ですか				COMMON	Manual Analysis	HIGH	are you happy?_COMMON_0
+Are you okay?	大丈夫ですか				COMMON	Distractor Frequency	HIGH	are you okay?_COMMON_0
+Are you ready?	準備はいいですか				COMMON	Manual Analysis	HIGH	are you ready?_COMMON_0
+Are you sleepy?	眠いですか				COMMON	Manual Analysis	HIGH	are you sleepy?_COMMON_0
+arm	腕				COMMON	Distractor Frequency	HIGH	arm_COMMON_0
+around the town	町中で				COMMON	Distractor Frequency	HIGH	around the town_COMMON_0
+as ... as	～と同じくらい				COMMON	Distractor Frequency	HIGH	as ... as_COMMON_0
+Asian	アジアの				COMMON	Distractor Frequency	HIGH	asian_COMMON_0
+ask ~	～を質問する				COMMON	Distractor Frequency	HIGH	ask ~_COMMON_0
+ask A	Aをたずねる				COMMON	Distractor Frequency	HIGH	ask a_COMMON_0
+ask A about B	AにBを尋ねる				COMMON	Distractor Frequency	HIGH	ask a about b_COMMON_0
+ask a question	質問する				COMMON	Distractor Frequency	HIGH	ask a question_COMMON_0
+ask A to do	Aに～するよう頼む				COMMON	Distractor Frequency	HIGH	ask a to do_COMMON_0
+ask the way	道をたずねる				COMMON	Distractor Frequency	HIGH	ask the way_COMMON_0
+at a store	店で				COMMON	Distractor Frequency	HIGH	at a store_COMMON_0
+at lunch	昼休みに				COMMON	Distractor Frequency	HIGH	at lunch_COMMON_0
+at night	夜に				COMMON	Distractor Frequency	HIGH	at night_COMMON_0
+at noon	正午に				COMMON	Distractor Frequency	HIGH	at noon_COMMON_0
+at the beginning of ~	〜の初めに				COMMON	Distractor Frequency	HIGH	at the beginning of ~_COMMON_0
+at the library	図書館で				COMMON	Distractor Frequency	HIGH	at the library_COMMON_0
+at the park	公園で				COMMON	Distractor Frequency	HIGH	at the park_COMMON_0
+at the store	店で				COMMON	Distractor Frequency	HIGH	at the store_COMMON_0
+attack A with B	AをBで攻撃する				COMMON	Distractor Frequency	HIGH	attack a with b_COMMON_0
+B after A	AのあとでB				COMMON	Distractor Frequency	HIGH	b after a_COMMON_0
+B before A	Aの前にB				COMMON	Distractor Frequency	HIGH	b before a_COMMON_0
+B during A	Aの間にB				COMMON	Distractor Frequency	HIGH	b during a_COMMON_0
+B for A	AのためにB				COMMON	Distractor Frequency	HIGH	b for a_COMMON_0
+babies	赤ちゃんたち				COMMON	Distractor Frequency	HIGH	babies_COMMON_0
+balloon	風船				COMMON	Distractor Frequency	HIGH	balloon_COMMON_0
+basketball game	バスケットボールの試合				COMMON	Distractor Frequency	HIGH	basketball game_COMMON_0
+be absent from	〜を休む				COMMON	Manual Analysis	HIGH	be absent from_COMMON_0
+be boring	おもしろくない				COMMON	Distractor Frequency	HIGH	be boring_COMMON_0
+be busy	たいへんな				COMMON	Distractor Frequency	HIGH	be busy_COMMON_0
+be careful	気をつけて				COMMON	Distractor Frequency	HIGH	be careful_COMMON_0
+be careful with ~	～に気をつける				COMMON	Distractor Frequency	HIGH	be careful with ~_COMMON_0
+Be careful.	気をつけて				COMMON	Distractor Frequency	HIGH	be careful._COMMON_0
+be close to ~	～に近い				COMMON	Distractor Frequency	HIGH	be close to ~_COMMON_0
+be connected to ~	〜につながっている				COMMON	Distractor Frequency	HIGH	be connected to ~_COMMON_0
+be doing	今～している				COMMON	Distractor Frequency	HIGH	be doing_COMMON_0
+be easy	やさしい				COMMON	Distractor Frequency	HIGH	be easy_COMMON_0
+be far from ~	〜から離れている				COMMON	Manual Analysis	HIGH	be far from ~_COMMON_0
+be going to do	～するつもりだ				COMMON	Distractor Frequency	HIGH	be going to do_COMMON_0
+be hard	むずかしい				COMMON	Distractor Frequency	HIGH	be hard_COMMON_0
+be hungry	おなかがすいている				COMMON	Manual Analysis	HIGH	be hungry_COMMON_0
+be in a good mood	機嫌がよい				COMMON	Distractor Frequency	HIGH	be in a good mood_COMMON_0
+be in a hurry	急いでいる				COMMON	Distractor Frequency	HIGH	be in a hurry_COMMON_0
+be in front of ~	～の前にある				COMMON	Distractor Frequency	HIGH	be in front of ~_COMMON_0
+be on time for	〜に間に合う				COMMON	Distractor Frequency	HIGH	be on time for_COMMON_0
+be on time for ~	～に間に合う				COMMON	Distractor Frequency	HIGH	be on time for ~_COMMON_0
+be ready	準備ができている				COMMON	Manual Analysis	HIGH	be ready_COMMON_0
+be satisfied with ~	～に満足している				COMMON	Distractor Frequency	HIGH	be satisfied with ~_COMMON_0
+be similar to ~	～に似ている				COMMON	Distractor Frequency	HIGH	be similar to ~_COMMON_0
+be sure that ~	～ということを確信している				COMMON	Distractor Frequency	HIGH	be sure that ~_COMMON_0
+be surrounded by ~	〜で囲まれている				COMMON	Distractor Frequency	HIGH	be surrounded by ~_COMMON_0
+be the same as ~	～と同じである				COMMON	Distractor Frequency	HIGH	be the same as ~_COMMON_0
+be tired	疲れている				COMMON	Distractor Frequency	HIGH	be tired_COMMON_0
+be worried that ~	～ということを心配している				COMMON	Distractor Frequency	HIGH	be worried that ~_COMMON_0
+beard	ひげ				COMMON	Distractor Frequency	HIGH	beard_COMMON_0
+because ~	～なので				COMMON	Distractor Frequency	HIGH	because ~_COMMON_0
+bee	はち				COMMON	Distractor Frequency	HIGH	bee_COMMON_0
+before	〜の前に				COMMON	Distractor Frequency	HIGH	before_COMMON_0
+before breakfast	朝食前に				COMMON	Distractor Frequency	HIGH	before breakfast_COMMON_0
+before school	登校前に				COMMON	Distractor Frequency	HIGH	before school_COMMON_0
+begin ~	～を始める				COMMON	Distractor Frequency	HIGH	begin ~_COMMON_0
+behind ~	〜の後ろに				COMMON	Distractor Frequency	HIGH	behind ~_COMMON_0
+behind the station	駅の後ろに				COMMON	Distractor Frequency	HIGH	behind the station_COMMON_0
+behind you	あなたの後ろに				COMMON	Distractor Frequency	HIGH	behind you_COMMON_0
+Beijing	北京				COMMON	Distractor Frequency	HIGH	beijing_COMMON_0
+believe ~	～を信じる				COMMON	Distractor Frequency	HIGH	believe ~_COMMON_0
+believe A	Aを信じる				COMMON	Distractor Frequency	HIGH	believe a_COMMON_0
+below ~	～の下に				COMMON	Distractor Frequency	HIGH	below ~_COMMON_0
+between ~	〜の間に				COMMON	Distractor Frequency	HIGH	between ~_COMMON_0
+birdhouse	鳥小屋				COMMON	Distractor Frequency	HIGH	birdhouse_COMMON_0
+body	体				COMMON	Distractor Frequency	HIGH	body_COMMON_0
+bookshelf	本だな				COMMON	Distractor Frequency	HIGH	bookshelf_COMMON_0
+boots	長靴				COMMON	Distractor Frequency	HIGH	boots_COMMON_0
+borrow ~	～を借りる				COMMON	Distractor Frequency	HIGH	borrow ~_COMMON_0
+borrow A	Aを借りる				COMMON	Distractor Frequency	HIGH	borrow a_COMMON_0
+borrow B from A	AからBを借りる				COMMON	Manual Analysis	HIGH	borrow b from a_COMMON_0
+borrow from ~	～から借りる				COMMON	Manual Analysis	HIGH	borrow from ~_COMMON_0
+boss	上司				COMMON	Distractor Frequency	HIGH	boss_COMMON_0
+bow	おじぎする				COMMON	Distractor Frequency	HIGH	bow_COMMON_0
+bracelet	ブレスレット				COMMON	Distractor Frequency	HIGH	bracelet_COMMON_0
+break ~	～を壊す				COMMON	Distractor Frequency	HIGH	break ~_COMMON_0
+bring back ~	～を持ち帰る				COMMON	Distractor Frequency	HIGH	bring back ~_COMMON_0
+brothers	兄弟				COMMON	Distractor Frequency	HIGH	brothers_COMMON_0
+business card	名刺				COMMON	Distractor Frequency	HIGH	business card_COMMON_0
+buy ~	買う				COMMON	Distractor Frequency	HIGH	buy ~_COMMON_0
+by bike	自転車で				COMMON	Distractor Frequency	HIGH	by bike_COMMON_0
+cabin	小屋				COMMON	Distractor Frequency	HIGH	cabin_COMMON_0
+call ~	～を呼ぶ				COMMON	Distractor Frequency	HIGH	call ~_COMMON_0
+call ~ up	〜を呼び出す				COMMON	Distractor Frequency	HIGH	call ~ up_COMMON_0
+can do	～できる				COMMON	Distractor Frequency	HIGH	can do_COMMON_0
+Can I have the bill?	お会計をお願いします				COMMON	Distractor Frequency	HIGH	can i have the bill?_COMMON_0
+Can I walk to the station?	駅まで歩けますか				COMMON	Distractor Frequency	HIGH	can i walk to the station?_COMMON_0
+Can we ~?	〜できますか				COMMON	Distractor Frequency	HIGH	can we ~?_COMMON_0
+Can you ~?	～できますか				COMMON	Distractor Frequency	HIGH	can you ~?_COMMON_0
+Can you call me?	待ってくれますか				COMMON	Distractor Frequency	HIGH	can you call me?_COMMON_0
+Can you come here?	見てもいいですか				COMMON	Distractor Frequency	HIGH	can you come here?_COMMON_0
+Can you come now?	今来られますか。				COMMON	Distractor Frequency	HIGH	can you come now?_COMMON_0
+Can you eat?	食べられますか				COMMON	Distractor Frequency	HIGH	can you eat?_COMMON_0
+Can you go now?	今行けますか。				COMMON	Distractor Frequency	HIGH	can you go now?_COMMON_0
+Can you hear now?	今聞こえますか。				COMMON	Distractor Frequency	HIGH	can you hear now?_COMMON_0
+Can you see now?	今見えますか。				COMMON	Distractor Frequency	HIGH	can you see now?_COMMON_0
+Can you see?	見えますか				COMMON	Distractor Frequency	HIGH	can you see?_COMMON_0
+Can you show me?	来てくれますか				COMMON	Distractor Frequency	HIGH	can you show me?_COMMON_0
+Can you speak?	話せますか				COMMON	Distractor Frequency	HIGH	can you speak?_COMMON_0
+Can you wait for me?	座ってもいいですか				COMMON	Distractor Frequency	HIGH	can you wait for me?_COMMON_0
+candle	ろうそく				COMMON	Distractor Frequency	HIGH	candle_COMMON_0
+carry ~	～を運ぶ				COMMON	Distractor Frequency	HIGH	carry ~_COMMON_0
+carry A	Aを運ぶ				COMMON	Distractor Frequency	HIGH	carry a_COMMON_0
+change ~	～を変える				COMMON	Distractor Frequency	HIGH	change ~_COMMON_0
+change A into B	AをBに変える				COMMON	Distractor Frequency	HIGH	change a into b_COMMON_0
+check ~	～を調べる				COMMON	Distractor Frequency	HIGH	check ~_COMMON_0
+cheerful	元気な				COMMON	Distractor Frequency	HIGH	cheerful_COMMON_0
+chest	胸				COMMON	Distractor Frequency	HIGH	chest_COMMON_0
+choose ~	～を選ぶ				COMMON	Distractor Frequency	HIGH	choose ~_COMMON_0
+choose A	Aを選ぶ				COMMON	Distractor Frequency	HIGH	choose a_COMMON_0
+choose A and B	AとBを選ぶ				COMMON	Distractor Frequency	HIGH	choose a and b_COMMON_0
+clean ~ up	〜を片づける				COMMON	Distractor Frequency	HIGH	clean ~ up_COMMON_0
+clean up ~	～を片づける				COMMON	Distractor Frequency	HIGH	clean up ~_COMMON_0
+clock shop	時計店				COMMON	Distractor Frequency	HIGH	clock shop_COMMON_0
+close ~	～を閉める				COMMON	Distractor Frequency	HIGH	close ~_COMMON_0
+closed	閉じている				COMMON	Distractor Frequency	HIGH	closed_COMMON_0
+clothing	衣類				COMMON	Distractor Frequency	HIGH	clothing_COMMON_0
+collect ~	～を集める				COMMON	Distractor Frequency	HIGH	collect ~_COMMON_0
+collect A	Aを集める				COMMON	Distractor Frequency	HIGH	collect a_COMMON_0
+collect B from A	AからBを集める				COMMON	Manual Analysis	HIGH	collect b from a_COMMON_0
+color of ~	～の色				COMMON	Distractor Frequency	HIGH	color of ~_COMMON_0
+comb my hair	髪をとかす				COMMON	Distractor Frequency	HIGH	comb my hair_COMMON_0
+come and see	会いに行く				COMMON	Distractor Frequency	HIGH	come and see_COMMON_0
+Come in.	入ってください				COMMON	Distractor Frequency	HIGH	come in._COMMON_0
+company	会社				COMMON	Distractor Frequency	HIGH	company_COMMON_0
+compare ~	～を比べる				COMMON	Distractor Frequency	HIGH	compare ~_COMMON_0
+compare with ~	～と比べる				COMMON	Distractor Frequency	HIGH	compare with ~_COMMON_0
+continue ~	～を続ける				COMMON	Distractor Frequency	HIGH	continue ~_COMMON_0
+cook dinner	料理をする				COMMON	Distractor Frequency	HIGH	cook dinner_COMMON_0
+cooking	料理				COMMON	Distractor Frequency	HIGH	cooking_COMMON_0
+count ~	～を数える				COMMON	Distractor Frequency	HIGH	count ~_COMMON_0
+count A	Aを数える				COMMON	Distractor Frequency	HIGH	count a_COMMON_0
+crab	カニ				COMMON	Distractor Frequency	HIGH	crab_COMMON_0
+crocodile	わに				COMMON	Distractor Frequency	HIGH	crocodile_COMMON_0
+crosswalk	横断歩道				COMMON	Distractor Frequency	HIGH	crosswalk_COMMON_0
+cut ~	～を切る				COMMON	Distractor Frequency	HIGH	cut ~_COMMON_0
+dancing	ダンス				COMMON	Distractor Frequency	HIGH	dancing_COMMON_0
+decide to do	～することを決める				COMMON	Distractor Frequency	HIGH	decide to do_COMMON_0
+deer	シカ				COMMON	Distractor Frequency	HIGH	deer_COMMON_0
+dishes	食器				COMMON	Distractor Frequency	HIGH	dishes_COMMON_0
+divide A by B	AをBで割る				COMMON	Distractor Frequency	HIGH	divide a by b_COMMON_0
+do my homework	宿題をする				COMMON	Distractor Frequency	HIGH	do my homework_COMMON_0
+do not want ~	～したくない				COMMON	Distractor Frequency	HIGH	do not want ~_COMMON_0
+Do we want to ~?	〜したいですか				COMMON	Distractor Frequency	HIGH	do we want to ~?_COMMON_0
+Do you know?	知っていますか				COMMON	Distractor Frequency	HIGH	do you know?_COMMON_0
+Do you like school?	学校は好きですか				COMMON	Distractor Frequency	HIGH	do you like school?_COMMON_0
+does	〜する				COMMON	Distractor Frequency	HIGH	does_COMMON_0
+doubt ~	～を疑う				COMMON	Distractor Frequency	HIGH	doubt ~_COMMON_0
+downtown	町の中心へ				COMMON	Distractor Frequency	HIGH	downtown_COMMON_0
+Dr.	～先生				COMMON	Distractor Frequency	HIGH	dr._COMMON_0
+dragonfly	とんぼ				COMMON	Distractor Frequency	HIGH	dragonfly_COMMON_0
+draw a picture	絵をかく				COMMON	Distractor Frequency	HIGH	draw a picture_COMMON_0
+drawing	絵				COMMON	Distractor Frequency	HIGH	drawing_COMMON_0
+drink menu	飲み物メニュー				COMMON	Manual Analysis	HIGH	drink menu_COMMON_0
+drive to ~	～まで車で行く				COMMON	Distractor Frequency	HIGH	drive to ~_COMMON_0
+during	～の間に				COMMON	Distractor Frequency	HIGH	during_COMMON_0
+each ~	それぞれの				COMMON	Distractor Frequency	HIGH	each ~_COMMON_0
+eagle	わし				COMMON	Distractor Frequency	HIGH	eagle_COMMON_0
+ears	耳				COMMON	Distractor Frequency	HIGH	ears_COMMON_0
+eat breakfast	朝ごはんを食べる				COMMON	Distractor Frequency	HIGH	eat breakfast_COMMON_0
+eight o'clock	8時				COMMON	Distractor Frequency	HIGH	eight o'clock_COMMON_0
+either ~	どちらかの				COMMON	Distractor Frequency	HIGH	either ~_COMMON_0
+either A or B	AかBのどちらか				COMMON	Distractor Frequency	HIGH	either a or b_COMMON_0
+elbow	ひじ				COMMON	Distractor Frequency	HIGH	elbow_COMMON_0
+Emi	エミ				COMMON	Distractor Frequency	HIGH	emi_COMMON_0
+England	イギリス				COMMON	Distractor Frequency	HIGH	england_COMMON_0
+English class	英語の授業				COMMON	Distractor Frequency	HIGH	english class_COMMON_0
+English lesson	英語の授業				COMMON	Distractor Frequency	HIGH	english lesson_COMMON_0
+enjoy ~	～を楽しむ				COMMON	Distractor Frequency	HIGH	enjoy ~_COMMON_0
+enter	入る				COMMON	Distractor Frequency	HIGH	enter_COMMON_0
+enter ~	～に入る				COMMON	Distractor Frequency	HIGH	enter ~_COMMON_0
+erase ~	消す				COMMON	Distractor Frequency	HIGH	erase ~_COMMON_0
+escape from ~	～から逃げる				COMMON	Manual Analysis	HIGH	escape from ~_COMMON_0
+euro	ユーロ				COMMON	Distractor Frequency	HIGH	euro_COMMON_0
+every month	毎月				COMMON	Distractor Frequency	HIGH	every month_COMMON_0
+every morning	毎朝				COMMON	Distractor Frequency	HIGH	every morning_COMMON_0
+every night	毎晩				COMMON	Distractor Frequency	HIGH	every night_COMMON_0
+every week	毎週				COMMON	Distractor Frequency	HIGH	every week_COMMON_0
+Excuse me.	すみません				COMMON	Distractor Frequency	HIGH	excuse me._COMMON_0
+explain ~	～を説明する				COMMON	Distractor Frequency	HIGH	explain ~_COMMON_0
+explain A to B	AをBに説明する				COMMON	Distractor Frequency	HIGH	explain a to b_COMMON_0
+explain B to A	Aに説明する				COMMON	Distractor Frequency	HIGH	explain b to a_COMMON_0
+eyes	目				COMMON	Distractor Frequency	HIGH	eyes_COMMON_0
+false	うその				COMMON	Distractor Frequency	HIGH	false_COMMON_0
+fancy	派手な				COMMON	Distractor Frequency	HIGH	fancy_COMMON_0
+far from	～から遠くに				COMMON	Manual Analysis	HIGH	far from_COMMON_0
+faster	より速く				COMMON	Distractor Frequency	HIGH	faster_COMMON_0
+fastest	最も速い				COMMON	Distractor Frequency	HIGH	fastest_COMMON_0
+feel fine	元気です				COMMON	Distractor Frequency	HIGH	feel fine_COMMON_0
+feel like ~	～のように感じる				COMMON	Distractor Frequency	HIGH	feel like ~_COMMON_0
+feel sick	気分が悪い				COMMON	Distractor Frequency	HIGH	feel sick_COMMON_0
+feel worse	気分が悪くなる				COMMON	Distractor Frequency	HIGH	feel worse_COMMON_0
+few ~	ほとんどない				COMMON	Distractor Frequency	HIGH	few ~_COMMON_0
+fifteen minutes	15分間				COMMON	Distractor Frequency	HIGH	fifteen minutes_COMMON_0
+fight with ~	～とけんかする				COMMON	Distractor Frequency	HIGH	fight with ~_COMMON_0
+find ~	～を見つける				COMMON	Distractor Frequency	HIGH	find ~_COMMON_0
+finish ~	～を終える				COMMON	Distractor Frequency	HIGH	finish ~_COMMON_0
+fix ~	直す				COMMON	Distractor Frequency	HIGH	fix ~_COMMON_0
+fix A	Aを直す				COMMON	Distractor Frequency	HIGH	fix a_COMMON_0
+flag	旗				COMMON	Distractor Frequency	HIGH	flag_COMMON_0
+flashy	派手な				COMMON	Distractor Frequency	HIGH	flashy_COMMON_0
+florist	花屋				COMMON	Distractor Frequency	HIGH	florist_COMMON_0
+fly to ~	～まで飛んで行く				COMMON	Distractor Frequency	HIGH	fly to ~_COMMON_0
+fog	霧				COMMON	Distractor Frequency	HIGH	fog_COMMON_0
+for ~	～のために				COMMON	Distractor Frequency	HIGH	for ~_COMMON_0
+for now	今のところ				COMMON	Distractor Frequency	HIGH	for now_COMMON_0
+forget ~	～を忘れる				COMMON	Distractor Frequency	HIGH	forget ~_COMMON_0
+forget that ~	～ということを忘れている				COMMON	Distractor Frequency	HIGH	forget that ~_COMMON_0
+forget to do	〜するのを忘れる				COMMON	Distractor Frequency	HIGH	forget to do_COMMON_0
+forgive	許す				COMMON	Distractor Frequency	HIGH	forgive_COMMON_0
+forgive A	Aを許す				COMMON	Distractor Frequency	HIGH	forgive a_COMMON_0
+forty	40				COMMON	Distractor Frequency	HIGH	forty_COMMON_0
+four o'clock	4時				COMMON	Distractor Frequency	HIGH	four o'clock_COMMON_0
+France	フランス				COMMON	Distractor Frequency	HIGH	france_COMMON_0
+freezing	寒い				COMMON	Distractor Frequency	HIGH	freezing_COMMON_0
+friends	友だち				COMMON	Distractor Frequency	HIGH	friends_COMMON_0
+frog	かえる				COMMON	Distractor Frequency	HIGH	frog_COMMON_0
+from ~	〜から				COMMON	Manual Analysis	HIGH	from ~_COMMON_0
+futon	シーツ				COMMON	Distractor Frequency	HIGH	futon_COMMON_0
+gallery	美術館				COMMON	Distractor Frequency	HIGH	gallery_COMMON_0
+gather ~	集まる				COMMON	Distractor Frequency	HIGH	gather ~_COMMON_0
+get dressed	服を着る				COMMON	Distractor Frequency	HIGH	get dressed_COMMON_0
+get out of	～から出る				COMMON	Distractor Frequency	HIGH	get out of_COMMON_0
+get sleepy	眠くなる				COMMON	Manual Analysis	HIGH	get sleepy_COMMON_0
+get tired	疲れる				COMMON	Distractor Frequency	HIGH	get tired_COMMON_0
+get up early	早く起きる				COMMON	Distractor Frequency	HIGH	get up early_COMMON_0
+give ~ up	〜をあきらめる				COMMON	Distractor Frequency	HIGH	give ~ up_COMMON_0
+give A B	AにBを渡す				COMMON	Distractor Frequency	HIGH	give a b_COMMON_0
+give up ~	～をあきらめる				COMMON	Distractor Frequency	HIGH	give up ~_COMMON_0
+gloves	手袋				COMMON	Distractor Frequency	HIGH	gloves_COMMON_0
+go for a walk	散歩に行く				COMMON	Distractor Frequency	HIGH	go for a walk_COMMON_0
+go past ~	～のそばを通る				COMMON	Distractor Frequency	HIGH	go past ~_COMMON_0
+go running	走りに行く				COMMON	Distractor Frequency	HIGH	go running_COMMON_0
+go swimming	泳ぎに行く				COMMON	Distractor Frequency	HIGH	go swimming_COMMON_0
+go to	〜へ行く				COMMON	Distractor Frequency	HIGH	go to_COMMON_0
+go walking	散歩に行く				COMMON	Distractor Frequency	HIGH	go walking_COMMON_0
+goat	やぎ				COMMON	Distractor Frequency	HIGH	goat_COMMON_0
+Good evening.	こんばんは。				COMMON	Distractor Frequency	HIGH	good evening._COMMON_0
+Good luck!	がんばってください				COMMON	Distractor Frequency	HIGH	good luck!_COMMON_0
+Good luck.	がんばってね				COMMON	Distractor Frequency	HIGH	good luck._COMMON_0
+Good morning.	おはようございます				COMMON	Distractor Frequency	HIGH	good morning._COMMON_0
+Good night.	おやすみ				COMMON	Distractor Frequency	HIGH	good night._COMMON_0
+Goodbye.	さようなら				COMMON	Distractor Frequency	HIGH	goodbye._COMMON_0
+grandma	おばあさん				COMMON	Distractor Frequency	HIGH	grandma_COMMON_0
+green tea	緑茶				COMMON	Distractor Frequency	HIGH	green tea_COMMON_0
+greet ~	～にあいさつする				COMMON	Distractor Frequency	HIGH	greet ~_COMMON_0
+grow into ~	～に成長する				COMMON	Distractor Frequency	HIGH	grow into ~_COMMON_0
+guide	案内人				COMMON	Distractor Frequency	HIGH	guide_COMMON_0
+gum	歯ぐき				COMMON	Distractor Frequency	HIGH	gum_COMMON_0
+half of ~	半分				COMMON	Distractor Frequency	HIGH	half of ~_COMMON_0
+hang up	電話を切る				COMMON	Distractor Frequency	HIGH	hang up_COMMON_0
+have a fever	頭が痛い				COMMON	Distractor Frequency	HIGH	have a fever_COMMON_0
+Have a good rest.	ゆっくり休んでね				COMMON	Distractor Frequency	HIGH	have a good rest._COMMON_0
+have a headache	熱がある				COMMON	Distractor Frequency	HIGH	have a headache_COMMON_0
+Have a nice day.	よい一日を				COMMON	Distractor Frequency	HIGH	have a nice day._COMMON_0
+have breakfast	朝食を食べる				COMMON	Distractor Frequency	HIGH	have breakfast_COMMON_0
+have lunch	昼食を食べる				COMMON	Distractor Frequency	HIGH	have lunch_COMMON_0
+have no time	時間がない				COMMON	Distractor Frequency	HIGH	have no time_COMMON_0
+have to	〜しなければならない				COMMON	Distractor Frequency	HIGH	have to_COMMON_0
+He does too.	彼も				COMMON	Distractor Frequency	HIGH	he does too._COMMON_0
+heat	熱				COMMON	Distractor Frequency	HIGH	heat_COMMON_0
+he'll	彼は〜でしょう				COMMON	Distractor Frequency	HIGH	he'll_COMMON_0
+Hello.	こんにちは				COMMON	Distractor Frequency	HIGH	hello._COMMON_0
+help ~	～を手伝う				COMMON	Distractor Frequency	HIGH	help ~_COMMON_0
+help A	Aを助ける				COMMON	Distractor Frequency	HIGH	help a_COMMON_0
+help A do	Aが～するのを手伝う				COMMON	Distractor Frequency	HIGH	help a do_COMMON_0
+help A with B	AがBを手伝う				COMMON	Distractor Frequency	HIGH	help a with b_COMMON_0
+Help me.	手伝って。				COMMON	Distractor Frequency	HIGH	help me._COMMON_0
+her	彼女の				COMMON	Distractor Frequency	HIGH	her_COMMON_0
+here's	〜がほしい				COMMON	Distractor Frequency	HIGH	here's_COMMON_0
+hers	彼女のもの				COMMON	Distractor Frequency	HIGH	hers_COMMON_0
+herself	彼女自身				COMMON	Distractor Frequency	HIGH	herself_COMMON_0
+he's	彼は〜です				COMMON	Distractor Frequency	HIGH	he's_COMMON_0
+hide ~	～を隠す				COMMON	Distractor Frequency	HIGH	hide ~_COMMON_0
+higher	より高く				COMMON	Distractor Frequency	HIGH	higher_COMMON_0
+highest	最も高い				COMMON	Distractor Frequency	HIGH	highest_COMMON_0
+him	彼を				COMMON	Distractor Frequency	HIGH	him_COMMON_0
+his	彼の				COMMON	Distractor Frequency	HIGH	his_COMMON_0
+hit	たたく				COMMON	Distractor Frequency	HIGH	hit_COMMON_0
+hope that ~	～ということを望んでいる				COMMON	Distractor Frequency	HIGH	hope that ~_COMMON_0
+horn	角				COMMON	Distractor Frequency	HIGH	horn_COMMON_0
+hot water	湯				COMMON	Distractor Frequency	HIGH	hot water_COMMON_0
+How big is ~?	～はどのくらい大きいですか				COMMON	Distractor Frequency	HIGH	how big is ~?_COMMON_0
+How deep is ~?	～はどのくらい深いですか				COMMON	Distractor Frequency	HIGH	how deep is ~?_COMMON_0
+How heavy is ~?	～はどのくらい重いですか				COMMON	Distractor Frequency	HIGH	how heavy is ~?_COMMON_0
+How high is ~?	～はどのくらい高いですか				COMMON	Distractor Frequency	HIGH	how high is ~?_COMMON_0
+how many	いくつ				COMMON	Distractor Frequency	HIGH	how many_COMMON_0
+How many minutes to the station?	駅まで何分ですか				COMMON	Distractor Frequency	HIGH	how many minutes to the station?_COMMON_0
+How many people?	何名様ですか				COMMON	Distractor Frequency	HIGH	how many people?_COMMON_0
+how much	いくら				COMMON	Distractor Frequency	HIGH	how much_COMMON_0
+How much is it?	いくらですか？				COMMON	Distractor Frequency	HIGH	how much is it?_COMMON_0
+How much is that one?	あれはいくらですか				COMMON	Distractor Frequency	HIGH	how much is that one?_COMMON_0
+How much is this?	これはいくらですか				COMMON	Distractor Frequency	HIGH	how much is this?_COMMON_0
+How much will you pay?	いくら払いますか？				COMMON	Distractor Frequency	HIGH	how much will you pay?_COMMON_0
+How old are you?	何歳ですか				COMMON	Distractor Frequency	HIGH	how old are you?_COMMON_0
+How shall we go home?	どうやって帰りましょうか				COMMON	Distractor Frequency	HIGH	how shall we go home?_COMMON_0
+hundred thousand	10万				COMMON	Distractor Frequency	HIGH	hundred thousand_COMMON_0
+hurry ~	～を急がせる				COMMON	Distractor Frequency	HIGH	hurry ~_COMMON_0
+Hurry up.	急いでください				COMMON	Distractor Frequency	HIGH	hurry up._COMMON_0
+Hurry.	急いでください				COMMON	Distractor Frequency	HIGH	hurry._COMMON_0
+I am free now.	今はひまです				COMMON	Distractor Frequency	HIGH	i am free now._COMMON_0
+I am going to ~.	〜するつもりです				COMMON	Distractor Frequency	HIGH	i am going to ~._COMMON_0
+I am hungry.	おなかがすいています				COMMON	Manual Analysis	HIGH	i am hungry._COMMON_0
+I am sorry.	すみません。				COMMON	Distractor Frequency	HIGH	i am sorry._COMMON_0
+I came to see you.	あなたに会いに来ました				COMMON	Manual Analysis	HIGH	i came to see you._COMMON_0
+I can ~.	〜できます				COMMON	Distractor Frequency	HIGH	i can ~._COMMON_0
+I don't know.	わかりません				COMMON	Distractor Frequency	HIGH	i don't know._COMMON_0
+I feel very well.	とても元気です				COMMON	Distractor Frequency	HIGH	i feel very well._COMMON_0
+I go to ~.	〜へ行く				COMMON	Distractor Frequency	HIGH	i go to ~._COMMON_0
+I have a new bag.	もう一度見せて				COMMON	Distractor Frequency	HIGH	i have a new bag._COMMON_0
+I have to ~.	〜しなければならない				COMMON	Distractor Frequency	HIGH	i have to ~._COMMON_0
+I know ~.	〜を知っている				COMMON	Distractor Frequency	HIGH	i know ~._COMMON_0
+I like ~.	～が好きです				COMMON	Distractor Frequency	HIGH	i like ~._COMMON_0
+I love it.	それが大好きです				COMMON	Distractor Frequency	HIGH	i love it._COMMON_0
+I must ~.	～しなければならない				COMMON	Distractor Frequency	HIGH	i must ~._COMMON_0
+I must not ~.	〜してはいけない				COMMON	Distractor Frequency	HIGH	i must not ~._COMMON_0
+I want ~.	〜がほしい				COMMON	Distractor Frequency	HIGH	i want ~._COMMON_0
+I want to ~.	〜したいです				COMMON	Distractor Frequency	HIGH	i want to ~._COMMON_0
+I want to go to the station.	駅に行きたいです				COMMON	Distractor Frequency	HIGH	i want to go to the station._COMMON_0
+I was ~.	～していました				COMMON	Distractor Frequency	HIGH	i was ~._COMMON_0
+I will ~.	〜するつもりです				COMMON	Distractor Frequency	HIGH	i will ~._COMMON_0
+I will call later.	あとで電話します				COMMON	Distractor Frequency	HIGH	i will call later._COMMON_0
+I will go soon.	すぐに行きます				COMMON	Distractor Frequency	HIGH	i will go soon._COMMON_0
+I'll	私は〜するつもりです				COMMON	Distractor Frequency	HIGH	i'll_COMMON_0
+I'll call back later.	少々失礼します				COMMON	Distractor Frequency	HIGH	i'll call back later._COMMON_0
+I'll help you.	手伝います				COMMON	Distractor Frequency	HIGH	i'll help you._COMMON_0
+I'll visit you.	会いに行きます				COMMON	Distractor Frequency	HIGH	i'll visit you._COMMON_0
+I'll wait for you.	待ちます				COMMON	Distractor Frequency	HIGH	i'll wait for you._COMMON_0
+I'll write to you.	手紙を書きます				COMMON	Distractor Frequency	HIGH	i'll write to you._COMMON_0
+I'm	私は〜です				COMMON	Distractor Frequency	HIGH	i'm_COMMON_0
+I'm angry.	私は怒っています				COMMON	Distractor Frequency	HIGH	i'm angry._COMMON_0
+I'm busy.	急いでいます				COMMON	Distractor Frequency	HIGH	i'm busy._COMMON_0
+I'm coming here.	ここに来るところです				COMMON	Distractor Frequency	HIGH	i'm coming here._COMMON_0
+I'm fine.	私は元気です				COMMON	Distractor Frequency	HIGH	i'm fine._COMMON_0
+I'm glad to see you again.	また会えてうれしいです				COMMON	Distractor Frequency	HIGH	i'm glad to see you again._COMMON_0
+I'm going out.	外出するところです				COMMON	Distractor Frequency	HIGH	i'm going out._COMMON_0
+I'm going to bed.	寝るところです				COMMON	Distractor Frequency	HIGH	i'm going to bed._COMMON_0
+I'm going to school.	学校へ行くところです				COMMON	Distractor Frequency	HIGH	i'm going to school._COMMON_0
+I'm happy to help you.	お手伝いできてうれしいです				COMMON	Manual Analysis	HIGH	i'm happy to help you._COMMON_0
+I'm happy to talk with you.	お話しできてうれしいです				COMMON	Manual Analysis	HIGH	i'm happy to talk with you._COMMON_0
+I'm happy.	私はうれしいです				COMMON	Manual Analysis	HIGH	i'm happy._COMMON_0
+I'm hungry.	おなかがすいています				COMMON	Manual Analysis	HIGH	i'm hungry._COMMON_0
+I'm sleepy.	私は眠いです				COMMON	Manual Analysis	HIGH	i'm sleepy._COMMON_0
+I'm tired.	疲れています				COMMON	Distractor Frequency	HIGH	i'm tired._COMMON_0
+I'm worried.	心配しています				COMMON	Distractor Frequency	HIGH	i'm worried._COMMON_0
+in ~	〜の中に				COMMON	Distractor Frequency	HIGH	in ~_COMMON_0
+in front of	〜の前に				COMMON	Distractor Frequency	HIGH	in front of_COMMON_0
+in front of the school	学校の前に				COMMON	Distractor Frequency	HIGH	in front of the school_COMMON_0
+in Japan	国内で				COMMON	Distractor Frequency	HIGH	in japan_COMMON_0
+in the afternoon	午後に				COMMON	Distractor Frequency	HIGH	in the afternoon_COMMON_0
+in the evening	夕方に				COMMON	Distractor Frequency	HIGH	in the evening_COMMON_0
+in the house	家の中で				COMMON	Distractor Frequency	HIGH	in the house_COMMON_0
+in the middle of ~	〜の途中で				COMMON	Distractor Frequency	HIGH	in the middle of ~_COMMON_0
+in the store	店で				COMMON	Distractor Frequency	HIGH	in the store_COMMON_0
+index finger	人さし指				COMMON	Distractor Frequency	HIGH	index finger_COMMON_0
+injection	注射				COMMON	Distractor Frequency	HIGH	injection_COMMON_0
+inside	中で				COMMON	Distractor Frequency	HIGH	inside_COMMON_0
+inside ~	〜の中に				COMMON	Distractor Frequency	HIGH	inside ~_COMMON_0
+introduce ~	～を紹介する				COMMON	Distractor Frequency	HIGH	introduce ~_COMMON_0
+invite	招待する				COMMON	Distractor Frequency	HIGH	invite_COMMON_0
+invite ~	～を招待する				COMMON	Distractor Frequency	HIGH	invite ~_COMMON_0
+invite A	Aを招待する				COMMON	Distractor Frequency	HIGH	invite a_COMMON_0
+Is it cold outside?	外は寒いですか。				COMMON	Distractor Frequency	HIGH	is it cold outside?_COMMON_0
+Is it dark outside?	外は暗いですか。				COMMON	Distractor Frequency	HIGH	is it dark outside?_COMMON_0
+Is it quiet outside?	外は静かですか。				COMMON	Distractor Frequency	HIGH	is it quiet outside?_COMMON_0
+Is it sunny outside?	外は晴れですか。				COMMON	Distractor Frequency	HIGH	is it sunny outside?_COMMON_0
+Is that true?	本当ですか				COMMON	Distractor Frequency	HIGH	is that true?_COMMON_0
+Is the station near here?	駅は近いですか				COMMON	Distractor Frequency	HIGH	is the station near here?_COMMON_0
+Is this seat free?	席は空いていますか				COMMON	Distractor Frequency	HIGH	is this seat free?_COMMON_0
+Is this station new?	この駅は新しいですか				COMMON	Distractor Frequency	HIGH	is this station new?_COMMON_0
+It is hot today.	今日は暑いです				COMMON	Distractor Frequency	HIGH	it is hot today._COMMON_0
+It is interesting.	それはおもしろいです				COMMON	Distractor Frequency	HIGH	it is interesting._COMMON_0
+It looks difficult.	難しそうです				COMMON	Distractor Frequency	HIGH	it looks difficult._COMMON_0
+It looks expensive.	高そうです				COMMON	Distractor Frequency	HIGH	it looks expensive._COMMON_0
+It looks interesting.	おもしろそうです				COMMON	Distractor Frequency	HIGH	it looks interesting._COMMON_0
+It looks new.	新しそうです				COMMON	Distractor Frequency	HIGH	it looks new._COMMON_0
+It was rainy yesterday.	昨日は雨でした				COMMON	Distractor Frequency	HIGH	it was rainy yesterday._COMMON_0
+It will be sunny tomorrow.	明日は晴れです				COMMON	Distractor Frequency	HIGH	it will be sunny tomorrow._COMMON_0
+Italian	イタリア語				COMMON	Distractor Frequency	HIGH	italian_COMMON_0
+It's OK.	大丈夫です				COMMON	Distractor Frequency	HIGH	it's ok._COMMON_0
+jaw	あご				COMMON	Distractor Frequency	HIGH	jaw_COMMON_0
+join ~	～に参加する				COMMON	Distractor Frequency	HIGH	join ~_COMMON_0
+keep doing	〜し続ける				COMMON	Distractor Frequency	HIGH	keep doing_COMMON_0
+Ken	ケン				COMMON	Distractor Frequency	HIGH	ken_COMMON_0
+keyboard	鍵盤				COMMON	Distractor Frequency	HIGH	keyboard_COMMON_0
+kilo	キロ				COMMON	Distractor Frequency	HIGH	kilo_COMMON_0
+kindergarten	幼稚園				COMMON	Manual Analysis	HIGH	kindergarten_COMMON_0
+kitten	子猫				COMMON	Distractor Frequency	HIGH	kitten_COMMON_0
+knight	騎士				COMMON	Distractor Frequency	HIGH	knight_COMMON_0
+knock	たたく				COMMON	Distractor Frequency	HIGH	knock_COMMON_0
+know ~	～を知っている				COMMON	Distractor Frequency	HIGH	know ~_COMMON_0
+know about ~	〜を知っている				COMMON	Distractor Frequency	HIGH	know about ~_COMMON_0
+Kobe	神戸				COMMON	Distractor Frequency	HIGH	kobe_COMMON_0
+Korea	韓国				COMMON	Distractor Frequency	HIGH	korea_COMMON_0
+last month	先月				COMMON	Distractor Frequency	HIGH	last month_COMMON_0
+leave ~	～を出発する				COMMON	Distractor Frequency	HIGH	leave ~_COMMON_0
+leave there	そこを出る				COMMON	Distractor Frequency	HIGH	leave there_COMMON_0
+lemon	レモン				COMMON	Distractor Frequency	HIGH	lemon_COMMON_0
+lend A B	AにBを貸す				COMMON	Distractor Frequency	HIGH	lend a b_COMMON_0
+Let's play after school.	今日はとても暑い				COMMON	Distractor Frequency	HIGH	let's play after school._COMMON_0
+lid	ふた				COMMON	Distractor Frequency	HIGH	lid_COMMON_0
+lift ~	～を持ち上げる				COMMON	Distractor Frequency	HIGH	lift ~_COMMON_0
+like ~	～が好きである				COMMON	Distractor Frequency	HIGH	like ~_COMMON_0
+lily	ユリ				COMMON	Distractor Frequency	HIGH	lily_COMMON_0
+line ~ up	並べる				COMMON	Distractor Frequency	HIGH	line ~ up_COMMON_0
+lip	唇				COMMON	Distractor Frequency	HIGH	lip_COMMON_0
+listen to music	音楽を聞く				COMMON	Distractor Frequency	HIGH	listen to music_COMMON_0
+liter	リットル				COMMON	Distractor Frequency	HIGH	liter_COMMON_0
+little finger	小指				COMMON	Distractor Frequency	HIGH	little finger_COMMON_0
+live in	〜に住んでいる				COMMON	Distractor Frequency	HIGH	live in_COMMON_0
+live there	そこに住む				COMMON	Distractor Frequency	HIGH	live there_COMMON_0
+lively	にぎやかな				COMMON	Distractor Frequency	HIGH	lively_COMMON_0
+lizard	とかげ				COMMON	Distractor Frequency	HIGH	lizard_COMMON_0
+long ago	昔				COMMON	Distractor Frequency	HIGH	long ago_COMMON_0
+longer	より長い				COMMON	Distractor Frequency	HIGH	longer_COMMON_0
+longest	最も長い				COMMON	Distractor Frequency	HIGH	longest_COMMON_0
+Look.	見て				COMMON	Distractor Frequency	HIGH	look._COMMON_0
+lukewarm	ぬるい				COMMON	Distractor Frequency	HIGH	lukewarm_COMMON_0
+lunar	月の				COMMON	Distractor Frequency	HIGH	lunar_COMMON_0
+made	作った				COMMON	Distractor Frequency	HIGH	made_COMMON_0
+magic	魔法				COMMON	Distractor Frequency	HIGH	magic_COMMON_0
+make ~	～を作る				COMMON	Distractor Frequency	HIGH	make ~_COMMON_0
+make a call	電話をかける				COMMON	Distractor Frequency	HIGH	make a call_COMMON_0
+make a promise	約束をする				COMMON	Distractor Frequency	HIGH	make a promise_COMMON_0
+make breakfast	朝ごはんを作る				COMMON	Distractor Frequency	HIGH	make breakfast_COMMON_0
+May I have some water?	お水をください				COMMON	Distractor Frequency	HIGH	may i have some water?_COMMON_0
+May I have your name?	お名前を伺ってもよいですか				COMMON	Distractor Frequency	HIGH	may i have your name?_COMMON_0
+Maybe.	たぶんそうです				COMMON	Distractor Frequency	HIGH	maybe._COMMON_0
+meet ~	～に会う				COMMON	Distractor Frequency	HIGH	meet ~_COMMON_0
+memorize ~	覚える				COMMON	Distractor Frequency	HIGH	memorize ~_COMMON_0
+middle finger	中指				COMMON	Distractor Frequency	HIGH	middle finger_COMMON_0
+Mike	マイク				COMMON	Distractor Frequency	HIGH	mike_COMMON_0
+mile	マイル				COMMON	Distractor Frequency	HIGH	mile_COMMON_0
+millimeter	ミリメートル				COMMON	Distractor Frequency	HIGH	millimeter_COMMON_0
+miss ~	～を欠席する				COMMON	Distractor Frequency	HIGH	miss ~_COMMON_0
+mix A with B	AとBを混ぜる				COMMON	Distractor Frequency	HIGH	mix a with b_COMMON_0
+mom	お母さん				COMMON	Distractor Frequency	HIGH	mom_COMMON_0
+more ... than ~	…よりもっと～				COMMON	Distractor Frequency	HIGH	more ... than ~_COMMON_0
+motorcycle	バイク				COMMON	Distractor Frequency	HIGH	motorcycle_COMMON_0
+move ~	～を動かす				COMMON	Distractor Frequency	HIGH	move ~_COMMON_0
+Mr.	～氏、～さん（男性）				COMMON	Distractor Frequency	HIGH	mr._COMMON_0
+music lesson	音楽の授業				COMMON	Distractor Frequency	HIGH	music lesson_COMMON_0
+Must I ~?	〜しなければなりません				COMMON	Distractor Frequency	HIGH	must i ~?_COMMON_0
+must not	〜してはいけない				COMMON	Distractor Frequency	HIGH	must not_COMMON_0
+must not do	～してはいけない				COMMON	Distractor Frequency	HIGH	must not do_COMMON_0
+Must we ~?	〜しなければなりませんか				COMMON	Distractor Frequency	HIGH	must we ~?_COMMON_0
+myself	私自身				COMMON	Distractor Frequency	HIGH	myself_COMMON_0
+Nagoya	名古屋				COMMON	Distractor Frequency	HIGH	nagoya_COMMON_0
+name of ~	～の名前				COMMON	Distractor Frequency	HIGH	name of ~_COMMON_0
+Nancy	ナンシー				COMMON	Distractor Frequency	HIGH	nancy_COMMON_0
+Nara	奈良				COMMON	Distractor Frequency	HIGH	nara_COMMON_0
+near ~	〜の近くに				COMMON	Distractor Frequency	HIGH	near ~_COMMON_0
+near you	近くに				COMMON	Distractor Frequency	HIGH	near you_COMMON_0
+need ~	～を必要としている				COMMON	Distractor Frequency	HIGH	need ~_COMMON_0
+need help	手伝いが必要だ				COMMON	Distractor Frequency	HIGH	need help_COMMON_0
+nephew	おい				COMMON	Distractor Frequency	HIGH	nephew_COMMON_0
+net	ネット				COMMON	Distractor Frequency	HIGH	net_COMMON_0
+New Year's Day	お正月				COMMON	Distractor Frequency	HIGH	new year's day_COMMON_0
+newest	最も新しい				COMMON	Distractor Frequency	HIGH	newest_COMMON_0
+next year	来年				COMMON	Distractor Frequency	HIGH	next year_COMMON_0
+Nice to meet you.	はじめまして				COMMON	Distractor Frequency	HIGH	nice to meet you._COMMON_0
+Nice weather!	よい天気ですね				COMMON	Distractor Frequency	HIGH	nice weather!_COMMON_0
+niece	めい				COMMON	Distractor Frequency	HIGH	niece_COMMON_0
+no ~	まったくない～				COMMON	Distractor Frequency	HIGH	no ~_COMMON_0
+no one	だれも〜ない				COMMON	Distractor Frequency	HIGH	no one_COMMON_0
+No way.	だめです				COMMON	Distractor Frequency	HIGH	no way._COMMON_0
+nobody	だれも～ない				COMMON	Distractor Frequency	HIGH	nobody_COMMON_0
+none	何もない				COMMON	Distractor Frequency	HIGH	none_COMMON_0
+noon	正午				COMMON	Distractor Frequency	HIGH	noon_COMMON_0
+not as ~ as ...	…ほど～でない				COMMON	Distractor Frequency	HIGH	not as ~ as ..._COMMON_0
+not at all	まったく～ない				COMMON	Distractor Frequency	HIGH	not at all_COMMON_0
+octopus	タコ				COMMON	Distractor Frequency	HIGH	octopus_COMMON_0
+Of course.	もちろんです				COMMON	Distractor Frequency	HIGH	of course._COMMON_0
+on ~	～の上に				COMMON	Distractor Frequency	HIGH	on ~_COMMON_0
+on Friday	金曜日に				COMMON	Distractor Frequency	HIGH	on friday_COMMON_0
+on Monday	月曜日に				COMMON	Distractor Frequency	HIGH	on monday_COMMON_0
+on Saturday	土曜日に				COMMON	Distractor Frequency	HIGH	on saturday_COMMON_0
+on the last day	最終日に				COMMON	Distractor Frequency	HIGH	on the last day_COMMON_0
+on the road	道の上で				COMMON	Distractor Frequency	HIGH	on the road_COMMON_0
+on Tuesday	火曜日に				COMMON	Distractor Frequency	HIGH	on tuesday_COMMON_0
+on Wednesday	水曜日に				COMMON	Distractor Frequency	HIGH	on wednesday_COMMON_0
+on weekdays	平日に				COMMON	Distractor Frequency	HIGH	on weekdays_COMMON_0
+once a day	1日に1回				COMMON	Distractor Frequency	HIGH	once a day_COMMON_0
+Once more.	もう一度				COMMON	Distractor Frequency	HIGH	once more._COMMON_0
+one item	一個				COMMON	Distractor Frequency	HIGH	one item_COMMON_0
+one of ~	ひとつ				COMMON	Distractor Frequency	HIGH	one of ~_COMMON_0
+onto	〜の上に				COMMON	Distractor Frequency	HIGH	onto_COMMON_0
+open	開ける				COMMON	Distractor Frequency	HIGH	open_COMMON_0
+open ~	～を開ける				COMMON	Distractor Frequency	HIGH	open ~_COMMON_0
+open A	Aを開ける				COMMON	Distractor Frequency	HIGH	open a_COMMON_0
+orange juice	オレンジジュース				COMMON	Distractor Frequency	HIGH	orange juice_COMMON_0
+order	注文				COMMON	Distractor Frequency	HIGH	order_COMMON_0
+order A to do	Aに～するよう命じる				COMMON	Distractor Frequency	HIGH	order a to do_COMMON_0
+outside ~	～の外に				COMMON	Distractor Frequency	HIGH	outside ~_COMMON_0
+over ~	～の上に				COMMON	Distractor Frequency	HIGH	over ~_COMMON_0
+P.E. lesson	体育の授業				COMMON	Distractor Frequency	HIGH	p.e. lesson_COMMON_0
+p.m.	午後				COMMON	Distractor Frequency	HIGH	p.m._COMMON_0
+painter	画家				COMMON	Distractor Frequency	HIGH	painter_COMMON_0
+pan	なべ				COMMON	Distractor Frequency	HIGH	pan_COMMON_0
+Paris	パリ				COMMON	Distractor Frequency	HIGH	paris_COMMON_0
+pass ~	～を通り過ぎる				COMMON	Distractor Frequency	HIGH	pass ~_COMMON_0
+pass through ~	～を通る				COMMON	Distractor Frequency	HIGH	pass through ~_COMMON_0
+past	過去				COMMON	Distractor Frequency	HIGH	past_COMMON_0
+pear	なし				COMMON	Distractor Frequency	HIGH	pear_COMMON_0
+pencil case	筆箱				COMMON	Distractor Frequency	HIGH	pencil case_COMMON_0
+peninsula	半島				COMMON	Distractor Frequency	HIGH	peninsula_COMMON_0
+phone number	電話番号				COMMON	Distractor Frequency	HIGH	phone number_COMMON_0
+pick A up at B	AをBまで迎えに行く				COMMON	Distractor Frequency	HIGH	pick a up at b_COMMON_0
+pick up	拾う				COMMON	Distractor Frequency	HIGH	pick up_COMMON_0
+pigeon	はと				COMMON	Distractor Frequency	HIGH	pigeon_COMMON_0
+plan ~	～を計画する				COMMON	Distractor Frequency	HIGH	plan ~_COMMON_0
+play in the park	公園で遊ぶ				COMMON	Distractor Frequency	HIGH	play in the park_COMMON_0
+play outside	外で遊んでいる				COMMON	Distractor Frequency	HIGH	play outside_COMMON_0
+play soccer	サッカーをする				COMMON	Distractor Frequency	HIGH	play soccer_COMMON_0
+play tennis	テニスをする				COMMON	Distractor Frequency	HIGH	play tennis_COMMON_0
+play with ~	～を見る				COMMON	Distractor Frequency	HIGH	play with ~_COMMON_0
+Please call back later.	後でかけ直してください				COMMON	Distractor Frequency	HIGH	please call back later._COMMON_0
+Please come here.	ここに来てください				COMMON	Distractor Frequency	HIGH	please come here._COMMON_0
+Please help me.	手伝ってください				COMMON	Distractor Frequency	HIGH	please help me._COMMON_0
+Please hold on.	少々お待ちください				COMMON	Distractor Frequency	HIGH	please hold on._COMMON_0
+Please open the window.	今すぐ始めなさい				COMMON	Distractor Frequency	HIGH	please open the window._COMMON_0
+Please read the book.	本を読んでください				COMMON	Distractor Frequency	HIGH	please read the book._COMMON_0
+Please say it again.	もう一度言ってください				COMMON	Distractor Frequency	HIGH	please say it again._COMMON_0
+Please say that again.	もう一度言ってください				COMMON	Distractor Frequency	HIGH	please say that again._COMMON_0
+Please sit here.	ここにすわってください				COMMON	Distractor Frequency	HIGH	please sit here._COMMON_0
+Please speak slowly.	ゆっくり話してください				COMMON	Distractor Frequency	HIGH	please speak slowly._COMMON_0
+Please wait a minute.	少し待ってください				COMMON	Distractor Frequency	HIGH	please wait a minute._COMMON_0
+Please write your name.	名前を書いてください				COMMON	Distractor Frequency	HIGH	please write your name._COMMON_0
+pony	子馬				COMMON	Distractor Frequency	HIGH	pony_COMMON_0
+pound	ポンド				COMMON	Distractor Frequency	HIGH	pound_COMMON_0
+practice ~	～を練習する				COMMON	Distractor Frequency	HIGH	practice ~_COMMON_0
+practice doing	～する練習をする				COMMON	Distractor Frequency	HIGH	practice doing_COMMON_0
+practice with A	Aと練習する				COMMON	Distractor Frequency	HIGH	practice with a_COMMON_0
+praise A	Aをほめる				COMMON	Distractor Frequency	HIGH	praise a_COMMON_0
+prepare ~	～を準備する				COMMON	Distractor Frequency	HIGH	prepare ~_COMMON_0
+price list	値段表				COMMON	Distractor Frequency	HIGH	price list_COMMON_0
+promise	約束				COMMON	Distractor Frequency	HIGH	promise_COMMON_0
+promise ~	～を約束する				COMMON	Distractor Frequency	HIGH	promise ~_COMMON_0
+protect	守る				COMMON	Distractor Frequency	HIGH	protect_COMMON_0
+protect ~	～を守る				COMMON	Distractor Frequency	HIGH	protect ~_COMMON_0
+pudding	プリン				COMMON	Distractor Frequency	HIGH	pudding_COMMON_0
+pull ~	～を引く				COMMON	Distractor Frequency	HIGH	pull ~_COMMON_0
+push ~	～を押す				COMMON	Distractor Frequency	HIGH	push ~_COMMON_0
+put down ~	置く				COMMON	Distractor Frequency	HIGH	put down ~_COMMON_0
+put on	～の上に置く				COMMON	Distractor Frequency	HIGH	put on_COMMON_0
+put on my clothes	服を着る				COMMON	Distractor Frequency	HIGH	put on my clothes_COMMON_0
+quilt	ふとん				COMMON	Distractor Frequency	HIGH	quilt_COMMON_0
+Quite new.	かなり新しい				COMMON	Distractor Frequency	HIGH	quite new._COMMON_0
+rainy season	梅雨				COMMON	Distractor Frequency	HIGH	rainy season_COMMON_0
+reach	届く				COMMON	Distractor Frequency	HIGH	reach_COMMON_0
+read ~	～を読む				COMMON	Distractor Frequency	HIGH	read ~_COMMON_0
+read a book	本を読む				COMMON	Distractor Frequency	HIGH	read a book_COMMON_0
+read aloud	読み上げる				COMMON	Distractor Frequency	HIGH	read aloud_COMMON_0
+reader	読者				COMMON	Distractor Frequency	HIGH	reader_COMMON_0
+reading	読書				COMMON	Distractor Frequency	HIGH	reading_COMMON_0
+Really?	本当ですか				COMMON	Distractor Frequency	HIGH	really?_COMMON_0
+rectangle	長方形				COMMON	Distractor Frequency	HIGH	rectangle_COMMON_0
+referee	審判				COMMON	Distractor Frequency	HIGH	referee_COMMON_0
+refuse A	Aを断る				COMMON	Distractor Frequency	HIGH	refuse a_COMMON_0
+relatives	親戚				COMMON	Distractor Frequency	HIGH	relatives_COMMON_0
+relaxed	安心した				COMMON	Distractor Frequency	HIGH	relaxed_COMMON_0
+remember ~	～を覚えている				COMMON	Distractor Frequency	HIGH	remember ~_COMMON_0
+repair ~	～を修理する				COMMON	Distractor Frequency	HIGH	repair ~_COMMON_0
+repair A	Aを修理する				COMMON	Distractor Frequency	HIGH	repair a_COMMON_0
+return to ~	～に戻る				COMMON	Distractor Frequency	HIGH	return to ~_COMMON_0
+ring finger	薬指				COMMON	Distractor Frequency	HIGH	ring finger_COMMON_0
+room number	部屋番号				COMMON	Distractor Frequency	HIGH	room number_COMMON_0
+run fast	早く走る				COMMON	Distractor Frequency	HIGH	run fast_COMMON_0
+run to ~	～へ走る				COMMON	Distractor Frequency	HIGH	run to ~_COMMON_0
+running	ランニング				COMMON	Distractor Frequency	HIGH	running_COMMON_0
+runny nose	鼻水				COMMON	Distractor Frequency	HIGH	runny nose_COMMON_0
+sadness	悲しみ				COMMON	Distractor Frequency	HIGH	sadness_COMMON_0
+salmon	サケ				COMMON	Distractor Frequency	HIGH	salmon_COMMON_0
+salty	しょっぱい				COMMON	Distractor Frequency	HIGH	salty_COMMON_0
+saw	見た				COMMON	Distractor Frequency	HIGH	saw_COMMON_0
+Say it again.	もう一度言ってください				COMMON	Distractor Frequency	HIGH	say it again._COMMON_0
+schoolbag	かばん				COMMON	Distractor Frequency	HIGH	schoolbag_COMMON_0
+science lesson	理科の授業				COMMON	Distractor Frequency	HIGH	science lesson_COMMON_0
+see ~	〜を見る				COMMON	Distractor Frequency	HIGH	see ~_COMMON_0
+see there	そこを見る				COMMON	Distractor Frequency	HIGH	see there_COMMON_0
+See you again.	また会いましょう				COMMON	Distractor Frequency	HIGH	see you again._COMMON_0
+See you next week.	また来週				COMMON	Distractor Frequency	HIGH	see you next week._COMMON_0
+See you!	お元気で				COMMON	Distractor Frequency	HIGH	see you!_COMMON_0
+send ~	～を送る				COMMON	Distractor Frequency	HIGH	send ~_COMMON_0
+send A B	AにBを送る				COMMON	Distractor Frequency	HIGH	send a b_COMMON_0
+send a letter	手紙を送る				COMMON	Distractor Frequency	HIGH	send a letter_COMMON_0
+send a message	メッセージを送る				COMMON	Distractor Frequency	HIGH	send a message_COMMON_0
+send A to B	AをBに送る				COMMON	Distractor Frequency	HIGH	send a to b_COMMON_0
+Seoul	ソウル				COMMON	Distractor Frequency	HIGH	seoul_COMMON_0
+separate A from B	AをBから離す				COMMON	Manual Analysis	HIGH	separate a from b_COMMON_0
+seven o'clock	7時				COMMON	Distractor Frequency	HIGH	seven o'clock_COMMON_0
+seventy	70				COMMON	Distractor Frequency	HIGH	seventy_COMMON_0
+Shall I ~?	〜しましょうか				COMMON	Distractor Frequency	HIGH	shall i ~?_COMMON_0
+Shall I answer the phone?	電話に出ましょうか				COMMON	Distractor Frequency	HIGH	shall i answer the phone?_COMMON_0
+Shall I close the door?	ドアを閉めましょうか				COMMON	Distractor Frequency	HIGH	shall i close the door?_COMMON_0
+Shall I help you?	手伝いましょうか				COMMON	Distractor Frequency	HIGH	shall i help you?_COMMON_0
+Shall I sit here?	座りましょうか				COMMON	Distractor Frequency	HIGH	shall i sit here?_COMMON_0
+shallowly	浅く				COMMON	Distractor Frequency	HIGH	shallowly_COMMON_0
+shape of ~	～の形				COMMON	Distractor Frequency	HIGH	shape of ~_COMMON_0
+share	共有する				COMMON	Distractor Frequency	HIGH	share_COMMON_0
+share ~	～を共有する				COMMON	Distractor Frequency	HIGH	share ~_COMMON_0
+shared	共有の				COMMON	Distractor Frequency	HIGH	shared_COMMON_0
+She does too.	彼女も				COMMON	Distractor Frequency	HIGH	she does too._COMMON_0
+sheet	シーツ				COMMON	Distractor Frequency	HIGH	sheet_COMMON_0
+shoe	くつ				COMMON	Distractor Frequency	HIGH	shoe_COMMON_0
+shoe store	靴屋				COMMON	Distractor Frequency	HIGH	shoe store_COMMON_0
+shop at a store	店で買い物をする				COMMON	Distractor Frequency	HIGH	shop at a store_COMMON_0
+shorts	短パン				COMMON	Distractor Frequency	HIGH	shorts_COMMON_0
+shot	注射				COMMON	Distractor Frequency	HIGH	shot_COMMON_0
+should do	～するべきだ				COMMON	Distractor Frequency	HIGH	should do_COMMON_0
+shout at ~	～に叫ぶ				COMMON	Distractor Frequency	HIGH	shout at ~_COMMON_0
+show ~	見せる				COMMON	Distractor Frequency	HIGH	show ~_COMMON_0
+show A to B	AをBに見せる				COMMON	Distractor Frequency	HIGH	show a to b_COMMON_0
+shrimp	エビ				COMMON	Distractor Frequency	HIGH	shrimp_COMMON_0
+sidewalk	歩道				COMMON	Distractor Frequency	HIGH	sidewalk_COMMON_0
+sing a song	歌を歌う				COMMON	Distractor Frequency	HIGH	sing a song_COMMON_0
+single person	一人				COMMON	Distractor Frequency	HIGH	single person_COMMON_0
+sir	～君				COMMON	Distractor Frequency	HIGH	sir_COMMON_0
+sit and wait	座って待つ				COMMON	Distractor Frequency	HIGH	sit and wait_COMMON_0
+sit before ~	～の前に座る				COMMON	Distractor Frequency	HIGH	sit before ~_COMMON_0
+Sit down.	座ってください				COMMON	Distractor Frequency	HIGH	sit down._COMMON_0
+sit quietly	静かに座る				COMMON	Distractor Frequency	HIGH	sit quietly_COMMON_0
+sit there	そこに座る				COMMON	Distractor Frequency	HIGH	sit there_COMMON_0
+six o'clock	6時				COMMON	Distractor Frequency	HIGH	six o'clock_COMMON_0
+sixty	60				COMMON	Distractor Frequency	HIGH	sixty_COMMON_0
+smaller	より小さい				COMMON	Distractor Frequency	HIGH	smaller_COMMON_0
+smallest	最も小さい				COMMON	Distractor Frequency	HIGH	smallest_COMMON_0
+smell like ~	～のようなにおいがする				COMMON	Distractor Frequency	HIGH	smell like ~_COMMON_0
+smile at ~	～に笑う				COMMON	Distractor Frequency	HIGH	smile at ~_COMMON_0
+snowing	雪が降っている				COMMON	Distractor Frequency	HIGH	snowing_COMMON_0
+soccer game	サッカーの試合				COMMON	Distractor Frequency	HIGH	soccer game_COMMON_0
+sock	くつした				COMMON	Distractor Frequency	HIGH	sock_COMMON_0
+some ~	いくつかの～				COMMON	Distractor Frequency	HIGH	some ~_COMMON_0
+somewhere	どこか				COMMON	Distractor Frequency	HIGH	somewhere_COMMON_0
+sound of ~	～の音				COMMON	Distractor Frequency	HIGH	sound of ~_COMMON_0
+spaceship	宇宙船				COMMON	Distractor Frequency	HIGH	spaceship_COMMON_0
+speak ~	〜を話す				COMMON	Distractor Frequency	HIGH	speak ~_COMMON_0
+speed	速さ				COMMON	Distractor Frequency	HIGH	speed_COMMON_0
+spoke	話した				COMMON	Distractor Frequency	HIGH	spoke_COMMON_0
+sponge	スポンジ				COMMON	Distractor Frequency	HIGH	sponge_COMMON_0
+Stand up.	立ってください				COMMON	Distractor Frequency	HIGH	stand up._COMMON_0
+starlight	星明かり				COMMON	Distractor Frequency	HIGH	starlight_COMMON_0
+start ~	～を始める				COMMON	Distractor Frequency	HIGH	start ~_COMMON_0
+start to	〜し始める				COMMON	Distractor Frequency	HIGH	start to_COMMON_0
+station worker	駅員				COMMON	Distractor Frequency	HIGH	station worker_COMMON_0
+stationery	文房具				COMMON	Distractor Frequency	HIGH	stationery_COMMON_0
+stay in ~	～に滞在する				COMMON	Distractor Frequency	HIGH	stay in ~_COMMON_0
+steering wheel	ハンドル				COMMON	Distractor Frequency	HIGH	steering wheel_COMMON_0
+stop A from doing	Aが～するのを止める				COMMON	Manual Analysis	HIGH	stop a from doing_COMMON_0
+stop at ~	～で止まる				COMMON	Distractor Frequency	HIGH	stop at ~_COMMON_0
+stronger	より強く				COMMON	Distractor Frequency	HIGH	stronger_COMMON_0
+strongest	最も強い				COMMON	Distractor Frequency	HIGH	strongest_COMMON_0
+students	学生たち				COMMON	Distractor Frequency	HIGH	students_COMMON_0
+study ~	～を勉強する				COMMON	Distractor Frequency	HIGH	study ~_COMMON_0
+study abroad	留学				COMMON	Distractor Frequency	HIGH	study abroad_COMMON_0
+study English	英語を勉強する				COMMON	Distractor Frequency	HIGH	study english_COMMON_0
+studying	勉強				COMMON	Distractor Frequency	HIGH	studying_COMMON_0
+subtract	引く				COMMON	Distractor Frequency	HIGH	subtract_COMMON_0
+summer vacation	夏休み				COMMON	Distractor Frequency	HIGH	summer vacation_COMMON_0
+sunflower	ひまわり				COMMON	Distractor Frequency	HIGH	sunflower_COMMON_0
+support A	Aを支える				COMMON	Distractor Frequency	HIGH	support a_COMMON_0
+surely	たしかに				COMMON	Distractor Frequency	HIGH	surely_COMMON_0
+surround A with B	AをBで囲む				COMMON	Distractor Frequency	HIGH	surround a with b_COMMON_0
+swan	はくちょう				COMMON	Distractor Frequency	HIGH	swan_COMMON_0
+swim to ~	～まで泳いで行く				COMMON	Distractor Frequency	HIGH	swim to ~_COMMON_0
+swimming practice	水泳の練習				COMMON	Distractor Frequency	HIGH	swimming practice_COMMON_0
+Sydney	シドニー				COMMON	Distractor Frequency	HIGH	sydney_COMMON_0
+take ~	～を連れて行く				COMMON	Distractor Frequency	HIGH	take ~_COMMON_0
+take a bus	バスに乗る				COMMON	Distractor Frequency	HIGH	take a bus_COMMON_0
+take a train	電車に乗る				COMMON	Distractor Frequency	HIGH	take a train_COMMON_0
+take B out of A	AからBを取り出す				COMMON	Distractor Frequency	HIGH	take b out of a_COMMON_0
+take care	気をつけて				COMMON	Distractor Frequency	HIGH	take care_COMMON_0
+Take care.	気をつけて				COMMON	Distractor Frequency	HIGH	take care._COMMON_0
+take medicine	くすりをのむ				COMMON	Distractor Frequency	HIGH	take medicine_COMMON_0
+take off	脱ぐ				COMMON	Distractor Frequency	HIGH	take off_COMMON_0
+tallest	最も背が高い				COMMON	Distractor Frequency	HIGH	tallest_COMMON_0
+taste like ~	～のような味がする				COMMON	Distractor Frequency	HIGH	taste like ~_COMMON_0
+teach ~	～を教える				COMMON	Distractor Frequency	HIGH	teach ~_COMMON_0
+teachers	先生たち				COMMON	Distractor Frequency	HIGH	teachers_COMMON_0
+technical school	専門学校				COMMON	Distractor Frequency	HIGH	technical school_COMMON_0
+tell A B	AにBを教える				COMMON	Distractor Frequency	HIGH	tell a b_COMMON_0
+ten minutes	10分間				COMMON	Distractor Frequency	HIGH	ten minutes_COMMON_0
+ten thousand	1万				COMMON	Distractor Frequency	HIGH	ten thousand_COMMON_0
+tennis match	テニスの試合				COMMON	Manual Analysis	HIGH	tennis match_COMMON_0
+text	メッセージを送る				COMMON	Distractor Frequency	HIGH	text_COMMON_0
+thank you for your call	お電話をありがとう				COMMON	Distractor Frequency	HIGH	thank you for your call_COMMON_0
+thank you for your email	メールをありがとう				COMMON	Distractor Frequency	HIGH	thank you for your email_COMMON_0
+Thank you for your help.	手伝ってくれてありがとう				COMMON	Distractor Frequency	HIGH	thank you for your help._COMMON_0
+thank you for your picture	お写真をありがとう				COMMON	Distractor Frequency	HIGH	thank you for your picture_COMMON_0
+thank you for your present	プレゼントをありがとう				COMMON	Distractor Frequency	HIGH	thank you for your present_COMMON_0
+Thank you.	ありがとう				COMMON	Distractor Frequency	HIGH	thank you._COMMON_0
+that is	あれは〜です				COMMON	Distractor Frequency	HIGH	that is_COMMON_0
+That is too bad.	残念ですね				COMMON	Distractor Frequency	HIGH	that is too bad._COMMON_0
+That looks difficult.	それは難しそうです				COMMON	Distractor Frequency	HIGH	that looks difficult._COMMON_0
+That looks expensive.	それは高そうです				COMMON	Distractor Frequency	HIGH	that looks expensive._COMMON_0
+That looks strange.	それは変そうです				COMMON	Distractor Frequency	HIGH	that looks strange._COMMON_0
+That sounds late.	それは遅そうです				COMMON	Distractor Frequency	HIGH	that sounds late._COMMON_0
+That's easy.	それは簡単です				COMMON	Distractor Frequency	HIGH	that's easy._COMMON_0
+That's great.	それはすばらしいです				COMMON	Distractor Frequency	HIGH	that's great._COMMON_0
+That's true.	それは本当です				COMMON	Distractor Frequency	HIGH	that's true._COMMON_0
+the next day	次の日に				COMMON	Distractor Frequency	HIGH	the next day_COMMON_0
+the other	もう一方の				COMMON	Distractor Frequency	HIGH	the other_COMMON_0
+their	彼らの				COMMON	Distractor Frequency	HIGH	their_COMMON_0
+theirs	彼らのもの				COMMON	Distractor Frequency	HIGH	theirs_COMMON_0
+them	彼らを				COMMON	Distractor Frequency	HIGH	them_COMMON_0
+These are expensive.	これらは高いです				COMMON	Distractor Frequency	HIGH	these are expensive._COMMON_0
+These are new.	これらは新しいです				COMMON	Distractor Frequency	HIGH	these are new._COMMON_0
+These are popular.	これらは人気です				COMMON	Distractor Frequency	HIGH	these are popular._COMMON_0
+These are the same.	これらは同じです				COMMON	Distractor Frequency	HIGH	these are the same._COMMON_0
+thirteenth	13番目の				COMMON	Distractor Frequency	HIGH	thirteenth_COMMON_0
+thirty minutes	30分間				COMMON	Distractor Frequency	HIGH	thirty minutes_COMMON_0
+this afternoon	今日の午後				COMMON	Distractor Frequency	HIGH	this afternoon_COMMON_0
+This book is very easy.	私はそれを知りません				COMMON	Distractor Frequency	HIGH	this book is very easy._COMMON_0
+this is	これは〜です				COMMON	Distractor Frequency	HIGH	this is_COMMON_0
+this month	今月				COMMON	Distractor Frequency	HIGH	this month_COMMON_0
+this week	今週				COMMON	Distractor Frequency	HIGH	this week_COMMON_0
+this year	今年				COMMON	Distractor Frequency	HIGH	this year_COMMON_0
+those	あれら				COMMON	Distractor Frequency	HIGH	those_COMMON_0
+thought	考え				COMMON	Distractor Frequency	HIGH	thought_COMMON_0
+through the school	学校中で				COMMON	Distractor Frequency	HIGH	through the school_COMMON_0
+ticket gate	改札				COMMON	Distractor Frequency	HIGH	ticket gate_COMMON_0
+tire	タイヤ				COMMON	Distractor Frequency	HIGH	tire_COMMON_0
+to your left	あなたの左に				COMMON	Distractor Frequency	HIGH	to your left_COMMON_0
+to your right	あなたの右に				COMMON	Distractor Frequency	HIGH	to your right_COMMON_0
+toe	指				COMMON	Distractor Frequency	HIGH	toe_COMMON_0
+Tokyo	東京				COMMON	Distractor Frequency	HIGH	tokyo_COMMON_0
+tomorrow morning	明日の朝				COMMON	Distractor Frequency	HIGH	tomorrow morning_COMMON_0
+tomorrow night	明日の夜				COMMON	Distractor Frequency	HIGH	tomorrow night_COMMON_0
+ton	トン				COMMON	Distractor Frequency	HIGH	ton_COMMON_0
+tools	道具				COMMON	Distractor Frequency	HIGH	tools_COMMON_0
+Toronto	トロント				COMMON	Distractor Frequency	HIGH	toronto_COMMON_0
+total	合計				COMMON	Distractor Frequency	HIGH	total_COMMON_0
+tray	お盆				COMMON	Distractor Frequency	HIGH	tray_COMMON_0
+trio	三人組				COMMON	Distractor Frequency	HIGH	trio_COMMON_0
+troubled	困った				COMMON	Distractor Frequency	HIGH	troubled_COMMON_0
+truck	トラック				COMMON	Distractor Frequency	HIGH	truck_COMMON_0
+trunk	幹				COMMON	Distractor Frequency	HIGH	trunk_COMMON_0
+trust A	Aを信じる				COMMON	Distractor Frequency	HIGH	trust a_COMMON_0
+turn ~ off	～を消す				COMMON	Distractor Frequency	HIGH	turn ~ off_COMMON_0
+turn ~ on	～をつける				COMMON	Distractor Frequency	HIGH	turn ~ on_COMMON_0
+turn ~ up	～の音量を上げる				COMMON	Distractor Frequency	HIGH	turn ~ up_COMMON_0
+turn down ~	～を断る				COMMON	Distractor Frequency	HIGH	turn down ~_COMMON_0
+turtle	かめ				COMMON	Distractor Frequency	HIGH	turtle_COMMON_0
+twenty minutes	20分間				COMMON	Distractor Frequency	HIGH	twenty minutes_COMMON_0
+twice	二度				COMMON	Distractor Frequency	HIGH	twice_COMMON_0
+twice a month	1か月に2回				COMMON	Distractor Frequency	HIGH	twice a month_COMMON_0
+twice a week	1週間に2回				COMMON	Distractor Frequency	HIGH	twice a week_COMMON_0
+twice a year	1年に2回				COMMON	Distractor Frequency	HIGH	twice a year_COMMON_0
+under ~	〜の下に				COMMON	Distractor Frequency	HIGH	under ~_COMMON_0
+until now	今まで				COMMON	Distractor Frequency	HIGH	until now_COMMON_0
+use ~	使う				COMMON	Distractor Frequency	HIGH	use ~_COMMON_0
+Very fast.	とても速い				COMMON	Distractor Frequency	HIGH	very fast._COMMON_0
+Very good.	とてもよい				COMMON	Distractor Frequency	HIGH	very good._COMMON_0
+viewer	観客				COMMON	Distractor Frequency	HIGH	viewer_COMMON_0
+violet	すみれ				COMMON	Distractor Frequency	HIGH	violet_COMMON_0
+visit ~	～を訪ねる				COMMON	Distractor Frequency	HIGH	visit ~_COMMON_0
+visit A at B	AをBで訪ねる				COMMON	Distractor Frequency	HIGH	visit a at b_COMMON_0
+volleyball game	バレーボールの試合				COMMON	Distractor Frequency	HIGH	volleyball game_COMMON_0
+wait at ~	〜で待つ				COMMON	Distractor Frequency	HIGH	wait at ~_COMMON_0
+wait for	待つ				COMMON	Distractor Frequency	HIGH	wait for_COMMON_0
+wait for A	Aを待つ				COMMON	Distractor Frequency	HIGH	wait for a_COMMON_0
+Wait.	待ってください				COMMON	Distractor Frequency	HIGH	wait._COMMON_0
+walk slowly	ゆっくり歩く				COMMON	Distractor Frequency	HIGH	walk slowly_COMMON_0
+walk to school	学校へ歩いて行く				COMMON	Distractor Frequency	HIGH	walk to school_COMMON_0
+walking	散歩				COMMON	Distractor Frequency	HIGH	walking_COMMON_0
+wall clock	壁掛け時計				COMMON	Distractor Frequency	HIGH	wall clock_COMMON_0
+want to	〜したい				COMMON	Distractor Frequency	HIGH	want to_COMMON_0
+wants	〜したい				COMMON	Distractor Frequency	HIGH	wants_COMMON_0
+wash ~	洗う				COMMON	Distractor Frequency	HIGH	wash ~_COMMON_0
+wash A	Aを洗う				COMMON	Distractor Frequency	HIGH	wash a_COMMON_0
+wash dishes	皿を洗う				COMMON	Distractor Frequency	HIGH	wash dishes_COMMON_0
+wash my face	顔を洗う				COMMON	Distractor Frequency	HIGH	wash my face_COMMON_0
+watch TV	テレビを見る				COMMON	Distractor Frequency	HIGH	watch tv_COMMON_0
+wave to ~	～に手を振る				COMMON	Distractor Frequency	HIGH	wave to ~_COMMON_0
+we	私たち				COMMON	Distractor Frequency	HIGH	we_COMMON_0
+We can ~.	～できる				COMMON	Distractor Frequency	HIGH	we can ~._COMMON_0
+we did	私たちは〜しました				COMMON	Distractor Frequency	HIGH	we did_COMMON_0
+We do too.	私たちも				COMMON	Distractor Frequency	HIGH	we do too._COMMON_0
+We must ~.	～しなければならない				COMMON	Distractor Frequency	HIGH	we must ~._COMMON_0
+We want to ~.	～したい				COMMON	Distractor Frequency	HIGH	we want to ~._COMMON_0
+We will ~.	～する予定だ				COMMON	Distractor Frequency	HIGH	we will ~._COMMON_0
+wear ~	着る				COMMON	Distractor Frequency	HIGH	wear ~_COMMON_0
+weekly	毎週				COMMON	Distractor Frequency	HIGH	weekly_COMMON_0
+went	行った				COMMON	Distractor Frequency	HIGH	went_COMMON_0
+we're	私たちは〜です				COMMON	Distractor Frequency	HIGH	we're_COMMON_0
+What are you eating?	何を食べますか				COMMON	Distractor Frequency	HIGH	what are you eating?_COMMON_0
+What color do you like?	何色が好きですか？				COMMON	Distractor Frequency	HIGH	what color do you like?_COMMON_0
+What day is it today?	今日は何曜日ですか				COMMON	Distractor Frequency	HIGH	what day is it today?_COMMON_0
+What do you want?	何がほしいですか？				COMMON	Distractor Frequency	HIGH	what do you want?_COMMON_0
+What is the date today?	今日は何日ですか				COMMON	Distractor Frequency	HIGH	what is the date today?_COMMON_0
+What is this?	これは何ですか				COMMON	Distractor Frequency	HIGH	what is this?_COMMON_0
+What is your name?	お名前は何ですか？				COMMON	Distractor Frequency	HIGH	what is your name?_COMMON_0
+What shall we eat?	何を食べましょうか				COMMON	Distractor Frequency	HIGH	what shall we eat?_COMMON_0
+What time do you get up?	何時に起きますか？				COMMON	Distractor Frequency	HIGH	what time do you get up?_COMMON_0
+What time do you go to school?	何時に学校へ行きますか				COMMON	Distractor Frequency	HIGH	what time do you go to school?_COMMON_0
+What time is it now?	今何時ですか				COMMON	Distractor Frequency	HIGH	what time is it now?_COMMON_0
+What time is it?	何時ですか？				COMMON	Distractor Frequency	HIGH	what time is it?_COMMON_0
+What time will you go?	何時に行きますか？				COMMON	Distractor Frequency	HIGH	what time will you go?_COMMON_0
+What's your name?	お名前は何ですか？				COMMON	Distractor Frequency	HIGH	what's your name?_COMMON_0
+When are you coming?	いつ来ますか				COMMON	Distractor Frequency	HIGH	when are you coming?_COMMON_0
+When shall we leave?	いつ出発しましょうか				COMMON	Distractor Frequency	HIGH	when shall we leave?_COMMON_0
+When will you go?	いつ行きますか				COMMON	Distractor Frequency	HIGH	when will you go?_COMMON_0
+when's	いつですか				COMMON	Distractor Frequency	HIGH	when's_COMMON_0
+Where are you going?	どこへ行くの？				COMMON	Distractor Frequency	HIGH	where are you going?_COMMON_0
+Where are you?	どこですか？				COMMON	Distractor Frequency	HIGH	where are you?_COMMON_0
+Where do you live?	どこに住んでいますか？				COMMON	Distractor Frequency	HIGH	where do you live?_COMMON_0
+Where is ~?	～はどこですか				COMMON	Distractor Frequency	HIGH	where is ~?_COMMON_0
+Where is it?	どこにありますか				COMMON	Distractor Frequency	HIGH	where is it?_COMMON_0
+Where is the station?	駅はどこですか				COMMON	Distractor Frequency	HIGH	where is the station?_COMMON_0
+Where is your school?	学校はどこですか				COMMON	Distractor Frequency	HIGH	where is your school?_COMMON_0
+Which do you like?	どちらが好きですか				COMMON	Distractor Frequency	HIGH	which do you like?_COMMON_0
+which is	どちらですか				COMMON	Distractor Frequency	HIGH	which is_COMMON_0
+Which one is yours?	どれがあなたのですか？				COMMON	Distractor Frequency	HIGH	which one is yours?_COMMON_0
+while ~	～する間				COMMON	Distractor Frequency	HIGH	while ~_COMMON_0
+whisker	ひげ				COMMON	Distractor Frequency	HIGH	whisker_COMMON_0
+Who are you talking to?	誰と話していますか				COMMON	Distractor Frequency	HIGH	who are you talking to?_COMMON_0
+Who do you go to school with?	だれと学校へ行きますか				COMMON	Distractor Frequency	HIGH	who do you go to school with?_COMMON_0
+Who is this?	また後で電話します				COMMON	Distractor Frequency	HIGH	who is this?_COMMON_0
+Who shall we go with?	だれと行きましょうか				COMMON	Distractor Frequency	HIGH	who shall we go with?_COMMON_0
+Who will come?	だれが来ますか				COMMON	Distractor Frequency	HIGH	who will come?_COMMON_0
+who's	だれですか				COMMON	Distractor Frequency	HIGH	who's_COMMON_0
+Whose is ~?	～はだれのものですか				COMMON	Distractor Frequency	HIGH	whose is ~?_COMMON_0
+Whose is this?	だれのものですか				COMMON	Distractor Frequency	HIGH	whose is this?_COMMON_0
+why's	なぜですか				COMMON	Distractor Frequency	HIGH	why's_COMMON_0
+will do	これから～する				COMMON	Distractor Frequency	HIGH	will do_COMMON_0
+Will you close the door?	ドアを閉めてくれますか				COMMON	Distractor Frequency	HIGH	will you close the door?_COMMON_0
+Will you come here?	ここに来てくれますか				COMMON	Distractor Frequency	HIGH	will you come here?_COMMON_0
+Will you come with me?	来てくれますか				COMMON	Distractor Frequency	HIGH	will you come with me?_COMMON_0
+Will you show me?	見せてくれますか				COMMON	Distractor Frequency	HIGH	will you show me?_COMMON_0
+Will you tell me?	教えてくれますか				COMMON	Distractor Frequency	HIGH	will you tell me?_COMMON_0
+Will you wait a minute?	少し待ってくれますか				COMMON	Distractor Frequency	HIGH	will you wait a minute?_COMMON_0
+Will you wait for me?	待ってくれますか				COMMON	Distractor Frequency	HIGH	will you wait for me?_COMMON_0
+witch	魔女				COMMON	Distractor Frequency	HIGH	witch_COMMON_0
+with ~	～といっしょに				COMMON	Distractor Frequency	HIGH	with ~_COMMON_0
+wolf	オオカミ				COMMON	Distractor Frequency	HIGH	wolf_COMMON_0
+worst	最も悪い				COMMON	Distractor Frequency	HIGH	worst_COMMON_0
+write ~	～を書く				COMMON	Distractor Frequency	HIGH	write ~_COMMON_0
+write a letter	手紙を書く				COMMON	Distractor Frequency	HIGH	write a letter_COMMON_0
+write a name	名前を書く				COMMON	Distractor Frequency	HIGH	write a name_COMMON_0
+write about ~	〜を書く				COMMON	Distractor Frequency	HIGH	write about ~_COMMON_0
+yesterday morning	昨日の朝				COMMON	Distractor Frequency	HIGH	yesterday morning_COMMON_0
+you can	あなたは〜できます				COMMON	Distractor Frequency	HIGH	you can_COMMON_0
+You too.	あなたも				COMMON	Distractor Frequency	HIGH	you too._COMMON_0
+youngest	最も若い				COMMON	Distractor Frequency	HIGH	youngest_COMMON_0
+yours	あなたたちのもの				COMMON	Distractor Frequency	HIGH	yours_COMMON_0
+yourself	あなた自身				COMMON	Distractor Frequency	HIGH	yourself_COMMON_0
+sumo	相撲				COMMON	Manual Analysis	HIGH	sumo_COMMON_0
+came	来た				COMMON	Manual Analysis	HIGH	came_COMMON_0
+women	女性たち				COMMON	Manual Analysis	HIGH	women_COMMON_0
+men	男性たち				COMMON	Manual Analysis	HIGH	men_COMMON_0
+I'm sleepy	眠いです				COMMON	Manual Analysis	HIGH	i'm sleepy_COMMON_0
+I'm hungry	おなかがすいています				COMMON	Manual Analysis	HIGH	i'm hungry_COMMON_0
+I'm ready	準備ができています				COMMON	Manual Analysis	HIGH	i'm ready_COMMON_0
+I'm happy	幸せです				COMMON	Manual Analysis	HIGH	i'm happy_COMMON_0
+be ready for	～の準備ができている				COMMON	Manual Analysis	HIGH	be ready for_COMMON_0
+be kind to	～に親切にする				COMMON	Manual Analysis	HIGH	be kind to_COMMON_0
+be from	～の出身だ				COMMON	Manual Analysis	HIGH	be from_COMMON_0
+wish	願う				COMMON	Manual Analysis	HIGH	wish_COMMON_0
+awesome	素晴らしい				COMMON	Manual Analysis	HIGH	awesome_COMMON_0
+holder	ホルダー、保持者				COMMON	Manual Analysis	HIGH	holder_COMMON_0
+mat	マット				COMMON	Manual Analysis	HIGH	mat_COMMON_0
+donkey	ロバ				COMMON	Manual Analysis	HIGH	donkey_COMMON_0
+Are you hungry?	おなかがすいていますか				COMMON	Manual Analysis	HIGH	are you hungry?_COMMON_0
+Where is your notebook?	あなたのノートはどこですか				COMMON	Manual Analysis	HIGH	where is your notebook?_COMMON_0
+What is your favorite day?	あなたの好きな日はいつですか				COMMON	Manual Analysis	HIGH	what is your favorite day?_COMMON_0

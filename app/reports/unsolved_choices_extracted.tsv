@@ -1,0 +1,2332 @@
+english	source_no	source_word	mode
+monk	100006	month	Listening
+monk	100012	monkey	Listening
+When is your bus coming?	100021	When is your birthday?	Listening
+What is your brother's name?	100021	When is your birthday?	Listening
+How are you feeling?	100022	How are you doing?	Listening
+How have you been?	100022	How are you doing?	Listening
+How are you today?	100022	How are you doing?	Listening
+How are you today?	100025	Where are you from?	Listening
+How are you today?	200031	How is everything?	Listening
+What are you reading?	100023	What are you doing?	Listening
+What are you reading?	200029	What are you looking for?	Listening
+What are you making?	100023	What are you doing?	Listening
+Why are you waiting?	100023	What are you doing?	Listening
+Who are you?	100024	How are you?	Listening
+Who are you?	100028	How about you?	Listening
+Who are you?	200028	How are you?	Listening
+How was your day?	100024	How are you?	Listening
+How do you get to school?	100026	How do you go to school?	Listening
+When do you go to school?	100026	How do you go to school?	Listening
+Where do you go after school?	100026	How do you go to school?	Listening
+Why do you go to school?	100026	How do you go to school?	Listening
+How was the weather yesterday?	100027	How is the weather today?	Listening
+How is the weather there?	100027	How is the weather today?	Listening
+Is it sunny today?	100027	How is the weather today?	Listening
+What's the weather like today?	100027	How is the weather today?	Synonym
+What about you?	100028	How about you?	Listening
+What about you?	100028	How about you?	Synonym
+Can you tell me?	100029	Can you help me?	Listening
+Can you join me?	100029	Can you help me?	Listening
+Can you hear me?	100029	Can you help me?	Listening
+Can you save me?	100029	Can you help me?	Listening
+Are you awake?	100030	Are you all right?	Listening
+Are you alone?	100030	Are you all right?	Listening
+wine	100038	why	Listening
+wine	200378	wife	Listening
+wine	300164	wide	Listening
+wine	300263	while	Listening
+wine	300402	wise	Listening
+bride	100043	bread	Listening
+bride	100426	bright	Listening
+bride	300337	bright	Listening
+pine	100044	pie	Listening
+pipe	100044	pie	Listening
+tie	100044	pie	Listening
+tie	100282	time	Listening
+tie	300417	type	Listening
+handball	100046	baseball	Listening
+cocoa	100061	cola	Listening
+comma	100061	cola	Listening
+kite	100062	sky	Listening
+kite	100313	kind	Listening
+kite	301003	quite	Listening
+spy	100062	sky	Listening
+note	100068	nose	Listening
+note	100097	north	Listening
+note	100349	notebook	Listening
+note	200643	boat	Listening
+note	200803	no	Listening
+note	300458	message	Synonym
+jungle	100072	uncle	Listening
+jungle	200690	junior	Listening
+jungle	300020	junior high school	Listening
+jungle	300513	journey	Listening
+jungle	300667	single	Listening
+jungle	300875	gentle	Listening
+hut	100073	house	Listening
+hut	100207	hat	Listening
+hut	100213	hot	Listening
+blink	100075	bring	Listening
+blink	200473	bring	Listening
+brick	100075	bring	Listening
+brick	100090	black	Listening
+brick	200473	bring	Listening
+brick	200645	break	Listening
+teacup	100076	T-shirt	Listening
+teacup	100361	teacher	Listening
+teacup	200384	teammate	Listening
+teacup	200501	teacher	Listening
+cushion	100078	cousin	Listening
+cushion	300130	question	Listening
+cushion	300724	cashier	Listening
+make dirty	100082	wash	Antonym
+led	100088	red	Listening
+led	100255	leg	Listening
+gray	100089	green	Listening
+gray	100536	great	Listening
+gray	200239	grow	Listening
+gray	200785	crayon	Listening
+gray	300216	grade	Listening
+gray	300350	grow	Listening
+go in	100094	come in	Listening
+met	100095	meet	Listening
+met	200485	meet	Listening
+met	200767	yet	Listening
+met	300439	melt	Listening
+mint	100095	meet	Listening
+mint	100159	meat	Listening
+mint	100444	minute	Listening
+books	100099	box	Listening
+inexpensive	100100	cheap	Synonym
+inexpensive	300522	cheap	Synonym
+costly	100101	expensive	Synonym
+coconut	100105	chocolate	Listening
+coconut	200265	cucumber	Listening
+crystal	100112	Christmas	Listening
+crossing	100112	Christmas	Listening
+denim pants	100114	jeans	Synonym
+would like	100115	want	Synonym
+slice	100119	cut	Synonym
+mop	100123	map	Listening
+go on	100130	come on	Listening
+go on	300066	get on ~	Listening
+hold on	100130	come on	Listening
+eating	100132	evening	Listening
+eating	300710	meeting	Listening
+okay	100137	o'clock	Listening
+okay	200528	Osaka	Listening
+okay	300087	all right	Synonym
+classes	100138	glasses	Listening
+crow	100139	cow	Listening
+crow	200239	grow	Listening
+crow	300350	grow	Listening
+parrots	100143	parents	Listening
+presents	100143	parents	Listening
+patterns	100143	parents	Listening
+did	100144	dad	Listening
+did	300624	dead	Listening
+said	100148	sad	Listening
+said	200369	send	Listening
+sat	100148	sad	Listening
+sat	100568	sit	Listening
+sat	300023	sit down	Listening
+mum	100150	mother	Synonym
+moving	100153	movie	Listening
+moving	200206	movie	Listening
+moving	200398	morning	Listening
+muffin	100153	movie	Listening
+nice to see you	100155	nice to meet you	Listening
+see you later	100155	nice to meet you	Listening
+pleased to meet you	100155	nice to meet you	Synonym
+liver	100160	river	Listening
+rider	100160	river	Listening
+rider	300726	writer	Listening
+ribbon	100160	river	Listening
+cone	100161	corn	Listening
+cone	200746	comb	Listening
+able	100163	April	Listening
+doughnut	100164	donut	Synonym
+ice skate	100166	ice cream	Listening
+held	100176	help	Listening
+held	200482	help	Listening
+held	200636	hill	Listening
+shell	100177	sell	Listening
+shell	200236	shall	Listening
+shell	200521	shelf	Listening
+shell	200720	sell	Listening
+badly	100182	well	Listening
+badly	100182	well	Antonym
+teen	100193	team	Listening
+hail	100194	hair	Listening
+globe	100197	glove	Listening
+globe	200123	glove	Listening
+globe	200230	grape	Listening
+glow	100197	glove	Listening
+glow	200123	glove	Listening
+glow	200239	grow	Listening
+glow	300350	grow	Listening
+glow	300357	shine	Synonym
+glow	301019	flow	Listening
+frown	100199	smile	Antonym
+have on	100202	wear	Synonym
+have fun	100204	play	Synonym
+dizzy	100206	busy	Listening
+hey	100210	hi	Listening
+verse	100211	nurse	Listening
+fountain	100215	mountain	Listening
+fountain	200282	mountain	Listening
+spacey	100220	spicy	Listening
+spiky	100220	spicy	Listening
+pitcher	100221	picture	Listening
+readily	100222	really	Listening
+chess	100225	check	Listening
+toil	100230	toy	Listening
+peanut	100234	piano	Listening
+peanut	200399	parent	Listening
+peanut	300494	period	Listening
+golden	100237	garden	Listening
+golden	100400	Korean	Listening
+golden	200644	dolphin	Listening
+golden	300488	German	Listening
+Portuguese	100238	Japanese	Listening
+anguish	100239	English	Listening
+anguish	301045	language	Listening
+a lot of	100240	much	Synonym
+a lot of	100242	many	Synonym
+a lot of	300276	plenty of ~	Synonym
+shiny	100241	China	Listening
+shiny	200646	shampoo	Listening
+beg	100244	big	Listening
+plants	100248	pants	Listening
+plants	300479	prince	Listening
+points	100248	pants	Listening
+let A see B	100252	show	Synonym
+look at	100264	watch	Synonym
+commuter	100270	computer	Listening
+composer	100270	computer	Listening
+mad	100271	angry	Synonym
+make food	100273	cook	Synonym
+hanger	100283	hamburger	Listening
+grasshopper	100291	grandmother	Listening
+grasshopper	200143	granddaughter	Listening
+swinging	100295	swimming	Listening
+skimming	100295	swimming	Listening
+singing	100295	swimming	Listening
+singing	301007	sightseeing	Listening
+sleeping	100295	swimming	Listening
+sleeping	300710	meeting	Listening
+county	100304	country	Listening
+timed	100309	tired	Listening
+won't	100310	don't	Listening
+wasn't	100311	doesn't	Listening
+close to ~	100325	near	Synonym
+hen	100335	ten	Listening
+hen	200470	hand	Listening
+May I help you?	100336	Can I help you?	Listening
+parrot	100343	carrot	Listening
+parrot	200399	parent	Listening
+parrot	300676	carrot	Listening
+arch	100345	art	Listening
+picket	100348	ticket	Listening
+driven	100356	driver	Listening
+stupid	100360	student	Listening
+stupid	200115	smart	Antonym
+stupid	200500	student	Listening
+stupid	300465	smart	Antonym
+stupid	300871	clever	Antonym
+pupil	100360	student	Synonym
+pupil	200500	student	Synonym
+pupil	300673	public	Listening
+dock	100363	dog	Listening
+dock	200076	duck	Listening
+dock	300614	dark	Listening
+hostel	100367	hospital	Listening
+hostel	100375	hotel	Listening
+restroom	100372	restaurant	Listening
+restroom	200064	bedroom	Listening
+restroom	200535	restaurant	Listening
+librarian	100376	library	Listening
+vest	100377	vegetable	Listening
+vest	100508	very	Listening
+vest	300653	best	Listening
+gave	100379	game	Listening
+gave	200711	game	Listening
+excuse us	100382	excuse me	Listening
+excuse him	100382	excuse me	Listening
+is	100386	it	Listening
+is	100431	it's	Listening
+is	200816	if	Listening
+mask	100392	ask	Listening
+mask	200201	miss	Listening
+mask	200472	ask	Listening
+mask	300374	mark	Listening
+Dennis	100393	tennis	Listening
+slip	100403	sleep	Listening
+slip	200310	sleep	Listening
+pottery	100412	potato	Listening
+pottery	200771	potato	Listening
+pita	100414	pizza	Listening
+jumping	100416	jogging	Listening
+hot dish	100418	hot dog	Listening
+hat dog	100418	hot dog	Listening
+cheer	100421	chair	Listening
+wink	100424	week	Listening
+wink	300361	sink	Listening
+wink	300692	wing	Listening
+blight	100426	bright	Listening
+mind	100444	minute	Listening
+mind	200735	minute	Listening
+mind	300439	melt	Listening
+good light	100445	good night	Listening
+good right	100445	good night	Listening
+seeing	100447	skiing	Listening
+biscuit	100452	cookie	Synonym
+stars	100468	stairs	Listening
+stores	100468	stairs	Listening
+timer	100471	tiger	Listening
+timer	200734	time for ~	Listening
+mathematics	100475	math	Synonym
+How about that one?	100479	How about this one?	Listening
+What about this one?	100479	How about this one?	Listening
+cube	100484	cute	Listening
+disk	100489	desk	Listening
+dusk	100489	desk	Listening
+campus	100490	camera	Listening
+campus	200263	cabbage	Listening
+campus	200340	captain	Listening
+campus	200459	camping	Listening
+campus	200640	hamster	Listening
+campus	300902	cancel	Listening
+campus	301038	champion	Listening
+walk with ~	100491	talk with ~	Listening
+walk with ~	300038	wait for ~	Listening
+work with ~	100491	talk with ~	Listening
+work with ~	200044	help with ~	Listening
+work with ~	300324	work on ~	Listening
+milky	100493	milk tea	Listening
+hundreds	100499	hundred	Listening
+thank you for your better	100501	thank you for your letter	Listening
+thank you for your later	100501	thank you for your letter	Listening
+berry	100508	very	Listening
+ferry	100508	very	Listening
+out of	100509	into	Antonym
+together with	100510	with	Synonym
+without	100510	with	Antonym
+pin	100511	pen	Listening
+pin	300867	pill	Listening
+spool	100514	spoon	Listening
+through	100521	throw	Listening
+through	300781	truth	Listening
+through	300809	though	Listening
+twenty-one	100526	twenty	Listening
+Africa	100531	America	Listening
+jumper	100539	sweater	Synonym
+rake	100543	lake	Listening
+shows	100546	shoes	Listening
+smoky	100548	snowy	Listening
+clown	100550	cloud	Listening
+clown	200789	cloudy	Listening
+good book	100552	good luck	Listening
+good job	100552	good luck	Listening
+good job	200252	go to ~	Listening
+good job	200279	get well	Listening
+good job	200804	goodbye	Listening
+have a good day	100553	have a nice day	Listening
+have a good day	100553	have a nice day	Synonym
+have a good day	100555	have a good night's sleep	Listening
+have a big day	100553	have a nice day	Listening
+have a good weekend	100554	have a nice weekend	Listening
+have a nice trip	100555	have a good night's sleep	Listening
+lot	100557	not	Listening
+hard work	100558	homework	Listening
+hard work	200806	housework	Listening
+bandana	100559	banana	Listening
+curl	100561	girl	Listening
+computer store	200001	convenience store	Listening
+corner store	200001	convenience store	Listening
+candy store	200001	convenience store	Listening
+coming	200002	comic	Listening
+coming	200175	come in	Listening
+coming	200459	camping	Listening
+comet	200002	comic	Listening
+comet	300343	comedy	Listening
+hammer	200005	number	Listening
+hammer	200525	harbor	Listening
+straw	200007	story	Listening
+stopping	200010	shopping	Listening
+shocking	200010	shopping	Listening
+showing	200010	shopping	Listening
+buying	200010	shopping	Synonym
+biking	200011	cycling	Synonym
+biking	200361	hiking	Listening
+as well	200012	also	Synonym
+would	200013	should	Listening
+showed	200013	should	Listening
+ought to	200013	should	Synonym
+all again	200016	once again	Listening
+come again	200016	once again	Listening
+one game	200016	once again	Listening
+airmail	200019	airplane	Listening
+airmail	300738	airline	Listening
+aloud	200020	around	Listening
+aloud	300087	all right	Listening
+aloud	300956	abroad	Listening
+Sorry I'm tired.	200025	Sorry I'm late.	Listening
+I am at home.	200025	Sorry I'm late.	Listening
+What color is it?	200027	What happened?	Listening
+What color is it?	200030	What's the problem?	Listening
+What are you waiting for?	200029	What are you looking for?	Listening
+What are you doing now?	200029	What are you looking for?	Listening
+What are you talking about?	200029	What are you looking for?	Listening
+What's the matter?	200030	What's the problem?	Listening
+What's the matter?	200030	What's the problem?	Synonym
+What's the matter?	200033	What's wrong?	Synonym
+Where's the station?	200030	What's the problem?	Listening
+How is your father?	200031	How is everything?	Listening
+Where is my notebook?	200031	How is everything?	Listening
+What is your favorite color?	200031	How is everything?	Listening
+How are things?	200031	How is everything?	Synonym
+What kind do you want?	200032	What size do you want?	Listening
+What time do you have?	200032	What size do you want?	Listening
+Which bag do you want?	200032	What size do you want?	Listening
+What song do you like?	200032	What size do you want?	Listening
+What's this?	200033	What's wrong?	Listening
+What's that?	200033	What's wrong?	Listening
+What's up?	200033	What's wrong?	Listening
+What's new?	200033	What's wrong?	Listening
+Is it windy outside?	200034	Is it raining outside?	Listening
+Is it snowing outside?	200034	Is it raining outside?	Listening
+Is it cloudy outside?	200034	Is it raining outside?	Listening
+Can you walk now?	200035	Can you talk now?	Listening
+Can you work now?	200035	Can you talk now?	Listening
+Can you wait now?	200035	Can you talk now?	Listening
+Can you call now?	200035	Can you talk now?	Listening
+Will you look at me?	200036	Will you help me?	Listening
+Do you know the way to the school?	200037	Do you know the way to the station?	Listening
+Do you know the name of the station?	200037	Do you know the way to the station?	Listening
+Can you show me the station?	200037	Do you know the way to the station?	Listening
+Where is the nearest bus stop?	200038	Where is the nearest station?	Listening
+Where is the station now?	200038	Where is the nearest station?	Listening
+Where is your station?	200038	Where is the nearest station?	Listening
+Where is the big station?	200038	Where is the nearest station?	Listening
+How can I go now?	200039	How can I get there?	Listening
+How do I get home?	200039	How can I get there?	Listening
+Where can I get off?	200039	How can I get there?	Listening
+When can I get there?	200039	How can I get there?	Listening
+What now?	200040	Why not?	Listening
+Why me?	200040	Why not?	Listening
+Try it.	200040	Why not?	Listening
+Wait up.	200040	Why not?	Listening
+Anyone home?	200041	Anything else?	Listening
+Something new?	200041	Anything else?	Listening
+Anything wrong?	200041	Anything else?	Listening
+Nothing much?	200041	Anything else?	Listening
+Where can we eat?	200042	Where shall we meet?	Listening
+Why shall we wait?	200042	Where shall we meet?	Listening
+What shall we need?	200042	Where shall we meet?	Listening
+Are you ready to go?	200043	Are you ready to order?	Listening
+Do you want some water?	200043	Are you ready to order?	Listening
+Would you like to order?	200043	Are you ready to order?	Listening
+Are you going to school?	200043	Are you ready to order?	Listening
+help me ~	200044	help with ~	Listening
+assist with	200044	help with ~	Synonym
+over here	200050	over there	Listening
+near the door	200050	over there	Listening
+near the door	300509	on your left	Listening
+under the table	200050	over there	Listening
+by the window	200050	over there	Listening
+these days	200051	in those days	Listening
+on that day	200051	in those days	Listening
+at that time	200051	in those days	Listening
+beside	200052	behind	Listening
+beside	200627	next to ~	Synonym
+beside	200815	because	Listening
+beside	300113	besides	Listening
+between	200052	behind	Listening
+between	200743	begin	Listening
+between	300073	because	Listening
+between	300113	besides	Listening
+between	300935	believe	Listening
+right here	200053	right now	Listening
+light now	200053	right now	Listening
+write down	200053	right now	Listening
+write down	300812	record	Synonym
+night owl	200053	right now	Listening
+bathtub	200056	backpack	Listening
+handbag	200056	backpack	Listening
+handbag	300682	headache	Listening
+rucksack	200056	backpack	Synonym
+ice wall	200057	rice ball	Listening
+right ball	200057	rice ball	Listening
+nice doll	200057	rice ball	Listening
+rice bowl	200057	rice ball	Listening
+onigiri	200057	rice ball	Synonym
+came from	200059	come from	Listening
+go from	200059	come from	Listening
+make plans with ~	200062	make friends with ~	Listening
+play games with ~	200062	make friends with ~	Listening
+go shopping with ~	200062	make friends with ~	Listening
+catch a ball	200063	catch a cold	Listening
+get a cold	200063	catch a cold	Listening
+catch a bus	200063	catch a cold	Listening
+start the day	200066	start to do	Listening
+try to do	200066	start to do	Listening
+try to do	200814	have to do	Listening
+try to do	300825	promise to do	Listening
+begin to do	200066	start to do	Synonym
+start going	200067	start doing	Listening
+begin doing	200067	start doing	Synonym
+vanilla	200068	gorilla	Listening
+vanilla	300521	valley	Listening
+grocery store	200071	supermarket	Synonym
+backyard	200079	blackboard	Listening
+backyard	200605	schoolyard	Listening
+backyard	301014	blackboard	Listening
+bookmark	200079	blackboard	Listening
+bookmark	301014	blackboard	Listening
+muzzle	200080	muscle	Listening
+mustard	200080	muscle	Listening
+dairy	200081	diary	Listening
+diaper	200081	diary	Listening
+diamond	200081	diary	Listening
+A or B	200082	both A and B	Listening
+A and B	200082	both A and B	Listening
+flash card	200083	trash can	Listening
+glass case	200083	trash can	Listening
+lunch bag	200083	trash can	Listening
+lunch bag	200084	lunch box	Listening
+garbage can	200083	trash can	Synonym
+long box	200084	lunch box	Listening
+lock box	200084	lunch box	Listening
+lunch book	200084	lunch box	Listening
+dreamer	200085	drawer	Listening
+drama	200085	drawer	Listening
+dragon	200085	drawer	Listening
+mail bag	200086	mailbox	Listening
+milk carton	200086	mailbox	Listening
+main road	200086	mailbox	Listening
+main road	300139	meanwhile	Listening
+bucket	200087	trumpet	Listening
+bucket	200749	racket	Listening
+bucket	300419	basket	Listening
+zero	200088	hero	Listening
+zero	200256	cereal	Listening
+zero	200685	zebra	Listening
+blown	200090	brown	Listening
+crown	200090	brown	Listening
+crown	200785	crayon	Listening
+crown	300098	crime	Listening
+crown	300552	crowd	Listening
+crown	300804	countryside	Listening
+toolbox	200091	toothbrush	Listening
+tasty	200094	taxi	Listening
+tasty	200506	Tracy	Listening
+tasty	200704	delicious	Synonym
+cab	200094	taxi	Synonym
+postman	200095	postcard	Listening
+yell	200096	yeah	Listening
+yell	200802	yes	Listening
+yell	301057	shout	Synonym
+finishing	200097	fishing	Listening
+finishing	300138	finally	Listening
+facing	200097	fishing	Listening
+washing	200097	fishing	Listening
+teaching	200097	fishing	Listening
+stop talking	200098	stop doing	Listening
+shop today	200098	stop doing	Listening
+reckless	200099	necklace	Listening
+napkin	200099	necklace	Listening
+napkin	200772	pumpkin	Listening
+napkin	300089	pumpkin	Listening
+began	200101	become	Listening
+began	200737	before ~	Listening
+began	300073	because	Listening
+began	300696	become	Listening
+began	301072	behave	Listening
+move back	200103	move to ~	Listening
+relocate to ~	200103	move to ~	Synonym
+look for	200104	hunt	Synonym
+cheery lessons	200105	cherry blossoms	Listening
+shiny blossoms	200105	cherry blossoms	Listening
+cherry branches	200105	cherry blossoms	Listening
+early blossoms	200105	cherry blossoms	Listening
+kit	200106	kid	Listening
+kit	200286	kick	Listening
+kit	200751	kiss	Listening
+around clock	200116	alarm clock	Listening
+garden clock	200116	alarm clock	Listening
+morning clock	200116	alarm clock	Listening
+yellow clock	200116	alarm clock	Listening
+around here	200118	near here	Synonym
+carton	200120	curtain	Listening
+bananas	200122	pajamas	Listening
+potatoes	200122	pajamas	Listening
+sleepwear	200122	pajamas	Synonym
+drill	200124	dress	Listening
+came from ~	200128	come to ~	Listening
+more than ~	200129	as ~ as ...	Listening
+fish is swimming	200131	finish doing	Listening
+visit during	200131	finish doing	Listening
+English reading	200131	finish doing	Listening
+fishing boat	200131	finish doing	Listening
+could you ~	200132	would like ~	Listening
+want to ~	200132	would like ~	Listening
+will you ~	200132	would like ~	Listening
+would you ~	200132	would like ~	Listening
+want ~	200132	would like ~	Synonym
+hair dryer	200135	air conditioner	Listening
+water heater	200135	air conditioner	Listening
+electric fan	200135	air conditioner	Listening
+train station	200136	police station	Listening
+train station	200210	fire station	Listening
+play station	200136	police station	Listening
+bus station	200136	police station	Listening
+icy	200138	Italy	Listening
+helper	200141	haircut	Listening
+helmet	200141	haircut	Listening
+helmet	300727	habit	Listening
+gladness	200143	granddaughter	Listening
+waiting	200145	weekday	Listening
+waiting	200790	raining	Listening
+waiting	300555	wedding	Listening
+pop	200146	pot	Listening
+dot	200146	pot	Listening
+dot	300259	point	Synonym
+live for ~	200147	leave for ~	Listening
+leave home	200147	leave for ~	Listening
+want to go	200149	want to do	Listening
+want to eat	200149	want to do	Listening
+want to play	200149	want to do	Listening
+want to read	200149	want to do	Listening
+walk around ~	200153	talk about ~	Listening
+speak about ~	200153	talk about ~	Synonym
+carry on	200154	hurry up	Listening
+handy up	200154	hurry up	Listening
+head up	200154	hurry up	Listening
+be quick	200154	hurry up	Synonym
+walk far	200155	work hard	Listening
+work late	200155	work hard	Listening
+word card	200155	work hard	Listening
+work fast	200155	work hard	Listening
+try hard	200155	work hard	Synonym
+have an idea	200156	have no idea	Listening
+have to go	200156	have no idea	Listening
+have a dog	200156	have no idea	Listening
+have some time	200156	have no idea	Listening
+be glad about ~	200157	be good at ~	Listening
+be glad about ~	200419	be bad at ~	Listening
+be looking at ~	200157	be good at ~	Listening
+be quick at ~	200157	be good at ~	Listening
+go for a ride	200159	go for a drive	Listening
+go for a drink	200159	go for a drive	Listening
+go for a run	200159	go for a drive	Listening
+every way	200160	every day	Listening
+every time	200160	every day	Listening
+every weekday	200161	every weekend	Listening
+every winter	200161	every weekend	Listening
+every evening	200161	every weekend	Listening
+every ear	200162	every year	Listening
+every near	200162	every year	Listening
+every hear	200162	every year	Listening
+every dear	200162	every year	Listening
+grand	200163	ground	Listening
+grand	200273	glad	Listening
+grand	200765	gram	Listening
+unclear	200164	clear	Antonym
+unclear	300393	confusing	Synonym
+have winner	200165	have dinner	Listening
+half dinner	200165	have dinner	Listening
+have singer	200165	have dinner	Listening
+have winter	200165	have dinner	Listening
+eat dinner	200165	have dinner	Synonym
+You'll be late next time.	200168	You'll do better next time.	Listening
+You can do it next time.	200168	You'll do better next time.	Listening
+We'll do better next time.	200168	You'll do better next time.	Listening
+You'll do better this time.	200168	You'll do better next time.	Listening
+like reading	200170	like doing	Listening
+like cooking	200170	like doing	Listening
+like going	200170	like doing	Listening
+like playing	200170	like doing	Listening
+Have lunch.	200171	Have fun.	Listening
+Have time.	200171	Have fun.	Listening
+Have cake.	200171	Have fun.	Listening
+Have milk.	200171	Have fun.	Listening
+get in	200173	get into	Listening
+get on	200173	get into	Listening
+get on	200479	get up	Listening
+get on	300067	get off ~	Antonym
+go into	200173	get into	Listening
+went into	200173	get into	Listening
+go to work	200174	go to bed	Listening
+go to work	300063	go to school	Listening
+go by bus	200174	go to bed	Listening
+get here	200176	get there	Listening
+get home	200176	get there	Listening
+go there	200176	get there	Listening
+went there	200176	get there	Listening
+allow	200177	all over	Listening
+allow	300780	arrive	Listening
+allow	300925	announce	Listening
+have to study	200179	have a hard time doing	Listening
+have trouble	200179	have a hard time doing	Synonym
+It's beautiful!	200180	It's wonderful!	Listening
+It's colorful!	200180	It's wonderful!	Listening
+It's helpful!	200180	It's wonderful!	Listening
+It's powerful!	200180	It's wonderful!	Listening
+Come in, please.	200181	Best wishes.	ChoicesJaEn
+Best fishes.	200181	Best wishes.	Listening
+Best teachers.	200181	Best wishes.	Listening
+Best pictures.	200181	Best wishes.	Listening
+Best windows.	200181	Best wishes.	Listening
+I'll do my test.	200182	I'll do my best.	Listening
+I'll do my rest.	200182	I'll do my best.	Listening
+I'll do my task.	200182	I'll do my best.	Listening
+I'll do my work.	200182	I'll do my best.	Listening
+expected	200183	excited	Listening
+expected	300306	excited	Listening
+be fine	200184	be fun	Listening
+be full	200184	be fun	Listening
+be fast	200184	be fun	Listening
+be new	200184	be fun	Listening
+be enjoyable	200184	be fun	Synonym
+stay close to ~	200185	say goodbye to ~	Listening
+stay close to ~	200266	say hello to ~	Listening
+Thanks for coming.	200186	Thanks for calling.	Listening
+Thanks for waiting.	200186	Thanks for calling.	Listening
+Time for calling.	200186	Thanks for calling.	Listening
+Thanks for talking.	200186	Thanks for calling.	Listening
+It looks great.	200187	It looks good.	Listening
+It sounds good.	200187	It looks good.	Listening
+It feels good.	200187	It looks good.	Listening
+It looks bad.	200187	It looks good.	Listening
+I'm glad to see you.	200188	I'm glad to meet you.	Listening
+I'm happy to meet you.	200188	I'm glad to meet you.	Listening
+I'm glad to help you.	200188	I'm glad to meet you.	Listening
+I'm ready to meet you.	200188	I'm glad to meet you.	Listening
+I'm glad.	200189	I'm sad.	Listening
+I'm excited.	200190	I'm surprised.	Listening
+I'm afraid.	200190	I'm surprised.	Listening
+That's too big.	200191	That's too bad.	Listening
+That's too hard.	200191	That's too bad.	Listening
+That's so sad.	200191	That's too bad.	Listening
+That is too late.	200191	That's too bad.	Listening
+That's a shame.	200191	That's too bad.	Synonym
+in place of ~	200195	in front of ~	Listening
+in spite of ~	200195	in front of ~	Listening
+in charge of ~	200195	in front of ~	Listening
+most family	200196	host family	Listening
+hot family	200196	host family	Listening
+home family	200196	host family	Listening
+guest family	200196	host family	Listening
+be sorry about ~	200200	worry about ~	Listening
+be sorry about ~	300301	be worried about ~	Listening
+walk around	200200	worry about ~	Listening
+walk around	200400	go around ~	Listening
+walk around	200401	turn around	Listening
+walk around	200608	look around	Listening
+walk around	301011	look forward to ~	Listening
+be anxious about ~	200200	worry about ~	Synonym
+be anxious about ~	300301	be worried about ~	Synonym
+feel calm about ~	200200	worry about ~	Antonym
+server	200204	waitress	Synonym
+server	301046	service	Listening
+as fast	200208	at last	Listening
+gas station	200210	fire station	Listening
+on the third day	200211	on the first day	Listening
+on the birthday	200211	on the first day	Listening
+on the school day	200211	on the first day	Listening
+accordion	200212	aquarium	Listening
+become free	200222	become friends with ~	Listening
+meet a friend	200222	become friends with ~	Listening
+call a friend	200222	become friends with ~	Listening
+off ~	200225	out of ~	Listening
+Mexican	200227	American	Listening
+Mexican	300335	American	Listening
+cheery	200229	cherry	Listening
+Jerry	200229	cherry	Listening
+orchid	200231	orange	Listening
+pitch	200232	peach	Listening
+blueberry	200234	strawberry	Listening
+talk to A about B	200241	tell A about B	Listening
+talk to A about B	200241	tell A about B	Synonym
+think about B	200241	tell A about B	Listening
+write about B	200241	tell A about B	Listening
+learn about B	200241	tell A about B	Listening
+There you are.	200244	Here you are.	Listening
+Here we go.	200244	Here you are.	Listening
+windowpane	200245	window	Listening
+miller	200246	mirror	Listening
+lead	200247	leave	Listening
+lead	200264	leaf	Listening
+lead	300360	follow ~	Antonym
+lead	300855	guide A to B	Synonym
+go away	200247	leave	Synonym
+go away	300769	throw away	Listening
+triple	200250	travel	Listening
+work at ~	200251	walk to ~	Listening
+walk home	200251	walk to ~	Listening
+walk home	300713	work well	Listening
+go on foot	200251	walk to ~	Synonym
+go down	200254	climb	Antonym
+bad luck	200255	luck	Antonym
+syrup	200256	cereal	Listening
+yarn	200258	yard	Listening
+Thanks for ~.	200259	Thank you for ~.	Listening
+Thanks for ~.	200259	Thank you for ~.	Synonym
+You are welcome.	200259	Thank you for ~.	Listening
+I am thankful.	200259	Thank you for ~.	Listening
+mole	200260	more	Listening
+less	200260	more	Antonym
+less	200458	else	Listening
+life	200264	leaf	Listening
+life	200378	wife	Listening
+before long	200270	soon	Synonym
+be ready to do	200272	be happy to do	Listening
+be ready to do	300396	be able to do	Listening
+be ready to do	300464	be sure to do	Listening
+be sorry to do	200272	be happy to do	Listening
+be nice to do	200272	be happy to do	Listening
+bookcase	200274	suitcase	Listening
+born	200276	bone	Listening
+born	300319	burn	Listening
+born	300632	boring	Listening
+fill	200277	feel	Listening
+fill	200406	film	Listening
+fill	200422	ill	Listening
+fill	200636	hill	Listening
+fill	300629	fail	Listening
+fill	300636	few	Listening
+fill	300861	fit	Listening
+fill	300867	pill	Listening
+fell	200277	feel	Listening
+enjoy reading	200278	enjoy doing	Listening
+enjoy cooking	200278	enjoy doing	Listening
+enjoy singing	200278	enjoy doing	Listening
+enjoy skating	200278	enjoy doing	Listening
+get sick	200279	get well	Antonym
+found	200281	sound	Listening
+applaud	200285	clap	Synonym
+shake head	200287	shake hands	Listening
+take hands	200287	shake hands	Listening
+shook hands	200287	shake hands	Listening
+wash hands	200287	shake hands	Listening
+wash hands	300713	work well	Listening
+bug	200288	hug	Listening
+bug	200334	mug	Listening
+cape	200290	cave	Listening
+hot coffee	200293	hot chocolate	Listening
+cold chocolate	200293	hot chocolate	Listening
+hot chicken	200293	hot chocolate	Listening
+in the beginning	200297	at first	Synonym
+less and less	200298	more and more	Antonym
+rug	200308	run	Listening
+rug	200598	carpet	Synonym
+ram	200308	run	Listening
+highway	200318	Hawaii	Listening
+highway	200498	hallway	Listening
+That is it.	200319	That's OK.	Listening
+All right.	200319	That's OK.	Synonym
+spider	200320	spaghetti	Listening
+sporty	200320	spaghetti	Listening
+earning	200324	earring	Listening
+grapefruit	200325	grape juice	Listening
+misunderstand	200331	understand	Antonym
+soda	200333	sofa	Listening
+soda	300752	solar	Listening
+softer	200333	sofa	Listening
+softer	301064	somewhat	Listening
+couch	200333	sofa	Synonym
+couch	300804	countryside	Listening
+billion	200339	building	Listening
+billion	301062	million	Listening
+boiling	200339	building	Listening
+builder	200339	building	Listening
+builder	300500	border	Listening
+holding	200339	building	Listening
+stay home	200341	go out	Antonym
+our lesson	200344	art lesson	Listening
+math lesson	200344	art lesson	Listening
+art season	200344	art lesson	Listening
+art teacher	200344	art lesson	Listening
+smack	200347	snack	Listening
+goodnight	200348	moonlight	Listening
+goodnight	301063	midnight	Listening
+contact	200353	concert	Listening
+contact	300140	conscious	Listening
+contact	300221	contest	Listening
+contact	300246	control	Listening
+contact	300418	contain	Listening
+contact	300476	continue	Listening
+contact	300596	concert	Listening
+contact	301029	content	Listening
+state	200354	stay	Listening
+state	200402	skate	Listening
+state	300425	condition	Synonym
+state	300779	stage	Listening
+state	300787	the United States	Listening
+google	200357	noodle	Listening
+lime	200360	line	Listening
+liking	200361	hiking	Listening
+hiding	200361	hiking	Listening
+care about ~	200362	take care of ~	Listening
+care about ~	300250	carry out ~	Listening
+vine	200364	view	Listening
+eater	200368	heater	Listening
+sent	200369	send	Listening
+sent	200706	tent	Listening
+divide	200371	decide	Listening
+divide	300525	device	Listening
+divide	300994	share A with B	Synonym
+teamwork	200384	teammate	Listening
+teamwork	300099	teenager	Listening
+sender	200388	center	Listening
+small phone	200389	smartphone	Listening
+speakerphone	200389	smartphone	Listening
+headphone	200389	smartphone	Listening
+microphone	200389	smartphone	Listening
+microphone	300839	microscope	Listening
+cellphone	200389	smartphone	Synonym
+automobile	200395	car	Synonym
+mowing	200398	morning	Listening
+moaning	200398	morning	Listening
+get around ~	200400	go around ~	Listening
+go along ~	200400	go around ~	Listening
+turn away	200401	turn around	Listening
+nice skating	200405	ice skating	Listening
+ice reading	200405	ice skating	Listening
+bike skating	200405	ice skating	Listening
+ice skater	200405	ice skating	Listening
+sandy	200408	CD	Listening
+petty	200414	pretty	Listening
+be nice to ~	200415	be kind to ~	Listening
+be nice to ~	200415	be kind to ~	Synonym
+be mean to ~	200415	be kind to ~	Antonym
+last light	200416	last night	Listening
+late night	200416	last night	Listening
+this night	200416	last night	Listening
+fast night	200416	last night	Listening
+yesterday evening	200416	last night	Synonym
+be mad at ~	200419	be bad at ~	Listening
+be sad about ~	200419	be bad at ~	Listening
+not be good at ~	200419	be bad at ~	Synonym
+be away from ~	200420	be absent from ~	Listening
+be active in ~	200420	be absent from ~	Listening
+attend	200420	be absent from ~	Antonym
+be sorry for ~	200423	be late for ~	Listening
+be sorry for ~	200546	be ready for ~	Listening
+be sorry for ~	300483	be famous for ~	Listening
+be good for ~	200423	be late for ~	Listening
+be good for ~	200546	be ready for ~	Listening
+loop	200426	lose	Listening
+loop	300158	loose	Listening
+eighty	200427	eighteen	Listening
+eighty	200448	eighth	Listening
+ninety	200428	nineteen	Listening
+as	200433	us	Listening
+Shall I close the window?	200434	Shall I open the window?	Listening
+Can I open the window?	200434	Shall I open the window?	Listening
+Shall we open the window?	200434	Shall I open the window?	Listening
+Shall I open the door?	200434	Shall I open the window?	Listening
+May I leave a message?	200435	May I take a message?	Listening
+Can I take a message?	200435	May I take a message?	Listening
+May I make a message?	200435	May I take a message?	Listening
+May I take this message?	200435	May I take a message?	Listening
+on holiday	200437	on weekends	Listening
+on someday	200438	on Sunday	Listening
+on sunny days	200438	on Sunday	Listening
+a cap for ~	200440	a cup of ~	Listening
+a kind of ~	200440	a cup of ~	Listening
+a kind of ~	300018	lots of ~	Listening
+a kind of ~	300059	a lot of ~	Listening
+a bag of ~	200440	a cup of ~	Listening
+a bag of ~	200443	a glass of ~	Listening
+a bag of ~	300059	a lot of ~	Listening
+porter	200442	quarter	Listening
+a class of ~	200443	a glass of ~	Listening
+across	200444	again	Listening
+across	300733	address	Listening
+once more	200444	again	Synonym
+once more	300650	no more ~	Listening
+paid	200445	page	Listening
+once a month	200446	once a week	Listening
+one week	200446	once a week	Listening
+sandal	200447	sandals	Listening
+sandal	300241	handle	Listening
+singers	200447	sandals	Listening
+samples	200447	sandals	Listening
+ate	200448	eighth	Listening
+relevant	200449	eleventh	Listening
+seaside	200453	seventh	Listening
+shoemaker	200463	shopkeeper	Listening
+bookkeeper	200463	shopkeeper	Listening
+store owner	200463	shopkeeper	Synonym
+too late	200464	toothache	Listening
+sticker	200465	stapler	Listening
+peas	200466	piece	Listening
+peas	300622	peace	Listening
+See you tonight.	200467	See you tomorrow.	Listening
+See you Monday.	200467	See you tomorrow.	Listening
+See you Monday.	200468	See you later.	Listening
+set up	200479	get up	Listening
+written	200484	listen	Listening
+written	300015	listen	Listening
+written	301059	children	Listening
+slim	200493	swim	Listening
+halfway	200498	hallway	Listening
+planer	200499	player	Listening
+steward	200500	student	Listening
+reacher	200501	teacher	Listening
+fried	200502	friend	Listening
+pal	200502	friend	Synonym
+marker	200504	farmer	Listening
+marker	200525	harbor	Listening
+marker	200529	market	Listening
+van	200505	fan	Listening
+Stacy	200506	Tracy	Listening
+trading	200506	Tracy	Listening
+schoolgirl	200508	salesclerk	Listening
+magician	200510	musician	Listening
+violinist	200511	pianist	Listening
+loser	200513	winner	Antonym
+walker	200514	worker	Listening
+teacher of ~	200516	picture of ~	Listening
+kitchen of ~	200516	picture of ~	Listening
+future of ~	200516	picture of ~	Listening
+visitor of ~	200516	picture of ~	Listening
+photo of ~	200516	picture of ~	Synonym
+art music	200520	art museum	Listening
+art room	200520	art museum	Listening
+art student	200520	art museum	Listening
+criteria	200530	cafeteria	Listening
+criteria	300831	cafeteria	Listening
+canteen	200530	cafeteria	Synonym
+canteen	300831	cafeteria	Synonym
+gem	200531	gym	Listening
+jet	200531	gym	Listening
+music teacher	200533	movie theater	Listening
+movie ticket	200533	movie theater	Listening
+moving table	200533	movie theater	Listening
+morning teacher	200533	movie theater	Listening
+cinema	200533	movie theater	Synonym
+dash	200537	dish	Listening
+plays	200541	please	Listening
+plays	300813	praise	Listening
+hide B from A	200550	show A B	Antonym
+try out ~	200553	try on ~	Listening
+write now	200554	write down ~	Listening
+write again	200554	write down ~	Listening
+write slowly	200554	write down ~	Listening
+note ~	200554	write down ~	Synonym
+fighter	200556	firefighter	Listening
+fireman	200556	firefighter	Synonym
+fireman	300291	fireworks	Listening
+live in ~	200557	arrive in ~	Listening
+drive in ~	200557	arrive in ~	Listening
+live at ~	200558	arrive at ~	Listening
+drive at ~	200558	arrive at ~	Listening
+read about ~	200561	hear about ~	Listening
+ask about ~	200561	hear about ~	Listening
+learn about ~	200561	hear about ~	Listening
+blond	200562	blood	Listening
+traffic sign	200563	traffic light	Listening
+travel light	200563	traffic light	Listening
+street light	200563	traffic light	Listening
+snowman	200564	slow down	Listening
+go slowly	200564	slow down	Synonym
+go slowly	300585	go straight	Listening
+speed up	200564	slow down	Antonym
+speed up	200701	speak to ~	Listening
+Austrian	200566	Australian	Listening
+childish	200568	Chinese	Listening
+start at ~	200571	stay at ~	Listening
+stand at ~	200571	stay at ~	Listening
+sit at ~	200571	stay at ~	Listening
+study at ~	200571	stay at ~	Listening
+stand in	200572	stay in	Listening
+stay up	200572	stay in	Listening
+stay up	200701	speak to ~	Listening
+sit in	200572	stay in	Listening
+step in	200572	stay in	Listening
+remain at home	200572	stay in	Synonym
+start with ~	200573	stay with ~	Listening
+study with ~	200573	stay with ~	Listening
+sit with ~	200573	stay with ~	Listening
+apron	200574	apartment	Listening
+repeatedly	200575	again and again	Synonym
+right bag	200576	write back	Listening
+white cap	200576	write back	Listening
+ride back	200576	write back	Listening
+light bag	200576	write back	Listening
+Will you close the window?	200577	Will you open the window?	Listening
+Will you open the door?	200577	Will you open the window?	Listening
+Can you open the window?	200577	Will you open the window?	Listening
+Will you clean the window?	200577	Will you open the window?	Listening
+ask for milk	200578	ask for help	Listening
+ask for lunch	200578	ask for help	Listening
+look for help	200578	ask for help	Listening
+wait for help	200578	ask for help	Listening
+get help	200578	ask for help	Synonym
+Please write now.	200579	Please write back.	Listening
+Please come back.	200579	Please write back.	Listening
+Please sit back.	200579	Please write back.	Listening
+Please write that.	200579	Please write back.	Listening
+Please reply.	200579	Please write back.	Synonym
+Be careful, please.	200580	Just a minute, please.	ChoicesJaEn
+Sit down, please.	200580	Just a minute, please.	ChoicesJaEn
+Say it again, please.	200580	Just a minute, please.	ChoicesJaEn
+Help me, please.	200580	Just a minute, please.	ChoicesJaEn
+Just a moment, please.	200580	Just a minute, please.	Listening
+Just a moment, please.	200580	Just a minute, please.	Synonym
+Wait a minute, please.	200580	Just a minute, please.	Listening
+Just a second, please.	200580	Just a minute, please.	Listening
+Pardon me, please.	200580	Just a minute, please.	Listening
+come out	200582	come back	Listening
+go bad	200583	go back	Listening
+get back	200583	go back	Listening
+go black	200583	go back	Listening
+get back to ~	200584	go back to ~	Listening
+walk back to ~	200584	go back to ~	Listening
+bad home	200585	back home	Listening
+black home	200585	back home	Listening
+bag home	200585	back home	Listening
+bank home	200585	back home	Listening
+home again	200585	back home	Synonym
+call home	200586	come home	Listening
+came home	200586	come home	Listening
+return home	200586	come home	Synonym
+return home	200587	go home	Synonym
+got home	200587	go home	Listening
+go hope	200587	go home	Listening
+by boat	200589	by bus	Listening
+by plane	200590	by train	Listening
+by tram	200590	by train	Listening
+by truck	200590	by train	Listening
+by trail	200590	by train	Listening
+serving	200591	surfing	Listening
+morning room	200593	dining room	Listening
+dining hall	200593	dining room	Listening
+leaving	200594	living room	Listening
+giving	200594	living room	Listening
+living	200594	living room	Listening
+baton	200595	button	Listening
+baton	300524	bottom	Listening
+laser	200597	eraser	Listening
+racer	200597	eraser	Listening
+taken	200600	bacon	Listening
+weakened	200602	weekend	Listening
+can't	200603	count	Listening
+testbook	200604	textbook	Listening
+cookbook	200604	textbook	Listening
+schoolbus	200605	schoolyard	Listening
+schoolwork	200605	schoolyard	Listening
+search for	200607	look for ~	Synonym
+look aloud	200608	look around	Listening
+book around	200608	look around	Listening
+cook rice	200609	look like ~	Listening
+book light	200609	look like ~	Listening
+good bike	200609	look like ~	Listening
+long line	200609	look like ~	Listening
+bus office	200612	post office	Listening
+police office	200612	post office	Listening
+ticket office	200612	post office	Listening
+head office	200612	post office	Listening
+dress shop	200616	drugstore	Listening
+desk store	200616	drugstore	Listening
+book shop	200618	cake shop	Listening
+toy shop	200618	cake shop	Listening
+toy shop	200619	flower shop	Listening
+toy shop	200622	coffee shop	Listening
+pet shop	200618	cake shop	Listening
+cake stop	200618	cake shop	Listening
+flower show	200619	flower shop	Listening
+tower shop	200619	flower shop	Listening
+flower stop	200619	flower shop	Listening
+boy store	200620	toy store	Listening
+toy story	200620	toy store	Listening
+top store	200620	toy store	Listening
+tall store	200620	toy store	Listening
+cook store	200621	bookstore	Listening
+look store	200621	bookstore	Listening
+backstore	200621	bookstore	Listening
+book star	200621	bookstore	Listening
+bookshop	200621	bookstore	Synonym
+candy shop	200622	coffee shop	Listening
+coffee cup	200622	coffee shop	Listening
+corner shop	200622	coffee shop	Listening
+for a minute	200626	for a moment	Listening
+for a minute	300957	for example	Listening
+for a second	200626	for a moment	Listening
+for the morning	200626	for a moment	Listening
+for my mother	200626	for a moment	Listening
+skipping	200628	skating	Listening
+sitting	200628	skating	Listening
+go skating	200630	go skiing	Listening
+go skating	200755	go fishing	Listening
+go skating	200777	go shopping	Listening
+go camping	200630	go skiing	Listening
+go camping	200755	go fishing	Listening
+dark house	200633	doghouse	Listening
+dollhouse	200633	doghouse	Listening
+monica	200637	harmonica	Listening
+a view	200638	a few ~	Listening
+hamper	200640	hamster	Listening
+handsome	200649	grandson	Listening
+speak to	200651	talk to ~	Synonym
+speak to	300042	talk to ~	Synonym
+today's soup	200653	today's special	Listening
+daily special	200653	today's special	Listening
+daily special	200653	today's special	Synonym
+table special	200653	today's special	Listening
+dinner special	200653	today's special	Listening
+snowball	200655	softball	Listening
+shortstop	200655	softball	Listening
+sunball	200655	softball	Listening
+footpath	200657	football	Listening
+goodball	200657	football	Listening
+fullback	200657	football	Listening
+ruby	200658	rugby	Listening
+gone	200659	golf	Listening
+base game	200661	baseball game	Listening
+birthday game	200661	baseball game	Listening
+table game	200661	baseball game	Listening
+coke	200662	coach	Listening
+speakers	200663	sneakers	Listening
+snickers	200663	sneakers	Listening
+sleepers	200663	sneakers	Listening
+stickers	200663	sneakers	Listening
+I'll ask again.	200665	I'll try again.	Listening
+I'll come again.	200665	I'll try again.	Listening
+I'll write again.	200665	I'll try again.	Listening
+I'll play again.	200665	I'll try again.	Listening
+One more time, please.	200666	That's all.	ChoicesJaEn
+I like it.	200666	That's all.	ChoicesJaEn
+I'll go later.	200666	That's all.	ChoicesJaEn
+Good job.	200666	That's all.	ChoicesJaEn
+That's nice.	200666	That's all.	Listening
+That's nice.	300013	That's right.	Listening
+That's mine.	200666	That's all.	Listening
+That's mine.	300013	That's right.	Listening
+feel tired	200667	feel better	Listening
+feel hungry	200667	feel better	Listening
+feel happy	200667	feel better	Listening
+feel cold	200667	feel better	Listening
+fleet	200668	free	Listening
+sing about	200671	think about ~	Listening
+talk about	200671	think about ~	Listening
+I'm coming home.	200672	I'm going home.	Listening
+I'm getting home.	200672	I'm going home.	Listening
+I'm staying home.	200672	I'm going home.	Listening
+I have to go home.	200673	I have to go now.	Listening
+I want to go now.	200673	I have to go now.	Listening
+I have to do it.	200673	I have to go now.	Listening
+I have to go out.	200673	I have to go now.	Listening
+I don't sleep well.	200674	I don't feel well.	Listening
+I don't look well.	200674	I don't feel well.	Listening
+I can't feel well.	200674	I don't feel well.	Listening
+I don't feel cold.	200674	I don't feel well.	Listening
+Not very big.	200675	Not very good.	Listening
+Not very cold.	200675	Not very good.	Listening
+Not very fast.	200675	Not very good.	Listening
+Not very long.	200675	Not very good.	Listening
+These are not cheap.	200676	These are on sale.	Listening
+These are very small.	200676	These are on sale.	Listening
+These are for school.	200676	These are on sale.	Listening
+These are my shoes.	200676	These are on sale.	Listening
+sit on the bed	200677	be sick in bed	Listening
+sleep in class	200677	be sick in bed	Listening
+pick up the bag	200677	be sick in bed	Listening
+read in the room	200677	be sick in bed	Listening
+take up	200680	wake up	Listening
+Thanks.	200686	Thanks a lot.	Listening
+That is a lot.	200686	Thanks a lot.	Listening
+Thanks a bunch.	200686	Thanks a lot.	Listening
+classman	200687	classmate	Listening
+schoolfriend	200687	classmate	Synonym
+hairband	200689	hairstyle	Listening
+make a cake	200698	take a photo	Listening
+write a note	200698	take a photo	Listening
+go on a train	200699	go on a trip	Listening
+go to a park	200699	go on a trip	Listening
+follow	200700	borrow	Listening
+follow	300362	lead ~	Antonym
+follow	300628	shallow	Listening
+spell out	200701	speak to ~	Listening
+speak up	200701	speak to ~	Listening
+talk to	200701	speak to ~	Synonym
+next Monday	200709	next month	Listening
+lost	200710	last	Listening
+lost	300225	last	Listening
+least	200710	last	Listening
+least	300490	most	Antonym
+have a big dinner	200714	have a good idea	Listening
+have a good teacher	200714	have a good idea	Listening
+have a new camera	200714	have a good idea	Listening
+have a blue jacket	200714	have a good idea	Listening
+think of a good plan	200714	have a good idea	Synonym
+next weekend	200724	this weekend	Listening
+this evening	200724	this weekend	Listening
+this evening	300033	tonight	Synonym
+this evening	300062	this morning	Listening
+last weekend	200724	this weekend	Listening
+all night long	200726	all day long	Listening
+all year long	200726	all day long	Listening
+all week long	200726	all day long	Listening
+throughout the year	200727	all year round	Synonym
+play chess	200728	play catch	Listening
+play cards	200728	play catch	Listening
+play tag	200728	play catch	Listening
+at dinner	200729	after dinner	Listening
+before dinner	200729	after dinner	Listening
+after class	200730	after school	Listening
+after work	200730	after school	Listening
+nine o'clock	200731	five o'clock	Listening
+five thirty	200731	five o'clock	Listening
+five fifteen	200731	five o'clock	Listening
+nine minutes	200732	five minutes	Listening
+five seconds	200732	five minutes	Listening
+few minutes	200732	five minutes	Listening
+echo	200733	ago	Listening
+time to	200734	time for ~	Listening
+until	200736	till ~	Synonym
+until	300442	unless	Listening
+sang	200740	thank	Listening
+except	200741	excuse	Listening
+except	300824	accept	Listening
+except	300937	expect	Listening
+fast of all	200744	first of all	Listening
+best of all	200744	first of all	Listening
+last of all	200744	first of all	Listening
+lipstick	200748	chopstick	Listening
+sailing	200750	ceiling	Listening
+seedling	200750	ceiling	Listening
+seating	200750	ceiling	Listening
+kids	200751	kiss	Listening
+kids	301059	children	Synonym
+metro	200752	subway	Synonym
+take a taxi	200753	take a plane	Listening
+take a boat	200753	take a plane	Listening
+pail	200758	pair	Listening
+three a day	200760	twice a day	Listening
+cinnamon	200763	centimeter	Listening
+telegram	200764	kilogram	Listening
+connect	200766	colleague	Listening
+connect	300347	collect	Listening
+spent	200769	spend	Listening
+See you very much.	200776	Thank you very much.	Listening
+go jogging	200777	go shopping	Listening
+bent	200778	belt	Listening
+built	200778	belt	Listening
+bus shop	200779	bus stop	Listening
+back stop	200779	bus stop	Listening
+big stop	200779	bus stop	Listening
+best spot	200779	bus stop	Listening
+go biking	200781	go hiking	Listening
+like to eat	200782	like to do	Listening
+like to play	200782	like to do	Listening
+like to read	200782	like to do	Listening
+like to sing	200782	like to do	Listening
+bracket	200783	blanket	Listening
+cook at	200784	look at ~	Listening
+crying	200785	crayon	Listening
+ringing	200790	raining	Listening
+writing	200790	raining	Listening
+writing	301007	sightseeing	Listening
+Have a nice time.	200796	Have a nice trip.	Listening
+Have a good trip.	200796	Have a nice trip.	Listening
+Have a good trip.	301039	Have a safe trip.	Listening
+Have a nice week.	200797	Have a nice weekend.	Listening
+Have a nice evening.	200797	Have a nice weekend.	Listening
+Have a nice meal.	200797	Have a nice weekend.	Listening
+woods	200799	forest	Synonym
+good day	200804	goodbye	Listening
+good boy	200804	goodbye	Listening
+thinking	200805	thank you	Listening
+houses	200806	housework	Listening
+jog	200807	job	Listening
+You're late.	200810	You're right.	Listening
+You're nice.	200810	You're right.	Listening
+You're busy.	200810	You're right.	Listening
+You're ready.	200810	You're right.	Listening
+That's correct.	200810	You're right.	Synonym
+That's correct.	300013	That's right.	Synonym
+poppy	200811	puppy	Listening
+puppet	200811	puppy	Listening
+senior high school	200813	junior high school	Listening
+language school	200813	junior high school	Listening
+night school	200813	junior high school	Listening
+night school	300083	high school	Listening
+need to do	200814	have to do	Listening
+need to do	300227	manage to do	Listening
+plan to do	200814	have to do	Listening
+plan to do	300227	manage to do	Listening
+plan to do	300656	happen to do	Listening
+plan to do	300695	used to do	Listening
+plan to do	300825	promise to do	Listening
+plan to do	301074	pretend to do	Listening
+be worried about	200821	be interested in ~	Listening
+how old	200822	how often	Listening
+how old	200823	how long	Listening
+how far	200823	how long	Listening
+Yes, please.	300001	No, thank you. I'm full.	ChoicesJaEn
+More, please.	300001	No, thank you. I'm full.	ChoicesJaEn
+It's very good.	300001	No, thank you. I'm full.	ChoicesJaEn
+No, thank you. I'm fine.	300001	No, thank you. I'm full.	Listening
+No, thank you. I'm busy.	300001	No, thank you. I'm full.	Listening
+No, thank you. I'm sick.	300001	No, thank you. I'm full.	Listening
+No, thank you. I'm cold.	300001	No, thank you. I'm full.	Listening
+You are very kind.	300002	You're welcome.	Listening
+Your bag is open.	300002	You're welcome.	Listening
+We are ready.	300002	You're welcome.	Listening
+You look happy.	300002	You're welcome.	Listening
+have a big bag	300003	have a good time	Listening
+have a long walk	300003	have a good time	Listening
+have a good trip	300003	have a good time	Listening
+enjoy oneself	300003	have a good time	Synonym
+vinyl	300007	final	Listening
+finder	300007	final	Listening
+best-loved	300008	favorite	Synonym
+least favorite	300008	favorite	Antonym
+well-liked	300010	popular	Synonym
+unpopular	300010	popular	Antonym
+youthful	300011	useful	Listening
+owners	300012	ours	Listening
+That's fine.	300013	That's right.	Listening
+Good teacher.	300014	Good idea!	Listening
+Good player.	300014	Good idea!	Listening
+nice idea	300014	Good idea!	Synonym
+highland	300016	Thailand	Listening
+Thai	300016	Thailand	Listening
+a pair of ~	300018	lots of ~	Listening
+Should we ~?	300021	Shall we ~?	Listening
+Will we ~?	300021	Shall we ~?	Listening
+Excuse me?	300024	Pardon?	Synonym
+of school	300025	of course	Listening
+of corn	300025	of course	Listening
+of town	300025	of course	Listening
+May we ~?	300026	May I ~?	Listening
+Will I ~?	300026	May I ~?	Listening
+look up ~	300027	look at ~	Listening
+look into ~	300028	listen to ~	Listening
+lesson two	300028	listen to ~	Listening
+listen again	300028	listen to ~	Listening
+little tune	300028	listen to ~	Listening
+Let me ~.	300029	Let's ~.	Listening
+Please ~.	300029	Let's ~.	Listening
+Just a minute.	300030	Just a moment.	Listening
+At the moment.	300030	Just a moment.	Listening
+One more minute.	300030	Just a moment.	Listening
+Wait a moment.	300030	Just a moment.	Listening
+Wait a moment.	301010	Wait a minute.	Listening
+just a minute	300030	Just a moment.	Synonym
+I'd love to ~.	300032	I'd like to ~.	Listening
+I need to ~.	300032	I'd like to ~.	Listening
+I plan to ~.	300032	I'd like to ~.	Listening
+tony	300033	tonight	Listening
+watch my bag	300036	wash my hands	Listening
+wash the dish	300036	wash my hands	Listening
+close my hands	300036	wash my hands	Listening
+touch my hat	300036	wash my hands	Listening
+work for ~	300038	wait for ~	Listening
+work for ~	300324	work on ~	Listening
+wake up ~	300038	wait for ~	Listening
+wake up ~	300051	pick up ~	Listening
+turn up ~	300040	turn on ~	Listening
+turn up ~	300041	turn off ~	Listening
+turn back	300040	turn on ~	Listening
+turn back	300041	turn off ~	Listening
+turn off	300040	turn on ~	Antonym
+turn on	300041	turn off ~	Antonym
+take two	300042	talk to ~	Listening
+talk again	300042	talk to ~	Listening
+take out ~	300043	take off ~	Listening
+take out ~	300470	take part in ~	Listening
+make up ~	300043	take off ~	Listening
+take a book	300044	take a walk	Listening
+take a flower	300045	take a shower	Listening
+take an hour	300045	take a shower	Listening
+make a shower	300045	take a shower	Listening
+take a tower	300045	take a shower	Listening
+take a pitcher	300046	take a picture	Listening
+take a picnic	300046	take a picture	Listening
+make a picture	300046	take a picture	Listening
+take a ticket	300046	take a picture	Listening
+take a bag	300047	take a bath	Listening
+take a back	300047	take a bath	Listening
+take a path	300047	take a bath	Listening
+make a bath	300047	take a bath	Listening
+swimming school	300048	swimming pool	Listening
+summer pool	300048	swimming pool	Listening
+swimming cap	300048	swimming pool	Listening
+I sit.	300049	I see.	Listening
+I sing.	300049	I see.	Listening
+I said.	300049	I see.	Listening
+I think.	300049	I see.	Listening
+I understand	300049	I see.	Synonym
+put up ~	300050	put on ~	Listening
+put up ~	300051	pick up ~	Listening
+pull on ~	300050	put on ~	Listening
+put out ~	300050	put on ~	Listening
+kick up ~	300051	pick up ~	Listening
+pick out ~	300051	pick up ~	Listening
+put down	300051	pick up ~	Antonym
+cook for ~	300053	look for ~	Listening
+long for ~	300053	look for ~	Listening
+book for ~	300053	look for ~	Listening
+search for ~	300053	look for ~	Synonym
+very well	300055	very much	Listening
+very good	300055	very much	Listening
+pretty much	300055	very much	Listening
+so much	300055	very much	Listening
+We do.	300056	Me too.	Listening
+Meet me.	300056	Me too.	Listening
+Me first.	300056	Me too.	Listening
+piano room	300058	piano lesson	Listening
+violin lesson	300058	piano lesson	Listening
+reading lesson	300058	piano lesson	Listening
+lots of	300059	a lot of ~	Synonym
+lots of	300276	plenty of ~	Synonym
+a letter	300060	a little	Listening
+a bit	300060	a little	Synonym
+a lot	300060	a little	Antonym
+a lot	300558	at most	Listening
+have a coat	300061	have a cold	Listening
+have a card	300061	have a cold	Listening
+have a call	300061	have a cold	Listening
+have a cup	300061	have a cold	Listening
+this Monday	300062	this morning	Listening
+that morning	300062	this morning	Listening
+go to the pool	300063	go to school	Listening
+go to the store	300063	go to school	Listening
+middle school	300064	elementary school	Listening
+music room	300064	elementary school	Listening
+summer school	300064	elementary school	Listening
+school bus	300064	elementary school	Listening
+primary school	300064	elementary school	Synonym
+went to ~	300065	get to ~	Listening
+arrive at	300065	get to ~	Synonym
+get out	300066	get on ~	Listening
+get out	300067	get off ~	Listening
+get out	300891	set ~ up	Listening
+get off	300066	get on ~	Antonym
+cut off ~	300067	get off ~	Listening
+cut off ~	300195	call off ~	Listening
+cut off ~	300252	put off ~	Listening
+do housework	300068	do homework	Listening
+do morning work	300068	do homework	Listening
+do hard work	300068	do homework	Listening
+do home cooking	300068	do homework	Listening
+clear up	300069	clean up	Listening
+green up	300069	clean up	Listening
+climb up	300069	clean up	Listening
+line up	300069	clean up	Listening
+tidy up	300069	clean up	Synonym
+mess up	300069	clean up	Antonym
+close my room	300070	clean my room	Listening
+clean the room	300070	clean my room	Listening
+read my book	300070	clean my room	Listening
+brush my hair	300071	brush my teeth	Listening
+wash my teeth	300071	brush my teeth	Listening
+brush your teeth	300071	brush my teeth	Listening
+brush my face	300071	brush my teeth	Listening
+supplied	300072	surprised	Listening
+amazed	300072	surprised	Synonym
+How tall is ~?	300074	How old is ~?	Listening
+How tall is ~?	300129	How far is ~?	Listening
+How large is ~?	300074	How old is ~?	Listening
+What about ~?	300077	How about ~?	Listening
+What about ~?	300077	How about ~?	Synonym
+cop	300079	police officer	Synonym
+cop	300941	cough	Listening
+well-known	300081	famous	Synonym
+old school	300083	high school	Listening
+my school	300083	high school	Listening
+cottage	300084	college	Listening
+cottage	300185	courage	Listening
+everybody	300085	everyone	Synonym
+everybody	300107	everything	Listening
+Could I ~?	300086	Can I ~?	Listening
+Should I ~?	300086	Can I ~?	Listening
+somebody	300088	someone	Synonym
+send off	300091	see ~ off	Listening
+set off	300091	see ~ off	Listening
+show ~ out	300091	see ~ off	Listening
+overcoat	300092	overseas	Listening
+in front	300094	in fact	Listening
+skated	300095	scared	Listening
+outgoing	300096	shy	Antonym
+all the while	300097	after a while	Listening
+for a while	300097	after a while	Listening
+for a while	300957	for example	Listening
+cried	300098	crime	Listening
+Sounds great.	300101	Sounds good.	Listening
+Sounds great.	300102	That sounds great.	Synonym
+Looks good.	300101	Sounds good.	Listening
+That is good.	300101	Sounds good.	Listening
+That sounds good.	300101	Sounds good.	Synonym
+That sounds good.	300102	That sounds great.	Listening
+That looks great.	300102	That sounds great.	Listening
+It sounds great.	300102	That sounds great.	Listening
+That was great.	300102	That sounds great.	Listening
+goes	300103	gas	Listening
+monthly	300108	mostly	Listening
+yearly	300109	nearly	Listening
+almost not	300110	hardly	Synonym
+by yourself	300111	by oneself	Listening
+by himself	300111	by oneself	Listening
+by itself	300111	by oneself	Listening
+anyway	300117	anyone	Listening
+anyway	300118	anything	Listening
+slave	300124	sleeve	Listening
+sled	300124	sleeve	Listening
+catch ~	300125	reach ~	Listening
+as useful	300128	as usual	Listening
+as often	300128	as usual	Listening
+a student	300128	as usual	Listening
+How fast is ~?	300129	How far is ~?	Listening
+How hard is ~?	300129	How far is ~?	Listening
+Can you cook?	300131	Can you come?	Listening
+Can you call?	300131	Can you come?	Listening
+Can you go?	300131	Can you come?	Listening
+Can you wait?	300131	Can you come?	Listening
+introduce	300133	interview	Listening
+introduce	300292	industry	Listening
+How strong is ~?	300134	How long is ~?	Listening
+How small is ~?	300134	How long is ~?	Listening
+How short is ~?	300134	How long is ~?	Listening
+take A to B	300135	invite A to B	Listening
+at the stadium	300136	at the station	Listening
+at the table	300136	at the station	Listening
+at the stop	300136	at the station	Listening
+one time	300137	on time	Listening
+long time	300137	on time	Listening
+punctually	300137	on time	Synonym
+meal time	300139	meanwhile	Listening
+midway	300139	meanwhile	Listening
+prime	300141	prize	Listening
+fought	300144	fault	Listening
+fort	300144	fault	Listening
+weak point	300144	fault	Synonym
+make peace	300147	fight	Antonym
+bring to ~	300148	belong to ~	Listening
+begin to ~	300148	belong to ~	Listening
+include	300150	increase	Listening
+include	300356	encourage	Listening
+include	300418	contain	Synonym
+include	300541	improve	Listening
+track ~	300152	trust ~	Listening
+trick ~	300152	trust ~	Listening
+dress ~	300152	trust ~	Listening
+touch ~	300152	trust ~	Listening
+touch ~	300287	such as ~	Listening
+show to ~	300154	bow to ~	Listening
+rod	300160	rock	Listening
+lightly	300165	loudly	Listening
+lightly	300371	luckily	Listening
+lightly	300523	quietly	Listening
+lightly	300605	lately	Listening
+lightly	300761	likely	Listening
+roundly	300165	loudly	Listening
+proudly	300165	loudly	Listening
+proudly	301000	probably	Listening
+tycoon	300167	typhoon	Listening
+tyler	300167	typhoon	Listening
+try ~	300168	tie ~	Listening
+type ~	300168	tie ~	Listening
+turn ~	300168	tie ~	Listening
+untie	300168	tie ~	Antonym
+booking	300179	reservation	Synonym
+as long as B	300181	A as well as B	Listening
+as soon as B	300181	A as well as B	Listening
+all of A and B	300181	A as well as B	Listening
+always A and B	300181	A as well as B	Listening
+and also	300181	A as well as B	Synonym
+shin	300182	chin	Listening
+helium	300186	heroine	Listening
+rang	300188	lung	Listening
+getter	300189	gather	Listening
+whoever	300190	however	Listening
+hover	300190	however	Listening
+tried	300191	trade	Listening
+impolite	300194	impossible	Listening
+impolite	300561	important	Listening
+impolite	300639	rude	Synonym
+carry on ~	300195	call off ~	Listening
+carry on ~	300250	carry out ~	Listening
+call up ~	300195	call off ~	Listening
+death	300196	deaf	Listening
+death	300422	depth	Listening
+bland	300197	blind	Listening
+sighted	300197	blind	Antonym
+prefer	300199	perform	Listening
+prefer	300348	prepare	Listening
+tropic	300200	traffic	Listening
+tropic	300909	topic	Listening
+supporting	300201	surprising	Listening
+supplies	300201	surprising	Listening
+supplies	300847	surprise	Listening
+amazing	300201	surprising	Synonym
+go left	300204	turn left	Listening
+keep left	300204	turn left	Listening
+look left	300204	turn left	Listening
+turn light	300205	turn right	Listening
+go right	300205	turn right	Listening
+walk right	300205	turn right	Listening
+move right	300205	turn right	Listening
+by the door	300209	by the way	Listening
+find a way	300209	by the way	Listening
+find a way	300511	far away	Listening
+complete	300210	compare	Listening
+complete	300389	complex	Listening
+complete	300647	confused	Listening
+compass	300210	compare	Listening
+be bored	300218	be born	Listening
+be warm	300218	be born	Listening
+be gone	300218	be born	Listening
+come near	300219	approach	Synonym
+move away	300219	approach	Antonym
+connect ~	300220	contact ~	Listening
+contract ~	300220	contact ~	Listening
+analog	300222	digital	Antonym
+battle	300223	bottle	Listening
+battle	300273	battery	Listening
+be finished with ~	300224	be filled with ~	Listening
+full of	300224	be filled with ~	Synonym
+be empty	300224	be filled with ~	Antonym
+be empty	300312	be full of ~	Antonym
+spill	300226	still	Listening
+spill	301052	spell	Listening
+learn to do	300227	manage to do	Listening
+roughly	300229	exactly	Antonym
+unwrap	300233	wrap	Antonym
+army	300235	artist	Listening
+pointed	300239	sharp	Synonym
+handy	300241	handle	Listening
+manage	300246	control	Synonym
+manage	300435	damage	Listening
+manage	300458	message	Listening
+hand out ~	300248	find out ~	Listening
+figure out ~	300248	find out ~	Listening
+fill out ~	300248	find out ~	Listening
+mean ~	300249	mind ~	Listening
+call out ~	300250	carry out ~	Listening
+clear out ~	300250	carry out ~	Listening
+perform ~	300250	carry out ~	Synonym
+postpone ~	300252	put off ~	Synonym
+do well	300254	succeed	Synonym
+with difficulty	300255	easily	Antonym
+all the way to ~	300264	on the way to ~	Listening
+on the road to ~	300264	on the way to ~	Listening
+on the train to ~	300264	on the way to ~	Listening
+on the bus to ~	300264	on the way to ~	Listening
+coil	300265	soil	Listening
+filling	300270	feeling	Listening
+turn into ~	300272	turn out to be ~	Listening
+turn over ~	300272	turn out to be ~	Listening
+find out about ~	300272	turn out to be ~	Listening
+turn back to ~	300272	turn out to be ~	Listening
+twenty of ~	300276	plenty of ~	Listening
+many of ~	300276	plenty of ~	Listening
+part of ~	300276	plenty of ~	Listening
+on the way	300277	all the way	Listening
+on the way	300453	one after another	Listening
+milkshake	300279	mistake	Listening
+misplace	300279	mistake	Listening
+all over the town	300285	all over the world	Listening
+around the world	300285	all over the world	Listening
+around the world	300285	all over the world	Synonym
+over the wall	300285	all over the world	Listening
+all through the world	300285	all over the world	Listening
+itch	300286	each	Listening
+such a ~	300287	such as ~	Listening
+some of ~	300287	such as ~	Listening
+same as ~	300287	such as ~	Listening
+adviser	300288	adventure	Listening
+recover from ~	300289	suffer from ~	Listening
+come from ~	300289	suffer from ~	Listening
+learn from ~	300289	suffer from ~	Listening
+stay away from ~	300289	suffer from ~	Listening
+firewood	300291	fireworks	Listening
+invitation	300293	information	Listening
+invitation	301075	interaction	Listening
+details	300293	information	Synonym
+seasonable	300294	reasonable	Listening
+usable	300294	reasonable	Listening
+tell the truth	300295	lie	Antonym
+dip	300297	deep	Listening
+deck	300297	deep	Listening
+be part of ~	300298	be proud of ~	Listening
+be part of ~	300302	be tired of ~	Listening
+be hungry for ~	300299	be angry at ~	Listening
+mad at	300299	be angry at ~	Synonym
+wanted	300300	worried	Listening
+walked	300300	worried	Listening
+be excited about ~	300301	be worried about ~	Listening
+be excited about ~	300848	be surprised at ~	Listening
+be fond of ~	300302	be tired of ~	Listening
+be fond of ~	300303	be afraid of ~	Listening
+be fond of ~	300312	be full of ~	Listening
+sick of	300302	be tired of ~	Synonym
+be ahead of ~	300303	be afraid of ~	Listening
+be scared of ~	300303	be afraid of ~	Synonym
+invited	300306	excited	Listening
+invited	301015	interested	Listening
+decided	300306	excited	Listening
+accepted	300306	excited	Listening
+ashamed	300308	proud	Antonym
+discuss	300314	discover	Listening
+discuss	300786	discount	Listening
+compete with ~	300316	complete ~	Listening
+compete with ~	300919	communicate with ~	Listening
+complain about ~	300316	complete ~	Listening
+for the last time	300321	for the first time	Listening
+from the first day	300321	for the first time	Listening
+at the first bell	300321	for the first time	Listening
+broom	300323	bloom	Listening
+walk on ~	300324	work on ~	Listening
+walk on ~	300415	knock on ~	Listening
+work out ~	300324	work on ~	Listening
+olive	300334	alien	Listening
+pastime	300339	hobby	Synonym
+amazing park	300340	amusement park	Listening
+music park	300340	amusement park	Listening
+amusement card	300340	amusement park	Listening
+amusement part	300340	amusement park	Listening
+beside ~	300344	beyond ~	Listening
+beside ~	300451	between A and B	Listening
+beside ~	300461	within ~	Listening
+beside ~	300634	except ~	Listening
+beside ~	300675	against ~	Listening
+fool	300345	fuel	Listening
+fool	300621	full	Listening
+hardest	300346	harvest	Listening
+hardest	300928	largest	Listening
+get ready	300348	prepare	Synonym
+support ~	300352	suggest ~	Listening
+expect ~	300352	suggest ~	Listening
+expect ~	300634	except ~	Listening
+surf	300354	serve	Listening
+followed ~	300360	follow ~	Listening
+learn ~	300362	lead ~	Listening
+lend ~	300362	lead ~	Listening
+though ~	300363	through ~	Listening
+true ~	300363	through ~	Listening
+throw ~	300363	through ~	Listening
+disagree	300364	disappear	Listening
+disagree	300823	agree with ~	Antonym
+wake ~ up	300365	pick ~ up	Listening
+bring ~ back	300365	pick ~ up	Listening
+put ~ up	300365	pick ~ up	Listening
+put ~ up	300833	look ~ up	Listening
+put ~ up	300905	put ~ away	Listening
+extend ~	300366	attend ~	Listening
+intend to ~	300366	attend ~	Listening
+attempt ~	300366	attend ~	Listening
+around ~	300367	across ~	Listening
+around ~	300450	among ~	Listening
+around ~	300593	toward ~	Listening
+around ~	300675	against ~	Listening
+around ~	300942	during ~	Listening
+around ~	300949	until ~	Listening
+along ~	300367	across ~	Listening
+along ~	300450	among ~	Listening
+along ~	300675	against ~	Listening
+address ~	300367	across ~	Listening
+feel asleep	300368	fall asleep	Listening
+full asleep	300368	fall asleep	Listening
+far asleep	300368	fall asleep	Listening
+fell asleep	300368	fall asleep	Listening
+go to sleep	300368	fall asleep	Synonym
+rocky	300370	lucky	Listening
+lovely	300370	lucky	Listening
+lovely	300371	luckily	Listening
+lovely	300806	lonely	Listening
+fortunate	300370	lucky	Synonym
+locally	300371	luckily	Listening
+fortunately	300371	luckily	Synonym
+mister	300373	minister	Listening
+happiness	300377	joy	Synonym
+third grade	300378	earthquake	Listening
+grown-up	300383	adult	Synonym
+go around B	300384	show A around B	Listening
+look around B	300384	show A around B	Listening
+walk around B	300384	show A around B	Listening
+jester	300385	gesture	Listening
+cleaned	300387	pleased	Listening
+played	300387	pleased	Listening
+started	300388	satisfied	Listening
+dissatisfied	300388	satisfied	Antonym
+stole	300390	stone	Listening
+weighty	300392	heavy	Synonym
+crazy	300395	lazy	Listening
+hard-working	300395	lazy	Antonym
+be likely to do	300396	be able to do	Listening
+be likely to do	300464	be sure to do	Listening
+be afraid to do	300396	be able to do	Listening
+be afraid to do	300464	be sure to do	Listening
+increase ~	300397	include ~	Listening
+improve ~	300397	include ~	Listening
+get out of ~	300399	run out of ~	Listening
+come out of ~	300399	run out of ~	Listening
+stay out of ~	300399	run out of ~	Listening
+go out of ~	300399	run out of ~	Listening
+stand for	300400	mean	Synonym
+sound good	300401	sound like ~	Listening
+sounds right	300401	sound like ~	Listening
+be on time	300405	be in trouble	Listening
+be in danger	300405	be in trouble	Listening
+be in charge	300405	be in trouble	Listening
+in difficulty	300405	be in trouble	Synonym
+carried	300406	married	Listening
+merry	300406	married	Listening
+merry	300567	memory	Listening
+worthless	300413	precious	Antonym
+worthless	301050	valuable	Antonym
+lock up ~	300415	knock on ~	Listening
+knock down ~	300415	knock on ~	Listening
+rush into ~	300416	crash into ~	Listening
+come into ~	300416	crash into ~	Listening
+cross over ~	300416	crash into ~	Listening
+crush ~	300416	crash into ~	Listening
+template	300424	temperature	Listening
+lent	300426	length	Listening
+intersection	300430	instruction	Listening
+ache	300436	pain	Synonym
+I'll tell you.	300438	I'll call you.	Listening
+I'll meet you.	300438	I'll call you.	Listening
+I'll see you.	300438	I'll call you.	Listening
+pastor	300440	passport	Listening
+if not	300442	unless	Synonym
+if not	300443	otherwise	Synonym
+decease	300445	disease	Listening
+in the dark	300447	in the park	Listening
+in the yard	300447	in the park	Listening
+in the room	300447	in the park	Listening
+in the room	300947	in the future	Listening
+in the car	300447	in the park	Listening
+even if ~	300448	if ~	Listening
+as if ~	300448	if ~	Listening
+only if ~	300448	if ~	Listening
+unless ~	300448	if ~	Listening
+one another	300453	one after another	Listening
+all together	300453	one after another	Listening
+one by one	300453	one after another	Synonym
+in the end	300454	after all	Synonym
+in the garden	300456	in the morning	Listening
+in the kitchen	300456	in the morning	Listening
+in the station	300456	in the morning	Listening
+at the top of ~	300457	at the end of ~	Listening
+at the back of ~	300457	at the end of ~	Listening
+at the side of ~	300457	at the end of ~	Listening
+at the front of ~	300457	at the end of ~	Listening
+massage	300458	message	Listening
+let A go	300459	let A know B	Listening
+ask A for B	300459	let A know B	Listening
+right side out	300460	inside out	Antonym
+thread	300462	throat	Listening
+insects	300463	indoors	Listening
+windows	300463	indoors	Listening
+indian	300463	indoors	Listening
+remember to	300464	be sure to do	Synonym
+Let's eat.	300466	Let's go.	Listening
+Let's play.	300466	Let's go.	Listening
+Let's read.	300466	Let's go.	Listening
+Let's sing.	300466	Let's go.	Listening
+That's not the answer.	300467	That's not a problem.	Listening
+That's a big problem.	300467	That's not a problem.	Listening
+That is my problem.	300467	That's not a problem.	Listening
+That's a nice present.	300467	That's not a problem.	Listening
+It's okay.	300467	That's not a problem.	Synonym
+No promise.	300468	No problem.	Listening
+No practice.	300468	No problem.	Listening
+My problem.	300468	No problem.	Listening
+No coffee.	300468	No problem.	Listening
+take turns	300470	take part in ~	Listening
+contact A about B	300471	connect A to B	Listening
+come up with ~	300475	carry on with ~	Listening
+come up with ~	300897	keep up with ~	Listening
+catch up with ~	300475	carry on with ~	Listening
+catch up with ~	300893	keep in touch with ~	Listening
+get along with ~	300475	carry on with ~	Listening
+get along with ~	300893	keep in touch with ~	Listening
+get along with ~	300897	keep up with ~	Listening
+keep doing ~	300476	continue	Synonym
+go on doing ~	300476	continue	Synonym
+prevent A from doing	300477	protect A from B	Listening
+borrow A from B	300477	protect A from B	Listening
+hide A from B	300477	protect A from B	Listening
+prints	300479	prince	Listening
+be popular with ~	300481	be familiar with ~	Listening
+be sure of ~	300482	be aware of ~	Listening
+be unaware of ~	300482	be aware of ~	Antonym
+be careful about ~	300483	be famous for ~	Listening
+be known for ~	300483	be famous for ~	Listening
+be known for	300483	be famous for ~	Synonym
+inland	300485	island	Listening
+Ireland	300485	island	Listening
+eyelid	300485	island	Listening
+iceberg	300485	island	Listening
+filled	300487	field	Listening
+tell A to do	300495	allow A to do	Listening
+want A to do	300495	allow A to do	Listening
+forbid A from doing	300495	allow A to do	Antonym
+alligator	300496	elevator	Listening
+alligator	300594	escalator	Listening
+prepare A for B	300499	prefer A to B	Listening
+offer A to B	300499	prefer A to B	Listening
+bring A to B	300499	prefer A to B	Listening
+bring A to B	300537	introduce A to B	Listening
+boulder	300500	border	Listening
+gratefully	300502	gradually	Listening
+in back of you	300508	in front of you	Listening
+in front of me	300508	in front of you	Listening
+in front of us	300508	in front of you	Listening
+in front of it	300508	in front of you	Listening
+in your bag	300509	on your left	Listening
+under the desk	300509	on your left	Listening
+in your room	300510	on your right	Listening
+under the chair	300510	on your right	Listening
+near the park	300510	on your right	Listening
+for a day	300511	far away	Listening
+from school	300511	far away	Listening
+from school	300957	for example	Listening
+a long way away	300511	far away	Synonym
+Germany	300513	journey	Listening
+far from home	300517	face to face	Listening
+take your time	300517	face to face	Listening
+day by day	300517	face to face	Listening
+in person	300517	face to face	Synonym
+delete	300518	defeat	Listening
+lose to	300518	defeat	Antonym
+rosy	300520	noisy	Listening
+volley	300521	valley	Listening
+jeep	300522	cheap	Listening
+kindly	300523	quietly	Listening
+kindly	300591	quickly	Listening
+silently	300523	quietly	Synonym
+gotten	300524	bottom	Listening
+comical	300527	chemical	Listening
+capitals	300529	capital	Listening
+take ~ down	300536	turn ~ down	Listening
+lower the volume	300536	turn ~ down	Synonym
+turn it up	300536	turn ~ down	Antonym
+teach A about B	300540	remind A about B	Listening
+teach A about B	300924	warn A about B	Listening
+make better	300541	improve	Synonym
+worsen	300541	improve	Antonym
+inviting	300545	exciting	Listening
+thrilling	300545	exciting	Synonym
+trying	300547	tiring	Listening
+timing	300547	tiring	Listening
+for a short time	300551	for a long time	Listening
+for a short time	300551	for a long time	Antonym
+from time to time	300551	for a long time	Listening
+all the time	300551	for a long time	Listening
+heading	300555	wedding	Listening
+waving	300555	wedding	Listening
+hood	300556	wood	Listening
+no more than	300558	at most	Synonym
+unimportant	300561	important	Antonym
+a list	300568	at least	Listening
+arrow	300569	error	Listening
+arrow	300869	narrow	Listening
+celery	300571	salary	Listening
+tack	300574	tax	Listening
+excitedly	300580	especially	Listening
+particularly	300580	especially	Synonym
+angel	300583	engine	Listening
+angel	301002	ancient	Listening
+shave	300584	shake	Listening
+go outside	300585	go straight	Listening
+go upstairs	300585	go straight	Listening
+go by train	300585	go straight	Listening
+thickly	300591	quickly	Listening
+actual	300592	active	Listening
+attic	300592	active	Listening
+energetic	300592	active	Synonym
+energetic	301069	economic	Listening
+inactive	300592	active	Antonym
+calculator	300594	escalator	Listening
+needed	300598	necessary	Synonym
+encouragement	300603	environment	Listening
+enjoyment	300603	environment	Listening
+enjoyment	300948	appointment	Listening
+caller	300606	collar	Listening
+caller	300982	corner	Listening
+stand by me	300608	side by side	Listening
+sunny day	300608	side by side	Listening
+by the sea	300608	side by side	Listening
+freshly	300609	friendly	Listening
+unfriendly	300609	friendly	Antonym
+sadly	300611	safely	Listening
+dangerously	300611	safely	Antonym
+courageous	300613	brave	Synonym
+cowardly	300613	brave	Antonym
+dim	300614	dark	Synonym
+insufficient	300616	enough	Antonym
+siren	300619	silent	Listening
+purse	300622	peace	Listening
+noting	300625	nothing	Listening
+nodding	300625	nothing	Listening
+a line	300627	alive	Listening
+accept ~	300634	except ~	Listening
+not many	300636	few	Synonym
+spatial	300637	special	Listening
+be the same as	300640	be different from ~	Antonym
+a week	300642	awake	Listening
+tin	300644	thin	Listening
+tick	300645	thick	Listening
+puzzled	300647	confused	Synonym
+fearless	300648	careless	Listening
+some more ~	300650	no more ~	Listening
+many more ~	300650	no more ~	Listening
+not yet	300650	no more ~	Listening
+hope to do	300656	happen to do	Listening
+hurry to do	300656	happen to do	Listening
+additional	300660	traditional	Listening
+offline	300662	online	Antonym
+sentry	300664	century	Listening
+won	300670	once	Listening
+playgroup	300679	playground	Listening
+playtime	300679	playground	Listening
+playhouse	300679	playground	Listening
+west side	300680	website	Listening
+webpage	300680	website	Listening
+backache	300681	stomachache	Listening
+stomach pain	300681	stomachache	Synonym
+heartache	300682	headache	Listening
+hotcake	300682	headache	Listening
+madam	300685	magazine	Listening
+hottest	300693	hostess	Listening
+hottest	300926	honest	Listening
+MC	300694	host	Synonym
+use ~ to do	300695	used to do	Listening
+Indian	300708	European	Listening
+greeting	300710	meeting	Listening
+birth	300739	earth	Listening
+visitors	300743	vegetables	Listening
+vests	300743	vegetables	Listening
+greeting card	300744	credit card	Listening
+pretty hard	300744	credit card	Listening
+talk back	300746	call ~ back	Listening
+fall back	300746	call ~ back	Listening
+seller	300752	solar	Listening
+prepared	300756	ready	Synonym
+throw up	300769	throw away	Listening
+put away	300769	throw away	Listening
+dig up	300773	bury	Antonym
+misty	300774	mystery	Listening
+be afraid that ~	300782	be aware that ~	Listening
+be surprised that ~	300782	be aware that ~	Listening
+know that ~	300782	be aware that ~	Synonym
+hear of ~	300784	hear from ~	Listening
+care for ~	300784	hear from ~	Listening
+care for ~	300795	ask for ~	Listening
+care for ~	300851	cheer for ~	Listening
+care for ~	300932	wish for ~	Listening
+get a message from ~	300784	hear from ~	Synonym
+discounted	300786	discount	Listening
+full price	300786	discount	Antonym
+the United Kingdom	300787	the United States	Listening
+United	300787	the United States	Listening
+stand up straight	300791	stay up late	Listening
+wake up early	300791	stay up late	Listening
+take a break	300791	stay up late	Listening
+say it again	300791	stay up late	Listening
+go to bed early	300791	stay up late	Antonym
+come back soon	300793	write back soon	Listening
+call back soon	300793	write back soon	Listening
+write it down	300793	write back soon	Listening
+right after school	300793	write back soon	Listening
+pay for ~	300795	ask for ~	Listening
+ranger	300799	danger	Listening
+lab	300800	laboratory	Synonym
+in a house	300805	in a hurry	Listening
+in a hall	300805	in a hurry	Listening
+in a hand	300805	in a hurry	Listening
+in a hat	300805	in a hurry	Listening
+longly	300806	lonely	Listening
+lowly	300806	lonely	Listening
+kitty	300807	pity	Listening
+risky	300811	rescue	Listening
+praise A for B	300816	blame A for B	Listening
+thank A for B	300816	blame A for B	Listening
+thank A for B	300903	forgive A for B	Listening
+suggest	300817	recommend A to B	Synonym
+suggest	301036	success	Listening
+discuss with ~	300819	disagree with ~	Listening
+deal with ~	300819	disagree with ~	Listening
+deal with ~	300823	agree with ~	Listening
+go with ~	300819	disagree with ~	Listening
+go with ~	300823	agree with ~	Listening
+say again	300820	repeat	Synonym
+apply for ~	300821	apologize for ~	Listening
+prepare for ~	300821	apologize for ~	Listening
+say sorry	300821	apologize for ~	Synonym
+prepare to do	300825	promise to do	Listening
+prepare to do	301074	pretend to do	Listening
+prefer to do	300825	promise to do	Listening
+prefer to do	301074	pretend to do	Listening
+unicorn	300830	uniform	Listening
+take ~ up	300833	look ~ up	Listening
+helicopter	300836	telescope	Listening
+essay	300837	x-ray	Listening
+novice	300838	notice	Listening
+See you there.	300840	See you then.	Listening
+See me then.	300840	See you then.	Listening
+cannon	300841	common	Listening
+thump	300849	thumb	Listening
+lead A to B	300855	guide A to B	Listening
+take A from B	300855	guide A to B	Listening
+eagerness	300856	illness	Listening
+sickness	300856	illness	Synonym
+etch	300857	edge	Listening
+Have a snack.	300860	Have a seat.	Listening
+Take a seat.	300860	Have a seat.	Listening
+Have a sip.	300860	Have a seat.	Listening
+Have a map.	300860	Have a seat.	Listening
+take a seat	300860	Have a seat.	Synonym
+feet	300861	fit	Listening
+manor	300866	minor	Listening
+peel	300867	pill	Listening
+color A with B	300878	cover A with B	Listening
+be colored with ~	300879	be covered with ~	Listening
+be compared with ~	300879	be covered with ~	Listening
+sold	300885	soul	Listening
+decide on A	300887	divide A into B	Listening
+design A for B	300887	divide A into B	Listening
+deliver A to B	300887	divide A into B	Listening
+describe A to B	300887	divide A into B	Listening
+skater	300889	spectator	Listening
+send ~ out	300891	set ~ up	Listening
+take down	300891	set ~ up	Antonym
+citation	300892	situation	Listening
+get in touch with ~	300893	keep in touch with ~	Listening
+sit in bed	300894	sick in bed	Listening
+sleep in bed	300894	sick in bed	Listening
+six in bed	300894	sick in bed	Listening
+sick and sad	300894	sick in bed	Listening
+walk away from ~	300897	keep up with ~	Listening
+rub ~	300898	rob ~	Listening
+rock ~	300898	rob ~	Listening
+roll ~	300898	rob ~	Listening
+drop ~	300898	rob ~	Listening
+stampede	300899	stamp	Listening
+stayed	300901	statue	Listening
+pull ~ away	300905	put ~ away	Listening
+push ~ away	300905	put ~ away	Listening
+take ~ away	300905	put ~ away	Listening
+geometry	300907	geography	Listening
+science studies	300908	social studies	Listening
+social science	300908	social studies	Listening
+study hall	300908	social studies	Listening
+science class	300908	social studies	Listening
+toothpick	300909	topic	Listening
+tonic	300909	topic	Listening
+run after ~	300914	look after ~	Listening
+ask after ~	300914	look after ~	Listening
+take care of	300914	look after ~	Synonym
+rob	300916	steal	Synonym
+discover ~	300917	discuss ~	Listening
+describe ~	300917	discuss ~	Listening
+dislike ~	300917	discuss ~	Listening
+dismiss ~	300917	discuss ~	Listening
+check with ~	300918	chat with ~	Listening
+meet with ~	300918	chat with ~	Listening
+connect with ~	300919	communicate with ~	Listening
+cooperate with ~	300919	communicate with ~	Listening
+truthful	300926	honest	Synonym
+dishonest	300926	honest	Antonym
+latest	300928	largest	Listening
+biggest	300928	largest	Synonym
+coldest	300929	oldest	Listening
+boldest	300929	oldest	Listening
+think about	300934	consider	Synonym
+trust	300935	believe	Synonym
+africa	300943	afternoon	Listening
+aftermath	300943	afternoon	Listening
+redline	300945	deadline	Listening
+bedtime	300945	deadline	Listening
+headlight	300945	deadline	Listening
+daytime	300945	deadline	Listening
+in the city	300947	in the future	Listening
+into ~	300949	until ~	Listening
+till	300949	until ~	Synonym
+sung	300951	sand	Listening
+Adam	300952	atom	Listening
+uptown	300954	upstairs	Listening
+downward	300955	downstairs	Listening
+four apples	300957	for example	Listening
+for instance	300957	for example	Synonym
+right side up	300960	upside down	Antonym
+circus	300961	surface	Listening
+plaza	300966	platform	Listening
+runway	300967	railway	Listening
+asteroid	300969	astronaut	Listening
+brunch	300970	branch	Listening
+rear	300975	real	Listening
+reply to ~	300976	rely on ~	Listening
+reply to ~	301071	react to ~	Listening
+wait on ~	300976	rely on ~	Listening
+defend ~	300977	depend on ~	Listening
+demand ~	300977	depend on ~	Listening
+decide on ~	300977	depend on ~	Listening
+rely on	300977	depend on ~	Synonym
+fries	300978	freeze	Listening
+cooker	300982	corner	Listening
+fill ~ out	300984	figure ~ out	Listening
+find ~ out	300984	figure ~ out	Listening
+pick ~ out	300984	figure ~ out	Listening
+check ~ out	300984	figure ~ out	Listening
+find out	300984	figure ~ out	Synonym
+all at once	300985	suddenly	Synonym
+so fast	300989	so far	Listening
+so long	300989	so far	Listening
+so good	300989	so far	Listening
+so high	300989	so far	Listening
+rewrite	300990	recycle	Listening
+because of ~	300992	instead of ~	Listening
+think of ~	300993	think about ~	Listening
+connect A with B	300994	share A with B	Listening
+cheaply	301001	deeply	Listening
+sweetly	301001	deeply	Listening
+brightened	301004	frightened	Listening
+stand by ~	301006	stop by ~	Listening
+step by ~	301006	stop by ~	Listening
+stay by ~	301006	stop by ~	Listening
+Wake up early.	301010	Wait a minute.	Listening
+Write a letter.	301010	Wait a minute.	Listening
+Take a picture.	301010	Wait a minute.	Listening
+wait a moment	301010	Wait a minute.	Synonym
+patients	301012	patience	Listening
+impatience	301012	patience	Antonym
+swat	301018	sweat	Listening
+inner	301027	internet	Listening
+mailing	301030	meaning	Listening
+minding	301030	meaning	Listening
+opening	301031	opinion	Listening
+Have a long trip.	301039	Have a safe trip.	Listening
+Have a short trip.	301039	Have a safe trip.	Listening
+classy	301040	closely	Listening
+cheerfully	301041	carefully	Listening
+cautiously	301041	carefully	Synonym
+carelessly	301041	carefully	Antonym
+as long as possible	301042	as soon as possible	Listening
+as early as possible	301042	as soon as possible	Listening
+as fast as possible	301042	as soon as possible	Listening
+as good as possible	301042	as soon as possible	Listening
+fitness	301047	business	Listening
+shop assistant	301048	clerk	Synonym
+workers	301049	staff	Synonym
+cheering	301059	children	Listening
+girlfriend	301065	boyfriend	Listening
+poetical	301066	political	Listening
+ecologic	301069	economic	Listening
+ratio	301070	racial	Listening
+relax with ~	301071	react to ~	Listening
+refer to ~	301071	react to ~	Listening
+beforehand	301078	afterward	Antonym
+unlawful	301079	illegal	Synonym
+underline	301080	undertake	Listening
+undertook	301080	undertake	Listening
+sentiment	301081	settlement	Listening
