@@ -21,9 +21,10 @@ import com.stulab.studylockapp.data.db.*
         VoiceCheckResultEntity::class,
         PracticalHistoryEntity::class,
         FavoriteWordEntity::class,
-        ChoiceMeaningEntity::class
+        ChoiceMeaningEntity::class,
+        SpellingProgressEntity::class
     ],
-    version = 27,
+    version = 28,
     exportSchema = false
 )
 @TypeConverters(WordConverters::class)
@@ -39,6 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun practicalHistoryDao(): PracticalHistoryDao
     abstract fun favoriteWordDao(): FavoriteWordDao
     abstract fun choiceMeaningDao(): ChoiceMeaningDao
+    abstract fun spellingProgressDao(): SpellingProgressDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -135,6 +137,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_27_28 = object : Migration(27, 28) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `spelling_progress` (
+                        `wordId` INTEGER NOT NULL, 
+                        `status` TEXT NOT NULL, 
+                        `unlockedAt` INTEGER NOT NULL, 
+                        `eligibleAt` INTEGER NOT NULL, 
+                        `attemptCount` INTEGER NOT NULL, 
+                        `correctCount` INTEGER NOT NULL, 
+                        `lastResultCorrect` INTEGER, 
+                        `hintUsed` INTEGER NOT NULL, 
+                        `lastAttemptAt` INTEGER, 
+                        `lastPromptedAt` INTEGER, 
+                        `clearedAt` INTEGER, 
+                        PRIMARY KEY(`wordId`)
+                    )
+                """.trimIndent())
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -148,7 +171,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_23_24, 
                         MIGRATION_24_25,
                         MIGRATION_25_26,
-                        MIGRATION_26_27
+                        MIGRATION_26_27,
+                        MIGRATION_27_28
                     )
                     .build()
                     .also { INSTANCE = it }

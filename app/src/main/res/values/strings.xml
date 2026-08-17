@@ -245,6 +245,9 @@
     <string name="review_label_wrong_answer">× あなたの回答: %1$s</string>
     <string name="review_label_learning_word">%1$s を学習中</string>
 
+    <string name="flying_levelup_title">飛び級しました！</string>
+    <string name="flying_levelup_message">好成績が続いたため、\nLV%1$dをスキップしてLV%2$dにアップしました。</string>
+
     <!-- 学習音声設定 (旧サイレントモード) -->
     <string name="label_learning_audio">学習音声</string>
     <string name="audio_mode_normal">通常</string>
@@ -364,4 +367,28 @@
     <string name="my_word_book_delete_success">My単語帳を削除しました。</string>
     <string name="action_play_word">%1$sを再生</string>
 
+    <string name="spelling_check_title">特別問題 スペルチェック</string>
+    <string name="spelling_check_instruction">英語を入力してください</string>
+    <string name="spelling_check_hint">ヒント</string>
+    <string name="spelling_check_submit">回答する</string>
+    <string name="spelling_check_listen">音声を聞く</string>
+    <string name="spelling_check_close">閉じる</string>
+    <string name="spelling_check_correct">正解！</string>
+    <string name="spelling_check_incorrect">おしい！</string>
+    <string name="spelling_check_your_answer">あなたの回答：%1$s</string>
+    <string name="spelling_check_correct_answer">正しいスペル：%1$s</string>
+    <string name="spelling_check_progress">%1$d / %2$d</string>
+    <string name="spelling_check_cleared">スペルチェック クリア</string>
+    <string name="spelling_check_practice_done">練習完了！</string>
+    <string name="spelling_check_next">次へ</string>
+    <string name="spelling_check_finish">終了</string>
+    <string name="spelling_check_invite_title">特別問題！</string>
+    <string name="spelling_check_invite_message">スペルチェックに\n挑戦してみよう！\n\n覚えた単語を英語で書けるか\n確認してみよう。</string>
+    <string name="spelling_check_invite_positive">挑戦する</string>
+    <string name="spelling_check_invite_negative">あとで</string>
+    <string name="spelling_status_not_started">未挑戦</string>
+    <string name="spelling_status_practicing">練習中</string>
+    <string name="spelling_status_cleared">クリア</string>
+    <string name="spelling_status_locked">未解放</string>
+    <string name="spelling_button_label">スペル</string>
 </resources>

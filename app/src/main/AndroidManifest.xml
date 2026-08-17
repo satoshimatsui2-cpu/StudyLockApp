@@ -169,5 +169,10 @@
             </intent-filter>
         </receiver>
 
+        <activity
+            android:name=".ui.SpellingCheckActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 </manifest>

@@ -23,7 +23,8 @@ import com.google.android.material.card.MaterialCardView
 class LearningHistoryAdapter(
     private val onEditClick: (WordHistoryItem) -> Unit,
     private val onWordCheckClick: (WordHistoryItem) -> Unit,
-    private val onSentenceCheckClick: (WordHistoryItem) -> Unit
+    private val onSentenceCheckClick: (WordHistoryItem) -> Unit,
+    private val onSpellingCheckClick: (WordHistoryItem) -> Unit
 ) : ListAdapter<WordHistoryItem, LearningHistoryAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -34,7 +35,7 @@ class LearningHistoryAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, onEditClick, onWordCheckClick, onSentenceCheckClick) {
+        holder.bind(item, onEditClick, onWordCheckClick, onSentenceCheckClick, onSpellingCheckClick) {
             item.isExpanded = !item.isExpanded
             notifyItemChanged(position)
         }
@@ -51,6 +52,7 @@ class LearningHistoryAdapter(
         private val textDetail: TextView = itemView.findViewById(R.id.text_detail_content)
         private val buttonWordCheck: MaterialButton = itemView.findViewById(R.id.button_voice_check)
         private val buttonSentenceCheck: MaterialButton = itemView.findViewById(R.id.button_sentence_check)
+        private val buttonSpellingCheck: MaterialButton = itemView.findViewById(R.id.button_spelling_check)
 
         // Status Chip Components
         private val layoutStatusChip: LinearLayout = itemView.findViewById(R.id.layout_status_chip)
@@ -64,6 +66,7 @@ class LearningHistoryAdapter(
             onEditClick: (WordHistoryItem) -> Unit,
             onWordCheckClick: (WordHistoryItem) -> Unit,
             onSentenceCheckClick: (WordHistoryItem) -> Unit,
+            onSpellingCheckClick: (WordHistoryItem) -> Unit,
             onClick: () -> Unit
         ) {
             textWord.text = item.word
@@ -71,10 +74,10 @@ class LearningHistoryAdapter(
             textGradeLevel.text = "${item.gradeLabel} / ${item.levelLabel}"
             
             val cardView = itemView as? MaterialCardView
-            if (item.isWordVoiceChecked && item.isSentenceVoiceChecked) {
+            if (item.isWordVoiceChecked && item.isSentenceVoiceChecked && item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.CLEARED) {
                 cardView?.strokeColor = Color.parseColor("#F9A825")
                 cardView?.strokeWidth = dpToPx(1.5f)
-            } else if (item.isWordVoiceChecked || item.isSentenceVoiceChecked) {
+            } else if (item.isWordVoiceChecked || item.isSentenceVoiceChecked || item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.CLEARED) {
                 cardView?.strokeColor = Color.parseColor("#EEEEEE")
                 cardView?.strokeWidth = dpToPx(1.0f)
             } else {
@@ -129,6 +132,11 @@ class LearningHistoryAdapter(
             if (item.isSentenceVoiceChecked) {
                 layoutIcons.addView(createVoiceChip("例文OK", Color.parseColor("#4527A0")))
             }
+            if (item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.CLEARED) {
+                layoutIcons.addView(createVoiceChip("スペルOK", Color.parseColor("#00796B")))
+            } else if (item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.PRACTICING) {
+                layoutIcons.addView(createVoiceChip("スペル練習中", Color.parseColor("#FBC02D")))
+            }
             if (item.hasPendingListenReview) {
                 layoutIcons.addView(createVoiceChip("音声復習", Color.parseColor("#FF9800")))
             }
@@ -166,6 +174,19 @@ class LearningHistoryAdapter(
                     if (words.size >= 3) {
                         visibility = View.VISIBLE
                         setOnClickListener { onSentenceCheckClick(item) }
+                    } else {
+                        visibility = View.GONE
+                    }
+                }
+
+                buttonSpellingCheck.apply {
+                    text = "スペル"
+                    setIconResource(R.drawable.ic_edit_24)
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F8F8F8"))
+                    strokeColor = ColorStateList.valueOf(Color.parseColor("#DDDDDD"))
+                    if (item.isSpellingEligible) {
+                        visibility = View.VISIBLE
+                        setOnClickListener { onSpellingCheckClick(item) }
                     } else {
                         visibility = View.GONE
                     }

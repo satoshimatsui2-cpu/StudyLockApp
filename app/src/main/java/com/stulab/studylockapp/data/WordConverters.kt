@@ -45,4 +45,18 @@ class WordConverters {
         }
         return list
     }
+
+    @TypeConverter
+    fun fromSpellingStatus(status: SpellingStatus): String {
+        return status.name
+    }
+
+    @TypeConverter
+    fun toSpellingStatus(value: String): SpellingStatus {
+        return try {
+            SpellingStatus.valueOf(value)
+        } catch (e: Exception) {
+            SpellingStatus.NOT_STARTED
+        }
+    }
 }

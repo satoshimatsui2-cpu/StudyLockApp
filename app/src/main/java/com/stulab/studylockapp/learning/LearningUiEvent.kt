@@ -70,4 +70,8 @@ sealed class LearningUiEvent {
     data class ShowNewCharacterAvailable(
         val characterName: String
     ) : LearningUiEvent()
+    // スペルチェック特別問題への誘導
+    data class ShowSpellingCheckInvite(
+        val wordIds: List<Long>
+    ) : LearningUiEvent()
 }

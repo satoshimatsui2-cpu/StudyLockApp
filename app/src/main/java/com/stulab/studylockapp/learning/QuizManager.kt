@@ -300,7 +300,7 @@ class QuizManager(
         actualMode: QuizMode,
         timingSettings: ReviewTimingSettings,
         isUnknown: Boolean = false
-    ) = withContext(Dispatchers.IO) {
+    ): MasteryScheduler.MasteryUpdateResult = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
         appSettings.lastStudyDate = sdf.format(java.util.Date(now))
@@ -322,12 +322,23 @@ class QuizManager(
             pendingReviewPickedInSession++
         }
 
-        if (isCorrect) MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON, timingSettings)
-        else MasteryScheduler.onWrong(mastery, actualMode, timingSettings, isUnknown)
+        val result = if (isCorrect) {
+            MasteryScheduler.onCorrect(mastery, actualMode, silentMode == SilentMode.ON, timingSettings)
+        } else {
+            MasteryScheduler.onWrong(mastery, actualMode, timingSettings, isUnknown)
+            MasteryScheduler.MasteryUpdateResult(
+                oldLevel = mastery.level + 1, // 会話的な値だが newLevel 以外は不正確になる可能性あり
+                newLevel = mastery.level,
+                bonusLevel = 0,
+                isFlyingLevelUp = false,
+                skippedLevel = null
+            )
+        }
 
         masteryDao.insertOrUpdate(mastery)
 
         // 3. マスター累計数のFirestore同期は ViewModel で非同期に実行するためここでは行わない
+        result
     }
 
     suspend fun getMasteryCount(tier: MasteryTier): Int = withContext(Dispatchers.IO) {

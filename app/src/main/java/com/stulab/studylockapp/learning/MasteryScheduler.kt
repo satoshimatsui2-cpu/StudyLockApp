@@ -21,6 +21,17 @@ object MasteryScheduler {
 
     private const val SKIP_LEVEL_INTERVAL_MS = 60 * 60 * 1000L
 
+    /**
+     * 習得レベル更新の結果を保持するデータクラス
+     */
+    data class MasteryUpdateResult(
+        val oldLevel: Int,
+        val newLevel: Int,
+        val bonusLevel: Int,
+        val isFlyingLevelUp: Boolean,
+        val skippedLevel: Int?
+    )
+
     fun getTier(state: WordMasteryEntity): MasteryTier {
         return when {
             isLongTermMasteredNow(state) -> MasteryTier.LONG_TERM_MASTER
@@ -57,7 +68,8 @@ object MasteryScheduler {
         actualMode: QuizMode, 
         isAudioRestricted: Boolean,
         timingSettings: ReviewTimingSettings
-    ) {
+    ): MasteryUpdateResult {
+        val oldLevel = state.level
         val now = System.currentTimeMillis()
         state.challengeCount++
         state.successCount++
@@ -98,6 +110,14 @@ object MasteryScheduler {
 
         applyTransition(state, nextLevel, isCorrect = true, timingSettings = timingSettings)
         updateMasteryStatus(state)
+
+        return MasteryUpdateResult(
+            oldLevel = oldLevel,
+            newLevel = nextLevel,
+            bonusLevel = bonusLevel,
+            isFlyingLevelUp = bonusLevel > 0,
+            skippedLevel = if (bonusLevel > 0) oldLevel + 1 else null
+        )
     }
 
     /**
@@ -152,12 +172,6 @@ object MasteryScheduler {
         } else {
             now + baseIntervalMillis
         }
-
-        // 調査用ログ
-        Log.d(
-            "MasteryScheduler",
-            "[ApplyTransition] wordId=${state.wordId}, nextLevel=$nextLevel, isCorrect=$isCorrect, interval=${baseIntervalMillis/1000}s, finalTime=$finalReviewTime, nextMode=${nextMode.name}"
-        )
 
         state.nextReviewTime = finalReviewTime
         state.scheduledMode = nextMode.name

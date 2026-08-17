@@ -25,5 +25,7 @@ data class WordHistoryItem(
     val isNew: Boolean,
     val isReviewWaiting: Boolean,
     val isWordVoiceChecked: Boolean = false,
-    val isSentenceVoiceChecked: Boolean = false
+    val isSentenceVoiceChecked: Boolean = false,
+    val spellingStatus: SpellingStatus = SpellingStatus.NOT_STARTED,
+    val isSpellingEligible: Boolean = false
 )

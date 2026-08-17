@@ -112,6 +112,9 @@ class LearningHistoryActivity : AppCompatActivity() {
             },
             onSentenceCheckClick = { item ->
                 startVoiceCheck(item, "sentence")
+            },
+            onSpellingCheckClick = { item ->
+                startSpellingCheck(item)
             }
         )
         binding.recyclerHistory.apply {
@@ -129,6 +132,13 @@ class LearningHistoryActivity : AppCompatActivity() {
             putExtra("WORD_SENTENCE_JA", item.japaneseSentence)
             putExtra("WORD_GRADE", item.grade.toString())
             putExtra("CHECK_TYPE", type)
+        }
+        startActivity(intent)
+    }
+
+    private fun startSpellingCheck(item: WordHistoryItem) {
+        val intent = Intent(this, SpellingCheckActivity::class.java).apply {
+            putExtra("WORD_IDS", longArrayOf(item.id))
         }
         startActivity(intent)
     }
@@ -209,14 +219,30 @@ class LearningHistoryActivity : AppCompatActivity() {
                         db.voiceCheckDao().getAllResultsByIds(wordIds)
                     }
                 } else emptyList()
-                
+
+                val spellingResults = if (wordIds.isNotEmpty()) {
+                    withContext(Dispatchers.IO) {
+                        db.spellingProgressDao().getProgressByIds(wordIds)
+                    }
+                } else emptyList()
+
                 val wordCheckedSet = voiceResults.filter { it.checkType == "word" && it.checked }.map { it.wordId }.toSet()
                 val sentenceCheckedSet = voiceResults.filter { it.checkType == "sentence" && it.checked }.map { it.wordId }.toSet()
+
+                val spellingMap = spellingResults.associateBy { it.wordId }
                 
+                val allWords = withContext(Dispatchers.IO) {
+                    db.wordDao().getWordsByIds(wordIds.map { it.toInt() })
+                }.associateBy { it.no.toLong() }
+
                 allHistoryItems = itemsWithoutVoice.map { item ->
+                    val spellingProgress = spellingMap[item.id]
+                    val wordEntity = allWords[item.id]
                     item.copy(
                         isWordVoiceChecked = wordCheckedSet.contains(item.id),
-                        isSentenceVoiceChecked = sentenceCheckedSet.contains(item.id)
+                        isSentenceVoiceChecked = sentenceCheckedSet.contains(item.id),
+                        spellingStatus = spellingProgress?.status ?: com.stulab.studylockapp.data.SpellingStatus.NOT_STARTED,
+                        isSpellingEligible = wordEntity?.let { com.stulab.studylockapp.learning.SpellingEligibilityChecker.isEligible(it) } ?: false
                     )
                 }
 

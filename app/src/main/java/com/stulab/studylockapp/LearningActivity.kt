@@ -28,6 +28,8 @@ import com.stulab.studylockapp.data.SilentMode
 import com.stulab.studylockapp.data.WordEntity
 import com.stulab.studylockapp.ui.PronunciationCheckActivity
 import com.stulab.studylockapp.ui.CharacterSelectActivity
+import com.stulab.studylockapp.ui.CharacterDisplayUtils
+import com.stulab.studylockapp.ui.SpellingCheckActivity
 import com.stulab.studylockapp.ui.alert.AppDialogHelper
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -78,6 +80,12 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
             // 実践テスト終了後は、自動的に次の単語学習セッションを開始する
             viewModel.startNextSessionAfterPracticalTest()
+        }
+
+    private val spellingLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+            // スペルチェック終了後は、通常学習を続行する
+            viewModel.loadNextQuiz()
         }
 
     // Rendererから安全にアクセスするためのブリッジメソッド
@@ -225,6 +233,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             showReviewModal()
         }
 
+        // 飛び級モーダル表示制御
+        if (state.reviewDisplayState == ReviewDisplayState.READY_FOR_FLYING_LEVEL_UP) {
+            showFlyingLevelUpModal()
+        }
+
         // インライン表示は通常学習では廃止 (モーダルへ移行)
         binding.layoutReviewCard.rootReviewCardContent.visibility = View.GONE
         binding.cardQuestion.visibility = View.VISIBLE
@@ -313,6 +326,11 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         
         ReviewModalFragment().show(supportFragmentManager, ReviewModalFragment.TAG)
         viewModel.onReviewModalShown()
+    }
+
+    private fun showFlyingLevelUpModal() {
+        if (supportFragmentManager.findFragmentByTag(FlyingLevelUpDialogFragment.TAG) != null) return
+        FlyingLevelUpDialogFragment().show(supportFragmentManager, FlyingLevelUpDialogFragment.TAG)
     }
 
     private fun updateOtherGradeReviewButton(enabled: Boolean) {
@@ -553,7 +571,34 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             is LearningUiEvent.ShowNewCharacterAvailable -> {
                 showNewCharacterDialog(event.characterName)
             }
+            is LearningUiEvent.ShowSpellingCheckInvite -> {
+                showSpellingCheckInviteDialog(event.wordIds)
+            }
         }
+    }
+
+    private fun showSpellingCheckInviteDialog(wordIds: List<Long>) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_spelling_invite, null)
+        val imageChar = dialogView.findViewById<ImageView>(R.id.image_character)
+        
+        val charId = viewModel.uiState.value.selectedCharacterId
+        imageChar.setImageResource(CharacterDisplayUtils.getMiniIconDrawable(this, charId, "joy"))
+
+        MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.spelling_check_invite_positive)) { _, _ ->
+                val intent = Intent(this, SpellingCheckActivity::class.java).apply {
+                    putExtra("WORD_IDS", wordIds.toLongArray())
+                }
+                spellingLauncher.launch(intent)
+            }
+            .setNegativeButton(getString(R.string.spelling_check_invite_negative)) { _, _ ->
+                viewModel.loadNextQuiz()
+            }
+            .setOnCancelListener {
+                viewModel.loadNextQuiz()
+            }
+            .show()
     }
 
     private fun showNewCharacterDialog(characterName: String) {

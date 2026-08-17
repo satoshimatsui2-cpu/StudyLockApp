@@ -9,6 +9,7 @@ import com.stulab.studylockapp.data.PointManager
 import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.practical.PracticalTestRepository
 import com.stulab.studylockapp.data.StudyHistoryRepository
+import com.stulab.studylockapp.data.SpellingRepository
 
 class LearningViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -29,6 +30,7 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             val pointManager = PointManager(appContext)
             val audioChecker = LearningAudioStateChecker(appContext)
             val practicalRepo = PracticalTestRepository(appContext, historyDao)
+            val spellingRepo = SpellingRepository(db)
             
             val requiredWarningText = context.getString(R.string.warning_audio_required)
             val optionalWarningText = context.getString(R.string.warning_audio_optional)
@@ -45,7 +47,8 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
                 appSettings,
                 practicalRepo,
                 favoriteWordDao,
-                choiceMeaningDao
+                choiceMeaningDao,
+                spellingRepo
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

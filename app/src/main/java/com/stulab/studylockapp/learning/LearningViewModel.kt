@@ -23,6 +23,7 @@ import com.stulab.studylockapp.service.NotificationHelper
 import com.stulab.studylockapp.data.practical.PracticalQuizMode
 import com.stulab.studylockapp.data.practical.PracticalTestRepository
 import com.stulab.studylockapp.sanitizeForTts
+import com.stulab.studylockapp.data.SpellingRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -44,7 +45,8 @@ class LearningViewModel(
     private val appSettings: AppSettings,
     private val practicalRepo: PracticalTestRepository,
     private val favoriteWordDao: FavoriteWordDao,
-    private val choiceMeaningDao: ChoiceMeaningDao
+    private val choiceMeaningDao: ChoiceMeaningDao,
+    private val spellingRepo: SpellingRepository
 ) : ViewModel() {
 
     private val totalCount = 20
@@ -53,6 +55,8 @@ class LearningViewModel(
     private var levelUpsInSession = 0
     private var basicMastersInSession = 0
     private var longTermMastersInSession = 0
+    
+    private var hasPromptedSpellingInSession = false
 
     // 初期化時にポイントマネージャーから累計を取得
     private val _uiState = MutableStateFlow(
@@ -215,6 +219,19 @@ class LearningViewModel(
             // ★ 何より先にノルマ数値を最新化する (待ち画面でも総数を表示させるため)
             updateQuotaInternal()
 
+            // セッション開始時にスペルチェック誘導の判定を行う
+            if (solvedInSession == 0 && !hasPromptedSpellingInSession) {
+                val now = System.currentTimeMillis()
+                val eligibleWords = spellingRepo.getEligibleWordsForPrompt(now)
+                if (eligibleWords.isNotEmpty()) {
+                    hasPromptedSpellingInSession = true
+                    spellingRepo.updateLastPromptedAt(eligibleWords.map { it.no.toLong() }, now)
+                    _uiEvent.send(LearningUiEvent.ShowSpellingCheckInvite(eligibleWords.map { it.no.toLong() }))
+                    _uiState.update { it.copy(isLoading = false) }
+                    return@launch
+                }
+            }
+
             val quiz = quizManager.nextQuiz()
             
             // 出題不可または10問終了時の判定
@@ -303,7 +320,8 @@ class LearningViewModel(
                     currentWord = quiz.word,
                     wordGrade = quiz.word.grade,
                     wordGradeName = GradeLabelFormatter.format(quiz.word.grade, appSettings),
-                    isFavorite = false // 一旦リセット
+                    isFavorite = false, // 一旦リセット
+                    flyingLevelUp = null
                 ) 
             }
 
@@ -473,9 +491,22 @@ class LearningViewModel(
     fun notifyAnimationFinished() {
         _uiState.update { state ->
             if (state.reviewDisplayState == ReviewDisplayState.WAITING_FOR_ANIMATION) {
-                state.copy(reviewDisplayState = ReviewDisplayState.READY_FOR_MODAL)
+                val nextState = if (state.flyingLevelUp != null) {
+                    ReviewDisplayState.READY_FOR_FLYING_LEVEL_UP
+                } else {
+                    ReviewDisplayState.READY_FOR_MODAL
+                }
+                state.copy(reviewDisplayState = nextState)
             } else state
         }
+    }
+
+    fun onFlyingLevelUpShown() {
+        _uiState.update { it.copy(reviewDisplayState = ReviewDisplayState.SHOWING_FLYING_LEVEL_UP) }
+    }
+
+    fun onFlyingLevelUpDismissed() {
+        _uiState.update { it.copy(reviewDisplayState = ReviewDisplayState.READY_FOR_MODAL) }
     }
 
     /**
@@ -538,11 +569,12 @@ class LearningViewModel(
             }
 
             // 2. ローカルDBの更新 (Roomは十分高速とみなすが、Firestoreは待たない)
-            withContext(Dispatchers.IO) {
-                quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode, timingSettings, isUnknown)
+            val masteryResult = withContext(Dispatchers.IO) {
+                val res = quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode, timingSettings, isUnknown)
                 if (isCorrect) {
                     pointManager.add(gainedPoints)
                 }
+                res
             }
 
             // 3. 更新後のマスタリー状態を取得
@@ -555,6 +587,7 @@ class LearningViewModel(
             
             if (oldLevel < 5 && newLevel == 5) {
                 _uiEvent.send(LearningUiEvent.ShowLevel5BonusInduction(currentQuiz.word))
+                spellingRepo.unlockIfNeeded(currentQuiz.word.no)
             }
 
             if (oldTier != MasteryTier.BASIC_MASTER && newTier == MasteryTier.BASIC_MASTER) {
@@ -762,6 +795,14 @@ class LearningViewModel(
             // 加算後の総保有ポイントを取得
             val latestTotal = pointManager.getTotal()
 
+            val flyingModel = if (masteryResult.isFlyingLevelUp) {
+                FlyingLevelUpUiModel(
+                    fromLevel = masteryResult.oldLevel,
+                    skippedLevel = masteryResult.skippedLevel ?: (masteryResult.oldLevel + 1),
+                    toLevel = masteryResult.newLevel
+                )
+            } else null
+
             // 4. UI状態の更新 (判定表示)
             _uiState.update { state -> 
                 state.copy(
@@ -789,13 +830,15 @@ class LearningViewModel(
                     reviewSynonymHintBody = synonymBody,
                     reviewAntonyms = currentQuiz.word.antonyms,
                     playableReviewChoices = playableChoices,
-                    enToJpReviewChoices = enToJpChoices
+                    enToJpReviewChoices = enToJpChoices,
+                    flyingLevelUp = flyingModel
                 ) 
             }
 
             // 5. 解答イベントの送信 (正解/不正解アニメーション等)
             if (isCorrect) {
-                if (newLevel - oldLevel >= 2) _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(oldLevel, newLevel))
+                // ここでの ShowFlyingLevelUp は旧来のアニメーション演出として残す（モーダル表示前に消える設計）
+                if (masteryResult.isFlyingLevelUp) _uiEvent.send(LearningUiEvent.ShowFlyingLevelUp(masteryResult.oldLevel, masteryResult.newLevel))
                 _uiEvent.send(LearningUiEvent.ShowCorrect(gainedPoints, currentQuiz.answer, oldTier != newTier))
                 if (oldTier != newTier) _uiEvent.send(LearningUiEvent.ShowMasteryBadge(newTier))
             } else {

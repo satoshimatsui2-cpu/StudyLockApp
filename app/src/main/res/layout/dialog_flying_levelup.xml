@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:strokeColor="@color/navy_primary"
+    app:strokeWidth="2.5dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/text_flying_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/flying_levelup_title"
+            android:textColor="@color/navy_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/layout_level_transition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_flying_title">
+
+            <TextView
+                android:id="@+id/text_level_from"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_sub"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="LV6" />
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginHorizontal="16dp"
+                android:src="@drawable/ic_arrow_forward_24"
+                app:tint="@color/navy_primary" />
+
+            <TextView
+                android:id="@+id/text_level_to"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/navy_primary"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                tools:text="LV8" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/text_flying_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/text_main"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@id/layout_level_transition"
+            tools:text="好成績が続いたため、\nLV7をスキップしてLV8にアップしました。" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_flying_next"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="@string/action_go_next"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/text_flying_message" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

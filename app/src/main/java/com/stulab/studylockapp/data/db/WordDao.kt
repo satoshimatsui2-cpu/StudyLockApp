@@ -20,6 +20,9 @@ interface WordDao {
     @Query("SELECT * FROM words WHERE no = :id LIMIT 1")
     suspend fun getWordById(id: Int): WordEntity?
 
+    @Query("SELECT * FROM words WHERE no IN (:ids)")
+    suspend fun getWordsByIds(ids: List<Int>): List<WordEntity>
+
     @Query("SELECT * FROM words WHERE word = :spelling LIMIT 1")
     suspend fun getWordBySpelling(spelling: String): WordEntity?
 

@@ -63,6 +63,7 @@ data class LearningUiState(
     val playableReviewChoices: List<PlayableReviewChoiceUiModel> = emptyList(),
     val enToJpReviewChoices: List<EnToJpReviewChoiceUiModel> = emptyList(),
     val reviewDisplayState: ReviewDisplayState = ReviewDisplayState.NONE,
+    val flyingLevelUp: FlyingLevelUpUiModel? = null,
 
     // Session Summary
     val sessionLevelUpCount: Int = 0,
@@ -87,9 +88,17 @@ data class AudioWarningState(
     val isCritical: Boolean
 )
 
+data class FlyingLevelUpUiModel(
+    val fromLevel: Int,
+    val skippedLevel: Int,
+    val toLevel: Int
+)
+
 enum class ReviewDisplayState {
     NONE,
     WAITING_FOR_ANIMATION,
+    READY_FOR_FLYING_LEVEL_UP,
+    SHOWING_FLYING_LEVEL_UP,
     READY_FOR_MODAL,
     SHOWING_MODAL
 }
