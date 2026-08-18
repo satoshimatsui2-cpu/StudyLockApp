@@ -12,70 +12,80 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+data class SpellingQuestionUiModel(
+    val wordId: Long,
+    val japanese: String,
+    val pos: String
+)
+
 data class SpellingCheckUiState(
     val currentQuestionIndex: Int = 0,
     val totalQuestions: Int = 0,
-    val currentWord: WordEntity? = null,
+    val currentQuestion: SpellingQuestionUiModel? = null,
     val isCorrect: Boolean? = null,
     val isFinished: Boolean = false,
     val hintText: String? = null,
-    val hintUsed: Boolean = false,
+    val hintUsed: Boolean = false, // Current question hint usage
     val isAnswerShown: Boolean = false,
-    val userInput: String = "",
-    val selectedCharacterId: String = "leo"
+    val isAnswering: Boolean = false,
+    val userInput: String = ""
 )
 
 class SpellingCheckViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = SpellingRepository(AppDatabase.getInstance(application))
     private val wordDao = AppDatabase.getInstance(application).wordDao()
-    private val appSettings = com.stulab.studylockapp.data.AppSettings(application)
 
-    private val _uiState = MutableStateFlow(SpellingCheckUiState(
-        selectedCharacterId = appSettings.selectedCharacterId
-    ))
+    private val _uiState = MutableStateFlow(SpellingCheckUiState())
     val uiState = _uiState.asStateFlow()
 
     private var questions: List<WordEntity> = emptyList()
     private val MAX_QUESTIONS = 5
 
-    fun loadQuestions(wordIds: LongArray?) {
+    fun loadQuestions(wordIds: LongArray?, grade: Int? = null) {
         viewModelScope.launch {
             val words = if (wordIds != null && wordIds.isNotEmpty()) {
                 wordDao.getWordsByIds(wordIds.map { it.toInt() })
+            } else if (grade != null) {
+                repository.getEligibleWordsByGrade(grade).take(MAX_QUESTIONS)
             } else {
                 repository.getEligibleWordsForPrompt(System.currentTimeMillis()).take(MAX_QUESTIONS)
             }
-            questions = words
+            questions = words.shuffled()
             if (questions.isNotEmpty()) {
-                _uiState.value = _uiState.value.copy(
+                _uiState.update { it.copy(
                     totalQuestions = questions.size,
-                    currentWord = questions[0]
-                )
+                    currentQuestion = questions[0].toUiModel()
+                ) }
             } else {
-                _uiState.value = _uiState.value.copy(isFinished = true)
+                _uiState.update { it.copy(isFinished = true) }
             }
         }
     }
 
     fun onUserInputChange(input: String) {
-        _uiState.value = _uiState.value.copy(userInput = input, isCorrect = null)
+        _uiState.update { it.copy(userInput = input, isCorrect = null) }
     }
 
     fun submitAnswer() {
-        val currentWord = uiState.value.currentWord ?: return
+        val currentIndex = uiState.value.currentQuestionIndex
+        if (currentIndex >= questions.size) return
+        if (uiState.value.isAnswering || uiState.value.isCorrect != null) return
+
+        val currentWord = questions[currentIndex]
         val isCorrect = SpellingAnswerChecker.check(uiState.value.userInput, currentWord.word)
         
+        _uiState.update { it.copy(isAnswering = true) }
+
         viewModelScope.launch {
             val currentState = uiState.value
-            // 正解を見た後、またはヒント使用後はクリア扱いにしない
-            val effectiveHintUsed = currentState.hintUsed || currentState.isAnswerShown
-
+            // Update repository. Hint used logic is handled inside recordResult
             repository.recordResult(
                 currentWord.no.toLong(),
                 isCorrect,
-                effectiveHintUsed
+                currentState.hintUsed
             )
             _uiState.update { it.copy(
+                isAnswering = false,
                 isCorrect = isCorrect,
                 isAnswerShown = currentState.isAnswerShown || !isCorrect
             ) }
@@ -83,7 +93,10 @@ class SpellingCheckViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun showHint() {
-        val currentWord = uiState.value.currentWord ?: return
+        val currentIndex = uiState.value.currentQuestionIndex
+        if (currentIndex >= questions.size) return
+        val currentWord = questions[currentIndex]
+
         val spelling = currentWord.word.trim()
         val hint = buildString {
             append("ヒント：${spelling.length}文字")
@@ -97,22 +110,34 @@ class SpellingCheckViewModel(application: Application) : AndroidViewModel(applic
                 append(", ハイフンあり")
             }
         }
-        _uiState.value = _uiState.value.copy(hintText = hint, hintUsed = true)
+        _uiState.update { it.copy(hintText = hint, hintUsed = true) }
     }
 
     fun nextQuestion() {
         val nextIndex = uiState.value.currentQuestionIndex + 1
         if (nextIndex < questions.size) {
-            _uiState.value = _uiState.value.copy(
+            _uiState.update { it.copy(
                 currentQuestionIndex = nextIndex,
-                currentWord = questions[nextIndex],
+                currentQuestion = questions[nextIndex].toUiModel(),
                 isCorrect = null,
                 hintText = null,
                 hintUsed = false,
+                isAnswerShown = false,
                 userInput = ""
-            )
+            ) }
         } else {
-            _uiState.value = _uiState.value.copy(isFinished = true)
+            _uiState.update { it.copy(isFinished = true) }
         }
     }
+
+    fun getCurrentCorrectSpelling(): String? {
+        val currentIndex = uiState.value.currentQuestionIndex
+        return questions.getOrNull(currentIndex)?.word
+    }
+
+    private fun WordEntity.toUiModel() = SpellingQuestionUiModel(
+        wordId = no.toLong(),
+        japanese = japanese,
+        pos = pos
+    )
 }

@@ -1,18 +1,21 @@
 package com.stulab.studylockapp.ui
 
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.stulab.studylockapp.R
+import com.stulab.studylockapp.SoundEffectManager
 import com.stulab.studylockapp.databinding.ActivitySpellingCheckBinding
 import com.stulab.studylockapp.sanitizeForTts
 import com.stulab.studylockapp.ui.alert.AppDialogHelper
@@ -26,20 +29,35 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var tts: TextToSpeech? = null
     private var ttsReady = false
 
-    private lateinit var soundPool: SoundPool
-    private var soundSuccess: Int = 0
-    private var soundFailure: Int = 0
+    private lateinit var soundEffectManager: SoundEffectManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         binding = ActivitySpellingCheckBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupSoundPool()
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val displayCutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+
+            val topInset = maxOf(systemBars.top, displayCutout.top)
+            val bottomInset = maxOf(systemBars.bottom, ime.bottom)
+
+            binding.layoutHeader.updatePadding(top = topInset)
+            binding.scrollViewMain.updatePadding(bottom = bottomInset)
+            
+            insets
+        }
+
+        soundEffectManager = SoundEffectManager(this)
         tts = TextToSpeech(this, this)
 
         val wordIds = intent.getLongArrayExtra("WORD_IDS")
-        viewModel.loadQuestions(wordIds)
+        val grade = intent.getIntExtra("GRADE", -1).takeIf { it != -1 }
+        
+        viewModel.loadQuestions(wordIds, grade)
 
         binding.editSpelling.addTextChangedListener {
             viewModel.onUserInputChange(it?.toString() ?: "")
@@ -65,7 +83,7 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         binding.buttonListen.setOnClickListener {
-            speakCurrentWord()
+            handlePlayClick()
         }
 
         binding.buttonClose.setOnClickListener {
@@ -81,54 +99,85 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun handlePlayClick() {
+        val settings = com.stulab.studylockapp.data.AppSettings(this)
+        if (settings.silentMode == com.stulab.studylockapp.data.SilentMode.ON) {
+            showSilentModeConfirmation(settings)
+        } else {
+            speakCurrentWord()
+        }
+    }
+
+    private fun showSilentModeConfirmation(settings: com.stulab.studylockapp.data.AppSettings) {
+        AppDialogHelper.showConfirm(
+            context = this,
+            title = getString(R.string.spelling_check_silent_mode_title),
+            message = getString(R.string.spelling_check_silent_mode_message),
+            positiveText = getString(R.string.spelling_check_silent_mode_unlock),
+            negativeText = getString(R.string.cancel),
+            onPositive = {
+                settings.silentMode = com.stulab.studylockapp.data.SilentMode.OFF
+                speakCurrentWord()
+            }
+        )
+    }
+
     private fun render(state: SpellingCheckUiState) {
         if (state.isFinished) {
             finish()
             return
         }
 
-        val word = state.currentWord ?: return
+        val question = state.currentQuestion ?: return
         
-        binding.imageCharacterMini.setImageResource(
-            CharacterDisplayUtils.getMiniIconDrawable(this, state.selectedCharacterId, "joy")
-        )
-
         binding.textProgress.text = getString(R.string.spelling_check_progress, state.currentQuestionIndex + 1, state.totalQuestions)
-        binding.textMeaning.text = word.japanese
-        binding.textPos.text = word.pos
+        binding.textMeaning.text = question.japanese
+        binding.textPos.text = PartOfSpeechFormatter.toJapanese(this, question.pos)
+        binding.textPos.visibility = if (binding.textPos.text.isNullOrEmpty()) View.GONE else View.VISIBLE
 
-        binding.buttonSubmit.isEnabled = state.userInput.isNotBlank() && state.isCorrect == null
+        binding.buttonSubmit.isEnabled = state.userInput.isNotBlank() && state.isCorrect == null && !state.isAnswering
+        binding.buttonHint.isEnabled = state.isCorrect == null && !state.isAnswering
 
         if (state.hintText != null) {
             binding.textHint.visibility = View.VISIBLE
             binding.textHint.text = state.hintText
+            binding.textHintWarning.visibility = View.VISIBLE
         } else {
             binding.textHint.visibility = View.GONE
+            binding.textHintWarning.visibility = View.GONE
         }
 
         if (state.isCorrect != null) {
-            showResultDialog(state.isCorrect, word.word, word.japanese)
+            val correctSpelling = viewModel.getCurrentCorrectSpelling() ?: ""
+            showResultDialog(state.isCorrect, correctSpelling, question.japanese, state.hintUsed)
         }
         
-        // 入力欄の同期（初回表示時や次へ進んだ時など）
+        // Sync input field if needed
         if (binding.editSpelling.text.toString() != state.userInput) {
             binding.editSpelling.setText(state.userInput)
         }
     }
 
-    private fun showResultDialog(isCorrect: Boolean, correctSpelling: String, meaning: String) {
-        playSound(isCorrect)
+    private fun showResultDialog(isCorrect: Boolean, correctSpelling: String, meaning: String, hintUsed: Boolean) {
         if (isCorrect) {
+            soundEffectManager.playCorrect()
+            val footer = if (hintUsed) {
+                getString(R.string.spelling_check_practice_result)
+            } else {
+                getString(R.string.spelling_check_cleared)
+            }
+            
             AppDialogHelper.showInfo(
                 context = this,
                 title = getString(R.string.spelling_check_correct),
-                message = "$correctSpelling ($meaning)\n\n${getString(R.string.spelling_check_cleared)}",
+                message = "$correctSpelling ($meaning)\n\n$footer",
                 positiveText = getString(R.string.spelling_check_next),
                 onPositive = {
                     viewModel.nextQuestion()
                 }
             )
         } else {
+            soundEffectManager.playWrong()
             AppDialogHelper.showConfirm(
                 context = this,
                 title = getString(R.string.spelling_check_incorrect),
@@ -139,37 +188,15 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     viewModel.nextQuestion()
                 },
                 onNegative = {
-                    // 再入力させるために状態をリセット
                     viewModel.onUserInputChange("")
                 }
             )
         }
     }
 
-    private fun setupSoundPool() {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(1)
-            .setAudioAttributes(audioAttributes)
-            .build()
-        
-        soundSuccess = soundPool.load(this, R.raw.se_correct, 1)
-        soundFailure = soundPool.load(this, R.raw.se_wrong, 1)
-    }
-
-    private fun playSound(isSuccess: Boolean) {
-        val soundId = if (isSuccess) soundSuccess else soundFailure
-        if (soundId != 0) {
-            soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
-        }
-    }
-
     private fun speakCurrentWord() {
-        val word = viewModel.uiState.value.currentWord?.word ?: return
-        val sanitized = sanitizeForTts(word)
+        val spelling = viewModel.getCurrentCorrectSpelling() ?: return
+        val sanitized = sanitizeForTts(spelling)
         if (sanitized.isNotEmpty()) {
             tts?.speak(sanitized, TextToSpeech.QUEUE_FLUSH, null, "spelling")
         }
@@ -179,7 +206,6 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (status == TextToSpeech.SUCCESS) {
             tts?.setLanguage(Locale.US)
             ttsReady = true
-            // 初回発声
             speakCurrentWord()
         }
     }
@@ -187,7 +213,7 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onDestroy() {
         tts?.stop()
         tts?.shutdown()
-        soundPool.release()
+        soundEffectManager.release()
         super.onDestroy()
     }
 }

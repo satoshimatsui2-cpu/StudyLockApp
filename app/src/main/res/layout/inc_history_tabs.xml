@@ -1,39 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/layoutHistoryTabs"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="52dp"
     android:background="@android:color/white"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="8dp">
+    android:gravity="center_vertical"
+    android:paddingHorizontal="8dp"
+    android:weightSum="5">
 
+    <!-- 日次 -->
     <TextView
-        android:id="@+id/buttonWordHistory"
+        android:id="@+id/buttonDaily"
         android:layout_width="0dp"
-        android:layout_height="44dp"
-        android:layout_weight="1"
+        android:layout_height="40dp"
+        android:layout_weight="2"
+        android:gravity="center"
+        android:text="@string/history_period_daily"
+        android:textColor="@color/navy_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
         android:background="@drawable/bg_badge_navy_soft"
-        android:gravity="center"
-        android:text="単語"
-        android:textColor="@color/navy_primary"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:layout_marginHorizontal="2dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/history_cd_daily" />
 
-    <View
-        android:layout_width="8dp"
-        android:layout_height="match_parent" />
-
+    <!-- 週次 -->
     <TextView
-        android:id="@+id/buttonTestHistory"
+        android:id="@+id/buttonWeekly"
         android:layout_width="0dp"
-        android:layout_height="44dp"
-        android:layout_weight="1"
-        android:background="@drawable/sl_button_bg"
+        android:layout_height="40dp"
+        android:layout_weight="2"
         android:gravity="center"
-        android:text="テスト"
-        android:textColor="@color/navy_primary"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:text="@string/history_period_weekly"
+        android:textColor="@color/text_sub"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:background="@drawable/sl_button_bg"
+        android:layout_marginHorizontal="2dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/history_cd_weekly" />
+
+    <!-- 画面切替 (右端 20%) -->
+    <LinearLayout
+        android:id="@+id/buttonSwitchHistory"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/bg_badge_navy_soft"
+        android:layout_marginStart="6dp"
+        android:paddingHorizontal="2dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/history_cd_switch_test">
+
+        <ImageView
+            android:id="@+id/imageSwitchIcon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_compare_arrows_24"
+            android:importantForAccessibility="no"
+            app:tint="@color/navy_primary" />
+
+        <TextView
+            android:id="@+id/textSwitchLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:text="@string/history_label_test"
+            android:textColor="@color/navy_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:ellipsize="end"
+            android:singleLine="true" />
+    </LinearLayout>
 
 </LinearLayout>

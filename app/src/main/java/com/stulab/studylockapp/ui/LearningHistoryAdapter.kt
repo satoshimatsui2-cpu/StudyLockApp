@@ -126,19 +126,20 @@ class LearningHistoryAdapter(
 
             // Voice Badges (Chips)
             layoutIcons.removeAllViews()
+            if (item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.CLEARED) {
+                layoutIcons.addView(createStatusChip("スペルOK", Color.parseColor("#00796B"), R.drawable.ic_edit_24))
+            } else if (item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.PRACTICING) {
+                layoutIcons.addView(createStatusChip("スペル練習中", Color.parseColor("#FBC02D"), R.drawable.ic_edit_24))
+            }
+
             if (item.isWordVoiceChecked) {
-                layoutIcons.addView(createVoiceChip("単語OK", Color.parseColor("#4CAF50")))
+                layoutIcons.addView(createStatusChip("単語OK", Color.parseColor("#4CAF50"), R.drawable.ic_mic_24))
             }
             if (item.isSentenceVoiceChecked) {
-                layoutIcons.addView(createVoiceChip("例文OK", Color.parseColor("#4527A0")))
-            }
-            if (item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.CLEARED) {
-                layoutIcons.addView(createVoiceChip("スペルOK", Color.parseColor("#00796B")))
-            } else if (item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.PRACTICING) {
-                layoutIcons.addView(createVoiceChip("スペル練習中", Color.parseColor("#FBC02D")))
+                layoutIcons.addView(createStatusChip("例文OK", Color.parseColor("#4527A0"), R.drawable.ic_mic_24))
             }
             if (item.hasPendingListenReview) {
-                layoutIcons.addView(createVoiceChip("音声復習", Color.parseColor("#FF9800")))
+                layoutIcons.addView(createStatusChip("音声復習", Color.parseColor("#FF9800"), R.drawable.ic_mic_24))
             }
 
             // Expand/Collapse logic
@@ -180,21 +181,38 @@ class LearningHistoryAdapter(
                 }
 
                 buttonSpellingCheck.apply {
-                    text = "スペル"
+                    text = context.getString(R.string.spelling_button_label)
                     setIconResource(R.drawable.ic_edit_24)
-                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F8F8F8"))
-                    strokeColor = ColorStateList.valueOf(Color.parseColor("#DDDDDD"))
-                    if (item.isSpellingEligible) {
-                        visibility = View.VISIBLE
-                        setOnClickListener { onSpellingCheckClick(item) }
-                    } else {
+                    
+                    val isEligible = item.isSpellingEligible
+                    val isCleared = item.spellingStatus == com.stulab.studylockapp.data.SpellingStatus.CLEARED
+                    
+                    if (!isEligible) {
                         visibility = View.GONE
+                    } else {
+                        visibility = View.VISIBLE
+                        isEnabled = isCleared
+                        
+                        if (isCleared) {
+                            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F8F8F8"))
+                            strokeColor = ColorStateList.valueOf(Color.parseColor("#DDDDDD"))
+                            setTextColor(Color.parseColor("#333333"))
+                            iconTint = ColorStateList.valueOf(Color.parseColor("#333333"))
+                        } else {
+                            // Disabled look
+                            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#EEEEEE"))
+                            strokeColor = ColorStateList.valueOf(Color.parseColor("#CCCCCC"))
+                            setTextColor(Color.parseColor("#999999"))
+                            iconTint = ColorStateList.valueOf(Color.parseColor("#999999"))
+                        }
+                        
+                        setOnClickListener { onSpellingCheckClick(item) }
                     }
                 }
             }
         }
 
-        private fun createVoiceChip(label: String, color: Int): View {
+        private fun createStatusChip(label: String, color: Int, iconRes: Int): View {
             val chip = LinearLayout(itemView.context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
@@ -212,7 +230,7 @@ class LearningHistoryAdapter(
             }
 
             val icon = ImageView(itemView.context).apply {
-                setImageResource(R.drawable.ic_mic_24)
+                setImageResource(iconRes)
                 imageTintList = ColorStateList.valueOf(Color.WHITE)
                 val iconSize = dpToPx(12f)
                 layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply {

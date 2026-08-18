@@ -39,12 +39,15 @@ class LearningHistoryActivity : AppCompatActivity() {
     private var allHistoryItems: List<WordHistoryItem> = emptyList()
     private var currentFilterGrade: Int? = null 
     private var currentSearchQuery: String = ""
+    private var currentPeriod: Int = 0 // 0: Daily, 1: Weekly
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityLearningHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        currentPeriod = intent.getIntExtra("EXTRA_PERIOD", 0)
 
         // Status bar & Display cutout handling (Maintaining initial padding)
         val initialAppBarTopPadding = binding.appBar.paddingTop
@@ -60,12 +63,24 @@ class LearningHistoryActivity : AppCompatActivity() {
         
         setupToolbar()
         setupNavigationTabs()
+        setupPeriodButtons()
         setupRecyclerView()
         setupFilters()
         setupChart()
         
         loadHistory()
-        loadChartData(0) // Default: Daily
+        loadChartData(currentPeriod)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val period = intent.getIntExtra("EXTRA_PERIOD", currentPeriod)
+        if (period != currentPeriod) {
+            currentPeriod = period
+            updatePeriodUI()
+            loadChartData(currentPeriod)
+        }
     }
 
     private fun setupToolbar() {
@@ -78,22 +93,56 @@ class LearningHistoryActivity : AppCompatActivity() {
      * 単語/テストの切り替えタブを設定
      */
     private fun setupNavigationTabs() {
-        // [単語] タブを現在地（選択状態）にする
-        binding.layoutTabs.buttonWordHistory.apply {
-            setBackgroundResource(R.drawable.bg_badge_navy_soft)
-            setTextColor(ContextCompat.getColor(context, R.color.navy_primary))
+        binding.layoutTabs.buttonSwitchHistory.setOnClickListener {
+            Log.d("HistoryTabs", "Switch to Test clicked")
+            val intent = Intent(this, PracticalHistoryActivity::class.java).apply {
+                putExtra("EXTRA_PERIOD", currentPeriod)
+                addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            }
+            startActivity(intent)
+            overridePendingTransition(0, 0)
+        }
+        
+        binding.layoutTabs.textSwitchLabel.text = getString(R.string.history_label_test)
+        binding.layoutTabs.buttonSwitchHistory.contentDescription = getString(R.string.history_cd_switch_test)
+    }
+
+    private fun setupPeriodButtons() {
+        updatePeriodUI()
+
+        binding.layoutTabs.buttonDaily.setOnClickListener {
+            if (currentPeriod != 0) {
+                currentPeriod = 0
+                updatePeriodUI()
+                loadChartData(0)
+            }
         }
 
-        // [テスト] タブをクリックして遷移
-        binding.layoutTabs.buttonTestHistory.apply {
-            setBackgroundResource(R.drawable.sl_button_bg)
-            setTextColor(Color.GRAY)
-            setOnClickListener {
-                Log.d("HistoryTabs", "Test tab clicked")
-                val intent = Intent(this@LearningHistoryActivity, PracticalHistoryActivity::class.java)
-                startActivity(intent)
-                overridePendingTransition(0, 0)
+        binding.layoutTabs.buttonWeekly.setOnClickListener {
+            if (currentPeriod != 1) {
+                currentPeriod = 1
+                updatePeriodUI()
+                loadChartData(1)
             }
+        }
+    }
+
+    private fun updatePeriodUI() {
+        val selectedBg = R.drawable.bg_badge_navy_soft
+        val unselectedBg = R.drawable.sl_button_bg
+        val selectedTextColor = ContextCompat.getColor(this, R.color.navy_primary)
+        val unselectedTextColor = ContextCompat.getColor(this, R.color.text_sub)
+
+        binding.layoutTabs.buttonDaily.apply {
+            setBackgroundResource(if (currentPeriod == 0) selectedBg else unselectedBg)
+            setTextColor(if (currentPeriod == 0) selectedTextColor else unselectedTextColor)
+            isSelected = currentPeriod == 0
+        }
+
+        binding.layoutTabs.buttonWeekly.apply {
+            setBackgroundResource(if (currentPeriod == 1) selectedBg else unselectedBg)
+            setTextColor(if (currentPeriod == 1) selectedTextColor else unselectedTextColor)
+            isSelected = currentPeriod == 1
         }
     }
 
@@ -188,14 +237,6 @@ class LearningHistoryActivity : AppCompatActivity() {
             }
             axisRight.isEnabled = false
         }
-
-        binding.tabLayoutPeriod.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                loadChartData(tab?.position ?: 0)
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
     }
 
     override fun onResume() {

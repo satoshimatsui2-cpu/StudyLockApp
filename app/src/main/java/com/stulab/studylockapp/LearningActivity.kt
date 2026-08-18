@@ -481,10 +481,10 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
             is LearningUiEvent.ShowCorrect -> {
                 val state = viewModel.uiState.value
-                if (state.silentMode == SilentMode.OFF) {
-                    soundEffectManager.playCorrect()
+                soundEffectManager.playCorrect()
 
-                    // SEと重ならないよう、少し遅らせて音声を自動再生
+                // SEと重ならないよう、少し遅らせて音声を自動再生 (サイレントモード時はスキップ)
+                if (state.silentMode == SilentMode.OFF) {
                     lifecycleScope.launch {
                         kotlinx.coroutines.delay(600) // 0.6秒待機
                         val audioText = when (state.quiz?.mode) {
@@ -515,19 +515,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             }
             is LearningUiEvent.ShowWrong -> {
                 val state = viewModel.uiState.value
-                if (!event.isUnknown && state.silentMode == SilentMode.OFF) {
+                if (!event.isUnknown) {
                     soundEffectManager.playWrong()
 
-                    // 不正解時もSEの後に音声を自動再生
-                    lifecycleScope.launch {
-                        kotlinx.coroutines.delay(800) // 不正解SEは少し長めなので0.8秒待機
-                        val audioText = when (state.quiz?.mode) {
-                            QuizMode.FILL_BLANK -> state.currentWord?.sentence
-                            QuizMode.SENTENCE_SORT -> state.currentWord?.sentence // 英文並び替えで文章を再生
-                            QuizMode.LISTEN_FILL_BLANK -> state.currentWord?.sentence
-                            else -> state.currentWord?.word
+                    // 不正解時もSEの後に音声を自動再生 (サイレントモード時はスキップ)
+                    if (state.silentMode == SilentMode.OFF) {
+                        lifecycleScope.launch {
+                            kotlinx.coroutines.delay(800) // 不正解SEは少し長めなので0.8秒待機
+                            val audioText = when (state.quiz?.mode) {
+                                QuizMode.FILL_BLANK -> state.currentWord?.sentence
+                                QuizMode.SENTENCE_SORT -> state.currentWord?.sentence // 英文並び替えで文章を再生
+                                QuizMode.LISTEN_FILL_BLANK -> state.currentWord?.sentence
+                                else -> state.currentWord?.word
+                            }
+                            audioText?.let { ttsController.speak(it) }
                         }
-                        audioText?.let { ttsController.speak(it) }
                     }
                 }
                 if (state.quiz?.mode == QuizMode.SENTENCE_SORT) {

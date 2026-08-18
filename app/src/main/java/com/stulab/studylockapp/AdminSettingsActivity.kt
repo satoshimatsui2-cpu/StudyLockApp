@@ -491,6 +491,9 @@ class AdminSettingsActivity : AppCompatActivity() {
             startActivity(intent)
         }
         findViewById<View>(R.id.button_show_qr)?.setOnClickListener { startActivity(Intent(this, QrCodeActivity::class.java)) }
+        findViewById<View>(R.id.button_manage_personal_words)?.setOnClickListener {
+            startActivity(Intent(this, com.stulab.studylockapp.ui.wordbook.MyWordBookActivity::class.java))
+        }
 
         fun secToProgress(sec: Long): Int = ((sec.coerceIn(10L, 600L) - 10L) / 5L).toInt()
         fun progressToSec(progress: Int): Long = 10L + (progress.coerceIn(0, 118) * 5L)

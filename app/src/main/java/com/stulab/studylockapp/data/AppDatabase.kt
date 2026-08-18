@@ -8,6 +8,14 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stulab.studylockapp.data.db.*
+import com.stulab.studylockapp.data.*
+import com.stulab.studylockapp.data.db.WordDao
+import com.stulab.studylockapp.data.db.StudyLogDao
+import com.stulab.studylockapp.data.db.WordMasteryDao
+import com.stulab.studylockapp.data.db.PracticalHistoryDao
+import com.stulab.studylockapp.data.db.FavoriteWordDao
+import com.stulab.studylockapp.data.db.ChoiceMeaningDao
+import com.stulab.studylockapp.data.db.ProgressSummaryDao
 
 @Database(
     entities = [
@@ -41,6 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun favoriteWordDao(): FavoriteWordDao
     abstract fun choiceMeaningDao(): ChoiceMeaningDao
     abstract fun spellingProgressDao(): SpellingProgressDao
+    abstract fun progressSummaryDao(): ProgressSummaryDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

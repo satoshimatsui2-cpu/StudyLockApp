@@ -6,8 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -22,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.stulab.studylockapp.R
+import com.stulab.studylockapp.SoundEffectManager
 import com.stulab.studylockapp.sanitizeForTts
 import com.stulab.studylockapp.data.AppDatabase
 import com.stulab.studylockapp.data.AppSettings
@@ -63,9 +62,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
     private var voiceCheckRecordedForCurrentAttempt = false
 
     // 効果音再生用
-    private lateinit var soundPool: SoundPool
-    private var soundSuccess: Int = 0
-    private var soundFailure: Int = 0
+    private lateinit var soundEffectManager: SoundEffectManager
 
     enum class UIState {
         IDLE,       // 待機中
@@ -113,7 +110,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         }
 
         setupDisplay()
-        setupSoundPool()
+        soundEffectManager = SoundEffectManager(this)
         tts = TextToSpeech(this, this)
 
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -186,33 +183,11 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
         }
     }
 
-    private fun setupSoundPool() {
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(1)
-            .setAudioAttributes(audioAttributes)
-            .build()
-        
-        try {
-            soundSuccess = soundPool.load(this, R.raw.se_correct, 1)
-            soundFailure = soundPool.load(this, R.raw.se_wrong, 1)
-        } catch (e: Exception) {
-            Log.e("PronunciationCheck", "Failed to load sounds", e)
-        }
-    }
-
     private fun playSound(isSuccess: Boolean) {
-        if (!::soundPool.isInitialized) return
-        val soundId = if (isSuccess) soundSuccess else soundFailure
-        if (soundId != 0) {
-            try {
-                soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
-            } catch (e: Exception) {
-                Log.e("PronunciationCheck", "Failed to play sound", e)
-            }
+        if (isSuccess) {
+            soundEffectManager.playCorrect()
+        } else {
+            soundEffectManager.playWrong()
         }
     }
 
@@ -763,9 +738,7 @@ class PronunciationCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListe
             stop()
             shutdown()
         }
-        if (::soundPool.isInitialized) {
-            soundPool.release()
-        }
+        soundEffectManager.release()
         super.onDestroy()
     }
 }

@@ -13,6 +13,9 @@ interface SpellingProgressDao {
     @Query("SELECT * FROM spelling_progress WHERE status != 'CLEARED' AND eligibleAt <= :now")
     suspend fun getEligibleProgresses(now: Long): List<SpellingProgressEntity>
 
+    @Query("SELECT * FROM spelling_progress WHERE wordId IN (SELECT `no` FROM words WHERE grade = :grade) AND status != 'CLEARED'")
+    suspend fun getEligibleProgressesByGrade(grade: Int): List<SpellingProgressEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(progress: SpellingProgressEntity)
 

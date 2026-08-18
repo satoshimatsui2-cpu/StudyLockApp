@@ -1,201 +1,263 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootSpellingCheck"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/app_background"
+    android:fitsSystemWindows="false"
     tools:context=".ui.SpellingCheckActivity">
 
-    <androidx.core.widget.NestedScrollView
+    <!-- Header Section -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutHeader"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/buttonClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/spelling_check_close"
+            android:src="@drawable/ic_close_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/text_sub" />
+
+        <TextView
+            android:id="@+id/textTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/spelling_check_label_spelling"
+            android:textColor="@color/text_main"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/text_sub"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="1 / 5" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Content Scroller -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollViewMain"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutHeader">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="24dp">
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="24dp">
 
-            <!-- ヘッダーエリア -->
-            <LinearLayout
-                android:id="@+id/layoutHeader"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <ImageView
-                    android:id="@+id/imageCharacterMini"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/mini_leo_joy" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/spelling_check_title"
-                        android:textColor="@color/text_sub"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/textProgress"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/text_main"
-                        android:textSize="12sp"
-                        tools:text="1 / 5" />
-                </LinearLayout>
-
-                <ImageButton
-                    android:id="@+id/buttonClose"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/spelling_check_close"
-                    android:src="@drawable/ic_close_24"
-                    app:tint="@color/text_sub" />
-            </LinearLayout>
-
-            <!-- 問題表示エリア -->
+            <!-- Question Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardQuestion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="4dp"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/app_outline"
                 app:cardBackgroundColor="@color/app_surface"
-                app:layout_constraintTop_toBottomOf="@id/layoutHeader">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:paddingStart="24dp"
+                    android:paddingTop="17dp"
+                    android:paddingEnd="24dp"
+                    android:paddingBottom="24dp">
 
                     <TextView
                         android:id="@+id/textMeaning"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:textColor="@color/text_main"
-                        android:textSize="28sp"
+                        android:textSize="29sp"
                         android:textStyle="bold"
+                        app:autoSizeMaxTextSize="29sp"
+                        app:autoSizeMinTextSize="18sp"
+                        app:autoSizeStepGranularity="1sp"
+                        app:autoSizeTextType="uniform"
                         tools:text="企業の" />
 
+                    <!-- POS Chip-like UI -->
                     <TextView
                         android:id="@+id/textPos"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:textColor="@color/text_sub"
-                        android:textSize="16sp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_status_chip"
+                        android:backgroundTint="@color/navy_soft"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/navy_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
                         tools:text="形容詞" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonListen"
-                        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="@string/spelling_check_listen"
-                        app:icon="@drawable/ic_volume_up_24" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 入力エリア -->
-            <TextView
-                android:id="@+id/textInstruction"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:text="@string/spelling_check_instruction"
-                android:textColor="@color/text_sub"
-                android:textSize="14sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/cardQuestion" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/inputLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:layout_constraintTop_toBottomOf="@id/textInstruction">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editSpelling"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:inputType="textNoSuggestions|textVisiblePassword|textFilter"
-                    android:imeOptions="actionDone"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:maxLines="1" />
-            </com.google.android.material.textfield.TextInputLayout>
-
+            <!-- Hint and Warning Messages -->
             <LinearLayout
-                android:id="@+id/layoutActions"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="horizontal"
-                app:layout_constraintTop_toBottomOf="@id/inputLayout">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonHint"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="64dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:text="@string/spelling_check_hint"
-                    app:cornerRadius="12dp"
-                    app:strokeColor="#BDBDBD" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonSubmit"
-                    android:layout_width="0dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:text="@string/spelling_check_submit"
-                    app:backgroundTint="#3F51B5"
-                    app:cornerRadius="12dp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/textHint"
+                android:id="@+id/layoutMessages"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:gravity="center"
-                android:textColor="@color/text_sub"
-                android:textSize="16sp"
-                android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/layoutActions"
-                tools:text="ヒント：9文字"
-                tools:visibility="visible" />
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/cardQuestion">
+
+                <TextView
+                    android:id="@+id/textHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_main"
+                    android:textSize="16sp"
+                    android:visibility="gone"
+                    tools:text="ヒント：9文字"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <!-- Input and Buttons Area -->
+            <LinearLayout
+                android:id="@+id/layoutControls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layoutMessages"
+                app:layout_constraintVertical_bias="1.0">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/inputLayout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="4"
+                        android:hint="@string/spelling_check_label_input"
+                        app:boxCornerRadiusBottomEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusTopStart="16dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editSpelling"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:imeOptions="actionDone"
+                            android:importantForAutofill="no"
+                            android:inputType="textVisiblePassword|textNoSuggestions"
+                            android:maxLines="1"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonListen"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_marginStart="8dp"
+                        android:padding="0dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        app:backgroundTint="@color/navy_primary"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_volume_up_24"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconSize="32dp"
+                        app:iconTint="@color/white"
+                        android:contentDescription="@string/spelling_check_cd_play_word" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonHint"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:text="@string/spelling_check_hint"
+                            app:cornerRadius="16dp" />
+
+                        <TextView
+                            android:id="@+id/textHintWarning"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="@string/spelling_check_hint_warning"
+                            android:textColor="#C62828"
+                            android:textSize="11sp"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonSubmit"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:text="@string/spelling_check_submit"
+                        android:textColor="@color/white"
+                        app:backgroundTint="@color/navy_primary"
+                        app:cornerRadius="16dp"
+                        app:iconTint="@color/white" />
+                </LinearLayout>
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

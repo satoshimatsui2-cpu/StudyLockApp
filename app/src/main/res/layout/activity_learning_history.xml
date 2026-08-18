@@ -31,18 +31,6 @@
                 android:orientation="vertical"
                 android:paddingBottom="16dp">
 
-                <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/tab_layout_period"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:tabMode="fixed"
-                    app:tabGravity="fill"
-                    app:tabIndicatorColor="#1A237E"
-                    app:tabSelectedTextColor="#1A237E">
-                    <com.google.android.material.tabs.TabItem android:text="日次" />
-                    <com.google.android.material.tabs.TabItem android:text="週次" />
-                </com.google.android.material.tabs.TabLayout>
-
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/bar_chart"
                     android:layout_width="match_parent"

@@ -305,6 +305,15 @@
     <string name="label_graph_period_change">グラフ表示の切り替え</string>
     <string name="label_grade_filter">級フィルタ</string>
 
+    <string name="history_period_daily">日次</string>
+    <string name="history_period_weekly">週次</string>
+    <string name="history_cd_daily">日次の履歴を表示</string>
+    <string name="history_cd_weekly">週次の履歴を表示</string>
+    <string name="history_cd_switch_test">テスト履歴へ切り替え</string>
+    <string name="history_cd_switch_word">単語履歴へ切り替え</string>
+    <string name="history_label_test">テスト</string>
+    <string name="history_label_word">単語</string>
+
     <!-- 実践テスト履歴用 -->
     <string name="practical_history_type_grade">%1$s問題 / %2$d級</string>
     <string name="practical_history_points_format">%1$s pt</string>
@@ -345,6 +354,7 @@
     <!-- My Word Book -->
     <string name="my_word_book_title">My単語帳</string>
     <string name="cd_my_word_book">My単語帳の管理</string>
+    <string name="my_word_book_admin_desc">登録した単語の確認・編集</string>
     <string name="my_word_book_description">決められた形式のTSVファイルを読み込んで、自分だけの単語帳を作れます。</string>
     <string name="my_word_book_import">インポート</string>
     <string name="my_word_book_replace">入れ替え</string>
@@ -368,6 +378,8 @@
     <string name="action_play_word">%1$sを再生</string>
 
     <string name="spelling_check_title">特別問題 スペルチェック</string>
+    <string name="spelling_check_label_special">特別問題</string>
+    <string name="spelling_check_label_spelling">スペルチェック</string>
     <string name="spelling_check_instruction">英語を入力してください</string>
     <string name="spelling_check_hint">ヒント</string>
     <string name="spelling_check_submit">回答する</string>
@@ -391,4 +403,45 @@
     <string name="spelling_status_cleared">クリア</string>
     <string name="spelling_status_locked">未解放</string>
     <string name="spelling_button_label">スペル</string>
+    <string name="action_spelling_check">スペルチェック</string>
+    <string name="cd_spelling_check">スペルチェックを開始する</string>
+    <string name="spelling_no_eligible_words">この級では、まだスペルチェックに挑戦できる単語がありません。まずは通常学習に挑戦しましょう。</string>
+    <string name="spelling_all_cleared">この級のスペルチェックはすべてクリア済みです。</string>
+
+    <!-- Part of Speech -->
+    <string name="pos_noun">名詞</string>
+    <string name="pos_verb">動詞</string>
+    <string name="pos_adjective">形容詞</string>
+    <string name="pos_adverb">副詞</string>
+    <string name="pos_pronoun">代名詞</string>
+    <string name="pos_preposition">前置詞</string>
+    <string name="pos_conjunction">接続詞</string>
+    <string name="pos_interjection">間投詞</string>
+    <string name="pos_article">冠詞</string>
+    <string name="pos_determiner">限定詞</string>
+    <string name="pos_auxiliary">助動詞</string>
+    <string name="pos_modal_verb">法助動詞</string>
+    <string name="pos_proper_noun">固有名詞</string>
+    <string name="pos_numeral">数詞</string>
+    <string name="pos_phrase">熟語・句</string>
+    <string name="pos_idiom">慣用句</string>
+    <string name="pos_phrasal_verb">句動詞</string>
+    <string name="pos_prepositional_phrase">前置詞句</string>
+    <string name="pos_sentence">文</string>
+    <string name="pos_other">その他</string>
+    <string name="label_progress_detail">進捗</string>
+    <string name="label_short_term">短期習得</string>
+    <string name="label_long_term">長期習得</string>
+    <string name="label_spelling">スペル</string>
+    <string name="label_word_pronunciation">単語発音</string>
+    <string name="label_sentence_pronunciation">例文発音</string>
+    <string name="label_grade_selection_title">出題レベルを選択</string>
+    <string name="label_grade_unavailable">%1$s（準備中）</string>
+    <string name="spelling_check_hint_warning">ヒントを使用したため、この問題はスペルOKにはカウントされません。</string>
+    <string name="spelling_check_practice_result">正しいスペルです（今回は練習扱い）</string>
+    <string name="spelling_check_label_input">英語を入力</string>
+    <string name="spelling_check_cd_play_word">問題の英語を再生</string>
+    <string name="spelling_check_silent_mode_title">サイレントモード中です</string>
+    <string name="spelling_check_silent_mode_message">音声を再生するには、サイレントモードを解除してください。</string>
+    <string name="spelling_check_silent_mode_unlock">解除して再生</string>
 </resources>

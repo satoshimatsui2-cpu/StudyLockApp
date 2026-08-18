@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.transition.TransitionManager
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -17,7 +20,6 @@ import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.PointManager
 import com.stulab.studylockapp.data.StudyHistoryRepository
 import com.stulab.studylockapp.service.NotificationPermissionHelper
-import com.stulab.studylockapp.ui.GradeBottomSheet
 import com.stulab.studylockapp.ui.LearningHistoryActivity
 import com.stulab.studylockapp.ui.PointHistoryActivity
 import com.stulab.studylockapp.ui.alert.AppDialogHelper
@@ -27,6 +29,12 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
 import com.stulab.studylockapp.data.FcmTokenRepository
+import com.stulab.studylockapp.data.ProgressRepository
+import com.stulab.studylockapp.ui.GradeSelectionDialogFragment
+import com.stulab.studylockapp.ui.ProgressMetricUiModel
+import com.stulab.studylockapp.ui.TopProgressUiModel
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appSettings: AppSettings
     private lateinit var pointManager: PointManager
     private lateinit var notificationHelper: NotificationPermissionHelper
+    private lateinit var progressRepository: ProgressRepository
     
     private var hasShownTargetGradeSetupAlert = false
     private var hasShownNotificationPrompt = false
@@ -55,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         appSettings = AppSettings(this)
         pointManager = PointManager(this)
         notificationHelper = NotificationPermissionHelper(this)
+        progressRepository = ProgressRepository(AppDatabase.getInstance(this))
 
         // 匿名ログインの実行（Firestore連携に必須）
         ensureAuth()
@@ -77,8 +87,10 @@ class MainActivity : AppCompatActivity() {
         setupAdminSettingsNavigation()
         setupLearningHistoryNavigation()
         setupCharacterAndFriendNavigation()
-        setupMyWordBookNavigation()
+        setupProgressAccordion()
+        setupSpellingCheckStart()
         updatePointDisplay()
+        updateProgressDisplay()
     }
 
     private fun ensureAuth() {
@@ -206,6 +218,7 @@ class MainActivity : AppCompatActivity() {
         updateGradeDisplay()
         updatePointDisplay()
         updateQuotaDisplay()
+        updateProgressDisplay()
     }
 
     /**
@@ -412,19 +425,17 @@ class MainActivity : AppCompatActivity() {
      * 級選択に関連するUIのセットアップ
      */
     private fun setupGradeSection() {
-        val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
+        val selectGradeButton = findViewById<MaterialButton>(R.id.button_select_grade)
         val goalStamp = findViewById<View>(R.id.layout_goal_stamp)
         
-        if (gradeButton != null) {
-            // 級選択ボタンのクリックリスナー (現在の学習級)
-            gradeButton.setOnClickListener {
-                val bottomSheet = GradeBottomSheet { selectedGrade ->
-                    appSettings.currentLearningGrade = selectedGrade
-                    updateGradeDisplay()
-                    updateQuotaDisplay()
-                }
-                bottomSheet.show(supportFragmentManager, "GradeBottomSheet")
+        selectGradeButton?.setOnClickListener {
+            val dialog = GradeSelectionDialogFragment.newInstance { selectedGrade ->
+                appSettings.currentLearningGrade = selectedGrade
+                updateGradeDisplay()
+                updateQuotaDisplay()
+                updateProgressDisplay()
             }
+            dialog.show(supportFragmentManager, "GradeSelectionDialog")
         }
 
         if (goalStamp != null) {
@@ -439,13 +450,14 @@ class MainActivity : AppCompatActivity() {
      * 表示されている級のテキストを更新
      */
     private fun updateGradeDisplay() {
-        val gradeButton = findViewById<TextView>(R.id.spinner_grade_top)
+        val selectGradeButton = findViewById<MaterialButton>(R.id.button_select_grade)
         val goalPrefixText = findViewById<TextView>(R.id.text_goal_prefix)
 
-        if (gradeButton != null && goalPrefixText != null) {
+        if (selectGradeButton != null && goalPrefixText != null) {
             // 学習中の級を表示
             val learningDisplay = GradeUtils.toDisplay(appSettings.safeLearningGrade, appSettings)
-            gradeButton.text = learningDisplay
+            selectGradeButton.text = learningDisplay
+            selectGradeButton.contentDescription = "現在の出題レベルは${learningDisplay}。変更"
 
             // ポイント計算の基準となる目標級を表示
             if (appSettings.isTargetLearningGradeSet) {
@@ -464,6 +476,51 @@ class MainActivity : AppCompatActivity() {
         val startButton = findViewById<TextView>(R.id.button_to_learning)
         startButton?.setOnClickListener {
             startActivity(Intent(this, LearningActivity::class.java))
+        }
+    }
+
+    /**
+     * スペルチェック開始ボタンのセットアップ
+     */
+    private fun setupSpellingCheckStart() {
+        val button = findViewById<MaterialButton>(R.id.button_to_spelling_check)
+        button?.setOnClickListener {
+            val gradeStr = appSettings.safeLearningGrade
+            val gradeInt = gradeStr.toIntOrNull() ?: 3
+            
+            lifecycleScope.launch {
+                val db = AppDatabase.getInstance(this@MainActivity)
+                val spellingRepo = com.stulab.studylockapp.data.SpellingRepository(db)
+                
+                // Get eligible words based on study history
+                val eligibleWords = withContext(Dispatchers.IO) {
+                    spellingRepo.getEligibleWordsByGrade(gradeInt)
+                }
+                
+                if (eligibleWords.isEmpty()) {
+                    val totalStudiedEligible = withContext(Dispatchers.IO) {
+                        spellingRepo.getTotalStudyCountByGrade(gradeInt)
+                    }
+                    
+                    val message = if (totalStudiedEligible == 0) {
+                        getString(R.string.spelling_no_eligible_words)
+                    } else {
+                        getString(R.string.spelling_all_cleared)
+                    }
+                    
+                    AppDialogHelper.showInfo(
+                        context = this@MainActivity,
+                        title = getString(R.string.action_spelling_check),
+                        message = message,
+                        positiveText = getString(R.string.ok)
+                    )
+                } else {
+                    val intent = Intent(this@MainActivity, com.stulab.studylockapp.ui.SpellingCheckActivity::class.java).apply {
+                        putExtra("GRADE", gradeInt)
+                    }
+                    startActivity(intent)
+                }
+            }
         }
     }
 
@@ -500,20 +557,61 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * マイ単語帳画面への遷移セットアップ
+     * 進捗アコーディオンのセットアップ
      */
-    private fun setupMyWordBookNavigation() {
-        findViewById<View>(R.id.button_to_my_word_book)?.setOnClickListener {
-            openMyWordBook()
+    private fun setupProgressAccordion() {
+        val toggleButton = findViewById<MaterialButton>(R.id.button_toggle_progress)
+        val accordion = findViewById<View>(R.id.layout_progress_accordion)
+        val card = findViewById<ViewGroup>(R.id.card_mission)
+
+        toggleButton?.contentDescription = "学習進捗を開く"
+
+        toggleButton?.setOnClickListener {
+            TransitionManager.beginDelayedTransition(card)
+            if (accordion?.visibility == View.VISIBLE) {
+                accordion.visibility = View.GONE
+                toggleButton.setIconResource(R.drawable.ic_expand_more_24)
+                toggleButton.contentDescription = "学習進捗を開く"
+            } else {
+                accordion?.visibility = View.VISIBLE
+                toggleButton.setIconResource(R.drawable.ic_expand_less_24)
+                toggleButton.contentDescription = "学習進捗を閉じる"
+                updateProgressDisplay()
+            }
         }
     }
 
     /**
-     * マイ単語帳画面を開く。
-     * 将来的に有料判定などをここに追加できる構成。
+     * 学習進捗の表示を更新
      */
-    private fun openMyWordBook() {
-        startActivity(Intent(this, com.stulab.studylockapp.ui.wordbook.MyWordBookActivity::class.java))
+    private fun updateProgressDisplay() {
+        val accordion = findViewById<View>(R.id.layout_progress_accordion)
+        if (accordion?.visibility != View.VISIBLE) return
+
+        val gradeStr = appSettings.safeLearningGrade
+        val gradeInt = gradeStr.toIntOrNull() ?: 3
+
+        lifecycleScope.launch {
+            val progress = withContext(Dispatchers.IO) {
+                progressRepository.getTopProgress(this@MainActivity, gradeInt)
+            }
+
+            updateProgressRow(R.id.row_short_term, progress.shortTerm)
+            updateProgressRow(R.id.row_long_term, progress.longTerm)
+            updateProgressRow(R.id.row_spelling, progress.spelling)
+            updateProgressRow(R.id.row_word_pron, progress.wordPronunciation)
+            updateProgressRow(R.id.row_sentence_pron, progress.sentencePronunciation)
+        }
+    }
+
+    private fun updateProgressRow(rowId: Int, metric: ProgressMetricUiModel) {
+        val row = findViewById<View>(rowId) ?: return
+        row.findViewById<ImageView>(R.id.image_metric_icon).setImageResource(metric.iconResId)
+        row.findViewById<TextView>(R.id.text_metric_label).text = metric.label
+        row.findViewById<TextView>(R.id.text_metric_value).text = metric.displayText
+        row.findViewById<LinearProgressIndicator>(R.id.progress_metric).progress = metric.percentage
+        
+        row.contentDescription = "${metric.label}、${metric.completedCount}件、${metric.percentage}パーセント"
     }
 
     /**

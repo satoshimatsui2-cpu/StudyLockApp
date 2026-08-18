@@ -43,12 +43,15 @@ class PracticalHistoryActivity : AppCompatActivity() {
     private lateinit var adapter: PracticalHistoryAdapter
 
     private var ttsController: PracticalListeningTtsController? = null
+    private var currentPeriod: Int = 0 // 0: Daily, 1: Weekly
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityPracticalHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        currentPeriod = intent.getIntExtra("EXTRA_PERIOD", 0)
 
         // Status bar & Display cutout handling
         val initialAppBarTopPadding = binding.appBar.paddingTop
@@ -64,11 +67,22 @@ class PracticalHistoryActivity : AppCompatActivity() {
         ttsController = PracticalListeningTtsController(this)
 
         setupNavigationTabs()
+        setupPeriodButtons()
         setupFilters()
         setupRecyclerView()
         observeViewModel()
 
         viewModel.loadHistory("ALL")
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val period = intent.getIntExtra("EXTRA_PERIOD", currentPeriod)
+        if (period != currentPeriod) {
+            currentPeriod = period
+            updatePeriodUI()
+        }
     }
 
     override fun onDestroy() {
@@ -77,21 +91,56 @@ class PracticalHistoryActivity : AppCompatActivity() {
     }
 
     private fun setupNavigationTabs() {
-        // 現在の画面（テスト）を選択状態にする
-        binding.layoutTabs.buttonTestHistory.apply {
-            setBackgroundResource(R.drawable.bg_badge_navy_soft)
-            setTextColor(ContextCompat.getColor(context, R.color.navy_primary))
+        binding.layoutTabs.buttonSwitchHistory.setOnClickListener {
+            Log.d("HistoryTabs", "Switch to Word clicked")
+            val intent = Intent(this, LearningHistoryActivity::class.java).apply {
+                putExtra("EXTRA_PERIOD", currentPeriod)
+                addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            }
+            startActivity(intent)
+            overridePendingTransition(0, 0)
         }
 
-        binding.layoutTabs.buttonWordHistory.apply {
-            setBackgroundResource(R.drawable.sl_button_bg)
-            setTextColor(Color.GRAY)
-            setOnClickListener {
-                Log.d("HistoryTabs", "Word tab clicked")
-                val intent = Intent(this@PracticalHistoryActivity, LearningHistoryActivity::class.java)
-                startActivity(intent)
-                overridePendingTransition(0, 0)
+        binding.layoutTabs.textSwitchLabel.text = getString(R.string.history_label_word)
+        binding.layoutTabs.buttonSwitchHistory.contentDescription = getString(R.string.history_cd_switch_word)
+    }
+
+    private fun setupPeriodButtons() {
+        updatePeriodUI()
+
+        binding.layoutTabs.buttonDaily.setOnClickListener {
+            if (currentPeriod != 0) {
+                currentPeriod = 0
+                updatePeriodUI()
+                // 実践テスト側で期間フィルタが必要な場合はここでViewModelを呼ぶ
             }
+        }
+
+        binding.layoutTabs.buttonWeekly.setOnClickListener {
+            if (currentPeriod != 1) {
+                currentPeriod = 1
+                updatePeriodUI()
+                // 実践テスト側で期間フィルタが必要な場合はここでViewModelを呼ぶ
+            }
+        }
+    }
+
+    private fun updatePeriodUI() {
+        val selectedBg = R.drawable.bg_badge_navy_soft
+        val unselectedBg = R.drawable.sl_button_bg
+        val selectedTextColor = ContextCompat.getColor(this, R.color.navy_primary)
+        val unselectedTextColor = ContextCompat.getColor(this, R.color.text_sub)
+
+        binding.layoutTabs.buttonDaily.apply {
+            setBackgroundResource(if (currentPeriod == 0) selectedBg else unselectedBg)
+            setTextColor(if (currentPeriod == 0) selectedTextColor else unselectedTextColor)
+            isSelected = currentPeriod == 0
+        }
+
+        binding.layoutTabs.buttonWeekly.apply {
+            setBackgroundResource(if (currentPeriod == 1) selectedBg else unselectedBg)
+            setTextColor(if (currentPeriod == 1) selectedTextColor else unselectedTextColor)
+            isSelected = currentPeriod == 1
         }
     }
 

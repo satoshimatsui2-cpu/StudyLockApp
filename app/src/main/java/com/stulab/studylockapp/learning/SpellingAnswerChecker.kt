@@ -11,10 +11,14 @@ object SpellingAnswerChecker {
     }
 
     private fun normalize(text: String): String {
-        return Normalizer.normalize(text, Normalizer.Form.NFKC)
+        val base = Normalizer.normalize(text, Normalizer.Form.NFKC)
             .trim()
             .lowercase(Locale.ROOT)
             .replace(Regex("\\s+"), " ") // 連続空白の統一
             .replace('’', '\'') // ’を'へ統一
+
+        // 末尾の特定の記号 (. , ! ? …) を無視して比較するための除去
+        // 注意: 単語内部のアポストロフィなどは保持する
+        return base.replace(Regex("[.,!?…]+$"), "").trim()
     }
 }

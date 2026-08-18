@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
 import com.stulab.studylockapp.data.AppSettings
+import com.stulab.studylockapp.data.SilentMode
 
 /**
  * 正解・不正解の効果音（SE）を管理するクラス。
@@ -32,9 +33,10 @@ class SoundEffectManager(private val context: Context) {
     }
 
     /**
-     * 正解音を再生（AppSettings の音量を反映）
+     * 正解音を再生（AppSettings の音量およびサイレントモード設定を反映）
      */
     fun playCorrect() {
+        if (appSettings.silentMode == SilentMode.ON) return
         val volume = appSettings.seCorrectVolume
         if (seCorrectId != 0) {
             soundPool?.play(seCorrectId, volume, volume, 1, 0, 1f)
@@ -42,9 +44,10 @@ class SoundEffectManager(private val context: Context) {
     }
 
     /**
-     * 不正解音を再生（AppSettings の音量を反映）
+     * 不正解音を再生（AppSettings の音量およびサイレントモード設定を反映）
      */
     fun playWrong() {
+        if (appSettings.silentMode == SilentMode.ON) return
         val volume = appSettings.seWrongVolume
         if (seWrongId != 0) {
             soundPool?.play(seWrongId, volume, volume, 1, 0, 1f)

@@ -111,6 +111,9 @@ interface WordDao {
     """)
     suspend fun getLearningHistory(): List<WordHistoryQueryResult>
 
+    @Query("SELECT * FROM words WHERE grade = :grade")
+    suspend fun getWordsByGrade(grade: Int): List<WordEntity>
+
     @Query("DELETE FROM words")
     suspend fun deleteAll()
 
