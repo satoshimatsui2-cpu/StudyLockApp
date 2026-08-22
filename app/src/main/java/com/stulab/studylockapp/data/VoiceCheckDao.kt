@@ -1,6 +1,7 @@
 package com.stulab.studylockapp.data
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface VoiceCheckDao {
@@ -12,6 +13,12 @@ interface VoiceCheckDao {
 
     @Query("SELECT * FROM voice_check_results WHERE wordId = :wordId AND checkType = :checkType")
     suspend fun getResult(wordId: Long, checkType: String = "word"): VoiceCheckResultEntity?
+
+    @Query("SELECT COUNT(DISTINCT wordId) FROM voice_check_results WHERE wordId IN (SELECT `no` FROM words WHERE grade = :grade) AND checkType = 'word' AND checked = 1")
+    fun countPassedPronunciationWordsFlow(grade: Int): Flow<Int>
+
+    @Query("SELECT COUNT(DISTINCT `no`) FROM words WHERE grade = :grade AND `no` IN (SELECT wordId FROM word_mastery WHERE challengeCount > 0) AND `no` NOT IN (SELECT wordId FROM voice_check_results WHERE checkType = 'word' AND checked = 1)")
+    fun countEligiblePronunciationWordsFlow(grade: Int): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(entity: VoiceCheckResultEntity): Long

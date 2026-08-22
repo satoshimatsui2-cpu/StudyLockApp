@@ -79,9 +79,69 @@ class AppSettings(context: Context) {
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_MY_WORD_BOOK_NAME_PREFIX = "my_word_book_name_"
 
+        private const val KEY_ACTIVE_PRON_CHALLENGE_IDS = "active_pron_challenge_ids"
+        private const val KEY_PRON_CHALLENGE_INDEX = "pron_challenge_index"
+        private const val KEY_PRON_CHALLENGE_STATUS = "pron_challenge_status"
+
+        private const val KEY_ACTIVE_SPELL_CHALLENGE_IDS = "active_spell_challenge_ids"
+        private const val KEY_SPELL_CHALLENGE_INDEX = "spell_challenge_index"
+        private const val KEY_SPELL_CHALLENGE_STATUS = "spell_challenge_status"
+
         fun getPrefs(context: Context) =
             context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
+
+    var spellChallengeIndex: Int
+        get() = prefs.getInt(KEY_SPELL_CHALLENGE_INDEX, 0)
+        set(v) = prefs.edit { putInt(KEY_SPELL_CHALLENGE_INDEX, v) }
+
+    var spellChallengeStatus: String?
+        get() = prefs.getString(KEY_SPELL_CHALLENGE_STATUS, null)
+        set(v) = prefs.edit { putString(KEY_SPELL_CHALLENGE_STATUS, v) }
+
+    fun clearSpellingChallenge() {
+        prefs.edit {
+            remove(KEY_ACTIVE_SPELL_CHALLENGE_IDS)
+            remove(KEY_SPELL_CHALLENGE_INDEX)
+            remove(KEY_SPELL_CHALLENGE_STATUS)
+        }
+    }
+
+    var pronChallengeIndex: Int
+        get() = prefs.getInt(KEY_PRON_CHALLENGE_INDEX, 0)
+        set(v) = prefs.edit { putInt(KEY_PRON_CHALLENGE_INDEX, v) }
+
+    var pronChallengeStatus: String?
+        get() = prefs.getString(KEY_PRON_CHALLENGE_STATUS, null)
+        set(v) = prefs.edit { putString(KEY_PRON_CHALLENGE_STATUS, v) }
+
+    fun clearPronunciationChallenge() {
+        prefs.edit {
+            remove(KEY_ACTIVE_PRON_CHALLENGE_IDS)
+            remove(KEY_PRON_CHALLENGE_INDEX)
+            remove(KEY_PRON_CHALLENGE_STATUS)
+        }
+    }
+
+    var activePronunciationChallengeIds: List<Long>?
+        get() = prefs.getString(KEY_ACTIVE_PRON_CHALLENGE_IDS, null)
+            ?.split(",")
+            ?.mapNotNull { it.trim().toLongOrNull() }
+            ?.takeIf { it.size == 3 }
+        set(v) = prefs.edit { 
+            if (v == null) remove(KEY_ACTIVE_PRON_CHALLENGE_IDS) 
+            else putString(KEY_ACTIVE_PRON_CHALLENGE_IDS, v.joinToString(","))
+        }
+
+    var activeSpellingChallengeIds: List<Long>?
+        get() = prefs.getString(KEY_ACTIVE_SPELL_CHALLENGE_IDS, null)
+            ?.split(",")
+            ?.mapNotNull { it.trim().toLongOrNull() }
+            ?.takeIf { it.size == 5 }
+        set(v) = prefs.edit { 
+            if (v == null) remove(KEY_ACTIVE_SPELL_CHALLENGE_IDS) 
+            else putString(KEY_ACTIVE_SPELL_CHALLENGE_IDS, v.joinToString(","))
+        }
 
     // --- Timing Implementation ---
 

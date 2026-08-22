@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stulab.studylockapp.data.TsvImporter
 import com.stulab.studylockapp.data.PointManager
+import com.stulab.studylockapp.data.ChallengePointManager
 import com.stulab.studylockapp.data.db.ChoiceMeaningDao
 import com.stulab.studylockapp.data.db.WordDao
 import com.stulab.studylockapp.data.WordEntity
@@ -39,6 +40,7 @@ class LearningViewModel(
     private val masteryDao: WordMasteryDao,
     private val quizManager: QuizManager,
     private val pointManager: PointManager,
+    private val challengePointManager: ChallengePointManager,
     private val audioChecker: LearningAudioStateChecker,
     private val requiredWarningText: String,
     private val optionalWarningText: String,
@@ -63,6 +65,7 @@ class LearningViewModel(
         LearningUiState(
             totalSteps = totalCount,
             totalPoints = pointManager.getTotal(),
+            challengePoints = challengePointManager.getCP(),
             selectedCharacterId = appSettings.selectedCharacterId,
             userName = appSettings.userName ?: "きみ"
         )
@@ -219,7 +222,8 @@ class LearningViewModel(
             // ★ 何より先にノルマ数値を最新化する (待ち画面でも総数を表示させるため)
             updateQuotaInternal()
 
-            // セッション開始時にスペルチェック誘導の判定を行う
+            /*
+            // セッション開始時にスペルチェック誘導の判定を行う (CP方式へ移行のため無効化)
             if (solvedInSession == 0 && !hasPromptedSpellingInSession) {
                 val now = System.currentTimeMillis()
                 val eligibleWords = spellingRepo.getEligibleWordsForPrompt(now)
@@ -231,6 +235,7 @@ class LearningViewModel(
                     return@launch
                 }
             }
+            */
 
             val quiz = quizManager.nextQuiz()
             
@@ -451,7 +456,8 @@ class LearningViewModel(
     fun refreshPoints() {
         viewModelScope.launch {
             val total = withContext(Dispatchers.IO) { pointManager.getTotal() }
-            _uiState.update { it.copy(totalPoints = total) }
+            val cp = withContext(Dispatchers.IO) { challengePointManager.getCP() }
+            _uiState.update { it.copy(totalPoints = total, challengePoints = cp) }
         }
     }
 
@@ -573,6 +579,7 @@ class LearningViewModel(
                 val res = quizManager.submitAnswer(currentQuiz.word, isCorrect, currentQuiz.mode, timingSettings, isUnknown)
                 if (isCorrect) {
                     pointManager.add(gainedPoints)
+                    challengePointManager.addCP(1) // 通常正解で +1 CP
                 }
                 res
             }
@@ -586,7 +593,8 @@ class LearningViewModel(
             if (isLevelUp) levelUpsInSession++
             
             if (oldLevel < 5 && newLevel == 5) {
-                _uiEvent.send(LearningUiEvent.ShowLevel5BonusInduction(currentQuiz.word))
+                // 自動的な出題誘導は削除 (CP方式へ移行)
+                // _uiEvent.send(LearningUiEvent.ShowLevel5BonusInduction(currentQuiz.word))
                 spellingRepo.unlockIfNeeded(currentQuiz.word.no)
             }
 
@@ -794,6 +802,7 @@ class LearningViewModel(
 
             // 加算後の総保有ポイントを取得
             val latestTotal = pointManager.getTotal()
+            val latestCP = challengePointManager.getCP()
 
             val flyingModel = if (masteryResult.isFlyingLevelUp) {
                 FlyingLevelUpUiModel(
@@ -808,6 +817,7 @@ class LearningViewModel(
                 state.copy(
                     comboCount = if (isCorrect) state.comboCount + 1 else 0, 
                     totalPoints = latestTotal,
+                    challengePoints = latestCP,
                     progress = ((solvedInSession * 100) / totalCount).coerceAtMost(100),
                     currentTier = newTier,
                     currentLevel = newLevel,

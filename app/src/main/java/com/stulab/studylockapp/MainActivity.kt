@@ -28,6 +28,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
+import com.stulab.studylockapp.data.ChallengePointManager
 import com.stulab.studylockapp.data.FcmTokenRepository
 import com.stulab.studylockapp.data.ProgressRepository
 import com.stulab.studylockapp.ui.GradeSelectionDialogFragment
@@ -36,6 +37,7 @@ import com.stulab.studylockapp.ui.TopProgressUiModel
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
@@ -48,6 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appSettings: AppSettings
     private lateinit var pointManager: PointManager
+    private lateinit var challengePointManager: ChallengePointManager
     private lateinit var notificationHelper: NotificationPermissionHelper
     private lateinit var progressRepository: ProgressRepository
     
@@ -63,6 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         appSettings = AppSettings(this)
         pointManager = PointManager(this)
+        challengePointManager = ChallengePointManager(this)
         notificationHelper = NotificationPermissionHelper(this)
         progressRepository = ProgressRepository(AppDatabase.getInstance(this))
 
@@ -89,8 +93,21 @@ class MainActivity : AppCompatActivity() {
         setupCharacterAndFriendNavigation()
         setupProgressAccordion()
         setupSpellingCheckStart()
+        setupChallengePointDisplay()
         updatePointDisplay()
         updateProgressDisplay()
+    }
+
+    private fun setupChallengePointDisplay() {
+        val cpText = findViewById<TextView>(R.id.text_cp_balance_top)
+        val cpLayout = findViewById<View>(R.id.layout_cp_top)
+        
+        lifecycleScope.launch {
+            challengePointManager.getCPFlow().collectLatest { cp ->
+                cpText?.text = "$cp CP"
+                cpLayout?.contentDescription = "チャレンジポイント：${cp}CP"
+            }
+        }
     }
 
     private fun ensureAuth() {
@@ -480,47 +497,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * スペルチェック開始ボタンのセットアップ
+     * スキルチャレンジ開始ボタンのセットアップ
      */
     private fun setupSpellingCheckStart() {
         val button = findViewById<MaterialButton>(R.id.button_to_spelling_check)
+        button?.text = "スキルチャレンジ"
         button?.setOnClickListener {
-            val gradeStr = appSettings.safeLearningGrade
-            val gradeInt = gradeStr.toIntOrNull() ?: 3
-            
-            lifecycleScope.launch {
-                val db = AppDatabase.getInstance(this@MainActivity)
-                val spellingRepo = com.stulab.studylockapp.data.SpellingRepository(db)
-                
-                // Get eligible words based on study history
-                val eligibleWords = withContext(Dispatchers.IO) {
-                    spellingRepo.getEligibleWordsByGrade(gradeInt)
-                }
-                
-                if (eligibleWords.isEmpty()) {
-                    val totalStudiedEligible = withContext(Dispatchers.IO) {
-                        spellingRepo.getTotalStudyCountByGrade(gradeInt)
-                    }
-                    
-                    val message = if (totalStudiedEligible == 0) {
-                        getString(R.string.spelling_no_eligible_words)
-                    } else {
-                        getString(R.string.spelling_all_cleared)
-                    }
-                    
-                    AppDialogHelper.showInfo(
-                        context = this@MainActivity,
-                        title = getString(R.string.action_spelling_check),
-                        message = message,
-                        positiveText = getString(R.string.ok)
-                    )
-                } else {
-                    val intent = Intent(this@MainActivity, com.stulab.studylockapp.ui.SpellingCheckActivity::class.java).apply {
-                        putExtra("GRADE", gradeInt)
-                    }
-                    startActivity(intent)
-                }
-            }
+            startActivity(Intent(this, com.stulab.studylockapp.ui.SkillChallengeActivity::class.java))
         }
     }
 

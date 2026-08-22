@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.stulab.studylockapp.R
 import com.stulab.studylockapp.data.AppDatabase
 import com.stulab.studylockapp.data.PointManager
+import com.stulab.studylockapp.data.ChallengePointManager
 import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.practical.PracticalTestRepository
 import com.stulab.studylockapp.data.StudyHistoryRepository
@@ -28,6 +29,7 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
             val appSettings = AppSettings(appContext)
             val quizManager = QuizManager(wordDao, masteryDao, studyLogDao, appSettings)
             val pointManager = PointManager(appContext)
+            val challengePointManager = ChallengePointManager(appContext)
             val audioChecker = LearningAudioStateChecker(appContext)
             val practicalRepo = PracticalTestRepository(appContext, historyDao)
             val spellingRepo = SpellingRepository(db)
@@ -41,6 +43,7 @@ class LearningViewModelFactory(private val context: Context) : ViewModelProvider
                 masteryDao,
                 quizManager,
                 pointManager,
+                challengePointManager,
                 audioChecker,
                 requiredWarningText,
                 optionalWarningText,

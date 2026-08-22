@@ -170,8 +170,22 @@ class LearningHistoryAdapter(
                 buttonSentenceCheck.apply {
                     text = "例文"
                     setIconResource(R.drawable.ic_mic_24)
-                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F8F8F8"))
-                    strokeColor = ColorStateList.valueOf(Color.parseColor("#DDDDDD"))
+                    
+                    val canDoSentence = item.isWordVoiceChecked
+                    isEnabled = canDoSentence
+                    
+                    if (canDoSentence) {
+                        backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F8F8F8"))
+                        strokeColor = ColorStateList.valueOf(Color.parseColor("#DDDDDD"))
+                        setTextColor(Color.parseColor("#333333"))
+                        iconTint = ColorStateList.valueOf(Color.parseColor("#333333"))
+                    } else {
+                        backgroundTintList = ColorStateList.valueOf(Color.parseColor("#EEEEEE"))
+                        strokeColor = ColorStateList.valueOf(Color.parseColor("#CCCCCC"))
+                        setTextColor(Color.parseColor("#999999"))
+                        iconTint = ColorStateList.valueOf(Color.parseColor("#999999"))
+                    }
+
                     if (words.size >= 3) {
                         visibility = View.VISIBLE
                         setOnClickListener { onSentenceCheckClick(item) }

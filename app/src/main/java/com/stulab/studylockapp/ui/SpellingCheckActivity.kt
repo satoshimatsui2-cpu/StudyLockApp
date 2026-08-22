@@ -56,8 +56,15 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         val wordIds = intent.getLongArrayExtra("WORD_IDS")
         val grade = intent.getIntExtra("GRADE", -1).takeIf { it != -1 }
+        val isChallenge = intent.getBooleanExtra("IS_SESSION", false)
         
-        viewModel.loadQuestions(wordIds, grade)
+        if (isChallenge && (wordIds == null || wordIds.size != 5)) {
+            android.util.Log.e("SpellingCheck", "Activity started as challenge but invalid wordIds. Closing.")
+            finish()
+            return
+        }
+
+        viewModel.loadQuestions(wordIds, grade, isChallenge)
 
         binding.editSpelling.addTextChangedListener {
             viewModel.onUserInputChange(it?.toString() ?: "")
@@ -99,6 +106,17 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun showChallengeResult(state: SpellingCheckUiState) {
+        AppDialogHelper.showInfo(
+            context = this,
+            title = getString(R.string.session_summary_title),
+            message = getString(R.string.challenge_result_spelling, state.correctCount, state.totalQuestions) + 
+                      "\n" + getString(R.string.challenge_remaining_cp, state.challengePoints),
+            positiveText = getString(R.string.action_close),
+            onPositive = { finish() }
+        )
+    }
+
     private fun handlePlayClick() {
         val settings = com.stulab.studylockapp.data.AppSettings(this)
         if (settings.silentMode == com.stulab.studylockapp.data.SilentMode.ON) {
@@ -124,7 +142,11 @@ class SpellingCheckActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun render(state: SpellingCheckUiState) {
         if (state.isFinished) {
-            finish()
+            if (state.isChallengeSession) {
+                showChallengeResult(state)
+            } else {
+                finish()
+            }
             return
         }
 

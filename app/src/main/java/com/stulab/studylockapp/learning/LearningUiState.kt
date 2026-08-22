@@ -15,6 +15,7 @@ data class LearningUiState(
     val totalSteps: Int = 10,
     val progress: Int = 0,
     val totalPoints: Int = 0, // セッション毎ではなく累計ポイントを保持
+    val challengePoints: Int = 0,
     val comboCount: Int = 0,
     
     // 学習音声 (通常 / サイレント)

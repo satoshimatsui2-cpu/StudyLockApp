@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.stulab.studylockapp.data.AppDatabase
 import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.PointManager
+import com.stulab.studylockapp.data.ChallengePointManager
 import com.stulab.studylockapp.data.practical.PracticalTestRepository
 
 /**
@@ -21,11 +22,13 @@ class PracticalTestViewModelFactory(private val context: Context) : ViewModelPro
             val historyDao = db.practicalHistoryDao()
             val repository = PracticalTestRepository(appContext, historyDao)
             val pointManager = PointManager(appContext)
+            val challengePointManager = ChallengePointManager(appContext)
             val appSettings = AppSettings(appContext)
             
             return PracticalTestViewModel(
                 repository,
                 pointManager,
+                challengePointManager,
                 appSettings
             ) as T
         }

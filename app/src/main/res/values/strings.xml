@@ -405,6 +405,24 @@
     <string name="spelling_button_label">スペル</string>
     <string name="action_spelling_check">スペルチェック</string>
     <string name="cd_spelling_check">スペルチェックを開始する</string>
+    <string name="title_skill_challenge">スキルチャレンジ</string>
+    <string name="label_cp_balance">チャレンジポイント: %1$d CP</string>
+    <string name="label_challenge_pronunciation">🎙 発音チャレンジ</string>
+    <string name="label_challenge_spelling">✍️ スペルチャレンジ</string>
+    <string name="challenge_cost_info">1回 10 CP 消費</string>
+    <string name="challenge_points_lack">あと %1$d CP で挑戦できます</string>
+    <string name="challenge_silent_mode_warning">サイレントモード中は発音チェックを利用できません</string>
+    <string name="challenge_pronunciation_desc">単語と例文の発音に挑戦！\n3単語セット（10 CP）</string>
+    <string name="challenge_spelling_desc">単語の綴りを正確に書けるかテスト！\n5単語セット（10 CP）</string>
+    <string name="challenge_start">挑戦する</string>
+    <string name="challenge_result_pronunciation">単語 %1$d/%2$d OK / 例文 %3$d/%4$d OK</string>
+    <string name="challenge_result_spelling">正解数: %1$d / %2$d</string>
+    <string name="challenge_remaining_cp">残り: %1$d CP</string>
+    <string name="pronunciation_example_locked">単語の発音がOKになると挑戦できます</string>
+    <string name="pronunciation_example_unlocked">例文が解放されました！</string>
+    <string name="label_eligible_words">挑戦できる単語　%1$d語</string>
+    <string name="label_mastered_words">マスター済み　%1$d語</string>
+    <string name="challenge_zero_eligible_hint">単語を学習すると挑戦できるようになります</string>
     <string name="spelling_no_eligible_words">この級では、まだスペルチェックに挑戦できる単語がありません。まずは通常学習に挑戦しましょう。</string>
     <string name="spelling_all_cleared">この級のスペルチェックはすべてクリア済みです。</string>
 

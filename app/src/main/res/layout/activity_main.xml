@@ -430,6 +430,41 @@
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
+        <!-- CP残高表示チップ -->
+        <LinearLayout
+            android:id="@+id/layout_cp_top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_badge_navy_soft"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="12dp"
+            android:elevation="8dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/button_admin_settings_top">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_monetization_on_24"
+                app:tint="@color/mustard_primary"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/text_cp_balance_top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="0 CP"
+                android:textColor="@color/navy_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="120 CP" />
+        </LinearLayout>
+
         <!-- 管理者設定アイコン: 位置を少し下げる (36dp -> 42dp) -->
         <ImageButton
             android:id="@+id/button_admin_settings_top"

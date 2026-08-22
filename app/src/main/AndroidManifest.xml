@@ -109,9 +109,15 @@
             android:theme="@style/Theme.StudyLockApp" />
 
         <activity
-            android:name=".ui.PronunciationCheckActivity"
+            android:name=".ui.SkillChallengeActivity"
             android:exported="false"
-            android:label="発音チェック"
+            android:label="@string/title_skill_challenge"
+            android:theme="@style/Theme.StudyLockApp" />
+
+        <activity
+            android:name=".ui.PronunciationChallengeActivity"
+            android:exported="false"
+            android:label="@string/label_challenge_pronunciation"
             android:theme="@style/Theme.StudyLockApp" />
 
         <service

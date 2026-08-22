@@ -173,23 +173,17 @@ class LearningHistoryActivity : AppCompatActivity() {
     }
 
     private fun startVoiceCheck(item: WordHistoryItem, type: String) {
-        val intent = Intent(this, PronunciationCheckActivity::class.java).apply {
-            putExtra("WORD_ID", item.id)
-            putExtra("WORD_TEXT", item.word)
-            putExtra("WORD_MEANING", item.japanese)
-            putExtra("WORD_SENTENCE", item.sentence)
-            putExtra("WORD_SENTENCE_JA", item.japaneseSentence)
-            putExtra("WORD_GRADE", item.grade.toString())
-            putExtra("CHECK_TYPE", type)
+        val intent = Intent(this, PronunciationChallengeActivity::class.java).apply {
+            putExtra(PronunciationChallengeActivity.EXTRA_MODE, PronunciationChallengeActivity.MODE_SINGLE)
+            putExtra(PronunciationChallengeActivity.EXTRA_WORD_ID, item.id)
         }
         startActivity(intent)
     }
 
     private fun startSpellingCheck(item: WordHistoryItem) {
-        val intent = Intent(this, SpellingCheckActivity::class.java).apply {
-            putExtra("WORD_IDS", longArrayOf(item.id))
-        }
-        startActivity(intent)
+        // CP方式へ移行のため、単発のスペルチェックは廃止しスキルチャレンジ画面へ誘導
+        Toast.makeText(this, "スペルチェックは「スキルチャレンジ」から挑戦できます", Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, SkillChallengeActivity::class.java))
     }
 
     private fun setupFilters() {

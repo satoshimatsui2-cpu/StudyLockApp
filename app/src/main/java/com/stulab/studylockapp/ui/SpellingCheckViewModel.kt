@@ -1,9 +1,12 @@
 package com.stulab.studylockapp.ui
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.stulab.studylockapp.data.AppDatabase
+import com.stulab.studylockapp.data.ChallengePointManager
+import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.SpellingRepository
 import com.stulab.studylockapp.data.WordEntity
 import com.stulab.studylockapp.learning.SpellingAnswerChecker
@@ -28,12 +31,17 @@ data class SpellingCheckUiState(
     val hintUsed: Boolean = false, // Current question hint usage
     val isAnswerShown: Boolean = false,
     val isAnswering: Boolean = false,
-    val userInput: String = ""
+    val userInput: String = "",
+    val isChallengeSession: Boolean = false,
+    val challengePoints: Int = 0,
+    val correctCount: Int = 0
 )
 
 class SpellingCheckViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = SpellingRepository(AppDatabase.getInstance(application))
     private val wordDao = AppDatabase.getInstance(application).wordDao()
+    private val cpManager = ChallengePointManager(application)
+    private val appSettings = AppSettings(application)
 
     private val _uiState = MutableStateFlow(SpellingCheckUiState())
     val uiState = _uiState.asStateFlow()
@@ -41,7 +49,23 @@ class SpellingCheckViewModel(application: Application) : AndroidViewModel(applic
     private var questions: List<WordEntity> = emptyList()
     private val MAX_QUESTIONS = 5
 
-    fun loadQuestions(wordIds: LongArray?, grade: Int? = null) {
+    fun loadQuestions(wordIds: LongArray?, grade: Int? = null, isChallenge: Boolean = false) {
+        val currentCP = cpManager.getCP()
+        val sessionStatus = appSettings.spellChallengeStatus
+        val sessionIndex = appSettings.spellChallengeIndex
+        val activeIds = appSettings.activeSpellingChallengeIds
+        
+        Log.d("SpellingCheck", "Activity load: isChallenge=$isChallenge, CP=$currentCP, Status=$sessionStatus, Index=$sessionIndex, ActiveCount=${activeIds?.size}")
+
+        if (isChallenge) {
+            // Defense: strictly check session
+            if (activeIds == null || sessionStatus != "IN_PROGRESS" || activeIds.size != 5) {
+                Log.e("SpellingCheck", "Invalid session on Activity start. Closing.")
+                _uiState.update { it.copy(isFinished = true) }
+                return
+            }
+        }
+
         viewModelScope.launch {
             val words = if (wordIds != null && wordIds.isNotEmpty()) {
                 wordDao.getWordsByIds(wordIds.map { it.toInt() })
@@ -50,11 +74,17 @@ class SpellingCheckViewModel(application: Application) : AndroidViewModel(applic
             } else {
                 repository.getEligibleWordsForPrompt(System.currentTimeMillis()).take(MAX_QUESTIONS)
             }
-            questions = words.shuffled()
+
+            questions = if (isChallenge) words else words.shuffled()
+            
             if (questions.isNotEmpty()) {
+                val startIndex = if (isChallenge) sessionIndex.coerceIn(0, questions.size - 1) else 0
                 _uiState.update { it.copy(
+                    currentQuestionIndex = startIndex,
                     totalQuestions = questions.size,
-                    currentQuestion = questions[0].toUiModel()
+                    currentQuestion = questions[startIndex].toUiModel(),
+                    isChallengeSession = isChallenge,
+                    challengePoints = cpManager.getCP()
                 ) }
             } else {
                 _uiState.update { it.copy(isFinished = true) }
@@ -87,7 +117,8 @@ class SpellingCheckViewModel(application: Application) : AndroidViewModel(applic
             _uiState.update { it.copy(
                 isAnswering = false,
                 isCorrect = isCorrect,
-                isAnswerShown = currentState.isAnswerShown || !isCorrect
+                isAnswerShown = currentState.isAnswerShown || !isCorrect,
+                correctCount = if (isCorrect) currentState.correctCount + 1 else currentState.correctCount
             ) }
         }
     }
@@ -116,6 +147,9 @@ class SpellingCheckViewModel(application: Application) : AndroidViewModel(applic
     fun nextQuestion() {
         val nextIndex = uiState.value.currentQuestionIndex + 1
         if (nextIndex < questions.size) {
+            if (uiState.value.isChallengeSession) {
+                appSettings.spellChallengeIndex = nextIndex
+            }
             _uiState.update { it.copy(
                 currentQuestionIndex = nextIndex,
                 currentQuestion = questions[nextIndex].toUiModel(),
@@ -126,6 +160,10 @@ class SpellingCheckViewModel(application: Application) : AndroidViewModel(applic
                 userInput = ""
             ) }
         } else {
+            if (uiState.value.isChallengeSession) {
+                appSettings.spellChallengeStatus = "COMPLETED"
+                appSettings.clearSpellingChallenge()
+            }
             _uiState.update { it.copy(isFinished = true) }
         }
     }

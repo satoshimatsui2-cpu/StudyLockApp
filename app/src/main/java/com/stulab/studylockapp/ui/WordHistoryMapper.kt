@@ -86,7 +86,13 @@ class WordHistoryMapper(private val context: Context) {
             successCount = result.successCount,
             failureCount = result.failureCount,
             isNew = result.challengeCount <= 0,
-            isReviewWaiting = isReviewWaiting
+            isReviewWaiting = isReviewWaiting,
+            isWordVoiceChecked = result.isWordVoiceChecked,
+            isSentenceVoiceChecked = result.isSentenceVoiceChecked,
+            spellingStatus = result.spellingStatus?.let { 
+                try { com.stulab.studylockapp.data.SpellingStatus.valueOf(it) } catch(e: Exception) { com.stulab.studylockapp.data.SpellingStatus.NOT_STARTED }
+            } ?: com.stulab.studylockapp.data.SpellingStatus.NOT_STARTED,
+            isSpellingEligible = result.isSpellingEligible == 1
         )
     }
 }

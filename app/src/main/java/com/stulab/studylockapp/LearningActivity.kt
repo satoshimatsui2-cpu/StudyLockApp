@@ -26,7 +26,7 @@ import com.stulab.studylockapp.learning.*
 import com.stulab.studylockapp.learning.practical.PracticalTestActivity
 import com.stulab.studylockapp.data.SilentMode
 import com.stulab.studylockapp.data.WordEntity
-import com.stulab.studylockapp.ui.PronunciationCheckActivity
+import com.stulab.studylockapp.ui.PronunciationChallengeActivity
 import com.stulab.studylockapp.ui.CharacterSelectActivity
 import com.stulab.studylockapp.ui.CharacterDisplayUtils
 import com.stulab.studylockapp.ui.SpellingCheckActivity
@@ -80,12 +80,6 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
             // 実践テスト終了後は、自動的に次の単語学習セッションを開始する
             viewModel.startNextSessionAfterPracticalTest()
-        }
-
-    private val spellingLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-            // スペルチェック終了後は、通常学習を続行する
-            viewModel.loadNextQuiz()
         }
 
     // Rendererから安全にアクセスするためのブリッジメソッド
@@ -580,27 +574,21 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
     }
 
     private fun showSpellingCheckInviteDialog(wordIds: List<Long>) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_spelling_invite, null)
-        val imageChar = dialogView.findViewById<ImageView>(R.id.image_character)
-        
-        val charId = viewModel.uiState.value.selectedCharacterId
-        imageChar.setImageResource(CharacterDisplayUtils.getMiniIconDrawable(this, charId, "joy"))
-
-        MaterialAlertDialogBuilder(this)
-            .setView(dialogView)
-            .setPositiveButton(getString(R.string.spelling_check_invite_positive)) { _, _ ->
-                val intent = Intent(this, SpellingCheckActivity::class.java).apply {
-                    putExtra("WORD_IDS", wordIds.toLongArray())
-                }
-                spellingLauncher.launch(intent)
-            }
-            .setNegativeButton(getString(R.string.spelling_check_invite_negative)) { _, _ ->
+        // CP方式へ移行のため、直接開始はせずスキルチャレンジ画面へ誘導
+        AppDialogHelper.showConfirm(
+            context = this,
+            title = "特別問題！",
+            message = "スペルチェックなどのスキルチャレンジに挑戦できるようになりました！\nスキルチャレンジ画面を確認してみよう。",
+            positiveText = "見に行く",
+            negativeText = "あとで",
+            onPositive = {
+                startActivity(Intent(this, com.stulab.studylockapp.ui.SkillChallengeActivity::class.java))
+                viewModel.loadNextQuiz()
+            },
+            onNegative = {
                 viewModel.loadNextQuiz()
             }
-            .setOnCancelListener {
-                viewModel.loadNextQuiz()
-            }
-            .show()
+        )
     }
 
     private fun showNewCharacterDialog(characterName: String) {
@@ -663,15 +651,9 @@ class LearningActivity : AppCompatActivity(), QuizUiProvider {
             positiveText = "発音チェックする",
             negativeText = "あとで",
             onPositive = {
-                val intent = Intent(this, PronunciationCheckActivity::class.java).apply {
-                    putExtra("WORD_ID", word.no.toLong())
-                    putExtra("WORD_TEXT", word.word)
-                    putExtra("WORD_MEANING", word.japanese)
-                    putExtra("WORD_SENTENCE", word.sentence)
-                    putExtra("WORD_SENTENCE_JA", word.japaneseSentence)
-                    putExtra("WORD_GRADE", word.grade.toString())
-                    putExtra("CHECK_TYPE", "word")
-                    putExtra("FROM_LEVEL5_BONUS", true)
+                val intent = Intent(this, PronunciationChallengeActivity::class.java).apply {
+                    putExtra(PronunciationChallengeActivity.EXTRA_MODE, PronunciationChallengeActivity.MODE_SINGLE)
+                    putExtra(PronunciationChallengeActivity.EXTRA_WORD_ID, word.no.toLong())
                 }
                 pronunciationLauncher.launch(intent)
             }

@@ -28,5 +28,11 @@ data class WordHistoryQueryResult(
     val isBasicMastered: Boolean,
     val isLongTermMastered: Boolean,
     val pendingListenReview: Boolean,
-    val deferredListenCount: Int
+    val deferredListenCount: Int,
+
+    // Voice and Spelling status
+    val isWordVoiceChecked: Boolean,
+    val isSentenceVoiceChecked: Boolean,
+    val spellingStatus: String?,
+    val isSpellingEligible: Int
 )

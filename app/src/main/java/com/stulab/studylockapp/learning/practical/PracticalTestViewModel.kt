@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stulab.studylockapp.data.AppSettings
 import com.stulab.studylockapp.data.PointManager
+import com.stulab.studylockapp.data.ChallengePointManager
 import com.stulab.studylockapp.data.SilentMode
 import com.stulab.studylockapp.data.practical.PracticalQuestion
 import com.stulab.studylockapp.data.practical.PracticalQuizMode
@@ -41,6 +42,7 @@ data class PracticalUiState(
     val isCorrect: Boolean = false,
     val selectedAnswer: String = "",
     val pointsGained: Int = 0,
+    val challengePoints: Int = 0,
     val error: Boolean = false,
 
     // --- リスニング用追加 ---
@@ -60,10 +62,11 @@ data class PracticalUiState(
 class PracticalTestViewModel(
     private val repository: PracticalTestRepository,
     private val pointManager: PointManager,
+    private val challengePointManager: ChallengePointManager,
     private val appSettings: AppSettings
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PracticalUiState())
+    private val _uiState = MutableStateFlow(PracticalUiState(challengePoints = challengePointManager.getCP()))
     val uiState = _uiState.asStateFlow()
 
     private val _uiEvent = Channel<PracticalUiEvent>(Channel.BUFFERED)
@@ -263,7 +266,10 @@ class PracticalTestViewModel(
 
                 if (isCorrect && currentState.isScored) {
                     pointManager.add(points)
+                    challengePointManager.addCP(5) // 実践テスト正解で +5 CP
                 }
+                
+                _uiState.update { it.copy(challengePoints = challengePointManager.getCP()) }
             } catch (e: Exception) {
                 Log.e("PracticalTestViewModel", "Failed to save history or add points", e)
             }

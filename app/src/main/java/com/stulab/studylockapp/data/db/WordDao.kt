@@ -104,9 +104,16 @@ interface WordDao {
             w.no, w.word, w.japanese, w.description, w.sentence, w.japaneseSentence, w.pos, w.grade,
             m.level, m.scheduledMode, m.nextReviewTime, m.lastSeen, m.lastCorrectTime,
             m.challengeCount, m.successCount, m.failureCount, m.currentStreak, m.bestStreak,
-            m.isBasicMastered, m.isLongTermMastered, m.pendingListenReview, m.deferredListenCount
+            m.isBasicMastered, m.isLongTermMastered, m.pendingListenReview, m.deferredListenCount,
+            COALESCE(vw.checked, 0) as isWordVoiceChecked,
+            COALESCE(vs.checked, 0) as isSentenceVoiceChecked,
+            sp.status as spellingStatus,
+            (CASE WHEN w.word NOT LIKE '%~%' AND w.word NOT LIKE '%/%' THEN 1 ELSE 0 END) as isSpellingEligible
         FROM words w
         INNER JOIN word_mastery m ON w.no = m.wordId
+        LEFT JOIN voice_check_results vw ON w.no = vw.wordId AND vw.checkType = 'word'
+        LEFT JOIN voice_check_results vs ON w.no = vs.wordId AND vs.checkType = 'sentence'
+        LEFT JOIN spelling_progress sp ON w.no = sp.wordId
         ORDER BY m.lastSeen DESC, w.no ASC
     """)
     suspend fun getLearningHistory(): List<WordHistoryQueryResult>
