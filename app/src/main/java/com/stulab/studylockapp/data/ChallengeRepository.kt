@@ -1,18 +1,23 @@
 package com.stulab.studylockapp.data
 
+import android.content.Context
+import android.util.Log
 import com.stulab.studylockapp.data.db.WordDao
 import com.stulab.studylockapp.data.db.WordMasteryDao
 import com.stulab.studylockapp.learning.SpellingEligibilityChecker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ChallengeRepository(private val db: AppDatabase) {
+class ChallengeRepository(private val context: Context, private val db: AppDatabase) {
     private val wordDao = db.wordDao()
     private val masteryDao = db.wordMasteryDao()
     private val voiceDao = db.voiceCheckDao()
     private val spellingDao = db.spellingProgressDao()
 
     suspend fun getPronunciationWords(grade: Int): List<WordEntity> = withContext(Dispatchers.IO) {
+        val appSettings = AppSettings(context)
+        val deferredIds = appSettings.deferredPronunciationIds
+
         val allWords = wordDao.getWordsByGrade(grade)
         if (allWords.isEmpty()) return@withContext emptyList()
 
@@ -30,18 +35,37 @@ class ChallengeRepository(private val db: AppDatabase) {
         // 1. 学習済み かつ 単語発音がまだ PASSED ではない
         val notOkStudied = studiedWords.filter { it.no !in okWordIds }
         
-        // 2. 例文を持つ単語を優先する
-        val withSentence = notOkStudied.filter { it.sentence.isNotBlank() }
-        val withoutSentence = notOkStudied.filter { it.sentence.isBlank() }
-
-        val pool = withSentence.shuffled() + withoutSentence.shuffled()
+        // 2. deferredIds に含まれないものを優先
+        val preferredCandidates = notOkStudied.filter { it.no.toLong() !in deferredIds }
         
+        val withSentence = preferredCandidates.filter { it.sentence.isNotBlank() }
+        val withoutSentence = preferredCandidates.filter { it.sentence.isBlank() }
+
+        var pool = (withSentence.shuffled() + withoutSentence.shuffled()).distinctBy { it.no }
+        
+        // 候補が3語未満の場合、deferredIds の単語を不足分として使用する
+        if (pool.size < 3) {
+            val deferredPool = notOkStudied.filter { it.no.toLong() in deferredIds }.shuffled()
+            pool = (pool + deferredPool).distinctBy { it.no }
+        }
+
         val result = if (pool.size >= 3) {
             pool.take(3)
         } else {
-            // 3語に届かない場合は、PASSED済みの学習済み単語も混ぜる
+            // それでも3語に届かない場合は、PASSED済みの学習済み単語も混ぜる
             val passedStudied = (studiedWords - notOkStudied.toSet()).shuffled()
-            (pool + passedStudied).take(3)
+            (pool + passedStudied).distinctBy { it.no }.take(3)
+        }
+
+        // 最終的な結果が3件（かつ重複なし）であることを保証する
+        if (result.size < 3 || result.distinctBy { it.no }.size != 3) {
+            Log.w("ChallengeRepo", "Failed to select 3 distinct words for pronunciation. count=${result.size}")
+            return@withContext emptyList()
+        }
+
+        // 新しいセッションを正常に作成した後、deferredPronunciationIdsをクリアする
+        if (result.isNotEmpty()) {
+            appSettings.deferredPronunciationIds = emptySet()
         }
 
         result

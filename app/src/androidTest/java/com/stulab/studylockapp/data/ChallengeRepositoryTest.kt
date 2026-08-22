@@ -24,7 +24,7 @@ class ChallengeRepositoryTest {
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
-        repository = ChallengeRepository(db)
+        repository = ChallengeRepository(context, db)
     }
 
     @After
@@ -55,6 +55,77 @@ class ChallengeRepositoryTest {
         ids.forEach { id ->
             assertTrue("ID $id should be between 6 and 10", id in 6..10)
         }
+    }
+
+    @Test
+    fun testGetPronunciationWords_DefersFailedWords() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val appSettings = AppSettings(context)
+        appSettings.clearPronunciationChallenge()
+        appSettings.deferredPronunciationIds = emptySet()
+
+        // Insert 1..10 words
+        val words = (1..10).map { createWord(it, 3) }
+        db.wordDao().upsertAll(words)
+        (1..10).forEach { 
+            db.wordMasteryDao().insertOrUpdate(WordMasteryEntity(wordId = it, challengeCount = 1))
+        }
+
+        // Suppose 1, 2, 3 failed in previous session
+        appSettings.deferredPronunciationIds = setOf(1L, 2L, 3L)
+
+        val result = repository.getPronunciationWords(3)
+        assertEquals(3, result.size)
+        
+        val resultIds = result.map { it.no.toLong() }.toSet()
+        // 1, 2, 3 should NOT be in result because there are other candidates (4..10)
+        assertTrue("Result should not contain deferred IDs 1,2,3. Result: $resultIds", 
+            resultIds.intersect(setOf(1L, 2L, 3L)).isEmpty())
+        
+        // After success, deferred IDs should be cleared
+        assertTrue("Deferred IDs should be cleared after successful session creation", 
+            appSettings.deferredPronunciationIds.isEmpty())
+    }
+
+    @Test
+    fun testGetPronunciationWords_UsesDeferredIfCandidatesShort() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val appSettings = AppSettings(context)
+        appSettings.clearPronunciationChallenge()
+        appSettings.deferredPronunciationIds = emptySet()
+
+        // Only 4 words in grade 3
+        val words = (1..4).map { createWord(it, 3) }
+        db.wordDao().upsertAll(words)
+        (1..4).forEach { 
+            db.wordMasteryDao().insertOrUpdate(WordMasteryEntity(wordId = it, challengeCount = 1))
+        }
+
+        // Suppose 1, 2, 3, 4 failed. (Actually 1,2,3 are deferred, 4 is preferred)
+        appSettings.deferredPronunciationIds = setOf(1L, 2L, 3L)
+
+        val result = repository.getPronunciationWords(3)
+        assertEquals(3, result.size)
+        
+        val resultIds = result.map { it.no.toLong() }.toSet()
+        // Must contain 4 (preferred), and 2 from (1,2,3)
+        assertTrue("Result must contain ID 4", resultIds.contains(4L))
+        assertEquals("Should have 3 words total", 3, resultIds.size)
+    }
+
+    @Test
+    fun testGetPronunciationWords_EnsuresDistinct() = runBlocking {
+        // Only 2 words available in total
+        val words = (1..2).map { createWord(it, 3) }
+        db.wordDao().upsertAll(words)
+        (1..2).forEach { 
+            db.wordMasteryDao().insertOrUpdate(WordMasteryEntity(wordId = it, challengeCount = 1))
+        }
+
+        val result = repository.getPronunciationWords(3)
+        // Should be empty because cannot reach 3 distinct words
+        assertTrue("Result should be empty if less than 3 distinct words are available. size=${result.size}", 
+            result.isEmpty())
     }
 
     private fun createWord(no: Int, grade: Int) = WordEntity(

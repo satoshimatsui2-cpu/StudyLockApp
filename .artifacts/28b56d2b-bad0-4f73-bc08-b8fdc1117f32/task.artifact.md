@@ -1,0 +1,7 @@
+- [x] `SpeechRecognizer` の再生成待機の実装 (400ms-500ms)
+- [x] 開始処理の直列化 (`Handler` と `pendingStart` による管理)
+- [x] 内部自動リトライの改善 (`BUSY`/`CLIENT` エラー時の待機とリトライ)
+- [x] Attempt 単位の厳密な状態管理 (`activeAttemptId`, `finishedAttemptId`)
+- [x] ライフサイクルおよび単語移動時のクリーンアップ徹底
+- [x] ログ出力の強化
+- [x] ビルド確認

@@ -32,6 +32,7 @@ import com.stulab.studylockapp.data.WordEntity
 import com.stulab.studylockapp.databinding.ActivityPronunciationChallengeBinding
 import com.stulab.studylockapp.sanitizeForTts
 import com.stulab.studylockapp.ui.alert.AppDialogHelper
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,10 +71,17 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
     private var currentJobState = JobState.IDLE
     private var wordStatus = ChallengeStatus.NOT_STARTED
     private var sentenceStatus = ChallengeStatus.NOT_STARTED
+    private var wordHasEverPassed = false
+    private var sentenceHasEverPassed = false
+    private var isLoadingWordState = false
+    private var sessionPassedWordIds: Set<Long> = emptySet()
     private var currentRecognizingType: String = "word" // "word" or "sentence"
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var pendingStart: Runnable? = null
     private var activeAttemptId: Int = 0
-    private var isAttemptFinished = false
+    private var finishedAttemptId: Int = -1
+    private var internalRetryCount = 0
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -96,10 +104,10 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         tts = TextToSpeech(this, this)
 
         currentMode = intent.getStringExtra(EXTRA_MODE) ?: MODE_SESSION
-        
+
         val intentIds = intent.getLongArrayExtra(EXTRA_WORD_IDS)?.toList()
         val singleId = intent.getLongExtra(EXTRA_WORD_ID, -1L).takeIf { it != -1L }
-        
+
         val wordIds = when {
             currentMode == MODE_SINGLE && singleId != null -> listOf(singleId)
             intentIds != null -> intentIds
@@ -112,15 +120,39 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
             return
         }
 
-        currentIndex = if (currentMode == MODE_SESSION) appSettings.pronChallengeIndex else 0
+        val savedIndex = if (currentMode == MODE_SESSION) appSettings.pronChallengeIndex else 0
+        Log.d("PronChallenge", "Activity onCreate: mode=$currentMode, savedIndex=$savedIndex, wordIds=$wordIds")
 
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@PronunciationChallengeActivity)
-            words = withContext(Dispatchers.IO) { db.wordDao().getWordsByIds(wordIds.map { it.toInt() }) }
-            
+            val loadedWords = withContext(Dispatchers.IO) {
+                db.wordDao().getWordsByIds(wordIds.map { it.toInt() })
+            }
+
+            // RoomのIN句は入力順を保証しないため、保存済みセッションIDの順番に戻す。
+            words = wordIds.mapNotNull { id ->
+                loadedWords.firstOrNull { it.no.toLong() == id }
+            }
+            Log.d("PronChallenge", "Words loaded: count=${words.size}, IDs=${words.map { it.no }}")
+
             if (words.isEmpty() || (currentMode == MODE_SESSION && words.size != 3)) {
+                Log.e("PronChallenge", "Failed to prepare session words. count=${words.size}")
                 finish()
                 return@launch
+            }
+
+            currentIndex = savedIndex.coerceIn(0, words.lastIndex)
+            Log.d("PronChallenge", "currentIndex set to $currentIndex (1-based: ${currentIndex + 1})")
+            if (currentMode == MODE_SESSION) {
+                appSettings.pronChallengeIndex = currentIndex
+                val sessionIds = words.map { it.no.toLong() }
+                sessionPassedWordIds = withContext(Dispatchers.IO) {
+                    db.voiceCheckDao()
+                        .getResultsByIds(sessionIds, "word")
+                        .filter { it.checked }
+                        .map { it.wordId }
+                        .toSet()
+                }
             }
 
             setupUI()
@@ -130,9 +162,9 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
 
     private fun setupUI() {
         binding.buttonBack.setOnClickListener { finish() }
-        binding.btnFinish.setOnClickListener { 
+        binding.btnFinish.setOnClickListener {
             if (currentMode == MODE_SESSION) appSettings.clearPronunciationChallenge()
-            finish() 
+            finish()
         }
 
         if (currentMode == MODE_SINGLE) {
@@ -143,12 +175,15 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         }
 
         binding.btnNextWord.setOnClickListener {
-            if (currentIndex < words.size - 1) {
-                currentIndex++
-                if (currentMode == MODE_SESSION) appSettings.pronChallengeIndex = currentIndex
-                loadCurrentWord()
+            if (currentMode != MODE_SESSION || currentJobState != JobState.IDLE || isLoadingWordState) {
+                return@setOnClickListener
+            }
+
+            Log.d("PronChallenge", "Next button clicked. currentIndex=$currentIndex, lastIndex=${words.lastIndex}")
+            if (currentIndex < words.lastIndex) {
+                moveToWord(currentIndex + 1)
             } else {
-                showResult()
+                handleSessionEnd()
             }
         }
 
@@ -162,27 +197,60 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
 
     private fun loadCurrentWord() {
         val word = words[currentIndex]
+        val loadingIndex = currentIndex
+
+        isLoadingWordState = true
+        wordHasEverPassed = false
+        sentenceHasEverPassed = false
+        wordStatus = ChallengeStatus.NOT_STARTED
+        sentenceStatus = ChallengeStatus.NOT_STARTED
+
         if (currentMode == MODE_SESSION) {
             binding.textProgress.text = "${currentIndex + 1} / ${words.size}"
         }
-        
+
         binding.currentWordCard.textWord.text = word.word
         binding.currentWordCard.textMeaning.text = word.japanese
         binding.currentWordCard.textSentence.text = word.sentence
         binding.currentWordCard.textSentence.visibility = if (word.sentence.isNotBlank()) View.VISIBLE else View.GONE
-        
+
         binding.currentWordCard.textWordRecognitionResult.visibility = View.GONE
         binding.currentWordCard.textSentenceRecognitionResult.visibility = View.GONE
+        binding.currentWordCard.textUnlockFeedback.visibility = View.GONE
+        updateButtonStates()
 
         lifecycleScope.launch {
-            val db = AppDatabase.getInstance(this@PronunciationChallengeActivity)
-            val wordOk = withContext(Dispatchers.IO) { db.voiceCheckDao().getResult(word.no.toLong(), "word")?.checked ?: false }
-            val sentOk = withContext(Dispatchers.IO) { db.voiceCheckDao().getResult(word.no.toLong(), "sentence")?.checked ?: false }
+            try {
+                val db = AppDatabase.getInstance(this@PronunciationChallengeActivity)
+                val states = withContext(Dispatchers.IO) {
+                    val wordOk = db.voiceCheckDao().getResult(word.no.toLong(), "word")?.checked ?: false
+                    val sentenceOk = db.voiceCheckDao().getResult(word.no.toLong(), "sentence")?.checked ?: false
+                    wordOk to sentenceOk
+                }
 
-            wordStatus = if (wordOk) ChallengeStatus.OK else ChallengeStatus.NOT_STARTED
-            sentenceStatus = if (sentOk) ChallengeStatus.OK else ChallengeStatus.NOT_STARTED
+                // 画面遷移後に古いDB結果が戻ってきても、新しい単語を上書きしない。
+                if (currentIndex != loadingIndex || words[currentIndex].no != word.no) return@launch
 
-            updateButtonStates()
+                wordHasEverPassed = states.first
+                sentenceHasEverPassed = states.second
+                if (wordHasEverPassed) {
+                    sessionPassedWordIds = sessionPassedWordIds + word.no.toLong()
+                }
+                wordStatus = if (wordHasEverPassed) ChallengeStatus.OK else ChallengeStatus.NOT_STARTED
+                sentenceStatus = if (sentenceHasEverPassed) ChallengeStatus.OK else ChallengeStatus.NOT_STARTED
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (t: Throwable) {
+                Log.e("PronChallenge", "Failed to load pronunciation state", t)
+                if (currentIndex == loadingIndex) {
+                    Toast.makeText(this@PronunciationChallengeActivity, "発音状態を読み込めませんでした", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                if (currentIndex == loadingIndex && words[currentIndex].no == word.no) {
+                    isLoadingWordState = false
+                    updateButtonStates()
+                }
+            }
         }
     }
 
@@ -199,10 +267,10 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
                     val params = android.widget.LinearLayout.LayoutParams(size, size)
                     params.marginEnd = 8.dpToPx()
                     layoutParams = params
-                    val color = if (i < currentIndex) {
-                        ContextCompat.getColor(this@PronunciationChallengeActivity, R.color.navy_primary)
-                    } else if (i == currentIndex) {
+                    val color = if (i == currentIndex) {
                         ContextCompat.getColor(this@PronunciationChallengeActivity, R.color.mustard_primary)
+                    } else if (words[i].no.toLong() in sessionPassedWordIds) {
+                        ContextCompat.getColor(this@PronunciationChallengeActivity, R.color.navy_primary)
                     } else {
                         Color.LTGRAY
                     }
@@ -213,7 +281,7 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
             }
         }
 
-        val isBusy = currentJobState != JobState.IDLE
+        val isBusy = currentJobState != JobState.IDLE || isLoadingWordState
 
         // Word Section
         updateButton(card.btnPronounceWord, wordStatus, "単語")
@@ -225,15 +293,15 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         card.btnListenSentence.visibility = if (hasSentence) View.VISIBLE else View.GONE
         card.btnPronounceSentence.visibility = if (hasSentence) View.VISIBLE else View.GONE
         card.layoutSentenceHeader.visibility = if (hasSentence) View.VISIBLE else View.GONE
-        card.textSentence.visibility = if (hasSentence && wordStatus == ChallengeStatus.OK) View.VISIBLE else View.GONE
-        
-        updateButton(card.btnPronounceSentence, sentenceStatus, "例文")
-        card.btnListenSentence.isEnabled = !isBusy && (wordStatus == ChallengeStatus.OK)
+        card.textSentence.visibility = if (hasSentence && wordHasEverPassed) View.VISIBLE else View.GONE
 
-        card.textLockHint.visibility = if (hasSentence && wordStatus != ChallengeStatus.OK) View.VISIBLE else View.GONE
-        
+        updateButton(card.btnPronounceSentence, sentenceStatus, "例文")
+        card.btnListenSentence.isEnabled = !isBusy && wordHasEverPassed
+
+        card.textLockHint.visibility = if (hasSentence && !wordHasEverPassed) View.VISIBLE else View.GONE
+
         // Next Button
-        binding.btnNextWord.isEnabled = (wordStatus == ChallengeStatus.OK) && !isBusy
+        binding.btnNextWord.isEnabled = currentMode == MODE_SESSION && !isBusy
     }
 
     private fun updateButton(button: com.google.android.material.button.MaterialButton, status: ChallengeStatus, typeLabel: String) {
@@ -245,7 +313,7 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         val disabledBg = Color.parseColor("#F1F3F6")
         val disabledText = Color.parseColor("#475467")
         val disabledStroke = Color.parseColor("#98A2B3")
-        
+
         val okBg = ContextCompat.getColor(this, R.color.choice_correct_bg)
         val okText = ContextCompat.getColor(this, R.color.choice_correct_text)
         val okStroke = ContextCompat.getColor(this, R.color.choice_correct_stroke)
@@ -254,8 +322,8 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         val retryStroke = ContextCompat.getColor(this, R.color.choice_wrong_stroke)
 
         // 1. Determine Logic State
-        val isLocked = (button.id == R.id.btn_pronounce_sentence && wordStatus != ChallengeStatus.OK)
-        val isBusy = currentJobState != JobState.IDLE
+        val isLocked = button.id == R.id.btn_pronounce_sentence && !wordHasEverPassed
+        val isBusy = currentJobState != JobState.IDLE || isLoadingWordState
         val isSelfRecording = (status == ChallengeStatus.RECORDING)
         val isSelfRecognizing = (status == ChallengeStatus.RECOGNIZING)
 
@@ -358,7 +426,7 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         // 3. Apply everything using ColorStateList to bypass default disabled-alpha
         button.text = label
         button.setIconResource(iconRes)
-        
+
         val cslBg = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_enabled), intArrayOf(-android.R.attr.state_enabled)), intArrayOf(finalBg, finalBg))
         val cslText = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_enabled), intArrayOf(-android.R.attr.state_enabled)), intArrayOf(finalText, finalText))
         val cslIcon = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_enabled), intArrayOf(-android.R.attr.state_enabled)), intArrayOf(finalIcon, finalIcon))
@@ -377,7 +445,7 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
             return
         }
 
-        if (currentJobState != JobState.IDLE) return
+        if (currentJobState != JobState.IDLE || isLoadingWordState) return
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             currentRecognizingType = type
@@ -395,15 +463,15 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
     }
 
     private fun handleListenClick(text: String, type: String) {
-        if (currentJobState != JobState.IDLE) return
+        if (currentJobState != JobState.IDLE || isLoadingWordState) return
         if (ttsReady && text.isNotBlank()) {
             currentJobState = JobState.PLAYING
             updateButtonStates()
-            
+
             val params = Bundle()
             params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "pron_listen")
             tts?.speak(sanitizeForTts(text), TextToSpeech.QUEUE_FLUSH, params, "pron_listen")
-            
+
             tts?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                 override fun onStart(utteranceId: String?) {}
                 override fun onDone(utteranceId: String?) {
@@ -422,11 +490,17 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         }
     }
 
-    private fun startSpeechRecognition() {
+    private fun startSpeechRecognition(isInternalRetry: Boolean = false) {
+        if (isFinishing || isDestroyed) return
+
+        // 予約済みの開始処理があればキャンセル
+        pendingStart?.let { mainHandler.removeCallbacks(it) }
+
+        if (!isInternalRetry) internalRetryCount = 0
+
         activeAttemptId++
         val attemptId = activeAttemptId
-        isAttemptFinished = false
-        
+
         currentJobState = JobState.STARTING
         if (currentRecognizingType == "word") {
             wordStatus = ChallengeStatus.RECORDING
@@ -435,22 +509,143 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         }
         updateButtonStates()
 
-        Log.d("PronChallenge", "attempt=$attemptId target=$currentRecognizingType state=STARTING action=startSpeechRecognition")
+        Log.d("PronChallenge", "attempt=$attemptId target=$currentRecognizingType state=STARTING action=startSpeechRecognition isRetry=$isInternalRetry")
 
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
         }
 
+        // 既存のRecognizerを破棄
+        val existed = speechRecognizer != null
+        speechRecognizer?.apply {
+            try {
+                cancel()
+                destroy()
+            } catch (e: Exception) {
+                Log.w("PronChallenge", "attempt=$attemptId Failed to cleanup old recognizer", e)
+            }
+        }
+        speechRecognizer = null
+
+        // 再生成までの待機時間を決定
+        val delayMs = when {
+            isInternalRetry -> 500L // 内部リトライ時はしっかり待機
+            existed -> 400L         // 既存破棄時は解放を待つ
+            else -> 0L              // 初回起動時は即時
+        }
+
+        val runnable = Runnable {
+            if (attemptId != activeAttemptId || isFinishing || isDestroyed) {
+                Log.d("PronChallenge", "attempt=$attemptId IGNORED pendingStart (stale or finished)")
+                return@Runnable
+            }
+
+            try {
+                Log.d("PronChallenge", "attempt=$attemptId Creating SpeechRecognizer and startListening")
+                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this@PronunciationChallengeActivity).apply {
+                    setRecognitionListener(ChallengeRecognitionListener(attemptId))
+                    startListening(intent)
+                }
+            } catch (e: Exception) {
+                Log.e("PronChallenge", "attempt=$attemptId Failed to create/start recognizer", e)
+                finishAttempt(attemptId, null, SpeechRecognizer.ERROR_CLIENT)
+            }
+        }
+        pendingStart = runnable
+        if (delayMs > 0) {
+            Log.d("PronChallenge", "attempt=$attemptId Scheduling start in ${delayMs}ms")
+            mainHandler.postDelayed(runnable, delayMs)
+        } else {
+            runnable.run()
+        }
+    }
+
+    private fun moveToWord(index: Int) {
+        if (currentMode != MODE_SESSION || currentJobState != JobState.IDLE || isLoadingWordState) return
+
+        // 予約済みの開始処理をキャンセル
+        pendingStart?.let { mainHandler.removeCallbacks(it) }
         speechRecognizer?.apply {
             cancel()
             destroy()
         }
-        
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
-            setRecognitionListener(ChallengeRecognitionListener(attemptId))
-            startListening(intent)
+        speechRecognizer = null
+
+        currentIndex = index.coerceIn(0, words.lastIndex)
+        Log.d("PronChallenge", "Moving to word index $currentIndex")
+        appSettings.pronChallengeIndex = currentIndex
+        appSettings.pronChallengeStatus = "IN_PROGRESS"
+        loadCurrentWord()
+    }
+
+    private fun handleSessionEnd() {
+        if (currentMode != MODE_SESSION || currentJobState != JobState.IDLE || isLoadingWordState) return
+
+        // DB確認中の連打を防ぐ。
+        isLoadingWordState = true
+        updateButtonStates()
+
+        lifecycleScope.launch {
+            try {
+                val ids = words.map { it.no.toLong() }
+                val results = withContext(Dispatchers.IO) {
+                    AppDatabase.getInstance(this@PronunciationChallengeActivity)
+                        .voiceCheckDao()
+                        .getResultsByIds(ids, "word")
+                }
+                val passedIds = results
+                    .filter { it.checked }
+                    .map { it.wordId }
+                    .toSet()
+                sessionPassedWordIds = passedIds
+
+                val firstUnclearedIndex = words.indexOfFirst { it.no.toLong() !in passedIds }
+                if (firstUnclearedIndex == -1) {
+                    isLoadingWordState = false
+                    showResult()
+                    return@launch
+                }
+
+                val unclearedCount = words.count { it.no.toLong() !in passedIds }
+                isLoadingWordState = false
+                updateButtonStates()
+                showIncompleteSessionDialog(unclearedCount, firstUnclearedIndex)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (t: Throwable) {
+                Log.e("PronChallenge", "Failed to check session completion", t)
+                isLoadingWordState = false
+                updateButtonStates()
+                Toast.makeText(
+                    this@PronunciationChallengeActivity,
+                    "セッション状態を確認できませんでした",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
+    }
+
+    private fun showIncompleteSessionDialog(unclearedCount: Int, firstUnclearedIndex: Int) {
+        AppDialogHelper.showPronunciationIncomplete(
+            context = this,
+            unclearedCount = unclearedCount,
+            onContinue = {
+                moveToWord(firstUnclearedIndex)
+            },
+            onLater = {
+                // セッションを終了
+                val failedIds = appSettings.currentPronunciationFailedIds
+                appSettings.deferredPronunciationIds = failedIds
+                appSettings.clearPronunciationChallenge()
+                
+                Toast.makeText(this, "セッションを終了しました。苦手な単語は少し間を空けて再出題します。", Toast.LENGTH_LONG).show()
+                finish()
+            },
+            onCancel = {
+                updateButtonStates()
+            }
+        )
     }
 
     private fun showResult() {
@@ -460,34 +655,42 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         binding.layoutSteps.visibility = View.GONE
         binding.btnNextWord.visibility = View.GONE
         binding.layoutResult.visibility = View.VISIBLE
-        
+
         lifecycleScope.launch {
             val db = AppDatabase.getInstance(this@PronunciationChallengeActivity)
             val ids = words.map { it.no.toLong() }
             val results = withContext(Dispatchers.IO) { db.voiceCheckDao().getAllResultsByIds(ids) }
-            
+
             val wordOkCount = ids.count { id -> results.any { it.wordId == id && it.checkType == "word" && it.checked } }
             val sentOkCount = ids.count { id -> results.any { it.wordId == id && it.checkType == "sentence" && it.checked } }
-            
+
             binding.textResultSummary.text = "単語 $wordOkCount / ${words.size} OK\n例文 $sentOkCount / ${words.size} OK"
             binding.textCpSummary.text = "例文は学習履歴からいつでも続けられます"
         }
     }
 
     private fun finishAttempt(attemptId: Int, matches: ArrayList<String>?, error: Int?) {
-        if (attemptId != activeAttemptId || isAttemptFinished) return
-        isAttemptFinished = true
+        if (attemptId != activeAttemptId || attemptId == finishedAttemptId) {
+            Log.d("PronChallenge", "attempt=$attemptId IGNORED finishAttempt (active=$activeAttemptId finished=$finishedAttemptId)")
+            return
+        }
+        finishedAttemptId = attemptId
 
         val capturedWord = words[currentIndex]
         val capturedType = currentRecognizingType
 
-        Log.d("PronChallenge", "attempt=$attemptId target=$capturedType state=$currentJobState callback=finishAttempt error=$error")
+        val errorName = error?.let { getErrorName(it) }
+        Log.d("PronChallenge", "attempt=$attemptId target=$capturedType state=$currentJobState callback=finishAttempt error=$errorName")
 
         if (error != null) {
             currentJobState = JobState.IDLE
-            if (capturedType == "word") wordStatus = ChallengeStatus.RETRYABLE else sentenceStatus = ChallengeStatus.RETRYABLE
+            if (capturedType == "word") {
+                wordStatus = if (wordHasEverPassed) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
+            } else {
+                sentenceStatus = if (sentenceHasEverPassed) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
+            }
             updateButtonStates()
-            
+
             val msg = when (error) {
                 SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "認識できませんでした。もう一度お試しください"
                 else -> "音声認識を開始できませんでした。もう一度お試しください"
@@ -505,44 +708,81 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         }
         val isSuccess = matchedCandidate != null
         val displayRecognized = matchedCandidate ?: matches?.firstOrNull() ?: ""
-        
-        currentJobState = JobState.IDLE
 
         lifecycleScope.launch {
-            if (isSuccess) {
-                soundEffectManager.playCorrect()
+            try {
                 withContext(Dispatchers.IO) {
-                    AppDatabase.getInstance(this@PronunciationChallengeActivity).voiceCheckDao().recordResult(capturedWord.no.toLong(), true, 0.9f, capturedType)
+                    AppDatabase.getInstance(this@PronunciationChallengeActivity)
+                        .voiceCheckDao()
+                        .recordResult(
+                            capturedWord.no.toLong(),
+                            isSuccess,
+                            if (isSuccess) 0.9f else 0.1f,
+                            capturedType
+                        )
                 }
-            } else {
-                soundEffectManager.playWrong()
-                // record failure attempt too
-                withContext(Dispatchers.IO) {
-                    AppDatabase.getInstance(this@PronunciationChallengeActivity).voiceCheckDao().recordResult(capturedWord.no.toLong(), false, 0.1f, capturedType)
-                }
-            }
 
-            if (capturedType == "word") {
-                // NEVER revert OK status to RETRYABLE
-                if (isSuccess || wordStatus != ChallengeStatus.OK) {
-                    wordStatus = if (isSuccess) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
-                }
-                
-                showRecognitionResult(binding.currentWordCard.textWordRecognitionResult, capturedWord.word, displayRecognized, isSuccess)
                 if (isSuccess) {
-                    binding.currentWordCard.textUnlockFeedback.visibility = View.VISIBLE
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        binding.currentWordCard.textUnlockFeedback.visibility = View.GONE
-                    }, 2000)
+                    soundEffectManager.playCorrect()
+                    if (currentMode == MODE_SESSION && capturedType == "word") {
+                        appSettings.currentPronunciationFailedIds = appSettings.currentPronunciationFailedIds - capturedWord.no.toLong()
+                    }
+                } else {
+                    soundEffectManager.playWrong()
+                    if (currentMode == MODE_SESSION && capturedType == "word") {
+                        appSettings.currentPronunciationFailedIds = appSettings.currentPronunciationFailedIds + capturedWord.no.toLong()
+                    }
                 }
-            } else {
-                if (isSuccess || sentenceStatus != ChallengeStatus.OK) {
-                    sentenceStatus = if (isSuccess) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
+
+                if (capturedType == "word") {
+                    if (isSuccess) {
+                        wordHasEverPassed = true
+                        sessionPassedWordIds = sessionPassedWordIds + capturedWord.no.toLong()
+                    }
+                    wordStatus = if (wordHasEverPassed) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
+
+                    showRecognitionResult(
+                        binding.currentWordCard.textWordRecognitionResult,
+                        capturedWord.word,
+                        displayRecognized,
+                        isSuccess
+                    )
+                    if (isSuccess) {
+                        binding.currentWordCard.textUnlockFeedback.visibility = View.VISIBLE
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            binding.currentWordCard.textUnlockFeedback.visibility = View.GONE
+                        }, 2000)
+                    }
+                } else {
+                    if (isSuccess) sentenceHasEverPassed = true
+                    sentenceStatus = if (sentenceHasEverPassed) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
+                    showRecognitionResult(
+                        binding.currentWordCard.textSentenceRecognitionResult,
+                        capturedWord.sentence,
+                        displayRecognized,
+                        isSuccess
+                    )
                 }
-                showRecognitionResult(binding.currentWordCard.textSentenceRecognitionResult, capturedWord.sentence, displayRecognized, isSuccess)
+
+                currentJobState = JobState.IDLE
+                updateButtonStates()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (t: Throwable) {
+                Log.e("PronChallenge", "Failed to save pronunciation result", t)
+                currentJobState = JobState.IDLE
+                if (capturedType == "word") {
+                    wordStatus = if (wordHasEverPassed) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
+                } else {
+                    sentenceStatus = if (sentenceHasEverPassed) ChallengeStatus.OK else ChallengeStatus.RETRYABLE
+                }
+                updateButtonStates()
+                Toast.makeText(
+                    this@PronunciationChallengeActivity,
+                    "発音結果を保存できませんでした",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            
-            updateButtonStates()
         }
     }
 
@@ -568,21 +808,23 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         }
         override fun onError(error: Int) {
             if (attemptId != activeAttemptId) {
-                Log.d("PronChallenge", "attempt=$attemptId IGNORED callback=onError code=$error")
+                Log.d("PronChallenge", "attempt=$attemptId IGNORED callback=onError code=$error (${getErrorName(error)})")
                 return
             }
-            Log.d("PronChallenge", "attempt=$attemptId state=$currentJobState callback=onError code=$error")
-            
+            val errorName = getErrorName(error)
+            Log.d("PronChallenge", "attempt=$attemptId state=$currentJobState callback=onError code=$error ($errorName)")
+
             // Client error or busy often happens when stopping previous session
             if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY || error == SpeechRecognizer.ERROR_CLIENT) {
-                // One-time internal retry if it's the active attempt and just starting
-                if (currentJobState == JobState.STARTING) {
-                    Log.w("PronChallenge", "attempt=$attemptId Internal retry due to BUSY/CLIENT error")
-                    startSpeechRecognition()
+                // One-time internal retry
+                if (internalRetryCount < 1) {
+                    internalRetryCount++
+                    Log.w("PronChallenge", "attempt=$attemptId Internal retry scheduled for $errorName")
+                    startSpeechRecognition(isInternalRetry = true)
                     return
                 }
             }
-            
+
             finishAttempt(attemptId, null, error)
         }
 
@@ -608,14 +850,27 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
         val resultPrefix = if (isSuccess) "一致: " else "違いあり: "
         val fullText = "$resultPrefix$recognized"
         val spannable = SpannableString(fullText)
-        
+
         val color = if (isSuccess) Color.parseColor("#1B7F3A") else Color.parseColor("#B3261E")
         spannable.setSpan(ForegroundColorSpan(color), 0, resultPrefix.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        
-        // Simple highlighting: if not success, color the whole recognized text differently? 
+
+        // Simple highlighting: if not success, color the whole recognized text differently?
         // Or just the prefix. For sentences, word-by-word diff would be better but complex.
         // Let's at least color the recognized part.
         textView.text = spannable
+    }
+
+    private fun getErrorName(error: Int): String = when (error) {
+        SpeechRecognizer.ERROR_AUDIO -> "ERROR_AUDIO"
+        SpeechRecognizer.ERROR_CLIENT -> "ERROR_CLIENT"
+        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "ERROR_INSUFFICIENT_PERMISSIONS"
+        SpeechRecognizer.ERROR_NETWORK -> "ERROR_NETWORK"
+        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "ERROR_NETWORK_TIMEOUT"
+        SpeechRecognizer.ERROR_NO_MATCH -> "ERROR_NO_MATCH"
+        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "ERROR_RECOGNIZER_BUSY"
+        SpeechRecognizer.ERROR_SERVER -> "ERROR_SERVER"
+        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "ERROR_SPEECH_TIMEOUT"
+        else -> "UNKNOWN($error)"
     }
 
     override fun onInit(status: Int) {
@@ -626,7 +881,12 @@ class PronunciationChallengeActivity : AppCompatActivity(), TextToSpeech.OnInitL
     }
 
     override fun onDestroy() {
-        speechRecognizer?.destroy()
+        pendingStart?.let { mainHandler.removeCallbacks(it) }
+        speechRecognizer?.apply {
+            cancel()
+            destroy()
+        }
+        speechRecognizer = null
         tts?.shutdown()
         soundEffectManager.release()
         super.onDestroy()

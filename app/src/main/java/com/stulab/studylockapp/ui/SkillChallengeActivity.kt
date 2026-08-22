@@ -130,7 +130,7 @@ class SkillChallengeActivity : AppCompatActivity() {
                 AppDialogHelper.showInfo(
                     context = this,
                     title = "発音チャレンジを開始できません",
-                    message = "発音チェックできる学習済み単語が3語に達していません。",
+                    message = "発音チャレンジに必要な単語が足りません。通常学習を進めてください。",
                     positiveText = "OK"
                 )
             }
@@ -322,13 +322,16 @@ class SkillChallengeViewModel(
 
         Log.d("SkillChallenge", "Pron Start attempt: CP=$currentCP, Status=$status, Index=$index, ActiveIdsCount=${activeIds?.size}")
 
-        // 再開判定
-        if (activeIds != null && activeIds.size == 3 && status == "IN_PROGRESS" && index < 3) {
+        // 再開判定 (件数3、重複なし、進行中、インデックス範囲内)
+        if (activeIds != null && activeIds.size == 3 && activeIds.distinct().size == 3 &&
+            status == "IN_PROGRESS" && index in 0..2) {
+            Log.d("SkillChallenge", "Resuming session: IDs=$activeIds, Index=$index")
             onResult(ChallengeStartResult.Success(activeIds, isResume = true))
             return
         }
 
-        // 不正なデータは掃除
+        // 不正なデータまたは終了済みの場合は掃除
+        Log.d("SkillChallenge", "Clearing session for new start. oldStatus=$status")
         appSettings.clearPronunciationChallenge()
 
         if (currentCP < 10) {
@@ -340,18 +343,18 @@ class SkillChallengeViewModel(
         viewModelScope.launch {
             try {
                 val words = repository.getPronunciationWords(appSettings.safeLearningGrade.toInt())
-                if (words.size < 3) {
+                val ids = words.map { it.no.toLong() }
+                Log.d("SkillChallenge", "Selected new words: count=${ids.size}, distinct=${ids.distinct().size}, IDs=$ids")
+
+                if (ids.size < 3) {
                     onResult(ChallengeStartResult.NoWordsAvailable)
                     refresh()
                     return@launch
                 }
-                val ids = words.map { it.no.toLong() }
                 
-                // Activity側で確認ダイアログを出すために、ここではまだ消費しない
-                // しかし、現在の設計では確定後に再度これを呼ぶ必要があるか？
-                // 案：Activity側で単語リストを取得してから、確定ボタンで「本当の開始」を呼ぶ
                 onResult(ChallengeStartResult.Success(ids, isResume = false))
             } catch (e: Exception) {
+                Log.e("SkillChallenge", "Error in startPronunciationChallenge", e)
                 onResult(ChallengeStartResult.Error)
                 refresh()
             }
@@ -433,7 +436,7 @@ class SkillChallengeViewModelFactory(private val context: android.content.Contex
         val appContext = context.applicationContext
         val cpManager = ChallengePointManager(appContext)
         val db = AppDatabase.getInstance(appContext)
-        val repository = ChallengeRepository(db)
+        val repository = ChallengeRepository(appContext, db)
         val appSettings = AppSettings(appContext)
         return SkillChallengeViewModel(appContext, cpManager, repository, appSettings) as T
     }

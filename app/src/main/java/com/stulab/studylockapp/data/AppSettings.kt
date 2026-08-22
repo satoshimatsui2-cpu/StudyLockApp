@@ -82,6 +82,8 @@ class AppSettings(context: Context) {
         private const val KEY_ACTIVE_PRON_CHALLENGE_IDS = "active_pron_challenge_ids"
         private const val KEY_PRON_CHALLENGE_INDEX = "pron_challenge_index"
         private const val KEY_PRON_CHALLENGE_STATUS = "pron_challenge_status"
+        private const val KEY_CURRENT_PRON_FAILED_IDS = "current_pron_failed_ids"
+        private const val KEY_DEFERRED_PRON_IDS = "deferred_pron_ids"
 
         private const val KEY_ACTIVE_SPELL_CHALLENGE_IDS = "active_spell_challenge_ids"
         private const val KEY_SPELL_CHALLENGE_INDEX = "spell_challenge_index"
@@ -120,16 +122,40 @@ class AppSettings(context: Context) {
             remove(KEY_ACTIVE_PRON_CHALLENGE_IDS)
             remove(KEY_PRON_CHALLENGE_INDEX)
             remove(KEY_PRON_CHALLENGE_STATUS)
+            remove(KEY_CURRENT_PRON_FAILED_IDS)
         }
     }
+
+    var currentPronunciationFailedIds: Set<Long>
+        get() = prefs.getString(KEY_CURRENT_PRON_FAILED_IDS, null)
+            ?.split(",")
+            ?.mapNotNull { it.trim().toLongOrNull() }
+            ?.toSet() ?: emptySet()
+        set(v) = prefs.edit {
+            if (v.isEmpty()) remove(KEY_CURRENT_PRON_FAILED_IDS)
+            else putString(KEY_CURRENT_PRON_FAILED_IDS, v.joinToString(","))
+        }
+
+    var deferredPronunciationIds: Set<Long>
+        get() = prefs.getString(KEY_DEFERRED_PRON_IDS, null)
+            ?.split(",")
+            ?.mapNotNull { it.trim().toLongOrNull() }
+            ?.toSet() ?: emptySet()
+        set(v) = prefs.edit {
+            if (v.isEmpty()) remove(KEY_DEFERRED_PRON_IDS)
+            else putString(KEY_DEFERRED_PRON_IDS, v.joinToString(","))
+        }
 
     var activePronunciationChallengeIds: List<Long>?
         get() = prefs.getString(KEY_ACTIVE_PRON_CHALLENGE_IDS, null)
             ?.split(",")
             ?.mapNotNull { it.trim().toLongOrNull() }
-            ?.takeIf { it.size == 3 }
+            ?.let { ids ->
+                // 件数と重複を厳密にチェック
+                if (ids.size == 3 && ids.distinct().size == 3) ids else null
+            }
         set(v) = prefs.edit { 
-            if (v == null) remove(KEY_ACTIVE_PRON_CHALLENGE_IDS) 
+            if (v == null || v.size != 3) remove(KEY_ACTIVE_PRON_CHALLENGE_IDS) 
             else putString(KEY_ACTIVE_PRON_CHALLENGE_IDS, v.joinToString(","))
         }
 
